@@ -6,8 +6,7 @@ using System.Threading.Tasks;
 
 namespace MortysDLP.Services
 {
-    internal class ServiceUpdate
+    internal class UpdateService
     {
-
     }
 }
