@@ -1,11 +1,21 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <AssemblyTitle>MortysDLP</AssemblyTitle>
+    <Product>MortysDLP</Product>
+    <Company>MORTYS WELT</Company>
+    <Copyright>Copyright © 2025</Copyright>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="Assets\" />
+    <Folder Include="Tools\" />
+    <Folder Include="Updater\" />
+  </ItemGroup>
 
 </Project>
