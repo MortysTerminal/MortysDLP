@@ -14,8 +14,18 @@
 
   <ItemGroup>
     <Folder Include="Assets\" />
-    <Folder Include="Tools\" />
-    <Folder Include="Updater\" />
+  </ItemGroup>
+  <ItemGroup>
+	<Content Include="Tools\**\*.*">
+	  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	</Content>
+  </ItemGroup>
+	
+
+  <ItemGroup>
+    <Content Include="Updater\**\*.*">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>
