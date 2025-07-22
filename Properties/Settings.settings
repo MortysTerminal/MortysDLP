@@ -1,0 +1,45 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="MortysDLP.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="CURRENTVERSION" Type="System.String" Scope="User">
+      <Value Profile="(Default)">2025.03.07</Value>
+    </Setting>
+    <Setting Name="DOWNLOADPATH" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="YTDLPPATH" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Tools\\yt-dlp.exe</Value>
+    </Setting>
+    <Setting Name="FFMPEGPATH" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Tools\\ffmpeg.exe</Value>
+    </Setting>
+    <Setting Name="FFPROBEPATH" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Tools\\ffprobe.exe</Value>
+    </Setting>
+    <Setting Name="ZEITSPANNE_VON" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="ZEITSPANNE_BIS" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="CHECKED_ERSTESEKUNDEN" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="CHECKED_VIDEOFORMAT" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="CHECKED_AUDIO_ONLY" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="CHECKED_ZEITSPANNE" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="ERSTESEKUNDEN_SEKUNDEN" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="SELECTED_AUDIO_FORMAT" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+  </Settings>
+</SettingsFile>

@@ -1,0 +1,58 @@
+﻿<Window x:Class="MortysDLP.StartupWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:MortysDLP"
+        xmlns:fa="http://schemas.fontawesome.io/icons/"
+        mc:Ignorable="d"
+        WindowStyle="None"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterScreen"
+        Width="450" Height="300"
+        Background="{x:Null}" 
+        AllowsTransparency="False"
+        ShowInTaskbar="True">
+    <Grid>
+        <Border CornerRadius="15"
+                Effect="{DynamicResource DropShadowEffect}"
+                Padding="0"
+                VerticalAlignment="Center"
+                HorizontalAlignment="Center">
+            <Grid Margin="0">
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="32">
+                    <!-- Logo -->
+                    <Border Width="72" Height="72" CornerRadius="36" Background="#FF2D313A" Margin="0,0,0,18" 
+                            Effect="{DynamicResource LogoShadow}">
+                        <Image x:Name="LogoImage" Width="48" Height="48" VerticalAlignment="Center" HorizontalAlignment="Center" Source="Assets/logo_placeholder.png"/>
+                    </Border>
+                    <!-- Überschrift -->
+                    <TextBlock x:Name="TitleText"
+                               Text="MortysDLP wird vorbereitet..."
+                               FontSize="22"
+                               FontWeight="SemiBold"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,10"/>
+                    <!-- Ladekreis -->
+                    <Grid Margin="0,0,0,18" HorizontalAlignment="Center">
+                        <fa:ImageAwesome Icon="Cog" Spin="True" Height="30" Width="30" SpinDuration="3"/>
+                        <!-- Alternativer Ladekreis 
+                        
+                        <Ellipse Width="44" Height="15" Stroke="#FF3A3F4B" StrokeThickness="6"/>
+                        <ProgressBar IsIndeterminate="True" Width="44" Height="15" Style="{DynamicResource ModernCircularProgressBar}" />
+                        
+                        -->
+                    </Grid>
+                    <!-- Statuszeile -->
+                    <TextBlock x:Name="StatusText"
+                               Text="Überprüfe Voraussetzungen..."
+                               FontSize="14"
+                               HorizontalAlignment="Center"
+                               TextAlignment="Center"
+                               TextWrapping="Wrap"
+                               Margin="0,0,0,0"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>
