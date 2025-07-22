@@ -41,5 +41,8 @@
     <Setting Name="SELECTED_AUDIO_FORMAT" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
+    <Setting Name="YTDLP_RELEASE_URL" Type="System.String" Scope="User">
+      <Value Profile="(Default)">https://api.github.com/repos/yt-dlp/yt-dlp/releases/latest</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

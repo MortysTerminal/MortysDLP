@@ -4,15 +4,17 @@ using System.IO;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace MortysDLP.Services
 {
     internal class YtDlpUpdateService
     {
-        private const string LatestReleaseApi = "https://api.github.com/repos/yt-dlp/yt-dlp/releases/latest";
-        private readonly HttpClient _httpClient;
+        private string LatestReleaseApi = Properties.Settings.Default.YTDLP_RELEASE_URL;
+        // Singleton-HttpClient für die gesamte Anwendung
+        private static readonly HttpClient _httpClient;
 
-        public YtDlpUpdateService()
+        static YtDlpUpdateService()
         {
             _httpClient = new HttpClient();
             _httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("MortysDLP-ToolUpdater");
@@ -80,8 +82,10 @@ namespace MortysDLP.Services
                 process.WaitForExit(3000); // max 3 Sekunden warten
                 return output?.Trim();
             }
-            catch
+            catch (Exception ex)
             {
+                // Logging einbauen, z.B. mit NLog, Serilog oder Debug.WriteLine
+                Debug.WriteLine($"Fehler beim Auslesen der lokalen Version: {ex}");
                 return null;
             }
         }
@@ -102,25 +106,7 @@ namespace MortysDLP.Services
 
         public async Task DownloadAssetAsync(string url, string targetPath, IProgress<double>? progress = null)
         {
-            using var response = await _httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
-            response.EnsureSuccessStatusCode();
-
-            var total = response.Content.Headers.ContentLength ?? -1L;
-            var canReportProgress = total != -1 && progress != null;
-
-            using var stream = await response.Content.ReadAsStreamAsync();
-            using var fileStream = new FileStream(targetPath, FileMode.Create, FileAccess.Write, FileShare.None);
-
-            var buffer = new byte[81920];
-            long totalRead = 0;
-            int read;
-            while ((read = await stream.ReadAsync(buffer, 0, buffer.Length)) > 0)
-            {
-                await fileStream.WriteAsync(buffer, 0, read);
-                totalRead += read;
-                if (canReportProgress)
-                    progress!.Report((double)totalRead / total);
-            }
+            await ToolDownloadHelper.DownloadAssetAsync(_httpClient, url, targetPath, progress);
         }
     }
 }
