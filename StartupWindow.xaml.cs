@@ -57,7 +57,10 @@ namespace MortysDLP
                 "yt-dlp",
                 "yt-dlp.exe");
 
-            await CheckAndDownloadFfmpegAndFfprobeAsync();
+            await CheckAndDownloadFfmpegAndFfprobeAsync(
+                ffmpegService,
+                ffmpegPath,
+                ffprobePath);
 
             // Existenz prüfen
             bool ytDlpExists = ytDlpService.ToolExists(ytDlpPath);
@@ -176,12 +179,8 @@ namespace MortysDLP
             }
         }
 
-        private async Task CheckAndDownloadFfmpegAndFfprobeAsync()
+        private async Task CheckAndDownloadFfmpegAndFfprobeAsync(dynamic service, string ffmpegPath, string ffprobePath)
         {
-            string ffmpegPath = "Tools\\ffmpeg.exe";
-            string ffprobePath = "Tools\\ffprobe.exe";
-            var service = new FfmpegUpdateService();
-
             bool ffmpegExists = service.FfmpegExists(ffmpegPath);
             bool ffprobeExists = service.FfprobeExists(ffprobePath);
 

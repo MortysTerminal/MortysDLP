@@ -178,5 +178,17 @@ namespace MortysDLP.Properties {
                 this["SELECTED_AUDIO_FORMAT"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("https://api.github.com/repos/yt-dlp/yt-dlp/releases/latest")]
+        public string YTDLP_RELEASE_URL {
+            get {
+                return ((string)(this["YTDLP_RELEASE_URL"]));
+            }
+            set {
+                this["YTDLP_RELEASE_URL"] = value;
+            }
+        }
     }
 }
