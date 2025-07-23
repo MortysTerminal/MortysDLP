@@ -1,8 +1,8 @@
 ﻿using System.Windows;
-using System.Threading.Tasks;
 using MortysDLP.Services;
-using System.Runtime.CompilerServices;
-using System.Drawing;
+using MortysDLP.Properties;
+using System.Diagnostics;
+using System.IO;
 
 namespace MortysDLP
 {
@@ -12,8 +12,7 @@ namespace MortysDLP
     public partial class App : Application
     {
         // Aktuelle Version aus den Einstellungen (value: latest = Update Skip ; For DEBUGGING!)
-        // "2025.07.02"
-        private string currentVersion = "latest";
+        private string currentVersion = Settings.Default.CURRENTVERSION;
 
         /* 
          * DEBUG
@@ -89,16 +88,26 @@ namespace MortysDLP
             var (latestVersion, assetUrl) = await updateService.GetLatestReleaseInfoAsync();
 
             // ZIP-Datei im Temp-Ordner speichern
-            string tempZipPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "MortysDLP.zip");
+            string tempZipPath = Path.Combine(Path.GetTempPath(), "MortysDLP_Update.zip");
             await updateService.DownloadAssetAsync(assetUrl, tempZipPath);
 
-            // Updater starten und App beenden
-            string updaterPath = System.IO.Path.Combine("Updater", "MortysDLP-Updater.exe");
+            // Updater in ein temporäres Verzeichnis kopieren (rekursiv, inkl. aller Dateien und Unterordner)
+            string sourceUpdaterDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Updater");
+            string tempUpdaterDir = Path.Combine(Path.GetTempPath(), "MortysDLP-Updater");
+            CopyDirectory(sourceUpdaterDir, tempUpdaterDir);
+
+            // Argumente: <MainExeName> <ZipPath> <TargetDir>
             string mainExeName = "MortysDLP.exe";
-            string arguments = $"\"{mainExeName}\" \"{tempZipPath}\"";
-            System.Diagnostics.Process.Start(updaterPath, arguments);
+            string arguments = $"\"{mainExeName}\" \"{tempZipPath}\" \"{AppDomain.CurrentDomain.BaseDirectory}\"";
+
+            // Updater starten und App beenden
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = Path.Combine(tempUpdaterDir, "MortysDLP-Updater.exe"),
+                Arguments = arguments,
+                UseShellExecute = false
+            });
             Shutdown();
-            return;
         }
 
         public async Task<bool> UpdateAvailable(string currentVersion)
@@ -128,6 +137,22 @@ namespace MortysDLP
             if(delay != skipdelay)
             {
                 await Task.Delay(delay); // DEBUG
+            }
+        }
+
+        // Hilfsmethode für rekursives Kopieren
+        static void CopyDirectory(string sourceDir, string targetDir)
+        {
+            Directory.CreateDirectory(targetDir);
+            foreach (var file in Directory.GetFiles(sourceDir))
+            {
+                string destFile = Path.Combine(targetDir, Path.GetFileName(file));
+                File.Copy(file, destFile, true);
+            }
+            foreach (var dir in Directory.GetDirectories(sourceDir))
+            {
+                string destDir = Path.Combine(targetDir, Path.GetFileName(dir));
+                CopyDirectory(dir, destDir);
             }
         }
     }
