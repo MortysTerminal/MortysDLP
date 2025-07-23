@@ -10,38 +10,39 @@
         MinHeight="200"
         WindowStartupLocation="CenterOwner">
     <Grid Margin="7">
-        <StackPanel>
-            <ListBox x:Name="HistoryList" Margin="10">
-                <ListBox.ItemTemplate>
-                    <DataTemplate>
-                        <StackPanel Margin="0,4">
-                            <TextBlock Text="{Binding Title}" FontWeight="Bold" FontSize="14"/>
-                            <TextBlock Text="{Binding Url}" FontSize="12" Margin="0,2,0,0"/>
-                            <TextBlock Text="{Binding DownloadedAt, StringFormat='{}{0:dd.MM.yyyy HH:mm}'}"
-                                       FontSize="11" Margin="0,2,0,0"/>
-                        </StackPanel>
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
-            </ListBox>
-            <StackPanel Orientation="Horizontal" Margin="10">
-                <StackPanel.Style>
-                    <Style TargetType="StackPanel">
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding ElementName=HistoryList, Path=Items.Count}" Value="0">
-                                <Setter Property="Visibility" Value="Collapsed"/>
-                            </DataTrigger>
-                            <DataTrigger Binding="{Binding ElementName=HistoryList, Path=Items.Count}" Value="1">
-                                <Setter Property="Visibility" Value="Visible"/>
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </StackPanel.Style>
-                <Button Name="ReuseButton" Content="Neu verwenden" Click="Reuse_Click" />
-                <Button Name="ClearButton" Content="Historie leeren" Click="Clear_Click" Margin="7"/>
-            </StackPanel>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <ListBox x:Name="HistoryList" Margin="10" Grid.Row="0">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Margin="0,4">
+                        <TextBlock Text="{Binding Title}" FontWeight="Bold" FontSize="14"/>
+                        <TextBlock Text="{Binding Url}" FontSize="12" Margin="0,2,0,0"/>
+                        <TextBlock Text="{Binding DownloadedAt, StringFormat='{}{0:dd.MM.yyyy HH:mm}'}"
+                                   FontSize="11" Margin="0,2,0,0"/>
+                    </StackPanel>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+
+        <StackPanel Orientation="Horizontal" Margin="10" Grid.Row="1" HorizontalAlignment="Right">
+            <StackPanel.Style>
+                <Style TargetType="StackPanel">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding ElementName=HistoryList, Path=Items.Count}" Value="0">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </StackPanel.Style>
+            <Button Name="ReuseButton" Content="Neu verwenden" Click="Reuse_Click" />
+            <Button Name="ClearButton" Content="Historie leeren" Click="Clear_Click" Margin="7"/>
         </StackPanel>
-        
-        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+
+        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Grid.RowSpan="2">
             <TextBlock x:Name="EmptyText"
                Text="Keine Historie vorhanden"
                FontSize="18"
