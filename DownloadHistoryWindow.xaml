@@ -5,24 +5,55 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MortysDLP"
         mc:Ignorable="d"
-        Title="DownloadHistoryWindow" Height="350" Width="800"
+        Title="MortysDLP - Download Historie"
+        MinWidth="400"
+        MinHeight="200"
         WindowStartupLocation="CenterOwner">
     <Grid Margin="7">
-        
         <StackPanel>
-            <ListBox x:Name="HistoryList" DisplayMemberPath="Title" />
-            <StackPanel Orientation="Horizontal">
+            <ListBox x:Name="HistoryList" Margin="10">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Margin="0,4">
+                            <TextBlock Text="{Binding Title}" FontWeight="Bold" FontSize="14"/>
+                            <TextBlock Text="{Binding Url}" FontSize="12" Margin="0,2,0,0"/>
+                            <TextBlock Text="{Binding DownloadedAt, StringFormat='{}{0:dd.MM.yyyy HH:mm}'}"
+                                       FontSize="11" Margin="0,2,0,0"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+            <StackPanel Orientation="Horizontal" Margin="10">
+                <StackPanel.Style>
+                    <Style TargetType="StackPanel">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding ElementName=HistoryList, Path=Items.Count}" Value="0">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding ElementName=HistoryList, Path=Items.Count}" Value="1">
+                                <Setter Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </StackPanel.Style>
                 <Button Name="ReuseButton" Content="Neu verwenden" Click="Reuse_Click" />
-                <Button Name="ClearButton" Content="History leeren" Click="Clear_Click" Margin="7"/>
+                <Button Name="ClearButton" Content="Historie leeren" Click="Clear_Click" Margin="7"/>
             </StackPanel>
         </StackPanel>
         
-        <TextBlock x:Name="EmptyText"
-           Text="Keine History vorhanden"
-           FontSize="18"
-           Foreground="Gray"
-           HorizontalAlignment="Center"
-           VerticalAlignment="Center"
-           Visibility="Collapsed"/>
+        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+            <TextBlock x:Name="EmptyText"
+               Text="Keine Historie vorhanden"
+               FontSize="18"
+               HorizontalAlignment="Center"
+               Visibility="Collapsed"/>
+            <TextBlock x:Name="InfoText"
+               Text="Hier ist noch gähnende Leere... Aber keine Sorge: Deine nächsten Downloads landen alle hier und warten nur darauf, von dir wiederverwendet zu werden!"
+               FontSize="13"
+               Margin="0,10,0,0"
+               HorizontalAlignment="Center"
+               TextAlignment="Center"
+               Visibility="Collapsed"/>
+        </StackPanel>
     </Grid>
 </Window>

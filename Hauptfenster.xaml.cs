@@ -1,20 +1,9 @@
-﻿using System;
-using System.Text;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using MortysDLP.Models;
+﻿using MortysDLP.Models;
 using MortysDLP.Services;
 using System.Diagnostics;
-using System.Threading.Tasks;
-using System.IO.Compression;
-using System.Threading;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
 
 namespace MortysDLP
 {
@@ -25,9 +14,10 @@ namespace MortysDLP
     {
         private CancellationTokenSource _downloadCancellationTokenSource;
         private Task _downloadTask;
+        private double _lastProgress = 0;
         private Process _ytDlpProcess;
 
-        private double _lastProgress = 0; // Feld für letzten Fortschritt
+        // Feld für letzten Fortschritt
 
         public Hauptfenster()
         {
@@ -37,7 +27,6 @@ namespace MortysDLP
             //SetzeDownloadPfadInEinstellungen();
             InitializeComponent();
             EinstellungenLaden();
-            
 
             btn_download_starten.IsEnabled = !string.IsNullOrWhiteSpace(tb_URL.Text);
 
@@ -45,97 +34,51 @@ namespace MortysDLP
             this.Title = "MortysDLP - (" + Properties.Settings.Default.CURRENTVERSION + ")";
         }
 
-        private void EinstellungenLaden()
+        public enum StatusIconType
         {
-            SetzeDownloadPfadInEinstellungen();
-
-            if (Properties.Settings.Default.CHECKED_ZEITSPANNE)
-            {
-                tb_zeitspanne_von.Text = Properties.Settings.Default.ZEITSPANNE_VON;
-                tb_zeitspanne_bis.Text = Properties.Settings.Default.ZEITSPANNE_BIS;
-            }
-            else
-            {
-                tb_zeitspanne_von.Text = "";
-                tb_zeitspanne_bis.Text = "";
-            }
-
-            if (Properties.Settings.Default.CHECKED_ERSTESEKUNDEN)
-            {
-                tb_ErsteSekunden_Sekunden.Text = Properties.Settings.Default.ERSTESEKUNDEN_SEKUNDEN;
-            }
-            else
-            {
-                tb_ErsteSekunden_Sekunden.Text = "";
-            }
-
-
-            cb_Zeitspanne.IsChecked = Properties.Settings.Default.CHECKED_ZEITSPANNE;
-            cb_ErsteSekunden.IsChecked = Properties.Settings.Default.CHECKED_ERSTESEKUNDEN;
-            cb_Videoformat.IsChecked = Properties.Settings.Default.CHECKED_VIDEOFORMAT;
-            cb_AudioOnly.IsChecked = Properties.Settings.Default.CHECKED_AUDIO_ONLY;
-
-            if (Properties.Settings.Default.CHECKED_AUDIO_ONLY)
-            {
-                SelectAudioFormat(Properties.Settings.Default.SELECTED_AUDIO_FORMAT);
-            }
-
-            // Downloadpfad einfuegen in TextBox
-            //tb_downloadpath.Text = downloadspath;
+            None,
+            Loading,
+            Success,
+            Error
         }
 
-        private void EinstellungenSpeichern(object sender, RoutedEventArgs e)
+        private void AppendOutput(string text)
         {
-            // Lade Zustaende aus Form
-            
-            string? tempdownloadpath = lbl_downloadpath.Content.ToString();
-            bool cb_ErsteSekundenChecked = false;
-            bool cb_VideoformatChecked = false;
-            bool cb_ZeitspanneChecked = false;
-            bool cb_AudioOnlyChecked = false;
-            string tb_AudioOnly_Text = "";
-            string tb_Von_Text = "";
-            string tb_Bis_Text = "";
-            string tb_ErsteSekunden_Text = "";
-            if (cb_Zeitspanne.IsChecked == true)
+            Dispatcher.Invoke(() =>
             {
-                cb_ZeitspanneChecked = true;
-                tb_Von_Text = tb_zeitspanne_von.Text;
-                tb_Bis_Text = tb_zeitspanne_bis.Text;
-            }
+                OutputTextBox.AppendText($"{text}{Environment.NewLine}");
+                OutputTextBox.ScrollToEnd(); // Automatisch nach unten scrollen
+            });
+        }
 
-            if (cb_ErsteSekunden.IsChecked == true)
-            {
-                cb_ErsteSekundenChecked = true;
-                tb_ErsteSekunden_Text = tb_ErsteSekunden_Sekunden.Text;
-            }
-            if (cb_Videoformat.IsChecked == true) cb_VideoformatChecked = true;
-
+        private void AudioOnlyAnpassen()
+        {
             if (cb_AudioOnly.IsChecked == true)
             {
-                cb_AudioOnlyChecked = true;
-                tb_AudioOnly_Text = GetSelectedAudioFormat();
-            }
+                //txt_AudioOnly_info.Foreground = Brushes.Black;
+                txt_AudioOnly_info.IsEnabled = true;
+                AudioFormatComboBox.IsReadOnly = false;
+                AudioFormatComboBox.IsEnabled = true;
 
-            var Result = System.Windows.MessageBox.Show("Sollen die Einstellungen für den nächsten Programmstart gespeichert werden?", "Einstellunge abspeichern?", System.Windows.MessageBoxButton.YesNo, MessageBoxImage.Question);
-
-            if (Result == System.Windows.MessageBoxResult.Yes)
-            {
-                Properties.Settings.Default.CHECKED_ZEITSPANNE = cb_ZeitspanneChecked;
-                Properties.Settings.Default.ZEITSPANNE_VON = tb_Von_Text;
-                Properties.Settings.Default.ZEITSPANNE_BIS = tb_Bis_Text;
-                Properties.Settings.Default.CHECKED_ERSTESEKUNDEN = cb_ErsteSekundenChecked;
-                Properties.Settings.Default.ERSTESEKUNDEN_SEKUNDEN = tb_ErsteSekunden_Text;
-                Properties.Settings.Default.CHECKED_VIDEOFORMAT = cb_VideoformatChecked;
-                Properties.Settings.Default.DOWNLOADPATH = tempdownloadpath;
-                Properties.Settings.Default.CHECKED_AUDIO_ONLY = cb_AudioOnlyChecked;
-                Properties.Settings.Default.SELECTED_AUDIO_FORMAT = tb_AudioOnly_Text;
-                Properties.Settings.Default.Save();
-                System.Windows.MessageBox.Show("Einstellungen gespeichert");
+                cb_Videoformat.IsEnabled = false;
             }
-            else if (Result == System.Windows.MessageBoxResult.No)
+            else
             {
-                //Environment.Exit(0);
+                //txt_AudioOnly_info.Foreground = Brushes.Silver;
+                txt_AudioOnly_info.IsEnabled = false;
+                AudioFormatComboBox.IsReadOnly = true;
+                AudioFormatComboBox.IsEnabled = false;
+
+                cb_Videoformat.IsEnabled = true;
+            }
+        }
+
+        private void AudioOnlyVideoSchnittWorkaround()
+        {
+            if (cb_AudioOnly.IsChecked == true && cb_Videoformat.IsChecked == true)
+            {
+                cb_AudioOnly.IsChecked = false;
+                cb_Videoformat.IsChecked = false;
             }
         }
 
@@ -201,6 +144,47 @@ namespace MortysDLP
             return ba_Args;
         }
 
+        private void cbAudioOnlyCheck(object sender, RoutedEventArgs e)
+        {
+            AudioOnlyAnpassen();
+        }
+
+        private void cbErsteSekundenCheck(object sender, RoutedEventArgs e)
+        {
+            ErsteSekundenAnpassen();
+        }
+
+        private void cbVideoFormatCheck(object sender, RoutedEventArgs e)
+        {
+            VideoSchnittFormatAnpassen();
+        }
+
+        private void cbZeitspanneCheck(object sender, RoutedEventArgs e)
+        {
+            ZeitspanneAnpassen();
+        }
+
+        private void CloseMenu_Click(object sender, RoutedEventArgs e)
+        {
+            Application.Current.Shutdown();
+        }
+
+        private void DownloadAbbrechen_Click(object sender, RoutedEventArgs e)
+        {
+            btn_download_abbrechen.IsEnabled = false;
+            _downloadCancellationTokenSource?.Cancel();
+            // Prozess ggf. direkt beenden (optional, falls nicht im Thread überwacht)
+            _ytDlpProcess?.Kill(true);
+            UpdateProgress(0);
+        }
+
+        private void DownloadPathMenu_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = new DownloadPathDialog();
+            dialog.Owner = this;
+            dialog.ShowDialog();
+        }
+
         private async void DownloadStarten_Click(object sender, RoutedEventArgs e)
         {
             OutputTextBox.Clear();
@@ -213,6 +197,14 @@ namespace MortysDLP
             UpdateProgress(0);
             SetStatusIcon(StatusIconType.Loading);
             DownloadStatusText.Text = "Lädt";
+
+            // --- NEU: History-Eintrag sofort anlegen ---
+            string url = tb_URL.Text;
+            string ytDlpPath = Properties.Settings.Default.YTDLPPATH;
+            string title = GetVideoTitle(ytDlpPath, url);
+            string downloadDir = lbl_downloadpath.Content?.ToString() ?? "";
+            NachFertigemDownload(url, title, downloadDir);
+            // --- ENDE NEU ---
 
             _downloadCancellationTokenSource = new CancellationTokenSource();
             var token = _downloadCancellationTokenSource.Token;
@@ -256,6 +248,219 @@ namespace MortysDLP
                 ZeitspanneAnpassen();
                 // sp_Ladebalken.Visibility = Visibility.Hidden;
             }
+        }
+
+        private void EinstellungenLaden()
+        {
+            SetzeDownloadPfadInEinstellungen();
+
+            if (Properties.Settings.Default.CHECKED_ZEITSPANNE)
+            {
+                tb_zeitspanne_von.Text = Properties.Settings.Default.ZEITSPANNE_VON;
+                tb_zeitspanne_bis.Text = Properties.Settings.Default.ZEITSPANNE_BIS;
+            }
+            else
+            {
+                tb_zeitspanne_von.Text = "";
+                tb_zeitspanne_bis.Text = "";
+            }
+
+            if (Properties.Settings.Default.CHECKED_ERSTESEKUNDEN)
+            {
+                tb_ErsteSekunden_Sekunden.Text = Properties.Settings.Default.ERSTESEKUNDEN_SEKUNDEN;
+            }
+            else
+            {
+                tb_ErsteSekunden_Sekunden.Text = "";
+            }
+
+            cb_Zeitspanne.IsChecked = Properties.Settings.Default.CHECKED_ZEITSPANNE;
+            cb_ErsteSekunden.IsChecked = Properties.Settings.Default.CHECKED_ERSTESEKUNDEN;
+            cb_Videoformat.IsChecked = Properties.Settings.Default.CHECKED_VIDEOFORMAT;
+            cb_AudioOnly.IsChecked = Properties.Settings.Default.CHECKED_AUDIO_ONLY;
+
+            if (Properties.Settings.Default.CHECKED_AUDIO_ONLY)
+            {
+                SelectAudioFormat(Properties.Settings.Default.SELECTED_AUDIO_FORMAT);
+            }
+
+            // Downloadpfad einfuegen in TextBox
+            //tb_downloadpath.Text = downloadspath;
+        }
+
+        private void EinstellungenSpeichern(object sender, RoutedEventArgs e)
+        {
+            // Lade Zustaende aus Form
+
+            string? tempdownloadpath = lbl_downloadpath.Content.ToString();
+            bool cb_ErsteSekundenChecked = false;
+            bool cb_VideoformatChecked = false;
+            bool cb_ZeitspanneChecked = false;
+            bool cb_AudioOnlyChecked = false;
+            string tb_AudioOnly_Text = "";
+            string tb_Von_Text = "";
+            string tb_Bis_Text = "";
+            string tb_ErsteSekunden_Text = "";
+            if (cb_Zeitspanne.IsChecked == true)
+            {
+                cb_ZeitspanneChecked = true;
+                tb_Von_Text = tb_zeitspanne_von.Text;
+                tb_Bis_Text = tb_zeitspanne_bis.Text;
+            }
+
+            if (cb_ErsteSekunden.IsChecked == true)
+            {
+                cb_ErsteSekundenChecked = true;
+                tb_ErsteSekunden_Text = tb_ErsteSekunden_Sekunden.Text;
+            }
+            if (cb_Videoformat.IsChecked == true) cb_VideoformatChecked = true;
+
+            if (cb_AudioOnly.IsChecked == true)
+            {
+                cb_AudioOnlyChecked = true;
+                tb_AudioOnly_Text = GetSelectedAudioFormat();
+            }
+
+            var Result = System.Windows.MessageBox.Show("Sollen die Einstellungen für den nächsten Programmstart gespeichert werden?", "Einstellunge abspeichern?", System.Windows.MessageBoxButton.YesNo, MessageBoxImage.Question);
+
+            if (Result == System.Windows.MessageBoxResult.Yes)
+            {
+                Properties.Settings.Default.CHECKED_ZEITSPANNE = cb_ZeitspanneChecked;
+                Properties.Settings.Default.ZEITSPANNE_VON = tb_Von_Text;
+                Properties.Settings.Default.ZEITSPANNE_BIS = tb_Bis_Text;
+                Properties.Settings.Default.CHECKED_ERSTESEKUNDEN = cb_ErsteSekundenChecked;
+                Properties.Settings.Default.ERSTESEKUNDEN_SEKUNDEN = tb_ErsteSekunden_Text;
+                Properties.Settings.Default.CHECKED_VIDEOFORMAT = cb_VideoformatChecked;
+                Properties.Settings.Default.DOWNLOADPATH = tempdownloadpath;
+                Properties.Settings.Default.CHECKED_AUDIO_ONLY = cb_AudioOnlyChecked;
+                Properties.Settings.Default.SELECTED_AUDIO_FORMAT = tb_AudioOnly_Text;
+                Properties.Settings.Default.Save();
+                System.Windows.MessageBox.Show("Einstellungen gespeichert");
+            }
+            else if (Result == System.Windows.MessageBoxResult.No)
+            {
+                //Environment.Exit(0);
+            }
+        }
+
+        private void ErsteSekundenAnpassen()
+        {
+            //if(cb_Zeitspanne.IsChecked == true)
+            //{
+            //    cb_ErsteSekunden.IsEnabled = false;
+            //}
+
+            if (cb_ErsteSekunden.IsChecked == true)
+            {
+                //txt_ErsteSekunden_info1.Foreground = Brushes.Black;
+                //txt_ErsteSekunden_info2.Foreground = Brushes.Black;
+                tb_ErsteSekunden_Sekunden.IsEnabled = true;
+                tb_ErsteSekunden_Sekunden.IsReadOnly = false;
+                cb_Zeitspanne.IsEnabled = false;
+            }
+            else
+            {
+                //txt_ErsteSekunden_info1.Foreground = Brushes.Silver;
+                //txt_ErsteSekunden_info2.Foreground = Brushes.Silver;
+                tb_ErsteSekunden_Sekunden.IsEnabled = false;
+                tb_ErsteSekunden_Sekunden.IsReadOnly = true;
+                cb_Zeitspanne.IsEnabled = true;
+            }
+        }
+
+        private string GetSelectedAudioFormat()
+        {
+            if (!Dispatcher.CheckAccess())
+            {
+                // Wenn nicht im UI-Thread, dann Dispatcher verwenden
+                return Dispatcher.Invoke(() => GetSelectedAudioFormat());
+            }
+
+            if (AudioFormatComboBox.SelectedItem is ComboBoxItem selectedItem)
+            {
+                return selectedItem.Content.ToString();
+            }
+            else
+            {
+                return "mp3";
+            }
+        }
+
+        private string GetVideoTitle(string ytDlpPath, string url)
+        {
+            var psi = new ProcessStartInfo
+            {
+                FileName = ytDlpPath,
+                Arguments = $"--get-title \"{url}\"",
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+            using var process = Process.Start(psi);
+            string title = process.StandardOutput.ReadLine();
+            process.WaitForExit();
+            return title ?? "";
+        }
+
+        private void History_Click(object sender, RoutedEventArgs e)
+        {
+            var win = new DownloadHistoryWindow();
+            win.Owner = this;
+            win.ShowDialog();
+        }
+
+        private void NachFertigemDownload(string url, string title, string downloaddirectory)
+        {
+            // Hier die Logik nach dem erfolgreichen Download einfügen
+            DownloadHistoryService.Add(new DownloadHistoryEntry
+            {
+                Url = url,
+                Title = title,
+                DownloadDirectory = downloaddirectory,
+                DownloadedAt = DateTime.Now
+            });
+        }
+
+        private void OpenGitHub_Click(object sender, RoutedEventArgs e)
+        {
+            string url = "https://github.com/MortysTerminal/MortysDLP";
+            try
+            {
+                ProcessStartInfo psi = new ProcessStartInfo
+                {
+                    FileName = url,
+                    UseShellExecute = true
+                };
+                Process.Start(psi);
+            }
+            catch
+            {
+                MessageBox.Show("Der Browser konnte nicht geöffnet werden.", "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private double? ParseYtDlpProgress(string line, out double? speedMBs)
+        {
+            speedMBs = null;
+            if (line.StartsWith("[download]"))
+            {
+                // Prozent extrahieren
+                var percentMatch = System.Text.RegularExpressions.Regex.Match(line, @"\s(\d{1,3}(?:\.\d+)?)%");
+                // Geschwindigkeit extrahieren (z.B. "at   20.67MiB/s")
+                var speedMatch = System.Text.RegularExpressions.Regex.Match(line, @"at\s+([\d\.]+)MiB/s");
+
+                if (speedMatch.Success && double.TryParse(speedMatch.Groups[1].Value, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double speed))
+                {
+                    speedMBs = speed;
+                }
+
+                if (percentMatch.Success && double.TryParse(percentMatch.Groups[1].Value, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double percent))
+                {
+                    return percent;
+                }
+            }
+            return null;
         }
 
         private void RunYtDlpAsync(string YtDlpPath, string arguments, CancellationToken token)
@@ -361,39 +566,6 @@ namespace MortysDLP
             }
         }
 
-        private void UpdateProgress(double percent, bool isError = false, double? speedMBs = null)
-        {
-            Dispatcher.Invoke(() =>
-            {
-                _lastProgress = percent;
-                DownloadProgressBar.Value = percent;
-                if (isError)
-                {
-                    DownloadProgressBar.Foreground = new SolidColorBrush(Colors.Red);
-                    DownloadProgressText.Text = "Fehler";
-                }
-                else
-                {
-                    string speedText = speedMBs.HasValue ? $" ({speedMBs.Value:F2} MB/s)" : "";
-                    DownloadProgressBar.Foreground = new SolidColorBrush(Colors.SteelBlue);
-                    DownloadProgressText.Text = $"{percent:F1} % {speedText}";
-                }
-            });
-        }
-
-        private void SetzeDownloadPfadInEinstellungen()
-        {
-            // Prüfe, ob der gespeicherte Downloadpfad existiert und gültig ist
-            string gespeicherterPfad = Properties.Settings.Default.DOWNLOADPATH;
-            if (string.IsNullOrEmpty(gespeicherterPfad) || !System.IO.Directory.Exists(gespeicherterPfad))
-            {
-                // Fallback: KnownFolder Downloads verwenden
-                string downloadsFolder = KnownFolders.GetPath(KnownFolder.Downloads);
-                Properties.Settings.Default.DOWNLOADPATH = downloadsFolder.ToString();
-                Properties.Settings.Default.Save();
-            }
-        }
-
         private void SelectAudioFormat(string savedFormat)
         {
             // Angenommener gespeichterter Wert
@@ -427,63 +599,83 @@ namespace MortysDLP
             }
         }
 
-        private void topBar_Info_Click(object sender, RoutedEventArgs e)
+        private void SetStatusIcon(StatusIconType type)
         {
-        }
-
-        private void cbZeitspanneCheck(object sender, RoutedEventArgs e)
-        {
-            ZeitspanneAnpassen();
-        }
-
-        private void cbErsteSekundenCheck(object sender, RoutedEventArgs e)
-        {
-            ErsteSekundenAnpassen();
-        }
-
-        private void cbAudioOnlyCheck(object sender, RoutedEventArgs e)
-        {
-            AudioOnlyAnpassen();
-        }
-
-        private void cbVideoFormatCheck(object sender, RoutedEventArgs e)
-        {
-            VideoSchnittFormatAnpassen();
-        }
-
-        private void DownloadPathMenu_Click(object sender, RoutedEventArgs e)
-        {
-            var dialog = new DownloadPathDialog();
-            dialog.Owner = this;
-            dialog.ShowDialog();
-        }
-
-        private void CloseMenu_Click(object sender, RoutedEventArgs e)
-        {
-            Application.Current.Shutdown();
-        }
-
-        private void OpenGitHub_Click(object sender, RoutedEventArgs e)
-        {
-            string url = "https://github.com/MortysTerminal/MortysDLP";
-            try
+            Dispatcher.Invoke(() =>
             {
-                ProcessStartInfo psi = new ProcessStartInfo
+                StatusIcon.Spin = false; // Standard: keine Animation
+
+                switch (type)
                 {
-                    FileName = url,
-                    UseShellExecute = true
-                };
-                Process.Start(psi);
-            }
-            catch
+                    case StatusIconType.Loading:
+                        StatusIcon.Icon = FontAwesome.WPF.FontAwesomeIcon.Spinner;
+                        StatusIcon.Spin = true; // Animation aktivieren
+                        StatusIcon.Foreground = new SolidColorBrush(Colors.SteelBlue);
+                        break;
+
+                    case StatusIconType.Success:
+                        StatusIcon.Icon = FontAwesome.WPF.FontAwesomeIcon.CheckCircle;
+                        StatusIcon.Foreground = new SolidColorBrush(Colors.Green);
+                        break;
+
+                    case StatusIconType.Error:
+                        StatusIcon.Icon = FontAwesome.WPF.FontAwesomeIcon.TimesCircle;
+                        StatusIcon.Foreground = new SolidColorBrush(Colors.Red);
+                        break;
+
+                    default:
+                        StatusIcon.Icon = FontAwesome.WPF.FontAwesomeIcon.None;
+                        break;
+                }
+            });
+        }
+
+        private void SetUiEnabled(bool enabled)
+        {
+            tb_URL.IsEnabled = enabled;
+            cb_Zeitspanne.IsEnabled = enabled;
+            tb_zeitspanne_von.IsEnabled = enabled && cb_Zeitspanne.IsChecked == true;
+            tb_zeitspanne_bis.IsEnabled = enabled && cb_Zeitspanne.IsChecked == true;
+            cb_ErsteSekunden.IsEnabled = enabled;
+            tb_ErsteSekunden_Sekunden.IsEnabled = enabled && cb_ErsteSekunden.IsChecked == true;
+            cb_Videoformat.IsEnabled = enabled;
+            cb_AudioOnly.IsEnabled = enabled;
+            AudioFormatComboBox.IsEnabled = enabled && cb_AudioOnly.IsChecked == true;
+            btn_einstellungen_speichern.IsEnabled = enabled;
+            btn_History.IsEnabled = enabled;
+            btn_download_starten.IsEnabled = enabled;
+            // Menüeinträge ggf. sperren
+            // DownloadPathMenu_Click ist im Menü, ggf. Menü sperren:
+            // Menü kannst du z.B. über Menu.IsEnabled = enabled; sperren, falls du einen Namen vergeben hast.
+        }
+
+        private void SetzeDownloadPfadInEinstellungen()
+        {
+            // Prüfe, ob der gespeicherte Downloadpfad existiert und gültig ist
+            string gespeicherterPfad = Properties.Settings.Default.DOWNLOADPATH;
+            if (string.IsNullOrEmpty(gespeicherterPfad) || !System.IO.Directory.Exists(gespeicherterPfad))
             {
-                MessageBox.Show("Der Browser konnte nicht geöffnet werden.", "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
+                // Fallback: KnownFolder Downloads verwenden
+                string downloadsFolder = KnownFolders.GetPath(KnownFolder.Downloads);
+                Properties.Settings.Default.DOWNLOADPATH = downloadsFolder.ToString();
+                Properties.Settings.Default.Save();
             }
+        }
+
+        private void StarteDownload(CancellationToken token)
+        {
+            string args = BaueYTDLPArgumente();
+            RunYtDlpAsync(Properties.Settings.Default.YTDLPPATH, args, token);
         }
 
         private void tb_URL_GotFocus(object sender, RoutedEventArgs e)
         {
             tb_URL.SelectAll();
+        }
+
+        private void tb_URL_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            btn_download_starten.IsEnabled = !string.IsNullOrWhiteSpace(tb_URL.Text);
         }
 
         private void TextBox_GotFocus(object sender, RoutedEventArgs e)
@@ -498,99 +690,28 @@ namespace MortysDLP
             }
         }
 
-        private string GetSelectedAudioFormat()
+        private void topBar_Info_Click(object sender, RoutedEventArgs e)
         {
-            if (!Dispatcher.CheckAccess())
-            {
-                // Wenn nicht im UI-Thread, dann Dispatcher verwenden
-                return Dispatcher.Invoke(() => GetSelectedAudioFormat());
-            }
-
-            if (AudioFormatComboBox.SelectedItem is ComboBoxItem selectedItem)
-            {
-                return selectedItem.Content.ToString();
-            }
-            else
-            {
-                return "mp3";
-            }
         }
 
-        private void ErsteSekundenAnpassen()
+        private void UpdateProgress(double percent, bool isError = false, double? speedMBs = null)
         {
-            //if(cb_Zeitspanne.IsChecked == true)
-            //{
-            //    cb_ErsteSekunden.IsEnabled = false;
-            //}
-
-            if (cb_ErsteSekunden.IsChecked == true)
+            Dispatcher.Invoke(() =>
             {
-                //txt_ErsteSekunden_info1.Foreground = Brushes.Black;
-                //txt_ErsteSekunden_info2.Foreground = Brushes.Black;
-                tb_ErsteSekunden_Sekunden.IsEnabled = true;
-                tb_ErsteSekunden_Sekunden.IsReadOnly = false;
-                cb_Zeitspanne.IsEnabled = false;
-            }
-            else
-            {
-                //txt_ErsteSekunden_info1.Foreground = Brushes.Silver;
-                //txt_ErsteSekunden_info2.Foreground = Brushes.Silver;
-                tb_ErsteSekunden_Sekunden.IsEnabled = false;
-                tb_ErsteSekunden_Sekunden.IsReadOnly = true;
-                cb_Zeitspanne.IsEnabled = true;
-            }
-
-        }
-
-        private void ZeitspanneAnpassen()
-        {
-            if (cb_Zeitspanne.IsChecked == true)
-            {
-                //txt_zeitspanne_von.Foreground = Brushes.Black;
-                //txt_zeitspanne_info.Foreground = Brushes.Black;
-                //txt_zeitspanne_bindestrich.Foreground = Brushes.Black;
-                tb_zeitspanne_von.IsReadOnly = false;
-                tb_zeitspanne_von.IsEnabled = true;
-                tb_zeitspanne_bis.IsReadOnly = false;
-                tb_zeitspanne_bis.IsEnabled = true;
-                cb_ErsteSekunden.IsEnabled = false;
-
-            }
-            else
-            {
-                //txt_zeitspanne_von.Foreground = Brushes.Silver;
-                //txt_zeitspanne_info.Foreground = Brushes.Silver;
-                //txt_zeitspanne_bindestrich.Foreground = Brushes.Silver;
-                tb_zeitspanne_von.IsReadOnly = true;
-                tb_zeitspanne_von.IsEnabled = false;
-                tb_zeitspanne_bis.IsReadOnly = true;
-                tb_zeitspanne_bis.IsEnabled = false;
-                cb_ErsteSekunden.IsEnabled = true;
-
-
-            }
-        }
-
-        private void AudioOnlyAnpassen()
-        {
-            if (cb_AudioOnly.IsChecked == true)
-            {
-                //txt_AudioOnly_info.Foreground = Brushes.Black;
-                txt_AudioOnly_info.IsEnabled = true;
-                AudioFormatComboBox.IsReadOnly = false;
-                AudioFormatComboBox.IsEnabled = true;
-
-                cb_Videoformat.IsEnabled = false;
-            }
-            else
-            {
-                //txt_AudioOnly_info.Foreground = Brushes.Silver;
-                txt_AudioOnly_info.IsEnabled = false;
-                AudioFormatComboBox.IsReadOnly = true;
-                AudioFormatComboBox.IsEnabled = false;
-
-                cb_Videoformat.IsEnabled = true;
-            }
+                _lastProgress = percent;
+                DownloadProgressBar.Value = percent;
+                if (isError)
+                {
+                    DownloadProgressBar.Foreground = new SolidColorBrush(Colors.Red);
+                    DownloadProgressText.Text = "Fehler";
+                }
+                else
+                {
+                    string speedText = speedMBs.HasValue ? $" ({speedMBs.Value:F2} MB/s)" : "";
+                    DownloadProgressBar.Foreground = new SolidColorBrush(Colors.SteelBlue);
+                    DownloadProgressText.Text = $"{percent:F1} % {speedText}";
+                }
+            });
         }
 
         private void VideoSchnittFormatAnpassen()
@@ -612,24 +733,6 @@ namespace MortysDLP
             }
         }
 
-        private void AudioOnlyVideoSchnittWorkaround()
-        {
-            if (cb_AudioOnly.IsChecked == true && cb_Videoformat.IsChecked == true)
-            {
-                cb_AudioOnly.IsChecked = false;
-                cb_Videoformat.IsChecked = false;
-            }
-        }
-
-        private void AppendOutput(string text)
-        {
-            Dispatcher.Invoke(() =>
-            {
-                OutputTextBox.AppendText($"{text}{Environment.NewLine}");
-                OutputTextBox.ScrollToEnd(); // Automatisch nach unten scrollen
-            });
-        }
-
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             // Downloadpfad aus Ressourcen lesen und Label setzen
@@ -637,122 +740,30 @@ namespace MortysDLP
             lbl_downloadpath.Content = downloadPath;
         }
 
-        private void NachFertigemDownload(string url, string title,  string downloaddirectory)
+        private void ZeitspanneAnpassen()
         {
-            // Hier die Logik nach dem erfolgreichen Download einfügen
-            DownloadHistoryService.Add(new DownloadHistoryEntry
+            if (cb_Zeitspanne.IsChecked == true)
             {
-                Url = url,
-                Title = title,
-                DownloadDirectory = downloaddirectory,
-                DownloadedAt = DateTime.Now
-            });
-        }
-
-        private void History_Click(object sender, RoutedEventArgs e)
-        {
-            var win = new DownloadHistoryWindow();
-            win.Owner = this;
-            win.ShowDialog();
-        }
-
-        private void StarteDownload(CancellationToken token)
-        {
-            string args = BaueYTDLPArgumente();
-            RunYtDlpAsync(Properties.Settings.Default.YTDLPPATH, args, token);
-        }
-
-        private void DownloadAbbrechen_Click(object sender, RoutedEventArgs e)
-        {
-            btn_download_abbrechen.IsEnabled = false;
-            _downloadCancellationTokenSource?.Cancel();
-            // Prozess ggf. direkt beenden (optional, falls nicht im Thread überwacht)
-            _ytDlpProcess?.Kill(true);
-            UpdateProgress(0);
-
-        }
-
-        private double? ParseYtDlpProgress(string line, out double? speedMBs)
-        {
-            speedMBs = null;
-            if (line.StartsWith("[download]"))
-            {
-                // Prozent extrahieren
-                var percentMatch = System.Text.RegularExpressions.Regex.Match(line, @"\s(\d{1,3}(?:\.\d+)?)%");
-                // Geschwindigkeit extrahieren (z.B. "at   20.67MiB/s")
-                var speedMatch = System.Text.RegularExpressions.Regex.Match(line, @"at\s+([\d\.]+)MiB/s");
-
-                if (speedMatch.Success && double.TryParse(speedMatch.Groups[1].Value, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double speed))
-                {
-                    speedMBs = speed;
-                }
-
-                if (percentMatch.Success && double.TryParse(percentMatch.Groups[1].Value, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double percent))
-                {
-                    return percent;
-                }
+                //txt_zeitspanne_von.Foreground = Brushes.Black;
+                //txt_zeitspanne_info.Foreground = Brushes.Black;
+                //txt_zeitspanne_bindestrich.Foreground = Brushes.Black;
+                tb_zeitspanne_von.IsReadOnly = false;
+                tb_zeitspanne_von.IsEnabled = true;
+                tb_zeitspanne_bis.IsReadOnly = false;
+                tb_zeitspanne_bis.IsEnabled = true;
+                cb_ErsteSekunden.IsEnabled = false;
             }
-            return null;
-        }
-
-        public enum StatusIconType
-        {
-            None,
-            Loading,
-            Success,
-            Error
-        }
-
-        private void SetStatusIcon(StatusIconType type)
-        {
-            Dispatcher.Invoke(() =>
+            else
             {
-                StatusIcon.Spin = false; // Standard: keine Animation
-
-                switch (type)
-                {
-                    case StatusIconType.Loading:
-                        StatusIcon.Icon = FontAwesome.WPF.FontAwesomeIcon.Spinner;
-                        StatusIcon.Spin = true; // Animation aktivieren
-                        StatusIcon.Foreground = new SolidColorBrush(Colors.SteelBlue);
-                        break;
-                    case StatusIconType.Success:
-                        StatusIcon.Icon = FontAwesome.WPF.FontAwesomeIcon.CheckCircle;
-                        StatusIcon.Foreground = new SolidColorBrush(Colors.Green);
-                        break;
-                    case StatusIconType.Error:
-                        StatusIcon.Icon = FontAwesome.WPF.FontAwesomeIcon.TimesCircle;
-                        StatusIcon.Foreground = new SolidColorBrush(Colors.Red);
-                        break;
-                    default:
-                        StatusIcon.Icon = FontAwesome.WPF.FontAwesomeIcon.None;
-                        break;
-                }
-            });
-        }
-
-        private void tb_URL_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            btn_download_starten.IsEnabled = !string.IsNullOrWhiteSpace(tb_URL.Text);
-        }
-
-        private void SetUiEnabled(bool enabled)
-        {
-            tb_URL.IsEnabled = enabled;
-            cb_Zeitspanne.IsEnabled = enabled;
-            tb_zeitspanne_von.IsEnabled = enabled && cb_Zeitspanne.IsChecked == true;
-            tb_zeitspanne_bis.IsEnabled = enabled && cb_Zeitspanne.IsChecked == true;
-            cb_ErsteSekunden.IsEnabled = enabled;
-            tb_ErsteSekunden_Sekunden.IsEnabled = enabled && cb_ErsteSekunden.IsChecked == true;
-            cb_Videoformat.IsEnabled = enabled;
-            cb_AudioOnly.IsEnabled = enabled;
-            AudioFormatComboBox.IsEnabled = enabled && cb_AudioOnly.IsChecked == true;
-            btn_einstellungen_speichern.IsEnabled = enabled;
-            btn_History.IsEnabled = enabled;
-            // Menüeinträge ggf. sperren
-            // DownloadPathMenu_Click ist im Menü, ggf. Menü sperren:
-            // Menü kannst du z.B. über Menu.IsEnabled = enabled; sperren, falls du einen Namen vergeben hast.
-
+                //txt_zeitspanne_von.Foreground = Brushes.Silver;
+                //txt_zeitspanne_info.Foreground = Brushes.Silver;
+                //txt_zeitspanne_bindestrich.Foreground = Brushes.Silver;
+                tb_zeitspanne_von.IsReadOnly = true;
+                tb_zeitspanne_von.IsEnabled = false;
+                tb_zeitspanne_bis.IsReadOnly = true;
+                tb_zeitspanne_bis.IsEnabled = false;
+                cb_ErsteSekunden.IsEnabled = true;
+            }
         }
     }
 }
