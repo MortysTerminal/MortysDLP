@@ -813,5 +813,23 @@ namespace MortysDLP
         {
             OutputTextBox.ScrollToEnd();
         }
+
+        private void TwitchButton_Click(object sender, RoutedEventArgs e)
+        {
+            System.Diagnostics.Process.Start(new ProcessStartInfo
+            {
+                FileName = "https://www.twitch.tv/mortys_welt",
+                UseShellExecute = true
+            });
+        }
+
+        private void GitHubButton_Click(object sender, RoutedEventArgs e)
+        {
+            System.Diagnostics.Process.Start(new ProcessStartInfo
+            {
+                FileName = "https://github.com/MortysTerminal/MortysDLP",
+                UseShellExecute = true
+            });
+        }
     }
 }

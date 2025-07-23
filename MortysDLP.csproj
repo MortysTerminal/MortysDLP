@@ -29,6 +29,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="Updater\Program.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="Logos\globus.png" />
     <None Remove="Logos\Icons\mw_globe_32px.ico" />
     <None Remove="Logos\mw_globe_32px.png" />
