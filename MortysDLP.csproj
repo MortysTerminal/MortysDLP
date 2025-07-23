@@ -29,6 +29,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="Logos\globus.png" />
     <None Remove="Logos\Icons\mw_globe_32px.ico" />
     <None Remove="Logos\mw_globe_32px.png" />
   </ItemGroup>
@@ -39,6 +40,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="Logos\globus.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
     <Resource Include="Logos\Icons\mw_globe_32px.ico">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>

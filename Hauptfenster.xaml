@@ -2,12 +2,16 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:fa="http://schemas.fontawesome.io/icons/"
+        Icon="/Logos/Icons/mw_globe_32px.ico"
         Title="MortysDLP"
         WindowStartupLocation="CenterScreen"
-        Loaded="Window_Loaded">
+        SizeToContent="WidthAndHeight"
+        ResizeMode="NoResize"
+        Loaded="Window_Loaded"
+        MaxWidth="850">
     <DockPanel>
         <Menu DockPanel.Dock="Top">
-            <MenuItem Header="_Einstellungen">
+            <MenuItem Name="btn_Header_Einstellungen" Header="_Einstellungen">
                 <MenuItem Header="Download-Pfad ändern" Click="DownloadPathMenu_Click"/>
                 <MenuItem Header="GitHub besuchen" Click="OpenGitHub_Click"/>
                 <Separator/>
@@ -36,7 +40,7 @@
             <DockPanel Grid.Row="1">
                 <StackPanel Orientation="Horizontal" Margin="7">
                     <Label VerticalAlignment="Center">URL eingeben:</Label>
-                    <TextBox Name="tb_URL" Width="500px" GotFocus="TextBox_GotFocus" Margin="7 0 0 0" TextChanged="tb_URL_TextChanged"/>
+                    <TextBox Name="tb_URL" Width="500px" GotFocus="TextBox_GotFocus" Margin="7 0 0 0" TextChanged="tb_URL_TextChanged" KeyDown="tb_URL_KeyDown"/>
                     <Button Name="btn_History" Click="History_Click" Margin="7 0 0 0">Historie</Button>
                 </StackPanel>
             </DockPanel>
@@ -44,7 +48,7 @@
             <DockPanel Grid.Row="2">
                 <StackPanel Orientation="Horizontal" Margin="7">
                     <CheckBox Name="cb_Zeitspanne" Checked="cbZeitspanneCheck" Unchecked="cbZeitspanneCheck" Margin="7"></CheckBox>
-                    <TextBlock Name="txt_zeitspanne_von" VerticalAlignment="Center">Zeitspanne von</TextBlock>
+                    <TextBlock Name="txt_zeitspanne_von" VerticalAlignment="Center" Margin="7">Zeitspanne von</TextBlock>
                     <TextBox Name="tb_zeitspanne_von" VerticalAlignment="Center" Width="100" Margin="7 0 0 0"></TextBox>
                     <TextBlock Name="txt_zeitspanne_bindestrich" VerticalAlignment="Center" Margin="7">-</TextBlock>
                     <TextBox Name="tb_zeitspanne_bis" VerticalAlignment="Center" Width="100"></TextBox>
@@ -113,7 +117,7 @@
                              Margin="0"
                              FontFamily="Consolas" FontSize="12"
                              AcceptsReturn="True" AcceptsTab="True"
-                             MaxHeight="200" />
+                             MaxHeight="200" TextChanged="OutputTextBox_TextChanged" />
                 </Expander>
             </DockPanel>
         </Grid>

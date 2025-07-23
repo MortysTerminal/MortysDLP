@@ -3,6 +3,7 @@ using MortysDLP.Services;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 
 namespace MortysDLP
@@ -171,7 +172,8 @@ namespace MortysDLP
 
         private void DownloadAbbrechen_Click(object sender, RoutedEventArgs e)
         {
-            btn_download_abbrechen.IsEnabled = false;
+            //btn_download_abbrechen.IsEnabled = false;
+            DownloadStatusText.Text = "Breche ab...";
             _downloadCancellationTokenSource?.Cancel();
             // Prozess ggf. direkt beenden (optional, falls nicht im Thread überwacht)
             _ytDlpProcess?.Kill(true);
@@ -198,26 +200,29 @@ namespace MortysDLP
             SetStatusIcon(StatusIconType.Loading);
             DownloadStatusText.Text = "Lädt";
 
-            // --- NEU: History-Eintrag sofort anlegen ---
-            string url = tb_URL.Text;
-            string ytDlpPath = Properties.Settings.Default.YTDLPPATH;
-            string title = GetVideoTitle(ytDlpPath, url);
-            string downloadDir = lbl_downloadpath.Content?.ToString() ?? "";
-            NachFertigemDownload(url, title, downloadDir);
-            // --- ENDE NEU ---
-
             _downloadCancellationTokenSource = new CancellationTokenSource();
             var token = _downloadCancellationTokenSource.Token;
 
-            _downloadTask = Task.Run(() => StarteDownload(token), token);
+            string url = tb_URL.Text;
+            string ytDlpPath = Properties.Settings.Default.YTDLPPATH;
+            string title = "";
 
             try
             {
-                await _downloadTask;
+                // Titel holen, aber Abbruch beachten
+                title = await GetVideoTitleAsync(ytDlpPath, url, token);
                 if (token.IsCancellationRequested)
-                {
-                    return;
-                }
+                    throw new OperationCanceledException(token);
+
+                string downloadDir = lbl_downloadpath.Content?.ToString() ?? "";
+                NachFertigemDownload(url, title, downloadDir);
+
+                _downloadTask = Task.Run(() => StarteDownload(token), token);
+                await _downloadTask;
+
+                if (token.IsCancellationRequested)
+                    throw new OperationCanceledException(token);
+
                 OutputTextBox.AppendText("Download abgeschlossen.\n");
                 SetStatusIcon(StatusIconType.Success);
                 UpdateProgress(100);
@@ -386,7 +391,7 @@ namespace MortysDLP
             }
         }
 
-        private string GetVideoTitle(string ytDlpPath, string url)
+        private async Task<string> GetVideoTitleAsync(string ytDlpPath, string url, CancellationToken token)
         {
             var psi = new ProcessStartInfo
             {
@@ -397,9 +402,34 @@ namespace MortysDLP
                 UseShellExecute = false,
                 CreateNoWindow = true
             };
-            using var process = Process.Start(psi);
-            string title = process.StandardOutput.ReadLine();
-            process.WaitForExit();
+            using var process = new Process { StartInfo = psi };
+            process.Start();
+
+            // Lies die Ausgabe asynchron und prüfe auf Abbruch
+            string? title = null;
+            var readLineTask = process.StandardOutput.ReadLineAsync();
+
+            while (!readLineTask.IsCompleted)
+            {
+                if (token.IsCancellationRequested)
+                {
+                    try { process.Kill(true); } catch { }
+                    token.ThrowIfCancellationRequested();
+                }
+                await Task.Delay(50, token);
+            }
+            title = await readLineTask;
+
+            // Warte auf Prozessende, prüfe auf Abbruch
+            var waitTask = process.WaitForExitAsync(token);
+            await waitTask;
+
+            if (token.IsCancellationRequested)
+            {
+                try { process.Kill(true); } catch { }
+                token.ThrowIfCancellationRequested();
+            }
+
             return title ?? "";
         }
 
@@ -530,6 +560,7 @@ namespace MortysDLP
                         SetStatusIcon(StatusIconType.Error);
                         UpdateProgress(_lastProgress, isError: true);
                         DownloadStatusText.Text = "Abgebrochen";
+                        btn_download_abbrechen.IsEnabled = false;
                     });
                     AppendOutput("[INFO] Download wurde abgebrochen.");
                     return; // Keine weiteren Status-Updates!
@@ -543,6 +574,7 @@ namespace MortysDLP
                         SetStatusIcon(StatusIconType.Error);
                         UpdateProgress(_lastProgress, isError: true);
                         DownloadStatusText.Text = "Fehler";
+                        btn_download_abbrechen.IsEnabled = false;
                     });
                 }
                 else
@@ -553,6 +585,7 @@ namespace MortysDLP
                         SetStatusIcon(StatusIconType.Success);
                         UpdateProgress(100);
                         DownloadStatusText.Text = "Abgeschlossen";
+                        btn_download_abbrechen.IsEnabled = false;
                     });
                 }
             }
@@ -562,6 +595,7 @@ namespace MortysDLP
                 Dispatcher.Invoke(() =>
                 {
                     MessageBox.Show(ex.Message, "Interner Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
+                    btn_download_abbrechen.IsEnabled = false;
                 });
             }
         }
@@ -644,6 +678,7 @@ namespace MortysDLP
             btn_einstellungen_speichern.IsEnabled = enabled;
             btn_History.IsEnabled = enabled;
             btn_download_starten.IsEnabled = enabled;
+            btn_Header_Einstellungen.IsEnabled = enabled;
             // Menüeinträge ggf. sperren
             // DownloadPathMenu_Click ist im Menü, ggf. Menü sperren:
             // Menü kannst du z.B. über Menu.IsEnabled = enabled; sperren, falls du einen Namen vergeben hast.
@@ -672,6 +707,14 @@ namespace MortysDLP
         {
             tb_URL.SelectAll();
         }
+        private void tb_URL_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                btn_download_starten.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                e.Handled = true;
+            }
+        }
 
         private void tb_URL_TextChanged(object sender, TextChangedEventArgs e)
         {
@@ -685,7 +728,7 @@ namespace MortysDLP
                 Dispatcher.InvokeAsync(() =>
                 {
                     textBox.SelectAll();
-                    textBox.Focus(); // Erneut den Fokus sicherstellen
+                    //textBox.Focus(); // Erneut den Fokus sicherstellen
                 });
             }
         }
@@ -764,6 +807,11 @@ namespace MortysDLP
                 tb_zeitspanne_bis.IsEnabled = false;
                 cb_ErsteSekunden.IsEnabled = true;
             }
+        }
+
+        private void OutputTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            OutputTextBox.ScrollToEnd();
         }
     }
 }
