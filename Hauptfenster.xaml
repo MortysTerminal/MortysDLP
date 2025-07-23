@@ -3,8 +3,6 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:fa="http://schemas.fontawesome.io/icons/"
         Title="MortysDLP"
-        MinHeight="400"
-        Width="800"
         WindowStartupLocation="CenterScreen"
         Loaded="Window_Loaded">
     <DockPanel>
@@ -16,7 +14,7 @@
                 <MenuItem Header="Schließen" Click="CloseMenu_Click"/>
             </MenuItem>
         </Menu>
-        <Grid Margin="8">
+        <Grid Margin="7">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
@@ -25,7 +23,7 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
             <DockPanel Grid.Row="0">
@@ -39,7 +37,7 @@
                 <StackPanel Orientation="Horizontal" Margin="7">
                     <Label VerticalAlignment="Center">URL eingeben:</Label>
                     <TextBox Name="tb_URL" Width="500px" GotFocus="TextBox_GotFocus" Margin="7 0 0 0" TextChanged="tb_URL_TextChanged"/>
-                    <Button Name="btn_History" Click="History_Click" Margin="7 0 0 0">History</Button>
+                    <Button Name="btn_History" Click="History_Click" Margin="7 0 0 0">Historie</Button>
                 </StackPanel>
             </DockPanel>
 
@@ -47,10 +45,10 @@
                 <StackPanel Orientation="Horizontal" Margin="7">
                     <CheckBox Name="cb_Zeitspanne" Checked="cbZeitspanneCheck" Unchecked="cbZeitspanneCheck" Margin="7"></CheckBox>
                     <TextBlock Name="txt_zeitspanne_von" VerticalAlignment="Center">Zeitspanne von</TextBlock>
-                    <TextBox Name="tb_zeitspanne_von" VerticalAlignment="Center" Width="100" Margin="8 0 0 0"></TextBox>
-                    <TextBlock Name="txt_zeitspanne_bindestrich" VerticalAlignment="Center" Margin="8">-</TextBlock>
+                    <TextBox Name="tb_zeitspanne_von" VerticalAlignment="Center" Width="100" Margin="7 0 0 0"></TextBox>
+                    <TextBlock Name="txt_zeitspanne_bindestrich" VerticalAlignment="Center" Margin="7">-</TextBlock>
                     <TextBox Name="tb_zeitspanne_bis" VerticalAlignment="Center" Width="100"></TextBox>
-                    <TextBlock Name="txt_zeitspanne_info" VerticalAlignment="Center" Margin="10">mm:ss angeben!</TextBlock>
+                    <TextBlock Name="txt_zeitspanne_info" VerticalAlignment="Center" Margin="7">mm:ss angeben!</TextBlock>
                 </StackPanel>
             </DockPanel>
             <DockPanel Grid.Row="3">
@@ -106,7 +104,7 @@
                 </StackPanel>
             </DockPanel>
             <DockPanel Grid.Row="7">
-                <Expander Header="Debug-Ausgabe" IsExpanded="False" Margin="0,5,0,0">
+                <Expander Header="Debug-Ausgabe" IsExpanded="False" Margin="0">
                     <TextBox x:Name="OutputTextBox"
                              VerticalScrollBarVisibility="Auto"
                              HorizontalScrollBarVisibility="Auto"

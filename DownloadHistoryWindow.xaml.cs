@@ -51,6 +51,7 @@ namespace MortysDLP
             ReuseButton.IsEnabled = hasItems;
             ClearButton.IsEnabled = hasItems;
             EmptyText.Visibility = hasItems ? Visibility.Collapsed : Visibility.Visible;
+            InfoText.Visibility = hasItems ? Visibility.Collapsed : Visibility.Visible;
         }
     }
 }
