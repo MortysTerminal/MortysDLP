@@ -3,7 +3,7 @@
   <Profiles />
   <Settings>
     <Setting Name="CURRENTVERSION" Type="System.String" Scope="User">
-      <Value Profile="(Default)">2025.07.24</Value>
+      <Value Profile="(Default)">latest</Value>
     </Setting>
     <Setting Name="DOWNLOADPATH" Type="System.String" Scope="User">
       <Value Profile="(Default)" />

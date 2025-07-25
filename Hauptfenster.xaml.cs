@@ -28,6 +28,11 @@ namespace MortysDLP
             //SetzeDownloadPfadInEinstellungen();
             InitializeComponent();
             EinstellungenLaden();
+            ErsteSekundenAnpassen();
+            AudioOnlyAnpassen();
+            VideoSchnittFormatAnpassen();
+            ZeitspanneAnpassen();
+
 
             btn_download_starten.IsEnabled = !string.IsNullOrWhiteSpace(tb_URL.Text);
 
