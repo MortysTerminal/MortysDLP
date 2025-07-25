@@ -6,14 +6,13 @@
         Title="MortysDLP"
         WindowStartupLocation="CenterScreen"
         SizeToContent="WidthAndHeight"
-        ResizeMode="NoResize"
+        ResizeMode="CanMinimize"
         Loaded="Window_Loaded"
         MaxWidth="850">
     <DockPanel>
         <Menu DockPanel.Dock="Top" Background="#BEB7A8">
             <MenuItem Name="btn_Header_Einstellungen" Header="_Einstellungen" Margin="0,-10,0,-10">
                 <MenuItem Header="Download-Pfad ändern" Click="DownloadPathMenu_Click"/>
-                <MenuItem Header="GitHub besuchen" Click="OpenGitHub_Click"/>
                 <Separator/>
                 <MenuItem Header="Schließen" Click="CloseMenu_Click"/>
             </MenuItem>
