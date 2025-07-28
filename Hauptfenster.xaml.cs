@@ -1,6 +1,8 @@
-﻿using MortysDLP.Models;
+﻿using FontAwesome.WPF;
+using MortysDLP.Models;
 using MortysDLP.Services;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -17,6 +19,7 @@ namespace MortysDLP
         private Task _downloadTask;
         private double _lastProgress = 0;
         private Process _ytDlpProcess;
+        private string _lastDownloadPath = "";
 
         // Feld für letzten Fortschritt
 
@@ -93,6 +96,7 @@ namespace MortysDLP
             // Alle UI-Werte im UI-Thread abholen
             string url = "";
             string downloadPath = "";
+            string downloadAudioPath = "";
             string zeitspanneVon = "";
             string zeitspanneBis = "";
             string ersteSekunden = "";
@@ -106,7 +110,6 @@ namespace MortysDLP
             Dispatcher.Invoke(() =>
             {
                 url = tb_URL.Text;
-                downloadPath = lbl_downloadpath.Content?.ToString() ?? "";
                 zeitspanneVon = tb_zeitspanne_von.Text;
                 zeitspanneBis = tb_zeitspanne_bis.Text;
                 ersteSekunden = tb_ErsteSekunden_Sekunden.Text;
@@ -114,6 +117,9 @@ namespace MortysDLP
                 isErsteSekunden = cb_ErsteSekunden.IsChecked == true;
                 isAudioOnly = cb_AudioOnly.IsChecked == true;
                 isVideoformat = cb_Videoformat.IsChecked == true;
+                downloadPath = isAudioOnly
+                    ? Properties.Settings.Default.DOWNLOADAUDIOONLYPATH
+                    : Properties.Settings.Default.DOWNLOADPATH;
                 selectedAudioFormatComboBox = GetSelectedAudioFormat();
                 ffmpegPath = Properties.Settings.Default.FFMPEGPATH;
             });
@@ -158,6 +164,7 @@ namespace MortysDLP
         private void cbErsteSekundenCheck(object sender, RoutedEventArgs e)
         {
             ErsteSekundenAnpassen();
+            ValidateDownloadButton();
         }
 
         private void cbVideoFormatCheck(object sender, RoutedEventArgs e)
@@ -195,6 +202,13 @@ namespace MortysDLP
         private async void DownloadStarten_Click(object sender, RoutedEventArgs e)
         {
             OutputTextBox.Clear();
+
+            Dispatcher.Invoke(() =>
+            {
+                _lastDownloadPath = cb_AudioOnly.IsChecked == true
+                    ? Properties.Settings.Default.DOWNLOADAUDIOONLYPATH
+                    : Properties.Settings.Default.DOWNLOADPATH;
+            });
 
             SetUiEnabled(false); // UI sperren
             btn_download_abbrechen.IsEnabled = true;
@@ -263,6 +277,7 @@ namespace MortysDLP
         private void EinstellungenLaden()
         {
             SetzeDownloadPfadInEinstellungen();
+            SetzeAudioDownloadPfadInEinstellungen();
 
             if (Properties.Settings.Default.CHECKED_ZEITSPANNE)
             {
@@ -294,6 +309,8 @@ namespace MortysDLP
                 SelectAudioFormat(Properties.Settings.Default.SELECTED_AUDIO_FORMAT);
             }
 
+            SetUiAudioEnabled(Properties.Settings.Default.CHECKED_AUDIOPATH);
+
             // Downloadpfad einfuegen in TextBox
             //tb_downloadpath.Text = downloadspath;
         }
@@ -302,7 +319,7 @@ namespace MortysDLP
         {
             // Lade Zustaende aus Form
 
-            string? tempdownloadpath = lbl_downloadpath.Content.ToString();
+            //string? tempdownloadpath = lbl_downloadpath.Content.ToString();
             bool cb_ErsteSekundenChecked = false;
             bool cb_VideoformatChecked = false;
             bool cb_ZeitspanneChecked = false;
@@ -341,9 +358,10 @@ namespace MortysDLP
                 Properties.Settings.Default.CHECKED_ERSTESEKUNDEN = cb_ErsteSekundenChecked;
                 Properties.Settings.Default.ERSTESEKUNDEN_SEKUNDEN = tb_ErsteSekunden_Text;
                 Properties.Settings.Default.CHECKED_VIDEOFORMAT = cb_VideoformatChecked;
-                Properties.Settings.Default.DOWNLOADPATH = tempdownloadpath;
+                Properties.Settings.Default.DOWNLOADPATH = lbl_downloadpath.Content.ToString();
                 Properties.Settings.Default.CHECKED_AUDIO_ONLY = cb_AudioOnlyChecked;
                 Properties.Settings.Default.SELECTED_AUDIO_FORMAT = tb_AudioOnly_Text;
+                Properties.Settings.Default.DOWNLOADAUDIOONLYPATH = lbl_audiopath.Content.ToString();
                 Properties.Settings.Default.Save();
                 System.Windows.MessageBox.Show("Einstellungen gespeichert");
             }
@@ -604,6 +622,21 @@ namespace MortysDLP
                 });
             }
         }
+        private void StatusIcon_Click(object sender, RoutedEventArgs e)
+        {
+            if (!string.IsNullOrEmpty(_lastDownloadPath) && System.IO.Directory.Exists(_lastDownloadPath))
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = _lastDownloadPath,
+                    UseShellExecute = true
+                });
+            }
+            else
+            {
+                MessageBox.Show("Downloadpfad nicht gefunden!", "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
 
         private void SelectAudioFormat(string savedFormat)
         {
@@ -643,7 +676,7 @@ namespace MortysDLP
             Dispatcher.Invoke(() =>
             {
                 StatusIcon.Spin = false; // Standard: keine Animation
-
+                btn_StatusIcon.IsEnabled = (type == StatusIconType.Success || type == StatusIconType.Error);
                 switch (type)
                 {
                     case StatusIconType.Loading:
@@ -689,6 +722,23 @@ namespace MortysDLP
             // Menü kannst du z.B. über Menu.IsEnabled = enabled; sperren, falls du einen Namen vergeben hast.
         }
 
+        internal void SetUiAudioEnabled(bool enabled)
+        {
+            if(enabled == true)
+            {
+                dp_AudioPath.Visibility = Visibility.Visible;
+                //lbl_audiopath.Visibility = Visibility.Visible;
+                //lbl_audiopath_info.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                dp_AudioPath.Visibility = Visibility.Collapsed;
+                //lbl_audiopath.Visibility = Visibility.Collapsed;
+                //lbl_audiopath_info.Visibility = Visibility.Collapsed;
+            }
+                
+        }
+
         private void SetzeDownloadPfadInEinstellungen()
         {
             // Prüfe, ob der gespeicherte Downloadpfad existiert und gültig ist
@@ -702,10 +752,27 @@ namespace MortysDLP
             }
         }
 
+        private void SetzeAudioDownloadPfadInEinstellungen()
+        {
+            // Prüfe, ob der gespeicherte Downloadpfad existiert und gültig ist
+            string gespeicherterAudioPfad = Properties.Settings.Default.DOWNLOADAUDIOONLYPATH;
+            if (string.IsNullOrEmpty(gespeicherterAudioPfad) || !System.IO.Directory.Exists(gespeicherterAudioPfad))
+            {
+                // Fallback: KnownFolder Downloads verwenden
+                string downloadsFolder = KnownFolders.GetPath(KnownFolder.Downloads);
+                Properties.Settings.Default.DOWNLOADAUDIOONLYPATH = downloadsFolder.ToString();
+                Properties.Settings.Default.Save();
+            }
+        }
+
         private void StarteDownload(CancellationToken token)
         {
             string args = BaueYTDLPArgumente();
             RunYtDlpAsync(Properties.Settings.Default.YTDLPPATH, args, token);
+        }
+        private void tb_ErsteSekunden_Sekunden_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            ValidateDownloadButton();
         }
 
         private void tb_URL_GotFocus(object sender, RoutedEventArgs e)
@@ -723,7 +790,15 @@ namespace MortysDLP
 
         private void tb_URL_TextChanged(object sender, TextChangedEventArgs e)
         {
-            btn_download_starten.IsEnabled = !string.IsNullOrWhiteSpace(tb_URL.Text);
+            ValidateDownloadButton();
+        }
+        private void tb_zeitspanne_von_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            ValidateDownloadButton();
+        }
+        private void tb_zeitspanne_bis_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            ValidateDownloadButton();
         }
 
         private void TextBox_GotFocus(object sender, RoutedEventArgs e)
@@ -761,6 +836,18 @@ namespace MortysDLP
                 }
             });
         }
+        private void ValidateDownloadButton()
+        {
+            bool urlOk = !string.IsNullOrWhiteSpace(tb_URL.Text);
+
+            bool zeitspanneOk = !cb_Zeitspanne.IsChecked == true ||
+                (!string.IsNullOrWhiteSpace(tb_zeitspanne_von.Text) && !string.IsNullOrWhiteSpace(tb_zeitspanne_bis.Text));
+
+            bool sekundenOk = !cb_ErsteSekunden.IsChecked == true ||
+                !string.IsNullOrWhiteSpace(tb_ErsteSekunden_Sekunden.Text);
+
+            btn_download_starten.IsEnabled = urlOk && zeitspanneOk && sekundenOk;
+        }
 
         private void VideoSchnittFormatAnpassen()
 
@@ -785,7 +872,9 @@ namespace MortysDLP
         {
             // Downloadpfad aus Ressourcen lesen und Label setzen
             var downloadPath = Properties.Settings.Default.DOWNLOADPATH;
+            var audioDownloadPath = Properties.Settings.Default.DOWNLOADAUDIOONLYPATH;
             lbl_downloadpath.Content = downloadPath;
+            lbl_audiopath.Content = audioDownloadPath;
         }
 
         private void ZeitspanneAnpassen()
@@ -812,6 +901,7 @@ namespace MortysDLP
                 tb_zeitspanne_bis.IsEnabled = false;
                 cb_ErsteSekunden.IsEnabled = true;
             }
+            ValidateDownloadButton();
         }
 
         private void OutputTextBox_TextChanged(object sender, TextChangedEventArgs e)

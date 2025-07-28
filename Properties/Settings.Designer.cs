@@ -25,7 +25,7 @@ namespace MortysDLP.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("2025.07.25")]
+        [global::System.Configuration.DefaultSettingValueAttribute("2025.07.28")]
         public string CURRENTVERSION {
             get {
                 return ((string)(this["CURRENTVERSION"]));
@@ -188,6 +188,30 @@ namespace MortysDLP.Properties {
             }
             set {
                 this["YTDLP_RELEASE_URL"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string DOWNLOADAUDIOONLYPATH {
+            get {
+                return ((string)(this["DOWNLOADAUDIOONLYPATH"]));
+            }
+            set {
+                this["DOWNLOADAUDIOONLYPATH"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool CHECKED_AUDIOPATH {
+            get {
+                return ((bool)(this["CHECKED_AUDIOPATH"]));
+            }
+            set {
+                this["CHECKED_AUDIOPATH"] = value;
             }
         }
     }

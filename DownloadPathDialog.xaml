@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Icon="/Logos/Icons/mw_globe_32px.ico"
         Title="Download-Pfad ändern" 
-        Height="160" 
+        Height="260" 
         Width="450" 
         WindowStartupLocation="CenterOwner" 
         ResizeMode="NoResize" 
@@ -12,12 +12,28 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <TextBlock Text="Download-Pfad:" Margin="0,0,0,5"/>
-        <TextBox x:Name="PathBox" Grid.Row="1" Margin="0,0,0,10"/>
-        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button Content="Durchsuchen..." Margin="0,0,10,0" Click="Browse_Click"/>
+        <TextBlock Text="Standard Download-Pfad:" Margin="0,0,0,5"/>
+        
+        <StackPanel Orientation="Horizontal" Grid.Row="1">
+            <TextBox x:Name="PathBox" Width="300"/>
+            <Button Content="Durchsuchen..."  Margin="0,0,10,0" Click="Browse_Click"/>
+        </StackPanel>
+        
+        <StackPanel Orientation="Horizontal" Grid.Row="2">
+            <CheckBox x:Name="cbAudioOnlyPath" VerticalAlignment="Center" Checked="cbAudioOnlyPath_Checked" Unchecked="cbAudioOnlyPath_Unchecked"></CheckBox>
+            <TextBlock Text="Audio-Only-Pfad hinzufügen" VerticalAlignment="Center" Margin="0,0,0,5"/>
+        </StackPanel>
+
+        <StackPanel Orientation="Horizontal" Grid.Row="3">
+            <TextBox x:Name="AudioPathBox" Width="300"/>
+            <Button x:Name="btn_SearchAudioPath" Content="Durchsuchen..."  Margin="0,0,10,0" Click="BrowseAudio_Click"/>
+        </StackPanel>
+        <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right">
+            <!--<Button Content="Durchsuchen..." Margin="0,0,10,0" Click="Browse_Click"/>-->
             <Button Content="OK" Width="100" Margin="0,0,10,0" Click="OK_Click"/>
             <Button Content="Abbrechen" Width="100" Click="Cancel_Click"/>
         </StackPanel>
