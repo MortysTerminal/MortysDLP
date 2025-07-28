@@ -3,7 +3,7 @@
   <Profiles />
   <Settings>
     <Setting Name="CURRENTVERSION" Type="System.String" Scope="User">
-      <Value Profile="(Default)">2025.07.25</Value>
+      <Value Profile="(Default)">2025.07.28</Value>
     </Setting>
     <Setting Name="DOWNLOADPATH" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
@@ -43,6 +43,12 @@
     </Setting>
     <Setting Name="YTDLP_RELEASE_URL" Type="System.String" Scope="User">
       <Value Profile="(Default)">https://api.github.com/repos/yt-dlp/yt-dlp/releases/latest</Value>
+    </Setting>
+    <Setting Name="DOWNLOADAUDIOONLYPATH" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="CHECKED_AUDIOPATH" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
     </Setting>
   </Settings>
 </SettingsFile>
