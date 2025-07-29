@@ -1,0 +1,276 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Splash_CheckingTools" xml:space="preserve">
+    <value>Prüfe Voraussetzungen (yt-dlp, ffmpeg, ffprobe)...</value>
+  </data>
+  <data name="Splash_StartingUpdate" xml:space="preserve">
+    <value>Starte Update</value>
+  </data>
+  <data name="Splash_StartingApp" xml:space="preserve">
+    <value>Starte Anwendung...</value>
+  </data>
+  <data name="Splash_UpdateError" xml:space="preserve">
+    <value>Fehler beim Überprüfen auf Updates. Starte Anwendung ohne Update.</value>
+  </data>
+  <data name="Splash_NoUpdate" xml:space="preserve">
+    <value>Keine Updates verfügbar.</value>
+  </data>
+  <data name="Splash_AllToolsOk" xml:space="preserve">
+    <value>Alle Tools sind aktuell.</value>
+  </data>
+  <data name="Splash_ToolsMissing" xml:space="preserve">
+    <value>Einige Tools fehlen oder sind veraltet. Bitte aktualisieren Sie die Tools manuell.</value>
+  </data>
+  <data name="Splash_Closing" xml:space="preserve">
+    <value>Starte Anwendung...</value>
+  </data>
+  <data name="Error_DirectoryNotFound" xml:space="preserve">
+    <value>Quellverzeichnis nicht gefunden: {0}</value>
+  </data>
+  <data name="Splash_SearchingForUpdate" xml:space="preserve">
+    <value>Suche nach neuer Version...</value>
+  </data>
+  <data name="DownloadPathDialog_NoDownloadFolder_Message" xml:space="preserve">
+    <value>Es wurde kein Download-Ordner gewählt.\n</value>
+  </data>
+  <data name="DownloadPathDialog_NoDownloadFolder_Title" xml:space="preserve">
+    <value>Kein Ordner gewählt</value>
+  </data>
+  <data name="DownloadPathDialog_BrowseFolder_Description" xml:space="preserve">
+    <value>Wähle den Download-Ordner</value>
+  </data>
+  <data name="DownloadPathDialog_BrowseAudioFolder_Description" xml:space="preserve">
+    <value>Wähle den AudioOnly-Download-Ordner</value>
+  </data>
+  <data name="DownloadPathDialog_DownloadPathEmpty" xml:space="preserve">
+    <value>- Standard-Downloadpfad fehlt.\n</value>
+  </data>
+  <data name="DownloadPathDialog_AudioPathEmpty" xml:space="preserve">
+    <value>- AudioOnly-Downloadpfad fehlt. \n</value>
+  </data>
+  <data name="DownloadPathDialog_SetDefaultWindowsDownloadFolder" xml:space="preserve">
+    <value>\nMöchten Sie den Windows Standard-Ordner verwenden?</value>
+  </data>
+  <data name="DownloadPathDialog_StandardDownloadPathLabel" xml:space="preserve">
+    <value>Standard Download-Pfad:</value>
+  </data>
+  <data name="DownloadPathDialog_StandardAudioDownloadPathLabel" xml:space="preserve">
+    <value>Audio-Only-Pfad hinzufügen</value>
+  </data>
+  <data name="Button_Browse" xml:space="preserve">
+    <value>Durchsuchen</value>
+  </data>
+  <data name="DownloadPathDialog_Title" xml:space="preserve">
+    <value>Download-Pfad ändern</value>
+  </data>
+  <data name="Button_OK" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="Button_Cancel" xml:space="preserve">
+    <value>Abbrechen</value>
+  </data>
+  <data name="Hauptfenster_Button_DownloadStart" xml:space="preserve">
+    <value>Download starten</value>
+  </data>
+  <data name="Hauptfenster_Button_DownloadAbort" xml:space="preserve">
+    <value>Download abbrechen</value>
+  </data>
+  <data name="Hauptfenster_Button_SettingsSave" xml:space="preserve">
+    <value>Einstellungen speichern</value>
+  </data>
+  <data name="Hauptfenster_Button_History" xml:space="preserve">
+    <value>Verlauf</value>
+  </data>
+  <data name="Hauptfenster_Button_Timespan_Info" xml:space="preserve">
+    <value>Gültige Formate: mm:ss oder hh:mm:ss. Beispiel: 01:23 oder 01:02:03. Die Angabe bedeutet Minuten:Sekunden oder Stunden:Minuten:Sekunden. Damit kannst du z.B. einen Ausschnitt von 00:01:30 bis 00:02:45 herunterladen.</value>
+  </data>
+  <data name="Hauptfenster_Label_TimespanLeft" xml:space="preserve">
+    <value>Zeitspanne von: </value>
+  </data>
+  <data name="Hauptfenster_Label_TimespanMiddle" xml:space="preserve">
+    <value>-</value>
+  </data>
+  <data name="Hauptfenster_Label_TimespanRight" xml:space="preserve">
+    <value>hh:mm:ss oder mm:ss angeben!</value>
+  </data>
+  <data name="Hauptfenster_Label_TimeStartLeft" xml:space="preserve">
+    <value>Von Start bis Sekunde: </value>
+  </data>
+  <data name="Hauptfenster_Label_TimeStartRight" xml:space="preserve">
+    <value>herunterladen</value>
+  </data>
+  <data name="Hauptfenster_Label_Videoformat" xml:space="preserve">
+    <value>Videoformat für Schnittprogramme anpassen (x264)</value>
+  </data>
+  <data name="Hauptfenster_Label_Videoformat_Info" xml:space="preserve">
+    <value>(Nicht zusammen mit "NUR Audio")</value>
+  </data>
+  <data name="Hauptfenster_Label_AudioOnly" xml:space="preserve">
+    <value>NUR Audio herunterladen (Standard: mp3)</value>
+  </data>
+  <data name="Hauptfenster_Label_AudioOnly_Info" xml:space="preserve">
+    <value>(Nicht zusammen mit Videoformat!)</value>
+  </data>
+  <data name="Softwareinfo" xml:space="preserve">
+    <value>Einfacher Video- und Audio-Downloader für verschiedene Plattformen.</value>
+  </data>
+  <data name="Hauptfenster_DebugInfo" xml:space="preserve">
+    <value>Debug-Ausgabe</value>
+  </data>
+  <data name="Hauptfenster_Button_Menu_Settings" xml:space="preserve">
+    <value>Einstellungen</value>
+  </data>
+  <data name="Hauptfenster_Button_Menu_ChangeDownloadPath" xml:space="preserve">
+    <value>Downloadpfad ändern</value>
+  </data>
+  <data name="Button_Close" xml:space="preserve">
+    <value>Schließen</value>
+  </data>
+  <data name="Hauptfenster_Label_DownloadPathInfo" xml:space="preserve">
+    <value>Download-Pfad:</value>
+  </data>
+  <data name="Hauptfenster_Label_AudioPathInfo" xml:space="preserve">
+    <value>Download-Audio-Pfad:</value>
+  </data>
+  <data name="Hauptfenster_Label_URL" xml:space="preserve">
+    <value>URL eingeben:</value>
+  </data>
+  <data name="DownloadHistory_Title" xml:space="preserve">
+    <value>MortysDLP - Download Verlauf</value>
+  </data>
+  <data name="DownloadHistory_Button_ReUse" xml:space="preserve">
+    <value>Neu verwenden</value>
+  </data>
+  <data name="DownloadHistory_Button_Clear" xml:space="preserve">
+    <value>Verlauf leeren</value>
+  </data>
+  <data name="DownloadHistory_Label_EmptyHistory" xml:space="preserve">
+    <value>Keine Historie vorhanden</value>
+  </data>
+  <data name="DownloadHistory_Label_EmptyHistory_Info" xml:space="preserve">
+    <value>Hier ist noch gähnende Leere... Aber keine Sorge: Deine nächsten Downloads landen alle hier und warten nur darauf, von dir wiederverwendet zu werden!</value>
+  </data>
+  <data name="MessageBox_SaveSettings_Title" xml:space="preserve">
+    <value>Einstellungen abspeichern?</value>
+  </data>
+  <data name="MessageBox_SaveSettings_Question" xml:space="preserve">
+    <value>Sollen die Einstellungen für den nächsten Programmstart gespeichert werden?</value>
+  </data>
+</root>

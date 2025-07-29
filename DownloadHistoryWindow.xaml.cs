@@ -1,5 +1,6 @@
 ﻿using MortysDLP.Models;
 using MortysDLP.Services;
+using System.Globalization;
 using System.Windows;
 
 namespace MortysDLP
@@ -11,8 +12,51 @@ namespace MortysDLP
     {
         public DownloadHistoryWindow()
         {
+            /********************************************************************/
+            /*
+              Sprachanpassung bei Software-Start
+            */
+            // Debug: Sprache erzwingen
+            bool forceEnglish = Properties.Settings.Default.FORCE_ENGLISH_LANGUAGE;
+            SetLanguage(forceEnglish);
+
+            /********************************************************************/
+
             InitializeComponent();
+            SetUITexte();
             LoadHistory();
+        }
+
+        private void SetUITexte()
+        {
+            this.Title = UITexte.UITexte.DownloadHistory_Title;
+            this.ReuseButton.Content = UITexte.UITexte.DownloadHistory_Button_ReUse;
+            this.ClearButton.Content = UITexte.UITexte.DownloadHistory_Button_Clear;
+            this.EmptyText.Text = UITexte.UITexte.DownloadHistory_Label_EmptyHistory;
+            this.InfoText.Text = UITexte.UITexte.DownloadHistory_Label_EmptyHistory_Info;
+        }
+
+        private void SetLanguage(bool forceEnglish)
+        {
+            CultureInfo culture;
+            if (forceEnglish)
+            {
+                culture = new CultureInfo("en");
+            }
+            else
+            {
+                // Standard: Englisch, aber wenn Windows-Sprache Deutsch ist, dann Deutsch verwenden
+                var windowsCulture = CultureInfo.CurrentUICulture;
+                if (windowsCulture.TwoLetterISOLanguageName == "de")
+                    culture = new CultureInfo("de");
+                else
+                    culture = new CultureInfo("en");
+            }
+
+            Thread.CurrentThread.CurrentCulture = culture;
+            Thread.CurrentThread.CurrentUICulture = culture;
+            CultureInfo.DefaultThreadCurrentCulture = culture;
+            CultureInfo.DefaultThreadCurrentUICulture = culture;
         }
 
         private void LoadHistory()

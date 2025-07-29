@@ -25,7 +25,7 @@ namespace MortysDLP.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("2025.07.28")]
+        [global::System.Configuration.DefaultSettingValueAttribute("2025.07.29")]
         public string CURRENTVERSION {
             get {
                 return ((string)(this["CURRENTVERSION"]));
@@ -212,6 +212,90 @@ namespace MortysDLP.Properties {
             }
             set {
                 this["CHECKED_AUDIOPATH"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("MortysDLP-Updater.exe")]
+        public string MORTYSDLP_UPDATE_EXE_FILE {
+            get {
+                return ((string)(this["MORTYSDLP_UPDATE_EXE_FILE"]));
+            }
+            set {
+                this["MORTYSDLP_UPDATE_EXE_FILE"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("MortysDLP.exe")]
+        public string MORTYSDLP_EXE_FILE {
+            get {
+                return ((string)(this["MORTYSDLP_EXE_FILE"]));
+            }
+            set {
+                this["MORTYSDLP_EXE_FILE"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("MortysDLP_Update.zip")]
+        public string MORTYSDLP_UPDATE_ZIP_FILE {
+            get {
+                return ((string)(this["MORTYSDLP_UPDATE_ZIP_FILE"]));
+            }
+            set {
+                this["MORTYSDLP_UPDATE_ZIP_FILE"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("MortysDLP-Updater")]
+        public string MORTYSDLP_UPDATER_FOLDERNAME {
+            get {
+                return ((string)(this["MORTYSDLP_UPDATER_FOLDERNAME"]));
+            }
+            set {
+                this["MORTYSDLP_UPDATER_FOLDERNAME"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Updater")]
+        public string MORTYSDLP_UPDATER_BASE_FOLDERNAME {
+            get {
+                return ((string)(this["MORTYSDLP_UPDATER_BASE_FOLDERNAME"]));
+            }
+            set {
+                this["MORTYSDLP_UPDATER_BASE_FOLDERNAME"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("latest")]
+        public string VERSIONSKIP {
+            get {
+                return ((string)(this["VERSIONSKIP"]));
+            }
+            set {
+                this["VERSIONSKIP"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool FORCE_ENGLISH_LANGUAGE {
+            get {
+                return ((bool)(this["FORCE_ENGLISH_LANGUAGE"]));
+            }
+            set {
+                this["FORCE_ENGLISH_LANGUAGE"] = value;
             }
         }
     }

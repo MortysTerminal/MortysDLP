@@ -1,7 +1,9 @@
 ﻿using FontAwesome.WPF;
 using MortysDLP.Models;
 using MortysDLP.Services;
+using MortysDLP.UITexte;
 using System.Diagnostics;
+using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
@@ -15,6 +17,9 @@ namespace MortysDLP
     /// </summary>
     public partial class Hauptfenster : Window
     {
+        
+
+
         private CancellationTokenSource _downloadCancellationTokenSource;
         private Task _downloadTask;
         private double _lastProgress = 0;
@@ -25,11 +30,24 @@ namespace MortysDLP
 
         public Hauptfenster()
         {
+            /********************************************************************/
+            /*
+              Sprachanpassung bei Software-Start
+            */
+            // Debug: Sprache erzwingen
+            bool forceEnglish = Properties.Settings.Default.FORCE_ENGLISH_LANGUAGE;
+            SetLanguage(forceEnglish);
+
+            /********************************************************************/
+
             /*
              Setze den Downloadpfad in den Einstellungen, falls kein Pfad vorhanden ist.
              */
             //SetzeDownloadPfadInEinstellungen();
             InitializeComponent();
+
+            SetUITexte();
+
             EinstellungenLaden();
             ErsteSekundenAnpassen();
             AudioOnlyAnpassen();
@@ -38,7 +56,6 @@ namespace MortysDLP
 
 
             btn_download_starten.IsEnabled = !string.IsNullOrWhiteSpace(tb_URL.Text);
-
             // Setze den Titel des Fensters mit der aktuellen Version
             this.Title = "MortysDLP - (" + Properties.Settings.Default.CURRENTVERSION + ")";
         }
@@ -348,7 +365,7 @@ namespace MortysDLP
                 tb_AudioOnly_Text = GetSelectedAudioFormat();
             }
 
-            var Result = System.Windows.MessageBox.Show("Sollen die Einstellungen für den nächsten Programmstart gespeichert werden?", "Einstellunge abspeichern?", System.Windows.MessageBoxButton.YesNo, MessageBoxImage.Question);
+            var Result = System.Windows.MessageBox.Show(UITexte.UITexte.MessageBox_SaveSettings_Question, UITexte.UITexte.MessageBox_SaveSettings_Title, System.Windows.MessageBoxButton.YesNo, MessageBoxImage.Question);
 
             if (Result == System.Windows.MessageBoxResult.Yes)
             {
@@ -419,7 +436,7 @@ namespace MortysDLP
             var psi = new ProcessStartInfo
             {
                 FileName = ytDlpPath,
-                Arguments = $"--get-title \"{url}\"",
+                Arguments = $"--no-check-certificates --get-title \"{url}\"",
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 UseShellExecute = false,
@@ -443,17 +460,45 @@ namespace MortysDLP
             }
             title = await readLineTask;
 
-            // Warte auf Prozessende, prüfe auf Abbruch
-            var waitTask = process.WaitForExitAsync(token);
-            await waitTask;
+            // Lies ggf. Fehlerausgabe
+            string? error = await process.StandardError.ReadToEndAsync();
 
-            if (token.IsCancellationRequested)
+            await process.WaitForExitAsync(token);
+
+            // Fallback, falls kein Titel gefunden
+            if (string.IsNullOrWhiteSpace(title))
             {
-                try { process.Kill(true); } catch { }
-                token.ThrowIfCancellationRequested();
+                // Optional: Fehlerausgabe loggen
+                AppendOutput($"[WARN] Kein Titel von yt-dlp erhalten. Fehler: {error?.Trim()}");
+                // Fallback: Versuche, aus der URL einen Titel zu generieren
+                try
+                {
+                    var uri = new Uri(url);
+                    if (uri.Host.Contains("twitch.tv"))
+                    {
+                        // Extrahiere Channel oder Video-ID
+                        var segments = uri.Segments;
+                        if (segments.Length > 1)
+                        {
+                            title = $"Twitch: {segments[segments.Length - 1].Trim('/')}";
+                        }
+                        else
+                        {
+                            title = "Twitch-Video";
+                        }
+                    }
+                    else
+                    {
+                        title = "Unbekannter Titel";
+                    }
+                }
+                catch
+                {
+                    title = "Unbekannter Titel";
+                }
             }
 
-            return title ?? "";
+            return title ?? "Unbekannter Titel";
         }
 
         private void History_Click(object sender, RoutedEventArgs e)
@@ -515,9 +560,45 @@ namespace MortysDLP
             }
             return null;
         }
+        private double? ParseFfmpegTimeProgress(string line, string zeitspanneVon, string zeitspanneBis, out double? secondsCurrent, out double? secondsTotal)
+        {
+            secondsCurrent = null;
+            secondsTotal = null;
+            var timeMatch = System.Text.RegularExpressions.Regex.Match(line, @"time=(\d{2}:\d{2}:\d{2}\.\d{2})");
+            if (timeMatch.Success)
+            {
+                var timeStr = timeMatch.Groups[1].Value;
+                if (TryParseFlexibleTime(timeStr, out var current) &&
+                    TryParseFlexibleTime(zeitspanneVon, out var von) &&
+                    TryParseFlexibleTime(zeitspanneBis, out var bis))
+                {
+                    var totalDuration = bis - von;
+                    var currentDuration = current - von;
+                    secondsCurrent = currentDuration.TotalSeconds;
+                    secondsTotal = totalDuration.TotalSeconds;
+                    if (totalDuration.TotalSeconds > 0)
+                    {
+                        var percent = (currentDuration.TotalSeconds / totalDuration.TotalSeconds) * 100.0;
+                        percent = Math.Max(0, Math.Min(100, percent));
+                        return percent;
+                    }
+                }
+            }
+            return null;
+        }
 
         private void RunYtDlpAsync(string YtDlpPath, string arguments, CancellationToken token)
         {
+            // Wert im UI-Thread holen!
+            string zeitspanneBis = "";
+            string zeitspanneVon = "";
+            bool isZeitspanneChecked = false;
+            Dispatcher.Invoke(() => {
+                zeitspanneVon = tb_zeitspanne_von.Text;
+                zeitspanneBis = tb_zeitspanne_bis.Text;
+                isZeitspanneChecked = cb_Zeitspanne.IsChecked == true;
+            });
+
             _ytDlpProcess = new Process
             {
                 StartInfo = new ProcessStartInfo
@@ -536,9 +617,11 @@ namespace MortysDLP
                 if (!string.IsNullOrEmpty(e.Data))
                 {
                     var progress = ParseYtDlpProgress(e.Data, out double? speedMBs);
-                    if (progress.HasValue)
+                    if (progress.HasValue) { UpdateProgress(progress.Value, false, speedMBs);
+                    }else if (isZeitspanneChecked)
                     {
-                        UpdateProgress(progress.Value, false, speedMBs);
+                        var percent = ParseFfmpegTimeProgress(e.Data, zeitspanneVon, zeitspanneBis, out var secCurrent, out var secTotal);
+                        if (percent.HasValue){ UpdateProgress(percent.Value, false, null); }
                     }
                     AppendOutput(e.Data);
                 }
@@ -548,6 +631,12 @@ namespace MortysDLP
             {
                 if (!string.IsNullOrEmpty(e.Data))
                 {
+                    // Fortschritt aus ffmpeg-Zeilen extrahieren (time=...)
+                    var percent = ParseFfmpegTimeProgress(e.Data, zeitspanneVon, zeitspanneBis, out var secCurrent, out var secTotal);
+                    if (percent.HasValue)
+                    {
+                        UpdateProgress(percent.Value, false, null);
+                    }
                     AppendOutput($"[ERROR] {e.Data}");
                 }
             };
@@ -670,6 +759,28 @@ namespace MortysDLP
                 }
             }
         }
+        private void SetLanguage(bool forceEnglish)
+        {
+            CultureInfo culture;
+            if (forceEnglish)
+            {
+                culture = new CultureInfo("en");
+            }
+            else
+            {
+                // Standard: Englisch, aber wenn Windows-Sprache Deutsch ist, dann Deutsch verwenden
+                var windowsCulture = CultureInfo.CurrentUICulture;
+                if (windowsCulture.TwoLetterISOLanguageName == "de")
+                    culture = new CultureInfo("de");
+                else
+                    culture = new CultureInfo("en");
+            }
+
+            Thread.CurrentThread.CurrentCulture = culture;
+            Thread.CurrentThread.CurrentUICulture = culture;
+            CultureInfo.DefaultThreadCurrentCulture = culture;
+            CultureInfo.DefaultThreadCurrentUICulture = culture;
+        }
 
         private void SetStatusIcon(StatusIconType type)
         {
@@ -717,6 +828,7 @@ namespace MortysDLP
             btn_History.IsEnabled = enabled;
             btn_download_starten.IsEnabled = enabled;
             btn_Header_Einstellungen.IsEnabled = enabled;
+            btn_GitHub.IsEnabled = enabled;
             // Menüeinträge ggf. sperren
             // DownloadPathMenu_Click ist im Menü, ggf. Menü sperren:
             // Menü kannst du z.B. über Menu.IsEnabled = enabled; sperren, falls du einen Namen vergeben hast.
@@ -737,6 +849,32 @@ namespace MortysDLP
                 //lbl_audiopath_info.Visibility = Visibility.Collapsed;
             }
                 
+        }
+
+        private void SetUITexte()
+        {
+            this.btn_Header_Einstellungen.Header        = UITexte.UITexte.Hauptfenster_Button_Menu_Settings;
+            this.btn_Header_ChangeDownloadPath.Header   = UITexte.UITexte.Hauptfenster_Button_Menu_ChangeDownloadPath;
+            this.btn_Header_Close.Header                = UITexte.UITexte.Button_Close;
+            this.lbl_Softwareinfo.Text                  = UITexte.UITexte.Softwareinfo;
+            this.lbl_downloadpath_info.Content          = UITexte.UITexte.Hauptfenster_Label_DownloadPathInfo;
+            this.lbl_audiopath_info.Content             = UITexte.UITexte.Hauptfenster_Label_AudioOnly_Info;
+            this.lbl_URL_info.Content                   = UITexte.UITexte.Hauptfenster_Label_URL;
+            this.btn_History.Content                    = UITexte.UITexte.Hauptfenster_Button_History;
+            this.txt_zeitspanne_von.Text                = UITexte.UITexte.Hauptfenster_Label_TimespanLeft;
+            this.txt_zeitspanne_bindestrich.Text        = UITexte.UITexte.Hauptfenster_Label_TimespanMiddle;
+            this.txt_zeitspanne_info.Text               = UITexte.UITexte.Hauptfenster_Label_TimespanRight;
+            this.ToolTip_TimeSpan.Content               = UITexte.UITexte.Hauptfenster_Button_Timespan_Info;
+            this.txt_ErsteSekunden_info1.Text           = UITexte.UITexte.Hauptfenster_Label_TimeStartLeft;
+            this.txt_ErsteSekunden_info2.Text           = UITexte.UITexte.Hauptfenster_Label_TimeStartRight;
+            this.txt_Videoformat_info.Text              = UITexte.UITexte.Hauptfenster_Label_Videoformat;
+            this.txt_Videoformat_info2.Text             = UITexte.UITexte.Hauptfenster_Label_Videoformat_Info;
+            this.txt_AudioOnly_info.Text                = UITexte.UITexte.Hauptfenster_Label_AudioOnly;
+            this.txt_AudioOnly_info2.Text               = UITexte.UITexte.Hauptfenster_Label_AudioOnly_Info;
+            this.btn_download_starten.Content           = UITexte.UITexte.Hauptfenster_Button_DownloadStart;
+            this.btn_download_abbrechen.Content         = UITexte.UITexte.Hauptfenster_Button_DownloadAbort;
+            this.btn_einstellungen_speichern.Content    = UITexte.UITexte.Hauptfenster_Button_SettingsSave;
+            this.exp_debug.Header                       = UITexte.UITexte.Hauptfenster_DebugInfo;
         }
 
         private void SetzeDownloadPfadInEinstellungen()
@@ -817,8 +955,23 @@ namespace MortysDLP
         {
         }
 
+        private bool TryParseFlexibleTime(string input, out TimeSpan result)
+        {
+            // Unterstützt hh:mm:ss, mm:ss und optional mit .ff für ffmpeg
+            string[] formats = { @"hh\:mm\:ss\.ff", @"hh\:mm\:ss", @"mm\:ss\.ff", @"mm\:ss" };
+            foreach (var format in formats)
+            {
+                if (TimeSpan.TryParseExact(input, format, null, out result))
+                    return true;
+            }
+            // Fallback: Standard-TryParse (z.B. falls jemand 90 eingibt für 90 Sekunden)
+            return TimeSpan.TryParse(input, out result);
+        }
+
         private void UpdateProgress(double percent, bool isError = false, double? speedMBs = null)
         {
+            //System.Diagnostics.Debug.WriteLine($"UpdateProgress: percent={percent}, speedMBs={speedMBs}, isError={isError}"); // DEBUG
+
             Dispatcher.Invoke(() =>
             {
                 _lastProgress = percent;
@@ -826,15 +979,33 @@ namespace MortysDLP
                 if (isError)
                 {
                     DownloadProgressBar.Foreground = new SolidColorBrush(Colors.Red);
-                    DownloadProgressText.Text = "Fehler";
+                    DownloadProgressText.Text = "";
                 }
                 else
                 {
-                    string speedText = speedMBs.HasValue ? $" ({speedMBs.Value:F2} MB/s)" : "";
                     DownloadProgressBar.Foreground = new SolidColorBrush(Colors.SteelBlue);
-                    DownloadProgressText.Text = $"{percent:F1} % {speedText}";
+
+                    if (percent > 0)
+                    {
+                        if (speedMBs.HasValue)
+                            DownloadProgressText.Text = $"{percent:F2} % ({speedMBs.Value:F2} MB/s)";
+                        else
+                            DownloadProgressText.Text = $"{percent:F2} %";
+                    }
+                    else if (speedMBs.HasValue)
+                    {
+                        DownloadProgressText.Text = $"{speedMBs.Value:F2} MB/s";
+                    }
+                    else
+                    {
+                        DownloadProgressText.Text = "";
+                    }
                 }
+                //System.Diagnostics.Debug.WriteLine($"UpdateProgress: DownloadProgressText={DownloadProgressText.Text}"); // DEBUG
+
             });
+
+
         }
         private void ValidateDownloadButton()
         {
@@ -926,5 +1097,6 @@ namespace MortysDLP
                 UseShellExecute = true
             });
         }
+
     }
 }

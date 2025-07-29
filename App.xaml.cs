@@ -1,8 +1,11 @@
-﻿using System.Windows;
+﻿using MortysDLP.Properties;
 using MortysDLP.Services;
-using MortysDLP.Properties;
+//using MortysDLP.UITexte;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
+using System.Threading;
+using System.Windows;
 
 namespace MortysDLP
 {
@@ -11,17 +14,28 @@ namespace MortysDLP
     /// </summary>
     public partial class App : Application
     {
-        // Aktuelle Version aus den Einstellungen (value: latest = Update Skip ; For DEBUGGING!)
         private string currentVersion = Settings.Default.CURRENTVERSION;
 
         /* 
          * DEBUG
          * */
-        private int DebugSleepTimer = 0; // 1 Sekunde ; 1000 ms
+        private int DebugSleepTimer = 0; // 1000 = 1 Sekunde
 
 
         protected override async void OnStartup(StartupEventArgs e)
         {
+
+            /********************************************************************/
+            /*
+              Sprachanpassung bei Software-Start
+            */
+            // Debug: Sprache erzwingen
+            bool forceEnglish = Settings.Default.FORCE_ENGLISH_LANGUAGE; ;
+            SetLanguage(forceEnglish);
+
+            /********************************************************************/
+
+
             var splash = new StartupWindow();
             splash.Show();
 
@@ -30,42 +44,42 @@ namespace MortysDLP
             // splash.SetTitle("Dein Produktname");
 
             // 1. Status: Nach Software-Update suchen
-            await SetzeStatusTextVomStartupWindowUndWarte(splash, "Suche nach neuer Version...", DebugSleepTimer);
+            await SetzeStatusTextVomStartupWindowUndWarte(splash, UITexte.UITexte.Splash_SearchingForUpdate, DebugSleepTimer);
 
             if (await UpdateAvailable(CurrentVersion))
             {
                 try
                 {
-                    await SetzeStatusTextVomStartupWindowUndWarte(splash, "Starte Update", DebugSleepTimer);
+                    await SetzeStatusTextVomStartupWindowUndWarte(splash, UITexte.UITexte.Splash_StartingUpdate, DebugSleepTimer);
                     await StartUpdate(CurrentVersion);
-                    await SetzeStatusTextVomStartupWindowUndWarte(splash, "Starte Anwendung", DebugSleepTimer);
+                    await SetzeStatusTextVomStartupWindowUndWarte(splash, UITexte.UITexte.Splash_StartingApp, DebugSleepTimer);
                 }
                 catch
                 {
-                    await SetzeStatusTextVomStartupWindowUndWarte(splash, "Fehler beim Überprüfen auf Updates. Starte Anwendung ohne Update.", DebugSleepTimer);
-                    await SetzeStatusTextVomStartupWindowUndWarte(splash, "Starte Anwendung...", DebugSleepTimer);
+                    await SetzeStatusTextVomStartupWindowUndWarte(splash, UITexte.UITexte.Splash_UpdateError, DebugSleepTimer);
+                    await SetzeStatusTextVomStartupWindowUndWarte(splash, UITexte.UITexte.Splash_StartingApp, DebugSleepTimer);
                 }                
             }
             else
             {
-                await SetzeStatusTextVomStartupWindowUndWarte(splash, "Keine Updates verfügbar.", DebugSleepTimer);
+                await SetzeStatusTextVomStartupWindowUndWarte(splash, UITexte.UITexte.Splash_NoUpdate, DebugSleepTimer);
             }
             // 2. Status: Voraussetzungen prüfen (nur Info, Download im MainWindow)
-            await SetzeStatusTextVomStartupWindowUndWarte(splash, "Prüfe Voraussetzungen (yt-dlp, ffmpeg, ffprobe)...", DebugSleepTimer);
+            await SetzeStatusTextVomStartupWindowUndWarte(splash, UITexte.UITexte.Splash_CheckingTools, DebugSleepTimer);
 
             // Start des ToolUpdaters 
             if (await splash.ToolUpdater())
             {
-                await SetzeStatusTextVomStartupWindowUndWarte(splash, "Alle Tools sind aktuell.", DebugSleepTimer);
+                await SetzeStatusTextVomStartupWindowUndWarte(splash, UITexte.UITexte.Splash_AllToolsOk, DebugSleepTimer);
             }
             else
             {
-                await SetzeStatusTextVomStartupWindowUndWarte(splash, "Einige Tools fehlen oder sind veraltet. Bitte aktualisieren Sie die Tools manuell.", DebugSleepTimer);
+                await SetzeStatusTextVomStartupWindowUndWarte(splash, UITexte.UITexte.Splash_ToolsMissing, DebugSleepTimer);
                 return; // Beende die Anwendung, wenn Tools fehlen
             }
 
             // 3. Splash schließen, MainWindow starten (dort werden Tools ggf. heruntergeladen)
-            await SetzeStatusTextVomStartupWindowUndWarte(splash, "Starte Anwendung...", DebugSleepTimer);
+            await SetzeStatusTextVomStartupWindowUndWarte(splash, UITexte.UITexte.Splash_StartingApp, DebugSleepTimer);
 
             Thread.Sleep(DebugSleepTimer); // Kurze Pause für den Splashscreen
 
@@ -80,6 +94,29 @@ namespace MortysDLP
 
         }
 
+        private void SetLanguage(bool forceEnglish)
+        {
+            CultureInfo culture;
+            if (forceEnglish)
+            {
+                culture = new CultureInfo("en");
+            }
+            else
+            {
+                // Standard: Englisch, aber wenn Windows-Sprache Deutsch ist, dann Deutsch verwenden
+                var windowsCulture = CultureInfo.CurrentUICulture;
+                if (windowsCulture.TwoLetterISOLanguageName == "de")
+                    culture = new CultureInfo("de");
+                else
+                    culture = new CultureInfo("en");
+            }
+
+            Thread.CurrentThread.CurrentCulture = culture;
+            Thread.CurrentThread.CurrentUICulture = culture;
+            CultureInfo.DefaultThreadCurrentCulture = culture;
+            CultureInfo.DefaultThreadCurrentUICulture = culture;
+        }
+
         public string CurrentVersion { get => currentVersion; set => currentVersion = value; }
 
         public async Task StartUpdate(string currentVersion)
@@ -88,22 +125,22 @@ namespace MortysDLP
             var (latestVersion, assetUrl) = await updateService.GetLatestReleaseInfoAsync();
 
             // ZIP-Datei im Temp-Ordner speichern
-            string tempZipPath = Path.Combine(Path.GetTempPath(), "MortysDLP_Update.zip");
+            string tempZipPath = Path.Combine(Path.GetTempPath(), Settings.Default.MORTYSDLP_UPDATE_ZIP_FILE);
             await updateService.DownloadAssetAsync(assetUrl, tempZipPath);
 
             // Updater in ein temporäres Verzeichnis kopieren (rekursiv, inkl. aller Dateien und Unterordner)
-            string sourceUpdaterDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Updater");
-            string tempUpdaterDir = Path.Combine(Path.GetTempPath(), "MortysDLP-Updater");
+            string sourceUpdaterDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Settings.Default.MORTYSDLP_UPDATER_BASE_FOLDERNAME);
+            string tempUpdaterDir = Path.Combine(Path.GetTempPath(), Settings.Default.MORTYSDLP_UPDATER_FOLDERNAME);
             CopyDirectory(sourceUpdaterDir, tempUpdaterDir);
 
             // Argumente: <MainExeName> <ZipPath> <TargetDir>
-            string mainExeName = "MortysDLP.exe";
+            string mainExeName = Settings.Default.MORTYSDLP_EXE_FILE;
             string arguments = $"\"{mainExeName}\" \"{tempZipPath}\" \"{AppDomain.CurrentDomain.BaseDirectory}\"";
 
             // Updater starten und App beenden
             Process.Start(new ProcessStartInfo
             {
-                FileName = Path.Combine(tempUpdaterDir, "MortysDLP-Updater.exe"),
+                FileName = Path.Combine(tempUpdaterDir,Settings.Default.MORTYSDLP_UPDATE_EXE_FILE),
                 Arguments = arguments,
                 UseShellExecute = false
             });
@@ -115,7 +152,7 @@ namespace MortysDLP
             // Hier kannst du die Logik zum Überprüfen auf Software-Updates einfügen
             // Zum Beispiel: Überprüfen, ob eine neue Version verfügbar ist
             // Aktuell gibt es keine Implementierung, daher immer true zurückgeben
-            if(currentVersion.Equals("latest"))
+            if(currentVersion.Equals(Settings.Default.VERSIONSKIP))
             {
                 return false; // DEBUG: Nie Update verfügbar
             }
@@ -140,9 +177,12 @@ namespace MortysDLP
             }
         }
 
-        // Hilfsmethode für rekursives Kopieren
         static void CopyDirectory(string sourceDir, string targetDir)
         {
+            if (!Directory.Exists(sourceDir))
+                throw new DirectoryNotFoundException(
+                    string.Format(UITexte.UITexte.Error_DirectoryNotFound, sourceDir));
+
             Directory.CreateDirectory(targetDir);
             foreach (var file in Directory.GetFiles(sourceDir))
             {
