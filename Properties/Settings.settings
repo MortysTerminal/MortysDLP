@@ -3,7 +3,7 @@
   <Profiles />
   <Settings>
     <Setting Name="CURRENTVERSION" Type="System.String" Scope="User">
-      <Value Profile="(Default)">2025.07.28</Value>
+      <Value Profile="(Default)">2025.07.29</Value>
     </Setting>
     <Setting Name="DOWNLOADPATH" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
@@ -48,6 +48,27 @@
       <Value Profile="(Default)" />
     </Setting>
     <Setting Name="CHECKED_AUDIOPATH" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="MORTYSDLP_UPDATE_EXE_FILE" Type="System.String" Scope="User">
+      <Value Profile="(Default)">MortysDLP-Updater.exe</Value>
+    </Setting>
+    <Setting Name="MORTYSDLP_EXE_FILE" Type="System.String" Scope="User">
+      <Value Profile="(Default)">MortysDLP.exe</Value>
+    </Setting>
+    <Setting Name="MORTYSDLP_UPDATE_ZIP_FILE" Type="System.String" Scope="User">
+      <Value Profile="(Default)">MortysDLP_Update.zip</Value>
+    </Setting>
+    <Setting Name="MORTYSDLP_UPDATER_FOLDERNAME" Type="System.String" Scope="User">
+      <Value Profile="(Default)">MortysDLP-Updater</Value>
+    </Setting>
+    <Setting Name="MORTYSDLP_UPDATER_BASE_FOLDERNAME" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Updater</Value>
+    </Setting>
+    <Setting Name="VERSIONSKIP" Type="System.String" Scope="User">
+      <Value Profile="(Default)">latest</Value>
+    </Setting>
+    <Setting Name="FORCE_ENGLISH_LANGUAGE" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
   </Settings>

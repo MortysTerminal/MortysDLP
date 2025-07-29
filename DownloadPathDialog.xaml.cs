@@ -1,4 +1,6 @@
 ﻿using MortysDLP.Services;
+using MortysDLP.UITexte;
+using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -11,11 +13,47 @@ namespace MortysDLP
     {
         public DownloadPathDialog()
         {
+            /********************************************************************/
+            /*
+              Sprachanpassung bei Software-Start
+            */
+            // Debug: Sprache erzwingen
+            bool forceEnglish = Properties.Settings.Default.FORCE_ENGLISH_LANGUAGE;
+            SetLanguage(forceEnglish);
+
+            /********************************************************************/
+
             InitializeComponent();
             cbAudioOnlyPath.IsChecked = Properties.Settings.Default.CHECKED_AUDIOPATH;
             PathBox.Text = Properties.Settings.Default.DOWNLOADPATH;
             AudioPathBox.Text = Properties.Settings.Default.DOWNLOADAUDIOONLYPATH;
             SetUIAudioPathBox();
+            
+            
+            SetUITexte();
+        }
+
+        private void SetLanguage(bool forceEnglish)
+        {
+            CultureInfo culture;
+            if (forceEnglish)
+            {
+                culture = new CultureInfo("en");
+            }
+            else
+            {
+                // Standard: Englisch, aber wenn Windows-Sprache Deutsch ist, dann Deutsch verwenden
+                var windowsCulture = CultureInfo.CurrentUICulture;
+                if (windowsCulture.TwoLetterISOLanguageName == "de")
+                    culture = new CultureInfo("de");
+                else
+                    culture = new CultureInfo("en");
+            }
+
+            Thread.CurrentThread.CurrentCulture = culture;
+            Thread.CurrentThread.CurrentUICulture = culture;
+            CultureInfo.DefaultThreadCurrentCulture = culture;
+            CultureInfo.DefaultThreadCurrentUICulture = culture;
         }
 
         private void OK_Click(object sender, RoutedEventArgs e)
@@ -27,16 +65,16 @@ namespace MortysDLP
 
             if (isDownloadPathEmpty || isAudioPathEmpty)
             {
-                string message = "Es wurde kein Download-Ordner gewählt.\n";
+                string message = UITexte.UITexte.DownloadPathDialog_NoDownloadFolder_Message.Replace("\\n", Environment.NewLine);
                 if (isDownloadPathEmpty)
-                    message += "- Standard-Downloadpfad fehlt.\n";
+                    message += UITexte.UITexte.DownloadPathDialog_DownloadPathEmpty.Replace("\\n", Environment.NewLine);
                 if (isAudioPathEmpty)
-                    message += "- AudioOnly-Downloadpfad fehlt.\n";
-                message += "\nMöchten Sie den Windows Standard-Ordner verwenden?";
+                    message += UITexte.UITexte.DownloadPathDialog_AudioPathEmpty.Replace("\\n", Environment.NewLine);
+                message += UITexte.UITexte.DownloadPathDialog_SetDefaultWindowsDownloadFolder.Replace("\\n", Environment.NewLine);
 
                 var result = MessageBox.Show(
                     message,
-                    "Kein Ordner gewählt",
+                    UITexte.UITexte.DownloadPathDialog_NoDownloadFolder_Title,
                     MessageBoxButton.YesNoCancel,
                     MessageBoxImage.Warning);
 
@@ -65,8 +103,17 @@ namespace MortysDLP
 
 
             Properties.Settings.Default.DOWNLOADPATH = PathBox.Text;
-            Properties.Settings.Default.DOWNLOADAUDIOONLYPATH = AudioPathBox.Text;
+
             Properties.Settings.Default.CHECKED_AUDIOPATH = cbAudioOnlyPath.IsChecked ?? false;
+
+            if (cbAudioOnlyPath.IsChecked == true)
+            {
+                Properties.Settings.Default.DOWNLOADAUDIOONLYPATH = AudioPathBox.Text;
+            }
+            else
+            {
+                Properties.Settings.Default.DOWNLOADAUDIOONLYPATH = PathBox.Text; // Wenn AudioOnly nicht aktiviert, dann den normalen Downloadpfad verwenden
+            }
             Properties.Settings.Default.Save();
             DialogResult = true;
             Close();
@@ -80,27 +127,27 @@ namespace MortysDLP
 
         private void Browse_Click(object sender, RoutedEventArgs e)
         {
-            #pragma warning disable CA1416 // Plattformkompatibilität überprüfen
+#pragma warning disable CA1416 // Plattformkompatibilität überprüfen
             var dialog = new Ookii.Dialogs.Wpf.VistaFolderBrowserDialog
             {
-                Description = "Wähle den Download-Ordner",
+                Description = UITexte.UITexte.DownloadPathDialog_BrowseFolder_Description,
                 SelectedPath = PathBox.Text,
                 UseDescriptionForTitle = true
             };
-            #pragma warning restore CA1416 // Plattformkompatibilität überprüfen
-            #pragma warning disable CA1416 // Plattformkompatibilität überprüfen
+#pragma warning restore CA1416 // Plattformkompatibilität überprüfen
+#pragma warning disable CA1416 // Plattformkompatibilität überprüfen
             if (dialog.ShowDialog(this) == true)
             {
                 PathBox.Text = dialog.SelectedPath;
             }
-            #pragma warning restore CA1416 // Plattformkompatibilität überprüfen
+#pragma warning restore CA1416 // Plattformkompatibilität überprüfen
         }
 
         private void BrowseAudio_Click(object sender, RoutedEventArgs e)
         {
             var dialog = new Ookii.Dialogs.Wpf.VistaFolderBrowserDialog
             {
-                Description = "Wähle den AudioOnly-Download-Ordner",
+                Description = UITexte.UITexte.DownloadPathDialog_BrowseAudioFolder_Description,
                 SelectedPath = AudioPathBox.Text,
                 UseDescriptionForTitle = true
             };
@@ -149,7 +196,18 @@ namespace MortysDLP
                 AudioPathBox.IsEnabled = false;
                 btn_SearchAudioPath.IsEnabled = false;
             }
-            
+
+        }
+
+        private void SetUITexte()
+        {
+            this.Title = UITexte.UITexte.DownloadPathDialog_Title;
+            this.lbl_DefaultDownloadPath.Text = UITexte.UITexte.DownloadPathDialog_StandardDownloadPathLabel;
+            this.lbl_DefaultAudioDownloadPath.Text = UITexte.UITexte.DownloadPathDialog_StandardAudioDownloadPathLabel;
+            this.btn_SearchDownloadPath.Content = UITexte.UITexte.Button_Browse;
+            this.btn_SearchAudioPath.Content = UITexte.UITexte.Button_Browse;
+            this.btn_OK.Content = UITexte.UITexte.Button_OK;
+            this.btn_Cancel.Content = UITexte.UITexte.Button_Cancel;
         }
     }
 }

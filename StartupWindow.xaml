@@ -46,7 +46,7 @@
                     </Grid>
                     <!-- Statuszeile -->
                     <TextBlock x:Name="StatusText"
-                               Text="Überprüfe Voraussetzungen..."
+                               Text=""
                                FontSize="14"
                                HorizontalAlignment="Center"
                                TextAlignment="Center"
