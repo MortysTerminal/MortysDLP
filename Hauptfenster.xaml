@@ -10,7 +10,7 @@
         Loaded="Window_Loaded"
         MaxWidth="850">
     <DockPanel>
-        <Menu DockPanel.Dock="Top" Background="#F5F5F5">
+        <Menu DockPanel.Dock="Top">
             <MenuItem Name="btn_Header_Einstellungen" Header="_Einstellungen" Margin="0,-10,0,-10">
                 <MenuItem Name="btn_Header_ChangeDownloadPath" Header="Download-Pfad ändern" Click="DownloadPathMenu_Click"/>
                 <Separator/>
@@ -43,9 +43,9 @@
                        FontSize="28" 
                        HorizontalAlignment="Left" 
                        Margin="7,7,0,0"/>
-                <DockPanel HorizontalAlignment="Right" Opacity="0.6">
-                    <Label Name="lbl_MainVersionInfo" FontStyle="Italic">Version:</Label>
-                    <Label Name="lbl_MainVersion" FontStyle="Italic">latest</Label>
+                <DockPanel HorizontalAlignment="Right" Opacity="0.3">
+                    <Label Name="lbl_MainVersionInfo" FontStyle="Italic">Version</Label>
+                    <Label Name="lbl_MainVersion" FontStyle="Italic" Margin="4,0,0,0">-Placeholder-</Label>
                 </DockPanel>
                 
             </DockPanel>

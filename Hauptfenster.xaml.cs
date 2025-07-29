@@ -57,7 +57,7 @@ namespace MortysDLP
 
             btn_download_starten.IsEnabled = !string.IsNullOrWhiteSpace(tb_URL.Text);
             // Setze den Titel des Fensters mit der aktuellen Version
-            this.Title = "MortysDLP - (" + Properties.Settings.Default.CURRENTVERSION + ")";
+            //this.Title = "MortysDLP";
         }
 
         public enum StatusIconType
@@ -875,6 +875,7 @@ namespace MortysDLP
             this.btn_download_abbrechen.Content         = UITexte.UITexte.Hauptfenster_Button_DownloadAbort;
             this.btn_einstellungen_speichern.Content    = UITexte.UITexte.Hauptfenster_Button_SettingsSave;
             this.exp_debug.Header                       = UITexte.UITexte.Hauptfenster_DebugInfo;
+            this.lbl_MainVersion.Content                = Properties.Settings.Default.CURRENTVERSION;
         }
 
         private void SetzeDownloadPfadInEinstellungen()
