@@ -10,7 +10,7 @@ namespace MortysDLP.Services
 {
     internal class UpdateService
     {
-        private const string GitHubApiUrl = "https://api.github.com/repos/MortysTerminal/MortysDLP/releases/latest";
+        private string GitHubApiUrl = Properties.Settings.Default.MortysDLPGitHubAPIURL;
         private readonly HttpClient _httpClient;
 
         public UpdateService()

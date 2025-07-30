@@ -1,31 +1,24 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using System.Text.Json;
-using System.Threading.Tasks;
-using System.Windows;
 
 namespace MortysDLP.Services
 {
     internal class YtDlpUpdateService
     {
-        private string LatestReleaseApi = Properties.Settings.Default.YTDLP_RELEASE_URL;
-        // Singleton-HttpClient für die gesamte Anwendung
         private static readonly HttpClient _httpClient;
 
+        private string LatestReleaseApi = Properties.Settings.Default.YtdlpReleaseURL;
         static YtDlpUpdateService()
         {
             _httpClient = new HttpClient();
             _httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("MortysDLP-ToolUpdater");
         }
 
-        /// <summary>
-        /// Prüft, ob yt-dlp.exe existiert.
-        /// </summary>
-        public bool ToolExists(string toolPath)
+        public async Task DownloadAssetAsync(string url, string targetPath, IProgress<double>? progress = null)
         {
-            return File.Exists(toolPath);
+            await ToolDownloadHelper.DownloadAssetAsync(_httpClient, url, targetPath, progress);
         }
 
         public async Task<(string? version, string? assetUrl)> GetLatestReleaseInfoAsync()
@@ -56,9 +49,6 @@ namespace MortysDLP.Services
             return (version, assetUrl);
         }
 
-        /// <summary>
-        /// Liest die lokale Version von yt-dlp.exe aus, indem das Tool mit --version aufgerufen wird.
-        /// </summary>
         public string? GetLocalVersion(string toolPath)
         {
             if (!File.Exists(toolPath))
@@ -90,9 +80,6 @@ namespace MortysDLP.Services
             }
         }
 
-        /// <summary>
-        /// Vergleicht die lokale Version mit der neuesten GitHub-Version.
-        /// </summary>
         public bool IsUpdateRequired(string? localVersion, string? latestVersion)
         {
             if (string.IsNullOrWhiteSpace(localVersion) || string.IsNullOrWhiteSpace(latestVersion))
@@ -104,9 +91,9 @@ namespace MortysDLP.Services
             return !string.Equals(localVersion, latestVersion, StringComparison.OrdinalIgnoreCase);
         }
 
-        public async Task DownloadAssetAsync(string url, string targetPath, IProgress<double>? progress = null)
+        public bool ToolExists(string toolPath)
         {
-            await ToolDownloadHelper.DownloadAssetAsync(_httpClient, url, targetPath, progress);
+            return File.Exists(toolPath);
         }
     }
 }

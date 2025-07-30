@@ -25,277 +25,325 @@ namespace MortysDLP.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("2025.07.30")]
-        public string CURRENTVERSION {
+        [global::System.Configuration.DefaultSettingValueAttribute("2025.07.31")]
+        public string CurrentVersion {
             get {
-                return ((string)(this["CURRENTVERSION"]));
+                return ((string)(this["CurrentVersion"]));
             }
             set {
-                this["CURRENTVERSION"] = value;
+                this["CurrentVersion"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string DOWNLOADPATH {
+        public string DownloadPath {
             get {
-                return ((string)(this["DOWNLOADPATH"]));
+                return ((string)(this["DownloadPath"]));
             }
             set {
-                this["DOWNLOADPATH"] = value;
+                this["DownloadPath"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("Tools\\\\yt-dlp.exe")]
-        public string YTDLPPATH {
+        public string YtdlpPath {
             get {
-                return ((string)(this["YTDLPPATH"]));
+                return ((string)(this["YtdlpPath"]));
             }
             set {
-                this["YTDLPPATH"] = value;
+                this["YtdlpPath"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("Tools\\\\ffmpeg.exe")]
-        public string FFMPEGPATH {
+        public string FfmpegPath {
             get {
-                return ((string)(this["FFMPEGPATH"]));
+                return ((string)(this["FfmpegPath"]));
             }
             set {
-                this["FFMPEGPATH"] = value;
+                this["FfmpegPath"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("Tools\\\\ffprobe.exe")]
-        public string FFPROBEPATH {
+        public string FfprobePath {
             get {
-                return ((string)(this["FFPROBEPATH"]));
+                return ((string)(this["FfprobePath"]));
             }
             set {
-                this["FFPROBEPATH"] = value;
+                this["FfprobePath"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string ZEITSPANNE_VON {
+        public string TimespanFrom {
             get {
-                return ((string)(this["ZEITSPANNE_VON"]));
+                return ((string)(this["TimespanFrom"]));
             }
             set {
-                this["ZEITSPANNE_VON"] = value;
+                this["TimespanFrom"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string ZEITSPANNE_BIS {
+        public string TimespanTo {
             get {
-                return ((string)(this["ZEITSPANNE_BIS"]));
+                return ((string)(this["TimespanTo"]));
             }
             set {
-                this["ZEITSPANNE_BIS"] = value;
+                this["TimespanTo"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool CHECKED_ERSTESEKUNDEN {
+        public bool CheckedFirstSeconds {
             get {
-                return ((bool)(this["CHECKED_ERSTESEKUNDEN"]));
+                return ((bool)(this["CheckedFirstSeconds"]));
             }
             set {
-                this["CHECKED_ERSTESEKUNDEN"] = value;
+                this["CheckedFirstSeconds"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool CHECKED_VIDEOFORMAT {
+        public bool CheckedVideoFormat {
             get {
-                return ((bool)(this["CHECKED_VIDEOFORMAT"]));
+                return ((bool)(this["CheckedVideoFormat"]));
             }
             set {
-                this["CHECKED_VIDEOFORMAT"] = value;
+                this["CheckedVideoFormat"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool CHECKED_AUDIO_ONLY {
+        public bool CheckedAudioOnly {
             get {
-                return ((bool)(this["CHECKED_AUDIO_ONLY"]));
+                return ((bool)(this["CheckedAudioOnly"]));
             }
             set {
-                this["CHECKED_AUDIO_ONLY"] = value;
+                this["CheckedAudioOnly"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool CHECKED_ZEITSPANNE {
+        public bool CheckedTimespan {
             get {
-                return ((bool)(this["CHECKED_ZEITSPANNE"]));
+                return ((bool)(this["CheckedTimespan"]));
             }
             set {
-                this["CHECKED_ZEITSPANNE"] = value;
+                this["CheckedTimespan"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string ERSTESEKUNDEN_SEKUNDEN {
+        public string FirstSecondsSeconds {
             get {
-                return ((string)(this["ERSTESEKUNDEN_SEKUNDEN"]));
+                return ((string)(this["FirstSecondsSeconds"]));
             }
             set {
-                this["ERSTESEKUNDEN_SEKUNDEN"] = value;
+                this["FirstSecondsSeconds"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string SELECTED_AUDIO_FORMAT {
+        public string SelectedAudioFormat {
             get {
-                return ((string)(this["SELECTED_AUDIO_FORMAT"]));
+                return ((string)(this["SelectedAudioFormat"]));
             }
             set {
-                this["SELECTED_AUDIO_FORMAT"] = value;
+                this["SelectedAudioFormat"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("https://api.github.com/repos/yt-dlp/yt-dlp/releases/latest")]
-        public string YTDLP_RELEASE_URL {
+        public string YtdlpReleaseURL {
             get {
-                return ((string)(this["YTDLP_RELEASE_URL"]));
+                return ((string)(this["YtdlpReleaseURL"]));
             }
             set {
-                this["YTDLP_RELEASE_URL"] = value;
+                this["YtdlpReleaseURL"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string DOWNLOADAUDIOONLYPATH {
+        public string DownloadAudioOnlyPath {
             get {
-                return ((string)(this["DOWNLOADAUDIOONLYPATH"]));
+                return ((string)(this["DownloadAudioOnlyPath"]));
             }
             set {
-                this["DOWNLOADAUDIOONLYPATH"] = value;
+                this["DownloadAudioOnlyPath"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool CHECKED_AUDIOPATH {
+        public bool CheckedAudioOnlyPath {
             get {
-                return ((bool)(this["CHECKED_AUDIOPATH"]));
+                return ((bool)(this["CheckedAudioOnlyPath"]));
             }
             set {
-                this["CHECKED_AUDIOPATH"] = value;
+                this["CheckedAudioOnlyPath"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("MortysDLP-Updater.exe")]
-        public string MORTYSDLP_UPDATE_EXE_FILE {
+        public string MortysDLPUpdateExeFile {
             get {
-                return ((string)(this["MORTYSDLP_UPDATE_EXE_FILE"]));
+                return ((string)(this["MortysDLPUpdateExeFile"]));
             }
             set {
-                this["MORTYSDLP_UPDATE_EXE_FILE"] = value;
+                this["MortysDLPUpdateExeFile"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("MortysDLP.exe")]
-        public string MORTYSDLP_EXE_FILE {
+        public string MortysDLPExeFile {
             get {
-                return ((string)(this["MORTYSDLP_EXE_FILE"]));
+                return ((string)(this["MortysDLPExeFile"]));
             }
             set {
-                this["MORTYSDLP_EXE_FILE"] = value;
+                this["MortysDLPExeFile"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("MortysDLP_Update.zip")]
-        public string MORTYSDLP_UPDATE_ZIP_FILE {
+        public string MortysDLPUpdateZipFile {
             get {
-                return ((string)(this["MORTYSDLP_UPDATE_ZIP_FILE"]));
+                return ((string)(this["MortysDLPUpdateZipFile"]));
             }
             set {
-                this["MORTYSDLP_UPDATE_ZIP_FILE"] = value;
+                this["MortysDLPUpdateZipFile"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("MortysDLP-Updater")]
-        public string MORTYSDLP_UPDATER_FOLDERNAME {
+        public string MortysDLPUpdaterFolderName {
             get {
-                return ((string)(this["MORTYSDLP_UPDATER_FOLDERNAME"]));
+                return ((string)(this["MortysDLPUpdaterFolderName"]));
             }
             set {
-                this["MORTYSDLP_UPDATER_FOLDERNAME"] = value;
+                this["MortysDLPUpdaterFolderName"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("Updater")]
-        public string MORTYSDLP_UPDATER_BASE_FOLDERNAME {
+        public string MortysDLPUpdaterBaseFolderName {
             get {
-                return ((string)(this["MORTYSDLP_UPDATER_BASE_FOLDERNAME"]));
+                return ((string)(this["MortysDLPUpdaterBaseFolderName"]));
             }
             set {
-                this["MORTYSDLP_UPDATER_BASE_FOLDERNAME"] = value;
+                this["MortysDLPUpdaterBaseFolderName"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("latest")]
-        public string VERSIONSKIP {
+        public string VersionSkip {
             get {
-                return ((string)(this["VERSIONSKIP"]));
+                return ((string)(this["VersionSkip"]));
             }
             set {
-                this["VERSIONSKIP"] = value;
+                this["VersionSkip"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool FORCE_ENGLISH_LANGUAGE {
+        public bool ForceEnglishLanguage {
             get {
-                return ((bool)(this["FORCE_ENGLISH_LANGUAGE"]));
+                return ((bool)(this["ForceEnglishLanguage"]));
             }
             set {
-                this["FORCE_ENGLISH_LANGUAGE"] = value;
+                this["ForceEnglishLanguage"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("download_history.json")]
+        public string DownloadHistoryFileName {
+            get {
+                return ((string)(this["DownloadHistoryFileName"]));
+            }
+            set {
+                this["DownloadHistoryFileName"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("30")]
+        public short DownloadHistoryFileMaxEntries {
+            get {
+                return ((short)(this["DownloadHistoryFileMaxEntries"]));
+            }
+            set {
+                this["DownloadHistoryFileMaxEntries"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("https://api.github.com/repos/MortysTerminal/MortysDLP/releases/latest")]
+        public string MortysDLPGitHubAPIURL {
+            get {
+                return ((string)(this["MortysDLPGitHubAPIURL"]));
+            }
+            set {
+                this["MortysDLPGitHubAPIURL"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("https://github.com/MortysTerminal/MortysDLP")]
+        public string MortysDLPGitHubURL {
+            get {
+                return ((string)(this["MortysDLPGitHubURL"]));
+            }
+            set {
+                this["MortysDLPGitHubURL"] = value;
             }
         }
     }

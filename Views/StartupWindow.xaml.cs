@@ -1,4 +1,5 @@
-﻿using MortysDLP.Services;
+﻿using MortysDLP.Helpers;
+using MortysDLP.Services;
 using System;
 using System.Collections.Generic;
 using System.IO.Compression;
@@ -10,10 +11,10 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
-using System.Windows.Interop;
 
 namespace MortysDLP
 {
@@ -24,6 +25,8 @@ namespace MortysDLP
     {
         public StartupWindow()
         {
+            /* Sprachanpassung bei Window-Start */
+            LanguageHelper.ApplyLanguage(LanguageHelper.ForceEnglish);
             InitializeComponent();
         }
 
@@ -47,9 +50,9 @@ namespace MortysDLP
             var ytDlpService = new YtDlpUpdateService();
             var ffmpegService = new FfmpegUpdateService();
 
-            string ytDlpPath = Properties.Settings.Default.YTDLPPATH;
-            string ffmpegPath = Properties.Settings.Default.FFMPEGPATH;
-            string ffprobePath = Properties.Settings.Default.FFPROBEPATH;
+            string ytDlpPath = Properties.Settings.Default.YtdlpPath;
+            string ffmpegPath = Properties.Settings.Default.FfmpegPath;
+            string ffprobePath = Properties.Settings.Default.FfprobePath;
 
             await CheckAndUpdateToolAsync(
                 ytDlpService,
