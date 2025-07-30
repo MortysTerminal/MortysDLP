@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Runtime.InteropServices;
 
-namespace MortysDLP.Services
+namespace MortysDLP.Helpers
 {
     public enum KnownFolder
     {
@@ -16,7 +11,8 @@ namespace MortysDLP.Services
         SavedGames,
         SavedSearches
     }
-    public static class KnownFolders
+
+    public static class KnownFoldersHelper
     {
         private static readonly Dictionary<KnownFolder, Guid> _guids = new()
         {

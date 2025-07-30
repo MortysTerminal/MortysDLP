@@ -115,7 +115,7 @@ namespace MortysDLP.UITexte {
         }
         
         /// <summary>
-        ///   Sucht eine lokalisierte Zeichenfolge, die Keine Historie vorhanden ähnelt.
+        ///   Sucht eine lokalisierte Zeichenfolge, die Kein Verlauf vorhanden ähnelt.
         /// </summary>
         internal static string DownloadHistory_Label_EmptyHistory {
             get {
@@ -232,6 +232,15 @@ namespace MortysDLP.UITexte {
         }
         
         /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die Fehler ähnelt.
+        /// </summary>
+        internal static string Error {
+            get {
+                return ResourceManager.GetString("Error", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Sucht eine lokalisierte Zeichenfolge, die Quellverzeichnis nicht gefunden: {0} ähnelt.
         /// </summary>
         internal static string Error_DirectoryNotFound {
@@ -241,182 +250,317 @@ namespace MortysDLP.UITexte {
         }
         
         /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die Der Browser konnte nicht geöffnet werden. ähnelt.
+        /// </summary>
+        internal static string Error_OpenBrowser {
+            get {
+                return ResourceManager.GetString("Error_OpenBrowser", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Sucht eine lokalisierte Zeichenfolge, die Download abbrechen ähnelt.
         /// </summary>
-        internal static string Hauptfenster_Button_DownloadAbort {
+        internal static string MainWindow_Button_DownloadAbort {
             get {
-                return ResourceManager.GetString("Hauptfenster_Button_DownloadAbort", resourceCulture);
+                return ResourceManager.GetString("MainWindow_Button_DownloadAbort", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Sucht eine lokalisierte Zeichenfolge, die Download starten ähnelt.
         /// </summary>
-        internal static string Hauptfenster_Button_DownloadStart {
+        internal static string MainWindow_Button_DownloadStart {
             get {
-                return ResourceManager.GetString("Hauptfenster_Button_DownloadStart", resourceCulture);
+                return ResourceManager.GetString("MainWindow_Button_DownloadStart", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Sucht eine lokalisierte Zeichenfolge, die Verlauf ähnelt.
         /// </summary>
-        internal static string Hauptfenster_Button_History {
+        internal static string MainWindow_Button_History {
             get {
-                return ResourceManager.GetString("Hauptfenster_Button_History", resourceCulture);
+                return ResourceManager.GetString("MainWindow_Button_History", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Sucht eine lokalisierte Zeichenfolge, die Downloadpfad ändern ähnelt.
+        ///   Sucht eine lokalisierte Zeichenfolge, die Download-Pfad ändern ähnelt.
         /// </summary>
-        internal static string Hauptfenster_Button_Menu_ChangeDownloadPath {
+        internal static string MainWindow_Button_Menu_ChangeDownloadPath {
             get {
-                return ResourceManager.GetString("Hauptfenster_Button_Menu_ChangeDownloadPath", resourceCulture);
+                return ResourceManager.GetString("MainWindow_Button_Menu_ChangeDownloadPath", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Sucht eine lokalisierte Zeichenfolge, die Einstellungen ähnelt.
         /// </summary>
-        internal static string Hauptfenster_Button_Menu_Settings {
+        internal static string MainWindow_Button_Menu_Settings {
             get {
-                return ResourceManager.GetString("Hauptfenster_Button_Menu_Settings", resourceCulture);
+                return ResourceManager.GetString("MainWindow_Button_Menu_Settings", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Sucht eine lokalisierte Zeichenfolge, die Einstellungen speichern ähnelt.
         /// </summary>
-        internal static string Hauptfenster_Button_SettingsSave {
+        internal static string MainWindow_Button_SettingsSave {
             get {
-                return ResourceManager.GetString("Hauptfenster_Button_SettingsSave", resourceCulture);
+                return ResourceManager.GetString("MainWindow_Button_SettingsSave", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Sucht eine lokalisierte Zeichenfolge, die Gültige Formate: mm:ss oder hh:mm:ss. Beispiel: 01:23 oder 01:02:03. Die Angabe bedeutet Minuten:Sekunden oder Stunden:Minuten:Sekunden. Damit kannst du z.B. einen Ausschnitt von 00:01:30 bis 00:02:45 herunterladen. ähnelt.
         /// </summary>
-        internal static string Hauptfenster_Button_Timespan_Info {
+        internal static string MainWindow_Button_Timespan_Info {
             get {
-                return ResourceManager.GetString("Hauptfenster_Button_Timespan_Info", resourceCulture);
+                return ResourceManager.GetString("MainWindow_Button_Timespan_Info", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Sucht eine lokalisierte Zeichenfolge, die Debug-Ausgabe ähnelt.
         /// </summary>
-        internal static string Hauptfenster_DebugInfo {
+        internal static string MainWindow_DebugInfo {
             get {
-                return ResourceManager.GetString("Hauptfenster_DebugInfo", resourceCulture);
+                return ResourceManager.GetString("MainWindow_DebugInfo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die [MDLP] Download abgebrochen! ähnelt.
+        /// </summary>
+        internal static string MainWindow_DebugOutput_DownloadCancel {
+            get {
+                return ResourceManager.GetString("MainWindow_DebugOutput_DownloadCancel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die [MDLP] Download abgeschlossen! ähnelt.
+        /// </summary>
+        internal static string MainWindow_DebugOutput_DownloadSuccess {
+            get {
+                return ResourceManager.GetString("MainWindow_DebugOutput_DownloadSuccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die [MDLP] Interner Fehler: {0} ähnelt.
+        /// </summary>
+        internal static string MainWindow_DebugOutput_InternalError {
+            get {
+                return ResourceManager.GetString("MainWindow_DebugOutput_InternalError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die [MDLP] Kein Titel von yt-dlp erhalten. Fehler: {0} ähnelt.
+        /// </summary>
+        internal static string MainWindow_DebugOutput_NoTitleFromYTDLP {
+            get {
+                return ResourceManager.GetString("MainWindow_DebugOutput_NoTitleFromYTDLP", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die [MDLP] Prozess beendet mit Code: {0} ähnelt.
+        /// </summary>
+        internal static string MainWindow_DebugOutput_ProcessEnd {
+            get {
+                return ResourceManager.GetString("MainWindow_DebugOutput_ProcessEnd", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die [MDLP] [EXCEPTION] {0} ähnelt.
+        /// </summary>
+        internal static string MainWindow_DebugOutput_ThrowException {
+            get {
+                return ResourceManager.GetString("MainWindow_DebugOutput_ThrowException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die [MDLP] Prozess beendet mit Code: {0} ähnelt.
+        /// </summary>
+        internal static string MainWindow_DebugOutput_YTDLPError {
+            get {
+                return ResourceManager.GetString("MainWindow_DebugOutput_YTDLPError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die Download-Pfad wurde nicht gefunden! ähnelt.
+        /// </summary>
+        internal static string MainWindow_Download_PathNotFound {
+            get {
+                return ResourceManager.GetString("MainWindow_Download_PathNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die Unbekannter Titel ähnelt.
+        /// </summary>
+        internal static string MainWindow_Download_UnknownTitle {
+            get {
+                return ResourceManager.GetString("MainWindow_Download_UnknownTitle", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Sucht eine lokalisierte Zeichenfolge, die NUR Audio herunterladen (Standard: mp3) ähnelt.
         /// </summary>
-        internal static string Hauptfenster_Label_AudioOnly {
+        internal static string MainWindow_Label_AudioOnly {
             get {
-                return ResourceManager.GetString("Hauptfenster_Label_AudioOnly", resourceCulture);
+                return ResourceManager.GetString("MainWindow_Label_AudioOnly", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Sucht eine lokalisierte Zeichenfolge, die (Nicht zusammen mit Videoformat!) ähnelt.
+        ///   Sucht eine lokalisierte Zeichenfolge, die Audio-Only Pfad: ähnelt.
         /// </summary>
-        internal static string Hauptfenster_Label_AudioOnly_Info {
+        internal static string MainWindow_Label_AudioOnly_Info {
             get {
-                return ResourceManager.GetString("Hauptfenster_Label_AudioOnly_Info", resourceCulture);
+                return ResourceManager.GetString("MainWindow_Label_AudioOnly_Info", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Sucht eine lokalisierte Zeichenfolge, die Download-Audio-Pfad: ähnelt.
         /// </summary>
-        internal static string Hauptfenster_Label_AudioPathInfo {
+        internal static string MainWindow_Label_AudioPathInfo {
             get {
-                return ResourceManager.GetString("Hauptfenster_Label_AudioPathInfo", resourceCulture);
+                return ResourceManager.GetString("MainWindow_Label_AudioPathInfo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die Pfad: ( {0} )nicht gefunden! ähnelt.
+        /// </summary>
+        internal static string MainWindow_Label_Click_DownloadPathNotFound {
+            get {
+                return ResourceManager.GetString("MainWindow_Label_Click_DownloadPathNotFound", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Sucht eine lokalisierte Zeichenfolge, die Download-Pfad: ähnelt.
         /// </summary>
-        internal static string Hauptfenster_Label_DownloadPathInfo {
+        internal static string MainWindow_Label_DownloadPathInfo {
             get {
-                return ResourceManager.GetString("Hauptfenster_Label_DownloadPathInfo", resourceCulture);
+                return ResourceManager.GetString("MainWindow_Label_DownloadPathInfo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die Abgebrochen ähnelt.
+        /// </summary>
+        internal static string MainWindow_Label_DownloadStatus_Cancel {
+            get {
+                return ResourceManager.GetString("MainWindow_Label_DownloadStatus_Cancel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die Lädt... ähnelt.
+        /// </summary>
+        internal static string MainWindow_Label_DownloadStatus_Loading {
+            get {
+                return ResourceManager.GetString("MainWindow_Label_DownloadStatus_Loading", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die Abgeschlossen ähnelt.
+        /// </summary>
+        internal static string MainWindow_Label_DownloadStatus_Success {
+            get {
+                return ResourceManager.GetString("MainWindow_Label_DownloadStatus_Success", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die Breche ab... ähnelt.
+        /// </summary>
+        internal static string MainWindow_Label_DownloadStatus_WhileCanceling {
+            get {
+                return ResourceManager.GetString("MainWindow_Label_DownloadStatus_WhileCanceling", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Sucht eine lokalisierte Zeichenfolge, die Zeitspanne von:  ähnelt.
         /// </summary>
-        internal static string Hauptfenster_Label_TimespanLeft {
+        internal static string MainWindow_Label_TimespanLeft {
             get {
-                return ResourceManager.GetString("Hauptfenster_Label_TimespanLeft", resourceCulture);
+                return ResourceManager.GetString("MainWindow_Label_TimespanLeft", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Sucht eine lokalisierte Zeichenfolge, die - ähnelt.
         /// </summary>
-        internal static string Hauptfenster_Label_TimespanMiddle {
+        internal static string MainWindow_Label_TimespanMiddle {
             get {
-                return ResourceManager.GetString("Hauptfenster_Label_TimespanMiddle", resourceCulture);
+                return ResourceManager.GetString("MainWindow_Label_TimespanMiddle", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Sucht eine lokalisierte Zeichenfolge, die hh:mm:ss oder mm:ss angeben! ähnelt.
         /// </summary>
-        internal static string Hauptfenster_Label_TimespanRight {
+        internal static string MainWindow_Label_TimespanRight {
             get {
-                return ResourceManager.GetString("Hauptfenster_Label_TimespanRight", resourceCulture);
+                return ResourceManager.GetString("MainWindow_Label_TimespanRight", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Sucht eine lokalisierte Zeichenfolge, die Von Start bis Sekunde:  ähnelt.
         /// </summary>
-        internal static string Hauptfenster_Label_TimeStartLeft {
+        internal static string MainWindow_Label_TimeStartLeft {
             get {
-                return ResourceManager.GetString("Hauptfenster_Label_TimeStartLeft", resourceCulture);
+                return ResourceManager.GetString("MainWindow_Label_TimeStartLeft", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Sucht eine lokalisierte Zeichenfolge, die herunterladen ähnelt.
         /// </summary>
-        internal static string Hauptfenster_Label_TimeStartRight {
+        internal static string MainWindow_Label_TimeStartRight {
             get {
-                return ResourceManager.GetString("Hauptfenster_Label_TimeStartRight", resourceCulture);
+                return ResourceManager.GetString("MainWindow_Label_TimeStartRight", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Sucht eine lokalisierte Zeichenfolge, die URL eingeben: ähnelt.
         /// </summary>
-        internal static string Hauptfenster_Label_URL {
+        internal static string MainWindow_Label_URL {
             get {
-                return ResourceManager.GetString("Hauptfenster_Label_URL", resourceCulture);
+                return ResourceManager.GetString("MainWindow_Label_URL", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Sucht eine lokalisierte Zeichenfolge, die Videoformat für Schnittprogramme anpassen (x264) ähnelt.
         /// </summary>
-        internal static string Hauptfenster_Label_Videoformat {
+        internal static string MainWindow_Label_Videoformat {
             get {
-                return ResourceManager.GetString("Hauptfenster_Label_Videoformat", resourceCulture);
+                return ResourceManager.GetString("MainWindow_Label_Videoformat", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Sucht eine lokalisierte Zeichenfolge, die (Nicht zusammen mit &quot;NUR Audio&quot;) ähnelt.
         /// </summary>
-        internal static string Hauptfenster_Label_Videoformat_Info {
+        internal static string MainWindow_Label_Videoformat_Info {
             get {
-                return ResourceManager.GetString("Hauptfenster_Label_Videoformat_Info", resourceCulture);
+                return ResourceManager.GetString("MainWindow_Label_Videoformat_Info", resourceCulture);
             }
         }
         

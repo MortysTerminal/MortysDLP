@@ -1,5 +1,6 @@
 ﻿using MortysDLP.Models;
 using MortysDLP.Services;
+using MortysDLP.Helpers;
 using System.Globalization;
 using System.Windows;
 
@@ -12,19 +13,12 @@ namespace MortysDLP
     {
         public DownloadHistoryWindow()
         {
-            /********************************************************************/
-            /*
-              Sprachanpassung bei Software-Start
-            */
-            // Debug: Sprache erzwingen
-            bool forceEnglish = Properties.Settings.Default.FORCE_ENGLISH_LANGUAGE;
-            SetLanguage(forceEnglish);
-
-            /********************************************************************/
+            /* Sprachanpassung bei Window-Start */
+            LanguageHelper.ApplyLanguage(LanguageHelper.ForceEnglish);
 
             InitializeComponent();
             SetUITexte();
-            LoadHistory();
+            Loaded += async (_, __) => await LoadHistory();
         }
 
         private void SetUITexte()
@@ -35,52 +29,28 @@ namespace MortysDLP
             this.EmptyText.Text = UITexte.UITexte.DownloadHistory_Label_EmptyHistory;
             this.InfoText.Text = UITexte.UITexte.DownloadHistory_Label_EmptyHistory_Info;
         }
-
-        private void SetLanguage(bool forceEnglish)
+        private async Task LoadHistory()
         {
-            CultureInfo culture;
-            if (forceEnglish)
-            {
-                culture = new CultureInfo("en");
-            }
-            else
-            {
-                // Standard: Englisch, aber wenn Windows-Sprache Deutsch ist, dann Deutsch verwenden
-                var windowsCulture = CultureInfo.CurrentUICulture;
-                if (windowsCulture.TwoLetterISOLanguageName == "de")
-                    culture = new CultureInfo("de");
-                else
-                    culture = new CultureInfo("en");
-            }
-
-            Thread.CurrentThread.CurrentCulture = culture;
-            Thread.CurrentThread.CurrentUICulture = culture;
-            CultureInfo.DefaultThreadCurrentCulture = culture;
-            CultureInfo.DefaultThreadCurrentUICulture = culture;
-        }
-
-        private void LoadHistory()
-        {
-            HistoryList.ItemsSource = DownloadHistoryService.Load();
+            HistoryList.ItemsSource = await DownloadHistoryService.LoadAsync();
             UpdateButtonStates();
         }
 
-        private void Clear_Click(object sender, RoutedEventArgs e)
+        private async void Clear_Click(object sender, RoutedEventArgs e)
         {
-            DownloadHistoryService.Clear();
-            LoadHistory();
+            await DownloadHistoryService.ClearAsync();
+            await LoadHistory();
         }
 
         private void Reuse_Click(object sender, RoutedEventArgs e)
         {
             if (HistoryList.SelectedItem is DownloadHistoryEntry entry)
             {
-                // Hauptfenster suchen und URL setzen
+                // MainWindow suchen und URL setzen
                 foreach (Window window in Application.Current.Windows)
                 {
-                    if (window is Hauptfenster main)
+                    if (window is MainWindow main)
                     {
-                        main.tb_URL.Text = entry.Url;
+                        main.tbURL.Text = entry.Url;
                         main.Activate();
                         break;
                     }

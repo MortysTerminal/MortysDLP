@@ -10,7 +10,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
-    <ApplicationIcon>Logos\Icons\mw_globe_32px.ico</ApplicationIcon>
+    <ApplicationIcon>Resources\Icons\mw_globe_32px.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -37,9 +37,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="Logos\globus.png" />
-    <None Remove="Logos\Icons\mw_globe_32px.ico" />
-    <None Remove="Logos\mw_globe_32px.png" />
+    <None Remove="Resources\Logos\globus.png" />
+    <None Remove="Resources\Icons\mw_globe_32px.ico" />
+    <None Remove="Resources\Logos\mw_globe_32px.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -48,13 +48,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Resource Include="Logos\globus.png">
+    <Resource Include="Resources\Logos\globus.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Logos\Icons\mw_globe_32px.ico">
+    <Resource Include="Resources\Icons\mw_globe_32px.ico">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Logos\mw_globe_32px.png">
+    <Resource Include="Resources\Logos\mw_globe_32px.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
   </ItemGroup>
