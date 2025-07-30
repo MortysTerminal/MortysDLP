@@ -31,6 +31,7 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
@@ -164,8 +165,29 @@
                 </StackPanel>
             </DockPanel>
 
+            <DockPanel Grid.Row="10" Visibility="Collapsed">
+                <StackPanel Orientation="Horizontal" Margin="4">
+                    <CheckBox Name="cb_Quality" IsChecked="False" Checked="cbAudioOnlyCheck" Unchecked="cbAudioOnlyCheck" Margin="7"></CheckBox>
+                    <TextBlock x:Name="txt_VideoQuality" Text="Videoqualität:" VerticalAlignment="Center" Margin="7"/>
+                    <ComboBox x:Name="cb_VideoQuality" Width="150" SelectedIndex="0">
+                        <ComboBoxItem Content="Beste" Tag="best"/>
+                        <ComboBoxItem Content="1440p" Tag="bestvideo[height&lt;=1440]+bestaudio/best[height&lt;=1440]"/>
+                        <ComboBoxItem Content="1080p" Tag="bestvideo[height&lt;=1080]+bestaudio/best[height&lt;=1080]"/>
+                        <ComboBoxItem Content="720p" Tag="bestvideo[height&lt;=720]+bestaudio/best[height&lt;=720]"/>
+                        <ComboBoxItem Content="480p" Tag="bestvideo[height&lt;=480]+bestaudio/best[height&lt;=480]"/>
+                        <ComboBoxItem Content="Niedrigste" Tag="worst"/>
+                    </ComboBox>
+                    <TextBlock x:Name="txt_AudioQuality" VerticalAlignment="Center" Margin="7">Qualität:</TextBlock>
+                    <ComboBox x:Name="cb_AudioQuality" Width="150" SelectedIndex="0">
+                        <ComboBoxItem Content="Beste" Tag="0"/>
+                        <ComboBoxItem Content="128k" Tag="128K"/>
+                        <ComboBoxItem Content="64k" Tag="64K"/>
+                        <ComboBoxItem Content="Niedrigste" Tag="9"/>
+                    </ComboBox>
+                </StackPanel>
+            </DockPanel>
 
-            <DockPanel Grid.Row="10">
+            <DockPanel Grid.Row="11">
                 <StackPanel Orientation="Horizontal">
                     <Button Name="btn_download_starten" Click="DownloadStarten_Click" Margin="4" VerticalAlignment="Bottom">Download starten</Button>
                     <Button Name="btn_download_abbrechen" Click="DownloadAbbrechen_Click" Margin="4" IsEnabled="False" VerticalAlignment="Bottom">Download abbrechen</Button>
@@ -193,7 +215,7 @@
             </DockPanel>
 
 
-            <DockPanel Grid.Row="11" Margin="0,10,0,0">
+            <DockPanel Grid.Row="12" Margin="0,10,0,0">
                 <Expander Name="exp_debug" Header="Debug-Ausgabe" IsExpanded="False">
                     <TextBox x:Name="OutputTextBox"
                              VerticalScrollBarVisibility="Auto"
