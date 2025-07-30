@@ -186,70 +186,70 @@
   <data name="Button_Cancel" xml:space="preserve">
     <value>Abbrechen</value>
   </data>
-  <data name="Hauptfenster_Button_DownloadStart" xml:space="preserve">
+  <data name="MainWindow_Button_DownloadStart" xml:space="preserve">
     <value>Download starten</value>
   </data>
-  <data name="Hauptfenster_Button_DownloadAbort" xml:space="preserve">
+  <data name="MainWindow_Button_DownloadAbort" xml:space="preserve">
     <value>Download abbrechen</value>
   </data>
-  <data name="Hauptfenster_Button_SettingsSave" xml:space="preserve">
+  <data name="MainWindow_Button_SettingsSave" xml:space="preserve">
     <value>Einstellungen speichern</value>
   </data>
-  <data name="Hauptfenster_Button_History" xml:space="preserve">
+  <data name="MainWindow_Button_History" xml:space="preserve">
     <value>Verlauf</value>
   </data>
-  <data name="Hauptfenster_Button_Timespan_Info" xml:space="preserve">
+  <data name="MainWindow_Button_Timespan_Info" xml:space="preserve">
     <value>Gültige Formate: mm:ss oder hh:mm:ss. Beispiel: 01:23 oder 01:02:03. Die Angabe bedeutet Minuten:Sekunden oder Stunden:Minuten:Sekunden. Damit kannst du z.B. einen Ausschnitt von 00:01:30 bis 00:02:45 herunterladen.</value>
   </data>
-  <data name="Hauptfenster_Label_TimespanLeft" xml:space="preserve">
+  <data name="MainWindow_Label_TimespanLeft" xml:space="preserve">
     <value>Zeitspanne von: </value>
   </data>
-  <data name="Hauptfenster_Label_TimespanMiddle" xml:space="preserve">
+  <data name="MainWindow_Label_TimespanMiddle" xml:space="preserve">
     <value>-</value>
   </data>
-  <data name="Hauptfenster_Label_TimespanRight" xml:space="preserve">
+  <data name="MainWindow_Label_TimespanRight" xml:space="preserve">
     <value>hh:mm:ss oder mm:ss angeben!</value>
   </data>
-  <data name="Hauptfenster_Label_TimeStartLeft" xml:space="preserve">
+  <data name="MainWindow_Label_TimeStartLeft" xml:space="preserve">
     <value>Von Start bis Sekunde: </value>
   </data>
-  <data name="Hauptfenster_Label_TimeStartRight" xml:space="preserve">
+  <data name="MainWindow_Label_TimeStartRight" xml:space="preserve">
     <value>herunterladen</value>
   </data>
-  <data name="Hauptfenster_Label_Videoformat" xml:space="preserve">
+  <data name="MainWindow_Label_Videoformat" xml:space="preserve">
     <value>Videoformat für Schnittprogramme anpassen (x264)</value>
   </data>
-  <data name="Hauptfenster_Label_Videoformat_Info" xml:space="preserve">
+  <data name="MainWindow_Label_Videoformat_Info" xml:space="preserve">
     <value>(Nicht zusammen mit "NUR Audio")</value>
   </data>
-  <data name="Hauptfenster_Label_AudioOnly" xml:space="preserve">
+  <data name="MainWindow_Label_AudioOnly" xml:space="preserve">
     <value>NUR Audio herunterladen (Standard: mp3)</value>
   </data>
-  <data name="Hauptfenster_Label_AudioOnly_Info" xml:space="preserve">
-    <value>(Nicht zusammen mit Videoformat!)</value>
+  <data name="MainWindow_Label_AudioOnly_Info" xml:space="preserve">
+    <value>Audio-Only Pfad:</value>
   </data>
   <data name="Softwareinfo" xml:space="preserve">
     <value>Einfacher Video- und Audio-Downloader für verschiedene Plattformen.</value>
   </data>
-  <data name="Hauptfenster_DebugInfo" xml:space="preserve">
+  <data name="MainWindow_DebugInfo" xml:space="preserve">
     <value>Debug-Ausgabe</value>
   </data>
-  <data name="Hauptfenster_Button_Menu_Settings" xml:space="preserve">
+  <data name="MainWindow_Button_Menu_Settings" xml:space="preserve">
     <value>Einstellungen</value>
   </data>
-  <data name="Hauptfenster_Button_Menu_ChangeDownloadPath" xml:space="preserve">
-    <value>Downloadpfad ändern</value>
+  <data name="MainWindow_Button_Menu_ChangeDownloadPath" xml:space="preserve">
+    <value>Download-Pfad ändern</value>
   </data>
   <data name="Button_Close" xml:space="preserve">
     <value>Schließen</value>
   </data>
-  <data name="Hauptfenster_Label_DownloadPathInfo" xml:space="preserve">
+  <data name="MainWindow_Label_DownloadPathInfo" xml:space="preserve">
     <value>Download-Pfad:</value>
   </data>
-  <data name="Hauptfenster_Label_AudioPathInfo" xml:space="preserve">
+  <data name="MainWindow_Label_AudioPathInfo" xml:space="preserve">
     <value>Download-Audio-Pfad:</value>
   </data>
-  <data name="Hauptfenster_Label_URL" xml:space="preserve">
+  <data name="MainWindow_Label_URL" xml:space="preserve">
     <value>URL eingeben:</value>
   </data>
   <data name="DownloadHistory_Title" xml:space="preserve">
@@ -262,7 +262,7 @@
     <value>Verlauf leeren</value>
   </data>
   <data name="DownloadHistory_Label_EmptyHistory" xml:space="preserve">
-    <value>Keine Historie vorhanden</value>
+    <value>Kein Verlauf vorhanden</value>
   </data>
   <data name="DownloadHistory_Label_EmptyHistory_Info" xml:space="preserve">
     <value>Hier ist noch gähnende Leere... Aber keine Sorge: Deine nächsten Downloads landen alle hier und warten nur darauf, von dir wiederverwendet zu werden!</value>
@@ -272,5 +272,53 @@
   </data>
   <data name="MessageBox_SaveSettings_Question" xml:space="preserve">
     <value>Sollen die Einstellungen für den nächsten Programmstart gespeichert werden?</value>
+  </data>
+  <data name="Error_OpenBrowser" xml:space="preserve">
+    <value>Der Browser konnte nicht geöffnet werden.</value>
+  </data>
+  <data name="Error" xml:space="preserve">
+    <value>Fehler</value>
+  </data>
+  <data name="MainWindow_Label_DownloadStatus_Loading" xml:space="preserve">
+    <value>Lädt...</value>
+  </data>
+  <data name="MainWindow_Label_DownloadStatus_Success" xml:space="preserve">
+    <value>Abgeschlossen</value>
+  </data>
+  <data name="MainWindow_Label_DownloadStatus_Cancel" xml:space="preserve">
+    <value>Abgebrochen</value>
+  </data>
+  <data name="MainWindow_DebugOutput_DownloadSuccess" xml:space="preserve">
+    <value>[MDLP] Download abgeschlossen!</value>
+  </data>
+  <data name="MainWindow_DebugOutput_DownloadCancel" xml:space="preserve">
+    <value>[MDLP] Download abgebrochen!</value>
+  </data>
+  <data name="MainWindow_Label_DownloadStatus_WhileCanceling" xml:space="preserve">
+    <value>Breche ab...</value>
+  </data>
+  <data name="MainWindow_DebugOutput_NoTitleFromYTDLP" xml:space="preserve">
+    <value>[MDLP] Kein Titel von yt-dlp erhalten. Fehler: {0}</value>
+  </data>
+  <data name="MainWindow_DebugOutput_YTDLPError" xml:space="preserve">
+    <value>[MDLP] Prozess beendet mit Code: {0}</value>
+  </data>
+  <data name="MainWindow_DebugOutput_ProcessEnd" xml:space="preserve">
+    <value>[MDLP] Prozess beendet mit Code: {0}</value>
+  </data>
+  <data name="MainWindow_DebugOutput_ThrowException" xml:space="preserve">
+    <value>[MDLP] [EXCEPTION] {0}</value>
+  </data>
+  <data name="MainWindow_DebugOutput_InternalError" xml:space="preserve">
+    <value>[MDLP] Interner Fehler: {0}</value>
+  </data>
+  <data name="MainWindow_Download_UnknownTitle" xml:space="preserve">
+    <value>Unbekannter Titel</value>
+  </data>
+  <data name="MainWindow_Download_PathNotFound" xml:space="preserve">
+    <value>Download-Pfad wurde nicht gefunden!</value>
+  </data>
+  <data name="MainWindow_Label_Click_DownloadPathNotFound" xml:space="preserve">
+    <value>Pfad: ( {0} )nicht gefunden!</value>
   </data>
 </root>

@@ -1,0 +1,484 @@
+﻿<Window x:Class="MortysDLP.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:fa="clr-namespace:FontAwesome.WPF;assembly=FontAwesome.WPF"
+        Icon="/Resources/Icons/mw_globe_32px.ico"
+        Title="MortysDLP"
+        WindowStartupLocation="CenterScreen"
+        SizeToContent="WidthAndHeight"
+        ResizeMode="CanMinimize"
+        Loaded="MainWindow_Loaded"
+        MaxWidth="850">
+    
+    <DockPanel>
+        
+        <!-- Top Menu -->
+        <Menu 
+            DockPanel.Dock="Top">
+            <MenuItem 
+                Name="btnHeaderSettings" 
+                Header="_Einstellungen" 
+                Margin="0,-10,0,-10">
+                <MenuItem 
+                    Name="btnHeaderChangeDownloadPath" 
+                    Header="Download-Pfad ändern" 
+                    Click="btnHeaderChangeDownloadPath_Click">
+                </MenuItem>
+                <Separator/>
+                <MenuItem 
+                    Name="btnHeaderClose" 
+                    Header="Schließen" 
+                    Click="btnHeaderClose_Click">
+                </MenuItem>
+            </MenuItem>
+
+            <MenuItem 
+                Name="btnHeaderGitHub" 
+                Header="GitHub" 
+                Click="btnHeaderGitHub_Click" 
+                Margin="0,-10,0,-10">
+            </MenuItem>
+        </Menu>
+
+        <!-- Main Content -->
+        <Grid Margin="7">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <!-- Row 0: Title -->
+            <DockPanel Grid.Row="0">
+                <TextBlock Grid.Row="0" 
+                       Text="MortysDLP" 
+                       FontWeight="Bold" 
+                       FontSize="28" 
+                       HorizontalAlignment="Left" 
+                       Margin="7,7,0,0"/>
+                <DockPanel 
+                    HorizontalAlignment="Right" 
+                    Opacity="0.3">
+                    <Label 
+                        Name="lblMainVersionInfo" 
+                        FontStyle="Italic">
+                        Version
+                    </Label>
+                    <Label 
+                        Name="lblMainVersion" 
+                        FontStyle="Italic" 
+                        Margin="4,0,0,0">
+                        -Placeholder-
+                    </Label>
+                </DockPanel>
+            </DockPanel>
+            
+
+            <!-- Row 1: Under the title -->
+            <Grid Grid.Row="1" Margin="7,0,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <!-- Info-Text -->
+                <TextBlock 
+                   Name="lblSoftwareinfo" 
+                   Text="Einfacher Video- und Audio-Downloader für verschiedene Plattformen."
+                   FontSize="14"
+                   Foreground="Gray"
+                   VerticalAlignment="Center"
+                   HorizontalAlignment="Left"
+                   Grid.ColumnSpan="2">
+                </TextBlock>
+            </Grid>
+
+
+            <!-- Row 2: Separator -->
+            <Separator Grid.Row="2" Margin="0,7,0,7"/>
+
+            <!-- Row 3: download path -->
+            <DockPanel Grid.Row="3">
+                <StackPanel 
+                    Orientation="Horizontal" 
+                    Margin="4">
+                    <Label 
+                        Name="lblDownloadPathInfo" 
+                        VerticalAlignment="Center">
+                        Download-Pfad:
+                    </Label>
+                    <Label 
+                        Name="lblDownloadPath" 
+                        MinWidth="500px"
+                        Cursor="Hand"
+                        MouseLeftButtonUp="DownloadPath_MouseLeftButtonUp"
+                        Margin="7 0 0 0">
+                    </Label>
+                </StackPanel>
+            </DockPanel>
+
+            <!-- Row 4: download audio path-->
+            <DockPanel Name="dpAudioPath" Grid.Row="4">
+                <StackPanel 
+                    Orientation="Horizontal" 
+                    Margin="4">
+                    <Label 
+                        Name="lblAudioPathInfo" 
+                        VerticalAlignment="Center">
+                        Download-Audio-Pfad:
+                    </Label>
+                    <Label 
+                        Name="lblAudioPath" 
+                        Width="500px" 
+                        Cursor="Hand"
+                        MouseLeftButtonUp="DownloadPath_MouseLeftButtonUp"
+                        Margin="7 0 0 0">
+                    </Label>
+                </StackPanel>
+            </DockPanel>
+
+            <!-- Row 5: URL input -->
+            <DockPanel Grid.Row="5">
+                <StackPanel 
+                    Orientation="Horizontal" 
+                    Margin="4">
+                    <Label 
+                        Name="lblURLInfo" 
+                        VerticalAlignment="Center">
+                        URL eingeben:
+                    </Label>
+                    <TextBox 
+                        Name="tbURL" 
+                        Width="500px" 
+                        GotFocus="TextBox_GotFocus" 
+                        TextChanged="tbURL_TextChanged" 
+                        KeyDown="tbURL_KeyDown"
+                        Margin="7 0 0 0">
+                    </TextBox>
+                    <Button 
+                        Name="btnHistory" 
+                        Click="btnHistory_Click" 
+                        Margin="7 0 0 0">
+                        Verlauf
+                    </Button>
+                </StackPanel>
+            </DockPanel>
+
+            <!-- Row 6: Timespan -->
+            <DockPanel Grid.Row="6">
+                <StackPanel 
+                    Orientation="Horizontal" 
+                    Margin="4" 
+                    Cursor="">
+                    <CheckBox 
+                        Name="cbTimespan" 
+                        Checked="cbTimespanCheck" 
+                        Unchecked="cbTimespanCheck" 
+                        Margin="7">
+                    </CheckBox>
+                    <TextBlock 
+                        Name="txtTimespanFrom" 
+                        VerticalAlignment="Center" 
+                        Margin="7">
+                        Zeitspanne von
+                    </TextBlock>
+                    <TextBox 
+                        Name="tbTimespanFrom" 
+                        VerticalAlignment="Center" 
+                        Width="100"
+                        TextChanged="tbTimespanFrom_TextChanged"
+                        Margin="7 0 0 0">
+                    </TextBox>
+                    <TextBlock 
+                        Name="txtTimespanDash" 
+                        VerticalAlignment="Center" 
+                        Margin="7">
+                        -
+                    </TextBlock>
+                    <TextBox 
+                        Name="tbTimespanTo" 
+                        VerticalAlignment="Center" 
+                        Width="100" 
+                        TextChanged="tbTimespanTo_TextChanged">
+                    </TextBox>
+                    <TextBlock 
+                        Name="txtTimespanInfo" 
+                        VerticalAlignment="Center" 
+                        Margin="7">
+                        hh:mm:ss oder mm:ss angeben!
+                    </TextBlock>
+                    <fa:ImageAwesome x:Name="imgTimespanInfo"
+                        Icon="InfoCircle"
+                        Width="18" Height="18"
+                        Opacity="0.8"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Center">
+                        <fa:ImageAwesome.ToolTip>
+                            <ToolTip Name="ToolTipTimeSpan">
+                                Gültige Formate: mm:ss oder hh:mm:ss. Beispiel: 01:23 oder 01:02:03. Die Angabe bedeutet Minuten:Sekunden oder Stunden:Minuten:Sekunden. Damit kannst du z.B. einen Ausschnitt von 00:01:30 bis 00:02:45 herunterladen.
+                            </ToolTip>
+                        </fa:ImageAwesome.ToolTip>
+                    </fa:ImageAwesome>
+                </StackPanel>
+            </DockPanel>
+
+            <!-- Row 7: FirstSeconds -->
+            <DockPanel Grid.Row="7">
+                <StackPanel 
+                    Orientation="Horizontal" 
+                    Margin="4">
+                    <CheckBox 
+                        Name="cbFirstSeconds" 
+                        Checked="cbFirstSecondsCheck" 
+                        Unchecked="cbFirstSecondsCheck" 
+                        Margin="7">
+                    </CheckBox>
+                    <TextBlock 
+                        Name="txtFirstSecondsInfo1" 
+                        VerticalAlignment="Center" 
+                        Margin="7">
+                        Von Start bis Sekunde:
+                    </TextBlock>
+                    <TextBox 
+                        Name="tbFirstSecondsSeconds" 
+                        VerticalAlignment="Center" 
+                        Width="100" 
+                        TextChanged="tbFirstSecondsSeconds_TextChanged"
+                        Margin="7" >
+                    </TextBox>
+                    <TextBlock 
+                        Name="txtFirstSecondsInfo2" 
+                        VerticalAlignment="Center" 
+                        Margin="7">
+                        herunterladen
+                    </TextBlock>
+                </StackPanel>
+            </DockPanel>
+
+            <!-- Row 8: Videoformat -->
+            <DockPanel Grid.Row="8">
+                <StackPanel 
+                    Orientation="Horizontal" 
+                    Margin="4">
+                    <CheckBox 
+                        Name="cbVideoformat" 
+                        Checked="cbVideoFormatCheck" 
+                        Unchecked="cbVideoFormatCheck" 
+                        Margin="7">
+                    </CheckBox>
+                    <TextBlock 
+                        Name="txtVideoformatInfo1" 
+                        VerticalAlignment="Center" 
+                        Margin="7">
+                        Videoformat für Schnittprogramme anpassen (x264)
+                    </TextBlock>
+                    <TextBlock 
+                        Name="txtVideoformatInfo2" 
+                        VerticalAlignment="Center" 
+                        Margin="7" 
+                        Foreground="Silver">
+                        (Nicht zusammen mit "NUR Audio")
+                    </TextBlock>
+                </StackPanel>
+            </DockPanel>
+
+            <!-- Row 9: AudioOnly -->
+            <DockPanel Grid.Row="9">
+                <StackPanel 
+                    Orientation="Horizontal" 
+                    Margin="4">
+                    <CheckBox 
+                        Name="cbAudioOnly" 
+                        IsChecked="False" 
+                        Checked="cbAudioOnlyCheck" 
+                        Unchecked="cbAudioOnlyCheck" 
+                        Margin="7">
+                    </CheckBox>
+                    <TextBlock 
+                        Name="txtAudioOnlyInfo" 
+                        VerticalAlignment="Center" 
+                        Margin="7">
+                        NUR Audio herunterladen (Default: mp3)
+                    </TextBlock>
+                    <ComboBox x:Name="combAudioFormat"
+                        Width="100"
+                        SelectedIndex="4"
+                        Margin="5">
+                        <ComboBoxItem Content="aac" />
+                        <ComboBoxItem Content="alac" />
+                        <ComboBoxItem Content="flac" />
+                        <ComboBoxItem Content="m4a" />
+                        <ComboBoxItem Content="mp3" />
+                        <ComboBoxItem Content="opus" />
+                        <ComboBoxItem Content="vorbis" />
+                        <ComboBoxItem Content="wav" />
+                    </ComboBox>
+                    <TextBlock 
+                        Name="txtAudioOnlyInfo2" 
+                        VerticalAlignment="Center"
+                        Foreground="Silver"
+                        Margin="7" >
+                        (Nicht zusammen mit Videoformat!)
+                    </TextBlock>
+                </StackPanel>
+            </DockPanel>
+
+            <!-- Row 10 : Quality (not implemented yet: 30.07.2025)  TODO -->
+            <DockPanel 
+                Name="dpQuality"
+                Grid.Row="10" 
+                Visibility="Collapsed">
+                <StackPanel 
+                    Orientation="Horizontal" 
+                    Margin="4">
+                    <CheckBox 
+                        Name="cbQuality" 
+                        IsChecked="False" 
+                        Checked="cbAudioOnlyCheck" 
+                        Unchecked="cbAudioOnlyCheck" 
+                        Margin="7">
+                    </CheckBox>
+                    <TextBlock 
+                        Name="txtVideoQuality" 
+                        Text="Videoqualität:" 
+                        VerticalAlignment="Center" 
+                        Margin="7">
+                    </TextBlock>
+                    <ComboBox 
+                        Name="cbVideoQuality" 
+                        Width="150" 
+                        SelectedIndex="0">
+                        <ComboBoxItem Content="Beste" Tag="best"/>
+                        <ComboBoxItem Content="1440p" Tag="bestvideo[height&lt;=1440]+bestaudio/best[height&lt;=1440]"/>
+                        <ComboBoxItem Content="1080p" Tag="bestvideo[height&lt;=1080]+bestaudio/best[height&lt;=1080]"/>
+                        <ComboBoxItem Content="720p" Tag="bestvideo[height&lt;=720]+bestaudio/best[height&lt;=720]"/>
+                        <ComboBoxItem Content="480p" Tag="bestvideo[height&lt;=480]+bestaudio/best[height&lt;=480]"/>
+                        <ComboBoxItem Content="Niedrigste" Tag="worst"/>
+                    </ComboBox>
+                    <TextBlock 
+                        Name="txtAudioQuality" 
+                        VerticalAlignment="Center"
+                        Margin="7">
+                        Qualität:
+                    </TextBlock>
+                    <ComboBox 
+                        Name="cbAudioQuality" 
+                        Width="150" 
+                        SelectedIndex="0">
+                        <ComboBoxItem Content="Beste" Tag="0"/>
+                        <ComboBoxItem Content="128k" Tag="128K"/>
+                        <ComboBoxItem Content="64k" Tag="64K"/>
+                        <ComboBoxItem Content="Niedrigste" Tag="9"/>
+                    </ComboBox>
+                </StackPanel>
+            </DockPanel>
+
+            <!-- Row 11: download buttons , settings button , loading bar-->
+            <DockPanel Grid.Row="11">
+                <StackPanel Orientation="Horizontal">
+                    <Button 
+                        Name="btnDownloadStart" 
+                        Click="btnDownloadStart_Click"
+                        VerticalAlignment="Bottom"
+                        Margin="4" >
+                        Download starten
+                    </Button>
+                    <Button 
+                        Name="btnDownloadCancel" 
+                        Click="btnDownloadCancel_Click" 
+                        Margin="4" 
+                        IsEnabled="False" 
+                        VerticalAlignment="Bottom">
+                        Download abbrechen
+                    </Button>
+                    <Separator Margin="7,0,7,0"></Separator>
+                    <Button 
+                        Name="btnSaveSettings" 
+                        Click="SaveSettings" 
+                        Margin="4" 
+                        VerticalAlignment="Bottom">
+                        Einstellungen speichern
+                    </Button>
+                    <StackPanel 
+                        Name="spLoadingbar" 
+                        Visibility="Hidden" 
+                        Orientation="Vertical" 
+                        HorizontalAlignment="Center" 
+                        Margin="4,0,0,0">
+                        <StackPanel 
+                            Orientation="Horizontal" 
+                            Margin="4,0,0,0">
+                            <TextBlock 
+                                Name="txtDownloadStatus" 
+                                FontWeight="Bold">
+                                Lädt
+                            </TextBlock>
+                            <TextBlock 
+                                Name="txtDownloadProgress" 
+                                Text="0 %" 
+                                Margin="4,0,0,0">
+                            </TextBlock>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <ProgressBar 
+                                Name="pbDownload" 
+                                Width="200" 
+                                Height="22" 
+                                Minimum="0" 
+                                Maximum="100" 
+                                Value="0">
+                            </ProgressBar>
+                            <Button 
+                                Name="btnStatusIcon" 
+                                Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}" 
+                                Background="Transparent" 
+                                BorderThickness="0" 
+                                Padding="0"
+                                Click="btnStatusIcon_Click">
+                                <fa:ImageAwesome 
+                                    Name="iaStatusIcon" 
+                                    Width="20" 
+                                    Height="20" 
+                                    Margin="8,0,0,0" 
+                                    Foreground="SteelBlue">
+                                </fa:ImageAwesome>
+                            </Button>
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+            </DockPanel>
+
+            <!-- Row 12: debug output-->
+            <DockPanel 
+                Grid.Row="12" 
+                Margin="0,10,0,0">
+                <Expander 
+                    Name="expDebug" 
+                    Header="Debug-Ausgabe" 
+                    IsExpanded="False">
+                    <TextBox Name="tbDebugOutput"
+                             VerticalScrollBarVisibility="Auto"
+                             HorizontalScrollBarVisibility="Auto"
+                             IsReadOnly="True"
+                             TextWrapping="NoWrap"
+                             FontFamily="Consolas" 
+                             FontSize="12"
+                             AcceptsReturn="True" 
+                             AcceptsTab="True"
+                             MaxHeight="200" 
+                             TextChanged="tbDebugOutput_TextChanged" 
+                             Margin="0">
+                    </TextBox>
+                </Expander>
+            </DockPanel>
+        </Grid>
+    </DockPanel>
+</Window>

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MortysDLP.Helpers;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -19,8 +20,12 @@ namespace MortysDLP
     /// </summary>
     public partial class DownloadProgressDialog : Window
     {
+
         public DownloadProgressDialog(string info)
         {
+            /* Sprachanpassung bei Window-Start */
+            LanguageHelper.ApplyLanguage(LanguageHelper.ForceEnglish);
+
             InitializeComponent();
             InfoText.Text = info;
             ProgressBar.Value = 0;
