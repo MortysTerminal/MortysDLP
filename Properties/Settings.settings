@@ -2,74 +2,86 @@
 <SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="MortysDLP.Properties" GeneratedClassName="Settings">
   <Profiles />
   <Settings>
-    <Setting Name="CURRENTVERSION" Type="System.String" Scope="User">
-      <Value Profile="(Default)">2025.07.30</Value>
+    <Setting Name="CurrentVersion" Type="System.String" Scope="User">
+      <Value Profile="(Default)">2025.07.31</Value>
     </Setting>
-    <Setting Name="DOWNLOADPATH" Type="System.String" Scope="User">
+    <Setting Name="DownloadPath" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
-    <Setting Name="YTDLPPATH" Type="System.String" Scope="User">
+    <Setting Name="YtdlpPath" Type="System.String" Scope="User">
       <Value Profile="(Default)">Tools\\yt-dlp.exe</Value>
     </Setting>
-    <Setting Name="FFMPEGPATH" Type="System.String" Scope="User">
+    <Setting Name="FfmpegPath" Type="System.String" Scope="User">
       <Value Profile="(Default)">Tools\\ffmpeg.exe</Value>
     </Setting>
-    <Setting Name="FFPROBEPATH" Type="System.String" Scope="User">
+    <Setting Name="FfprobePath" Type="System.String" Scope="User">
       <Value Profile="(Default)">Tools\\ffprobe.exe</Value>
     </Setting>
-    <Setting Name="ZEITSPANNE_VON" Type="System.String" Scope="User">
+    <Setting Name="TimespanFrom" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
-    <Setting Name="ZEITSPANNE_BIS" Type="System.String" Scope="User">
+    <Setting Name="TimespanTo" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
-    <Setting Name="CHECKED_ERSTESEKUNDEN" Type="System.Boolean" Scope="User">
+    <Setting Name="CheckedFirstSeconds" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="CHECKED_VIDEOFORMAT" Type="System.Boolean" Scope="User">
+    <Setting Name="CheckedVideoFormat" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="CHECKED_AUDIO_ONLY" Type="System.Boolean" Scope="User">
+    <Setting Name="CheckedAudioOnly" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="CHECKED_ZEITSPANNE" Type="System.Boolean" Scope="User">
+    <Setting Name="CheckedTimespan" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="ERSTESEKUNDEN_SEKUNDEN" Type="System.String" Scope="User">
+    <Setting Name="FirstSecondsSeconds" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
-    <Setting Name="SELECTED_AUDIO_FORMAT" Type="System.String" Scope="User">
+    <Setting Name="SelectedAudioFormat" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
-    <Setting Name="YTDLP_RELEASE_URL" Type="System.String" Scope="User">
+    <Setting Name="YtdlpReleaseURL" Type="System.String" Scope="User">
       <Value Profile="(Default)">https://api.github.com/repos/yt-dlp/yt-dlp/releases/latest</Value>
     </Setting>
-    <Setting Name="DOWNLOADAUDIOONLYPATH" Type="System.String" Scope="User">
+    <Setting Name="DownloadAudioOnlyPath" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
-    <Setting Name="CHECKED_AUDIOPATH" Type="System.Boolean" Scope="User">
+    <Setting Name="CheckedAudioOnlyPath" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="MORTYSDLP_UPDATE_EXE_FILE" Type="System.String" Scope="User">
+    <Setting Name="MortysDLPUpdateExeFile" Type="System.String" Scope="User">
       <Value Profile="(Default)">MortysDLP-Updater.exe</Value>
     </Setting>
-    <Setting Name="MORTYSDLP_EXE_FILE" Type="System.String" Scope="User">
+    <Setting Name="MortysDLPExeFile" Type="System.String" Scope="User">
       <Value Profile="(Default)">MortysDLP.exe</Value>
     </Setting>
-    <Setting Name="MORTYSDLP_UPDATE_ZIP_FILE" Type="System.String" Scope="User">
+    <Setting Name="MortysDLPUpdateZipFile" Type="System.String" Scope="User">
       <Value Profile="(Default)">MortysDLP_Update.zip</Value>
     </Setting>
-    <Setting Name="MORTYSDLP_UPDATER_FOLDERNAME" Type="System.String" Scope="User">
+    <Setting Name="MortysDLPUpdaterFolderName" Type="System.String" Scope="User">
       <Value Profile="(Default)">MortysDLP-Updater</Value>
     </Setting>
-    <Setting Name="MORTYSDLP_UPDATER_BASE_FOLDERNAME" Type="System.String" Scope="User">
+    <Setting Name="MortysDLPUpdaterBaseFolderName" Type="System.String" Scope="User">
       <Value Profile="(Default)">Updater</Value>
     </Setting>
-    <Setting Name="VERSIONSKIP" Type="System.String" Scope="User">
+    <Setting Name="VersionSkip" Type="System.String" Scope="User">
       <Value Profile="(Default)">latest</Value>
     </Setting>
-    <Setting Name="FORCE_ENGLISH_LANGUAGE" Type="System.Boolean" Scope="User">
-      <Value Profile="(Default)">False</Value>
+    <Setting Name="ForceEnglishLanguage" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="DownloadHistoryFileName" Type="System.String" Scope="User">
+      <Value Profile="(Default)">download_history.json</Value>
+    </Setting>
+    <Setting Name="DownloadHistoryFileMaxEntries" Type="System.Int16" Scope="User">
+      <Value Profile="(Default)">30</Value>
+    </Setting>
+    <Setting Name="MortysDLPGitHubAPIURL" Type="System.String" Scope="User">
+      <Value Profile="(Default)">https://api.github.com/repos/MortysTerminal/MortysDLP/releases/latest</Value>
+    </Setting>
+    <Setting Name="MortysDLPGitHubURL" Type="System.String" Scope="User">
+      <Value Profile="(Default)">https://github.com/MortysTerminal/MortysDLP</Value>
     </Setting>
   </Settings>
 </SettingsFile>

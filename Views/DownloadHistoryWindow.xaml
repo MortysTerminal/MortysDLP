@@ -1,0 +1,93 @@
+﻿<Window x:Class="MortysDLP.DownloadHistoryWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:MortysDLP"
+        mc:Ignorable="d"
+        Icon="/Resources/Icons/mw_globe_32px.ico"
+        Title="MortysDLP - Download Historie"
+        MinWidth="400"
+        MinHeight="200"
+        WindowStartupLocation="CenterOwner">
+    <Grid Margin="7">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <ListBox Name="HistoryList" Margin="10" Grid.Row="0">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Margin="0,4">
+                        <TextBlock 
+                            Text="{Binding Title}" 
+                            FontWeight="Bold" 
+                            FontSize="14"/>
+                        <TextBlock 
+                            Text="{Binding Url}" 
+                            FontSize="12" 
+                            Margin="0,2,0,0"/>
+                        <TextBlock 
+                            Text="{Binding DownloadedAt, StringFormat='{}{0:dd.MM.yyyy HH:mm}'}"
+                            FontSize="11" 
+                            Margin="0,2,0,0"/>
+                    </StackPanel>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+
+        <StackPanel 
+            Orientation="Horizontal"
+            Grid.Row="1" 
+            HorizontalAlignment="Right"
+            Margin="10">
+            <StackPanel.Style>
+                <Style TargetType="StackPanel">
+                    <Style.Triggers>
+                        <DataTrigger 
+                            Binding="{Binding ElementName=HistoryList, Path=Items.Count}" 
+                            Value="0">
+                            <Setter 
+                                Property="Visibility" 
+                                Value="Collapsed"> 
+                            </Setter>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </StackPanel.Style>
+            <Button 
+                Name="ReuseButton" 
+                Content="Neu verwenden" 
+                Click="Reuse_Click">
+            </Button>
+            <Button 
+                Name="ClearButton" 
+                Content="Historie leeren" 
+                Click="Clear_Click" 
+                Margin="7">
+            </Button>
+        </StackPanel>
+
+        <StackPanel 
+            HorizontalAlignment="Center" 
+            VerticalAlignment="Center" 
+            Grid.RowSpan="2">
+            <TextBlock 
+               Name="EmptyText"
+               Text="Keine Historie vorhanden"
+               FontSize="18"
+               HorizontalAlignment="Center"
+               Visibility="Collapsed">
+            </TextBlock>
+            <TextBlock x:Name="InfoText"
+               Text="Hier ist noch gähnende Leere... Aber keine Sorge: Deine nächsten Downloads landen alle hier und warten nur darauf, von dir wiederverwendet zu werden!"
+               FontSize="13"
+               Margin="0,10,0,0"
+               HorizontalAlignment="Center"
+               TextAlignment="Center"
+               Visibility="Collapsed">
+            </TextBlock>
+        </StackPanel>
+    </Grid>
+</Window>
