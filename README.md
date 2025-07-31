@@ -2,6 +2,10 @@
 
 **MortysDLP** is a modern, user-friendly WPF application for conveniently downloading videos and audio from various platforms (e.g., YouTube, Twitch, and more) on Windows. The software uses [yt-dlp](https://github.com/yt-dlp/yt-dlp) and [ffmpeg](https://ffmpeg.org/) in the background and provides a graphical interface with many comfort features.
 
+
+<img width="702" height="576" alt="Screenshot 2025-07-31 075442" src="https://github.com/user-attachments/assets/8522eba1-6fe8-4f86-af61-420d6c3df3eb" />
+
+
 ---
 
 ## Purpose and Benefits
@@ -17,6 +21,7 @@
   - Support for many platforms thanks to yt-dlp
 
 ---
+
 
 ## Features
 
