@@ -112,6 +112,14 @@ namespace MortysDLP
         //        cbVideoformat.IsChecked = false;
         //    }
         //}
+
+        private void btnConvert_Click(object sender, RoutedEventArgs e)
+        {
+            var convertWindow = new MortysDLP.Views.ConvertWindow();
+            convertWindow.Owner = this;
+            convertWindow.ShowDialog();
+        }
+
         private void btnDownloadCancel_Click(object sender, RoutedEventArgs e)
         {
             //btnDownloadCancel.IsEnabled = false;
@@ -280,27 +288,16 @@ namespace MortysDLP
 
             if (isTimespan)
             {
-                ba_Args += $" -o \"{downloadPath}\\z_%(title)s.%(ext)s\"";
+                ba_Args += $" -o \"{downloadPath}\\z_%(title)s_%(id)s.%(ext)s\"";
                 ba_Args += $" --download-sections \"*{timespanFrom}-{timespanTo}\"";
             }
             if (isFirstSeconds)
             {
-                ba_Args += $" -o \"{downloadPath}\\{firstSeconds}_%(title)s.%(ext)s\"";
+                ba_Args += $" -o \"{downloadPath}\\{firstSeconds}_%(title)s_%(id)s.%(ext)s\"";
                 ba_Args += $" --downloader \"{ffmpegPath}\" --downloader-args \"ffmpeg:-t {firstSeconds}\"";
             }
-            if (isAudioOnly)
-            {
-                ba_Args += $" -x --audio-format {selectedcombAudioFormat} --audio-quality 0";
-            }
-            else
-            {
-                if (isVideoformat)
-                {
-                    ba_Args += " -S vcodec:h264";
-                }
-            }
-
-            ba_Args += $" -o \"{downloadPath}\\%(title)s.%(ext)s\"";
+            // Standard-Output
+            ba_Args += $" -o \"{downloadPath}\\%(title)s_%(id)s.%(ext)s\"";
             ba_Args += " --no-check-certificates";
             ba_Args += " --no-mtime";
 
@@ -820,7 +817,7 @@ namespace MortysDLP
             this.txtVideoformatInfo1.Text = UITexte.UITexte.MainWindow_Label_Videoformat;
             this.txtVideoformatInfo2.Text = UITexte.UITexte.MainWindow_Label_Videoformat_Info;
             this.txtAudioOnlyInfo.Text = UITexte.UITexte.MainWindow_Label_AudioOnly;
-            this.txtAudioOnlyInfo2.Text = UITexte.UITexte.MainWindow_Label_AudioOnly_Info;
+            this.txtAudioOnlyInfo2.Text = UITexte.UITexte.MainWindow_Label_AudioOnly_Info2;
             this.btnDownloadStart.Content = UITexte.UITexte.MainWindow_Button_DownloadStart;
             this.btnDownloadCancel.Content = UITexte.UITexte.MainWindow_Button_DownloadAbort;
             this.btnSaveSettings.Content = UITexte.UITexte.MainWindow_Button_SettingsSave;

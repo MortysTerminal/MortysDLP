@@ -430,6 +430,15 @@ namespace MortysDLP.UITexte {
         }
         
         /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die Nicht zusammen mit &quot;Videoformat&quot; ähnelt.
+        /// </summary>
+        internal static string MainWindow_Label_AudioOnly_Info2 {
+            get {
+                return ResourceManager.GetString("MainWindow_Label_AudioOnly_Info2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Sucht eine lokalisierte Zeichenfolge, die Download-Audio-Pfad: ähnelt.
         /// </summary>
         internal static string MainWindow_Label_AudioPathInfo {
