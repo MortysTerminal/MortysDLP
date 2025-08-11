@@ -259,6 +259,15 @@ namespace MortysDLP.UITexte {
         }
         
         /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die Konvertieren ähnelt.
+        /// </summary>
+        internal static string MainWindow_Button_Convert {
+            get {
+                return ResourceManager.GetString("MainWindow_Button_Convert", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Sucht eine lokalisierte Zeichenfolge, die Download abbrechen ähnelt.
         /// </summary>
         internal static string MainWindow_Button_DownloadAbort {

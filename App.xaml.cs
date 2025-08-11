@@ -57,7 +57,7 @@ namespace MortysDLP
             await SetStatusTextAndWaitAsync(splash, UITexte.UITexte.Splash_CheckingTools, DebugSleepTimer);
 
             // Start des ToolUpdaters 
-            if (await splash.ToolUpdater())
+            if (await splash.ToolUpdaterAsync())
             {
                 await SetStatusTextAndWaitAsync(splash, UITexte.UITexte.Splash_AllToolsOk, DebugSleepTimer);
             }

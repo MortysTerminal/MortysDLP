@@ -252,10 +252,8 @@ namespace MortysDLP
         }
         private string BuildYTDLPArguments()
         {
-            // Alle UI-Werte im UI-Thread abholen
             string url = "";
             string downloadPath = "";
-            //string downloadAudioPath = "";
             string timespanFrom = "";
             string timespanTo = "";
             string firstSeconds = "";
@@ -283,8 +281,17 @@ namespace MortysDLP
                 ffmpegPath = Properties.Settings.Default.FfmpegPath;
             });
 
-            string ba_Args = "-f \"bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best\"";
-            ba_Args += $" \"{url}\"";
+            string ba_Args = "";
+
+            if (isAudioOnly)
+            {
+                ba_Args = $"-x --audio-format \"{selectedcombAudioFormat}\" \"{url}\"";
+            }
+            else
+            {
+                ba_Args = "-f \"bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best\"";
+                ba_Args += $" \"{url}\"";
+            }
 
             if (isTimespan)
             {
@@ -794,6 +801,7 @@ namespace MortysDLP
             btnDownloadStart.IsEnabled = enabled;
             btnHeaderSettings.IsEnabled = enabled;
             btnHeaderGitHub.IsEnabled = enabled;
+            btnConvert.IsEnabled = enabled;
             // Menüeinträge ggf. sperren
             // btnHeaderChangeDownloadPath_Click ist im Menü, ggf. Menü sperren:
             // Menü kannst du z.B. über Menu.IsEnabled = enabled; sperren, falls du einen Namen vergeben hast.
@@ -822,6 +830,7 @@ namespace MortysDLP
             this.btnDownloadCancel.Content = UITexte.UITexte.MainWindow_Button_DownloadAbort;
             this.btnSaveSettings.Content = UITexte.UITexte.MainWindow_Button_SettingsSave;
             this.expDebug.Header = UITexte.UITexte.MainWindow_DebugInfo;
+            this.btnConvert.Header = UITexte.UITexte.MainWindow_Button_Convert;
             this.lblMainVersion.Content = Properties.Settings.Default.CurrentVersion;
         }
         private async Task StartDownloadAsync(CancellationToken token)

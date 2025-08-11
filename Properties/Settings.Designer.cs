@@ -25,7 +25,7 @@ namespace MortysDLP.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("2025.08.09")]
+        [global::System.Configuration.DefaultSettingValueAttribute("2025.08.11")]
         public string CurrentVersion {
             get {
                 return ((string)(this["CurrentVersion"]));
@@ -289,7 +289,7 @@ namespace MortysDLP.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
         public bool ForceEnglishLanguage {
             get {
                 return ((bool)(this["ForceEnglishLanguage"]));
