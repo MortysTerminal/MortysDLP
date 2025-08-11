@@ -18,7 +18,7 @@ namespace MortysDLP
     /// <summary>
     /// Interaktionslogik für DownloadProgressDialog.xaml
     /// </summary>
-    public partial class DownloadProgressDialog : Window
+    public partial class DownloadProgressDialog : Window, IDisposable
     {
 
         public DownloadProgressDialog(string info)
@@ -34,6 +34,10 @@ namespace MortysDLP
         public void SetProgress(double value)
         {
             ProgressBar.Value = value * 100;
+        }
+        public void Dispose()
+        {
+            this.Close();
         }
     }
 }

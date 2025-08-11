@@ -324,4 +324,7 @@
   <data name="MainWindow_Label_AudioOnly_Info2" xml:space="preserve">
     <value>not together with "videoformat"</value>
   </data>
+  <data name="MainWindow_Button_Convert" xml:space="preserve">
+    <value>Convert</value>
+  </data>
 </root>
