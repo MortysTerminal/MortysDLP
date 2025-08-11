@@ -321,4 +321,7 @@
   <data name="MainWindow_Label_Click_DownloadPathNotFound" xml:space="preserve">
     <value>Pfad: ( {0} )nicht gefunden!</value>
   </data>
+  <data name="MainWindow_Label_AudioOnly_Info2" xml:space="preserve">
+    <value>Nicht zusammen mit "Videoformat"</value>
+  </data>
 </root>
