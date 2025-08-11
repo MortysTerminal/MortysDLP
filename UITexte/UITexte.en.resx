@@ -226,7 +226,7 @@
     <value>Download audio only (default: mp3)</value>
   </data>
   <data name="MainWindow_Label_AudioOnly_Info" xml:space="preserve">
-    <value>Audio only path</value>
+    <value>Audio-Only path:</value>
   </data>
   <data name="Softwareinfo" xml:space="preserve">
     <value>Simple video and audio downloader for various platforms.</value>
@@ -320,5 +320,8 @@
   </data>
   <data name="MainWindow_Label_Click_DownloadPathNotFound" xml:space="preserve">
     <value>Path: ( {0} ) not found!</value>
+  </data>
+  <data name="MainWindow_Label_AudioOnly_Info2" xml:space="preserve">
+    <value>not together with "videoformat"</value>
   </data>
 </root>
