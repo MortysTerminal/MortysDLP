@@ -2,6 +2,9 @@
 using System.IO;
 using System.Net.Http;
 using System.Text.Json;
+using System.Windows;
+using System.Windows.Interop;
+using System.Windows.Threading;
 
 namespace MortysDLP.Services
 {
@@ -10,6 +13,7 @@ namespace MortysDLP.Services
         private static readonly HttpClient _httpClient;
 
         private string LatestReleaseApi = Properties.Settings.Default.YtdlpReleaseURL;
+
         static YtDlpUpdateService()
         {
             _httpClient = new HttpClient();
@@ -95,5 +99,6 @@ namespace MortysDLP.Services
         {
             return File.Exists(toolPath);
         }
+
     }
 }

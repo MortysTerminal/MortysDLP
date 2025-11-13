@@ -106,7 +106,6 @@ namespace MortysDLP
 
                 await service.DownloadAssetAsync(assetUrl, tempPath, progress);
 
-                // Prüfe, ob es sich um eine ZIP handelt (ffmpeg/ffprobe)
                 if (System.IO.Path.GetExtension(tempPath).Equals(".zip", StringComparison.OrdinalIgnoreCase))
                 {
                     // Suche die gewünschte EXE im entpackten Ordner
@@ -202,6 +201,7 @@ namespace MortysDLP
 
                     bool ffmpegSuccess = TryExtractExeFromZip(tempZip, "ffmpeg.exe", ffmpegPath);
                     bool ffprobeSuccess = TryExtractExeFromZip(tempZip, "ffprobe.exe", ffprobePath);
+
 
                     if (ffmpegSuccess && ffprobeSuccess)
                     {
@@ -321,11 +321,14 @@ namespace MortysDLP
                 }
                 return false;
             }
-            finally
-            {
-                try { System.IO.File.Delete(zipPath); } catch { }
-                try { System.IO.Directory.Delete(tempExtractDir, true); } catch { }
+            catch {
+                return false;
             }
+            //finally
+            //{
+            //    if (deleteZip) { try { System.IO.File.Delete(zipPath); } catch { } }
+            //    if (deleteExtractDir) { try { System.IO.Directory.Delete(tempExtractDir, true); } catch { } }
+            //}
         }
 
         private void ShowError(string message)

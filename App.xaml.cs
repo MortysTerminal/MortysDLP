@@ -3,6 +3,9 @@ using MortysDLP.Properties;
 using MortysDLP.Services;
 using System.Diagnostics;
 using System.IO;
+using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 
 namespace MortysDLP
@@ -72,17 +75,19 @@ namespace MortysDLP
 
             Thread.Sleep(DebugSleepTimer); // Kurze Pause für den Splashscreen
 
-            // ... Komponenten prüfen, ggf. Dialoge anzeigen, Downloads abwarten
-
             var mainWindow = new MainWindow();
             MainWindow = mainWindow;
             mainWindow.Show();
             mainWindow.Activate();
 
-            splash.Close(); // Splash explizit schließen
+            // Aufräumen der temporären ffmpeg-/Entpack-Artefakte (nicht blockierend, Best-Effort)
+            _ = CleanupTempArtifactsAsync();
 
+            splash.Close(); // Splash explizit schließen
         }
+
         public string CurrentVersion { get => currentVersion; set => currentVersion = value; }
+
         public async Task StartUpdate(string currentVersion)
         {
             var updateService = new UpdateService();
@@ -110,11 +115,9 @@ namespace MortysDLP
             });
             Shutdown();
         }
+
         public async Task<bool> UpdateAvailable(string currentVersion)
         {
-            // Hier kannst du die Logik zum Überprüfen auf Software-Updates einfügen
-            // Zum Beispiel: Überprüfen, ob eine neue Version verfügbar ist
-            // Aktuell gibt es keine Implementierung, daher immer true zurückgeben
             if (currentVersion.Equals(Settings.Default.VersionSkip))
             {
                 return false; // DEBUG: Nie Update verfügbar
@@ -129,6 +132,7 @@ namespace MortysDLP
             }
             return false;
         }
+
         public async Task SetStatusTextAndWaitAsync(StartupWindow windowWithText, string statusText, int delay)
         {
             int skipdelay = 0;
@@ -138,6 +142,7 @@ namespace MortysDLP
                 await Task.Delay(delay); // DEBUG
             }
         }
+
         public static void CopyDirectory(string sourceDir, string targetDir)
         {
             if (!Directory.Exists(sourceDir))
@@ -155,6 +160,84 @@ namespace MortysDLP
                 string destDir = Path.Combine(targetDir, Path.GetFileName(dir));
                 CopyDirectory(dir, destDir);
             }
+        }
+
+        private static Task CleanupTempArtifactsAsync()
+        {
+            return Task.Run(() =>
+            {
+                try
+                {
+                    string tempDir = Path.GetTempPath();
+
+                    // Exakt die im Code verwendeten Muster:
+                    // - ffmpeg_download_{GUID}.zip
+                    // - extract_{GUID}
+                    string guidPattern = "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}";
+                    var zipRegex = new Regex($"^ffmpeg_download_{guidPattern}\\.zip$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+                    var dirRegex = new Regex($"^extract_{guidPattern}$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+
+                    foreach (var file in Directory.EnumerateFiles(tempDir, "ffmpeg_download_*.zip", SearchOption.TopDirectoryOnly))
+                    {
+                        string name = Path.GetFileName(file);
+                        if (zipRegex.IsMatch(name))
+                        {
+                            TryDeleteFile(file);
+                        }
+                    }
+
+                    foreach (var dir in Directory.EnumerateDirectories(tempDir, "extract_*", SearchOption.TopDirectoryOnly))
+                    {
+                        string name = Path.GetFileName(dir);
+                        if (dirRegex.IsMatch(name))
+                        {
+                            TryDeleteDirectory(dir);
+                        }
+                    }
+                }
+                catch
+                {
+                    // Best-effort: Keine Exception nach außen
+                }
+            });
+        }
+
+        private static void TryDeleteFile(string path)
+        {
+            try
+            {
+                if (File.Exists(path))
+                {
+                    try { File.SetAttributes(path, FileAttributes.Normal); } catch { }
+                    File.Delete(path);
+                }
+            }
+            catch { }
+        }
+
+        private static void TryDeleteDirectory(string path)
+        {
+            try
+            {
+                if (Directory.Exists(path))
+                {
+                    ClearReadOnlyAttributes(path);
+                    Directory.Delete(path, true);
+                }
+            }
+            catch { }
+        }
+
+        private static void ClearReadOnlyAttributes(string rootDir)
+        {
+            try
+            {
+                foreach (var file in Directory.EnumerateFiles(rootDir, "*", SearchOption.AllDirectories))
+                {
+                    try { File.SetAttributes(file, FileAttributes.Normal); } catch { }
+                }
+            }
+            catch { }
         }
     }
 }
