@@ -8,7 +8,6 @@ namespace MortysDLP.Services
     internal class FfmpegUpdateService
     {
         private readonly HttpClient _httpClient = new();
-
         public FfmpegUpdateService() { }
 
         /// <summary>
