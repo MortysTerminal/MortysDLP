@@ -328,62 +328,75 @@
                         <ComboBoxItem Content="vorbis" />
                         <ComboBoxItem Content="wav" />
                     </ComboBox>
+
+                    <!-- NEU: Audio-Bitrate hier integriert und an Checkbox gebunden -->
                     <TextBlock 
-                        Name="txtAudioOnlyInfo2" 
                         VerticalAlignment="Center"
-                        Foreground="Silver"
-                        Margin="7" >
-                        (Nicht zusammen mit Videoformat!)
+                        Margin="7">
+                        Audio-Bitrate:
                     </TextBlock>
+                    <ComboBox 
+                        Name="combAudioBitrate" 
+                        Width="120" 
+                        SelectedIndex="3"
+                        Margin="0,0,7,0">
+                        <ComboBoxItem Content="Höchste" />
+                        <ComboBoxItem Content="320k" />
+                        <ComboBoxItem Content="256k" />
+                        <ComboBoxItem Content="192k" />
+                        <ComboBoxItem Content="160k" />
+                        <ComboBoxItem Content="128k" />
+                        <ComboBoxItem Content="96k" />
+                        <ComboBoxItem Content="64k" />
+                    </ComboBox>
                 </StackPanel>
             </DockPanel>
 
-            <!-- Row 10 : Quality (not implemented yet: 30.07.2025)  TODO -->
+            <!-- Row 10 : Qualität / Formate (Audio-Bitrate-Block entfernt) -->
             <DockPanel 
                 Name="dpQuality"
-                Grid.Row="10" 
-                Visibility="Collapsed">
+                Grid.Row="10"
+                Visibility="Visible">
                 <StackPanel 
                     Orientation="Horizontal" 
                     Margin="4">
-                    <CheckBox 
-                        Name="cbQuality" 
-                        IsChecked="False" 
-                        Checked="cbAudioOnlyCheck" 
-                        Unchecked="cbAudioOnlyCheck" 
-                        Margin="7">
-                    </CheckBox>
+                    
+                    <!-- Video-Qualität -->
                     <TextBlock 
                         Name="txtVideoQuality" 
                         Text="Videoqualität:" 
                         VerticalAlignment="Center" 
-                        Margin="7">
-                    </TextBlock>
+                        Margin="7"/>
                     <ComboBox 
-                        Name="cbVideoQuality" 
+                        Name="combVideoQuality" 
                         Width="150" 
-                        SelectedIndex="0">
-                        <ComboBoxItem Content="Beste" Tag="best"/>
-                        <ComboBoxItem Content="1440p" Tag="bestvideo[height&lt;=1440]+bestaudio/best[height&lt;=1440]"/>
-                        <ComboBoxItem Content="1080p" Tag="bestvideo[height&lt;=1080]+bestaudio/best[height&lt;=1080]"/>
-                        <ComboBoxItem Content="720p" Tag="bestvideo[height&lt;=720]+bestaudio/best[height&lt;=720]"/>
-                        <ComboBoxItem Content="480p" Tag="bestvideo[height&lt;=480]+bestaudio/best[height&lt;=480]"/>
-                        <ComboBoxItem Content="Niedrigste" Tag="worst"/>
+                        SelectedIndex="0"
+                        Margin="0,0,7,0">
+                        <ComboBoxItem Content="Höchste" Tag="best"/>
+                        <ComboBoxItem Content="1440p" Tag="1440"/>
+                        <ComboBoxItem Content="1080p" Tag="1080"/>
+                        <ComboBoxItem Content="720p"  Tag="720"/>
+                        <ComboBoxItem Content="480p"  Tag="480"/>
+                        <ComboBoxItem Content="360p"  Tag="360"/>
+                        <ComboBoxItem Content="240p"  Tag="240"/>
+                        <ComboBoxItem Content="144p"  Tag="144"/>
                     </ComboBox>
+
+                    <!-- Video-Container -->
                     <TextBlock 
-                        Name="txtAudioQuality" 
-                        VerticalAlignment="Center"
-                        Margin="7">
-                        Qualität:
-                    </TextBlock>
+                        Name="txtVideoContainer" 
+                        Text="Videoformat:" 
+                        VerticalAlignment="Center" 
+                        Margin="7"/>
                     <ComboBox 
-                        Name="cbAudioQuality" 
-                        Width="150" 
-                        SelectedIndex="0">
-                        <ComboBoxItem Content="Beste" Tag="0"/>
-                        <ComboBoxItem Content="128k" Tag="128K"/>
-                        <ComboBoxItem Content="64k" Tag="64K"/>
-                        <ComboBoxItem Content="Niedrigste" Tag="9"/>
+                        Name="combVideoFormat" 
+                        Width="100" 
+                        SelectedIndex="0"
+                        Margin="0,0,7,0">
+                        <ComboBoxItem Content="mp4"/>
+                        <ComboBoxItem Content="mkv"/>
+                        <ComboBoxItem Content="mov"/>
+                        <ComboBoxItem Content="avi"/>
                     </ComboBox>
                 </StackPanel>
             </DockPanel>

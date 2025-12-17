@@ -25,7 +25,7 @@ namespace MortysDLP.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("2025.11.13")]
+        [global::System.Configuration.DefaultSettingValueAttribute("2025.12.17")]
         public string CurrentVersion {
             get {
                 return ((string)(this["CurrentVersion"]));
@@ -344,6 +344,42 @@ namespace MortysDLP.Properties {
             }
             set {
                 this["MortysDLPGitHubURL"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Höchste")]
+        public string SelectedVideoQuality {
+            get {
+                return ((string)(this["SelectedVideoQuality"]));
+            }
+            set {
+                this["SelectedVideoQuality"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("mp4")]
+        public string SelectedVideoFormat {
+            get {
+                return ((string)(this["SelectedVideoFormat"]));
+            }
+            set {
+                this["SelectedVideoFormat"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("192k")]
+        public string SelectedAudioBitrate {
+            get {
+                return ((string)(this["SelectedAudioBitrate"]));
+            }
+            set {
+                this["SelectedAudioBitrate"] = value;
             }
         }
     }

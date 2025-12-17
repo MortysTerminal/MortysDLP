@@ -3,7 +3,7 @@
   <Profiles />
   <Settings>
     <Setting Name="CurrentVersion" Type="System.String" Scope="User">
-      <Value Profile="(Default)">2025.11.13</Value>
+      <Value Profile="(Default)">2025.12.17</Value>
     </Setting>
     <Setting Name="DownloadPath" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
@@ -82,6 +82,15 @@
     </Setting>
     <Setting Name="MortysDLPGitHubURL" Type="System.String" Scope="User">
       <Value Profile="(Default)">https://github.com/MortysTerminal/MortysDLP</Value>
+    </Setting>
+    <Setting Name="SelectedVideoQuality" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Höchste</Value>
+    </Setting>
+    <Setting Name="SelectedVideoFormat" Type="System.String" Scope="User">
+      <Value Profile="(Default)">mp4</Value>
+    </Setting>
+    <Setting Name="SelectedAudioBitrate" Type="System.String" Scope="User">
+      <Value Profile="(Default)">192k</Value>
     </Setting>
   </Settings>
 </SettingsFile>
