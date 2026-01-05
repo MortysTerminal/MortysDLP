@@ -92,5 +92,11 @@
     <Setting Name="SelectedAudioBitrate" Type="System.String" Scope="User">
       <Value Profile="(Default)">192k</Value>
     </Setting>
+    <Setting Name="CheckedCustomFilename" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="CustomFilename" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
   </Settings>
 </SettingsFile>

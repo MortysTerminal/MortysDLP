@@ -382,5 +382,29 @@ namespace MortysDLP.Properties {
                 this["SelectedAudioBitrate"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool CheckedCustomFilename {
+            get {
+                return ((bool)(this["CheckedCustomFilename"]));
+            }
+            set {
+                this["CheckedCustomFilename"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string CustomFilename {
+            get {
+                return ((string)(this["CustomFilename"]));
+            }
+            set {
+                this["CustomFilename"] = value;
+            }
+        }
     }
 }

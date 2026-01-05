@@ -8,7 +8,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-    
+
 namespace MortysDLP
 {
     public partial class MainWindow : Window
@@ -34,6 +34,7 @@ namespace MortysDLP
             AudioOnlyAdjustments();
             VideoformatAdjustments();
             TimespanAdjustments();
+            CustomFilenameAdjustments(); // NEU
             ValidateDownloadButton();
         }
 
@@ -192,7 +193,29 @@ namespace MortysDLP
             {
                 _downloadTask = StartDownloadAsync(token);
 
-                titleTask = FetchTitleAndAddHistoryAsync(ytDlpPath, url, downloadDir, token);
+                bool useCustom = false;
+                string customName = "";
+                Dispatcher.Invoke(() =>
+                {
+                    useCustom = cbCustomFilename.IsChecked == true;
+                    customName = tbCustomFilename.Text?.Trim() ?? "";
+                });
+
+                if (useCustom && !string.IsNullOrWhiteSpace(customName))
+                {
+                    // Kein Titel abrufen – direkt Verlauf mit benutzerdefiniertem Namen
+                    titleTask = AddDownloadToHistoryAsync(url, customName, downloadDir,
+                        isAudioOnly: cbAudioOnly.IsChecked == true,
+                        videoQuality: GetSelectedVideoQualityLabel(),
+                        videoFormat: GetSelectedVideoFormat(),
+                        audioFormat: GetSelectedAudioFormat(),
+                        audioBitrate: GetSelectedAudioBitrate());
+                }
+                else
+                {
+                    // Wie bisher: Titel abrufen
+                    titleTask = FetchTitleAndAddHistoryAsync(ytDlpPath, url, downloadDir, token);
+                }
 
                 await _downloadTask;
 
@@ -228,6 +251,7 @@ namespace MortysDLP
                 FirstSecondsAdjustments();
                 VideoformatAdjustments();
                 TimespanAdjustments();
+                CustomFilenameAdjustments(); // NEU
             }
         }
 
@@ -380,6 +404,8 @@ namespace MortysDLP
             string vqLabel = "";
             string vfContainer = "";
             string abitrate = "";
+            bool useCustomName = false;
+            string customName = "";
 
             Dispatcher.Invoke(() =>
             {
@@ -400,6 +426,9 @@ namespace MortysDLP
                 abitrate = GetSelectedAudioBitrate();     // z. B. 192k oder Höchste
 
                 ffmpegPath = Properties.Settings.Default.FfmpegPath;
+
+                useCustomName = cbCustomFilename.IsChecked == true;
+                customName = tbCustomFilename.Text?.Trim() ?? "";
             });
 
             static string SanitizeSegment(string? s)
@@ -465,7 +494,7 @@ namespace MortysDLP
                 }
             }
 
-            // 2) Kurzen Varianten-Tag bauen (wird NACH dem Titel eingefügt)
+            // 2) Kurzen Varianten-Tag bauen
             var tags = new System.Collections.Generic.List<string>();
 
             if (isTimespan)
@@ -475,21 +504,32 @@ namespace MortysDLP
 
             if (isAudioOnly)
             {
-                tags.Add("a"); // Modus: Audio-only
-                tags.Add(SanitizeSegment(selectedAudioFormat)); // z. B. mp3
-                tags.Add(isHighestAbr ? "abest" : $"a{SanitizeSegment(abitrate)}"); // z. B. a192k oder abest
+                tags.Add("a");
+                tags.Add(SanitizeSegment(selectedAudioFormat));
+                tags.Add(isHighestAbr ? "abest" : $"a{SanitizeSegment(abitrate)}");
             }
             else
             {
-                tags.Add($"q{SanitizeSegment(NormalizeQualityTag(vqLabel))}"); // z. B. q1080p oder qbest
-                tags.Add(SanitizeSegment(vfContainer)); // z. B. mp4
+                tags.Add($"q{SanitizeSegment(NormalizeQualityTag(vqLabel))}");
+                tags.Add(SanitizeSegment(vfContainer));
                 if (isVideoformat) tags.Add("x264");
             }
 
             string variantSuffix = tags.Count > 0 ? "_" + string.Join("_", tags) : "";
 
-            // 3) Output-Muster: Titel + _VARIANTE_ + ID
-            string outputPattern = $"%(title)s{variantSuffix}_%(id)s.%(ext)s";
+            // 3) Output-Muster
+            string fileBase;
+            if (useCustomName && !string.IsNullOrWhiteSpace(customName))
+            {
+                fileBase = SanitizeSegment(customName);
+                AppendOutput($"[NAME] Benutzerdefinierter Dateiname aktiv: \"{fileBase}\"");
+            }
+            else
+            {
+                fileBase = "%(title)s";
+            }
+
+            string outputPattern = $"{fileBase}{variantSuffix}_%(id)s.%(ext)s";
             sb.Append($"-o \"{downloadPath}\\{outputPattern}\" ");
 
             // 4) Zeit-Beschränkung/Downloadeinstellungen
@@ -757,12 +797,16 @@ namespace MortysDLP
             bool cbVideoformatChecked = cbVideoformat.IsChecked == true;
             bool cbTimespanChecked = cbTimespan.IsChecked == true;
             bool cbAudioOnlyChecked = cbAudioOnly.IsChecked == true;
+
+            // NEU: Custom Filename
+            bool cbCustomFilenameChecked = cbCustomFilename.IsChecked == true;
+            string tbCustomFilenameText = cbCustomFilenameChecked ? tbCustomFilename.Text : "";
+
             string tbAudioOnlyText = cbAudioOnlyChecked ? GetSelectedAudioFormat() : "";
             string tbTimespanFromText = cbTimespanChecked ? tbTimespanFrom.Text : "";
             string tbTimespanToText = cbTimespanChecked ? tbTimespanTo.Text : "";
             string tbFirstSecondsText = cbFirstSecondsChecked ? tbFirstSecondsSeconds.Text : "";
 
-            // Neu: aktuelle Auswahl holen
             string selVq = GetSelectedVideoQualityLabel();
             string selVf = GetSelectedVideoFormat();
             string selAb = GetSelectedAudioBitrate();
@@ -781,10 +825,13 @@ namespace MortysDLP
                 Properties.Settings.Default.SelectedAudioFormat = tbAudioOnlyText;
                 Properties.Settings.Default.DownloadAudioOnlyPath = lblAudioPath.Content.ToString();
 
-                // Neu: speichern
                 Properties.Settings.Default.SelectedVideoQuality = selVq;
                 Properties.Settings.Default.SelectedVideoFormat = selVf;
                 Properties.Settings.Default.SelectedAudioBitrate = selAb;
+
+                // NEU: Speichern Custom Filename
+                Properties.Settings.Default.CheckedCustomFilename = cbCustomFilenameChecked;
+                Properties.Settings.Default.CustomFilename = tbCustomFilenameText;
 
                 Properties.Settings.Default.Save();
                 MessageBox.Show("Einstellungen gespeichert");
@@ -904,10 +951,14 @@ namespace MortysDLP
             cbVideoformat.IsChecked = Properties.Settings.Default.CheckedVideoFormat;
             cbAudioOnly.IsChecked = Properties.Settings.Default.CheckedAudioOnly;
 
+            // NEU: Custom Filename laden
+            cbCustomFilename.IsChecked = Properties.Settings.Default.CheckedCustomFilename;
+            tbCustomFilename.Text = Properties.Settings.Default.CheckedCustomFilename ? Properties.Settings.Default.CustomFilename : "";
+            CustomFilenameAdjustments();
+
             if (Properties.Settings.Default.CheckedAudioOnly)
                 SelectAudioFormat(Properties.Settings.Default.SelectedAudioFormat);
 
-            // Neu: Auswahlen setzen
             SelectComboByContent(combVideoQuality, Properties.Settings.Default.SelectedVideoQuality, "Höchste");
             SelectComboByContent(combVideoFormat, Properties.Settings.Default.SelectedVideoFormat, "mp4");
             SelectComboByContent(combAudioBitrate, Properties.Settings.Default.SelectedAudioBitrate, "192k");
@@ -937,8 +988,13 @@ namespace MortysDLP
             combVideoQuality.IsEnabled = enabled && cbAudioOnly.IsChecked != true;
             combVideoFormat.IsEnabled = enabled && cbAudioOnly.IsChecked != true && cbVideoformat.IsChecked != true;
 
-            // Audio-Bitrate nur bei „Nur Audio“
+            // Audio-Bitrate
             combAudioBitrate.IsEnabled = enabled && cbAudioOnly.IsChecked == true;
+
+            // NEU: Custom Filename
+            cbCustomFilename.IsEnabled = enabled;
+            tbCustomFilename.IsEnabled = enabled && cbCustomFilename.IsChecked == true;
+            tbCustomFilename.IsReadOnly = !(enabled && cbCustomFilename.IsChecked == true);
         }
 
         private void SetUITexte()
@@ -968,7 +1024,8 @@ namespace MortysDLP
             btnConvert.Header = UITexte.UITexte.MainWindow_Button_Convert;
             lblMainVersion.Content = Properties.Settings.Default.CurrentVersion;
 
-            // optionale weitere Texte für die neuen Felder könnten hier gesetzt werden
+            // Optional: Text für neue Felder lokalisieren, wenn vorhanden:
+            // txtCustomFilenameInfo.Text = UITexte.UITexte.MainWindow_Label_CustomFilename;
         }
 
         private async Task StartDownloadAsync(CancellationToken token)
@@ -1102,6 +1159,21 @@ namespace MortysDLP
             {
                 combVideoFormat.IsEnabled = cbAudioOnly.IsChecked != true;
             }
+        }
+
+        // NEU: Checkbox-Handler
+        private void cbCustomFilenameCheck(object sender, RoutedEventArgs e)
+        {
+            CustomFilenameAdjustments();
+            ValidateDownloadButton();
+        }
+
+        // NEU: UI-Enable/Disable für benutzerdefinierten Namen
+        private void CustomFilenameAdjustments()
+        {
+            bool enabled = cbCustomFilename.IsChecked == true;
+            tbCustomFilename.IsEnabled = enabled;
+            tbCustomFilename.IsReadOnly = !enabled;
         }
     }
 }
