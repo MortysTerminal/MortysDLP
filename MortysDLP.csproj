@@ -6,7 +6,7 @@
     <Company>MORTYS WELT</Company>
     <Copyright>Copyright © 2025</Copyright>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net9.0-windows7.0</TargetFramework>
+    <TargetFramework>net10.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
@@ -40,6 +40,11 @@
     <None Remove="Resources\Logos\globus.png" />
     <None Remove="Resources\Icons\mw_globe_32px.ico" />
     <None Remove="Resources\Logos\mw_globe_32px.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include=".github\upgrades\plan.md" />
+    <None Include=".github\upgrades\tasks.md" />
   </ItemGroup>
 
   <ItemGroup>
