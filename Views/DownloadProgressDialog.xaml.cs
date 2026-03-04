@@ -20,6 +20,9 @@ namespace MortysDLP
     /// </summary>
     public partial class DownloadProgressDialog : Window, IDisposable
     {
+        private readonly CancellationTokenSource _cts = new();
+
+        public CancellationToken CancellationToken => _cts.Token;
 
         public DownloadProgressDialog(string info)
         {
@@ -35,9 +38,23 @@ namespace MortysDLP
         {
             ProgressBar.Value = value * 100;
         }
+
+        private void CancelButton_Click(object sender, RoutedEventArgs e)
+        {
+            Close();
+        }
+
+        protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
+        {
+            _cts.Cancel();
+            base.OnClosing(e);
+        }
+
         public void Dispose()
         {
-            this.Close();
+            try { _cts.Cancel(); } catch { }
+            try { Close(); } catch { }
+            _cts.Dispose();
         }
     }
 }
