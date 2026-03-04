@@ -16,8 +16,6 @@ namespace MortysDLP
         private readonly string FfmpegDownloadUrl = Properties.Resources.URL_FFMPEG;
         private readonly string YtDlpDocUrl = Properties.Resources.URL_YTDLP;
 
-        private bool _toolUpdaterStarted = false;
-
         public StartupWindow()
         {
             LanguageHelper.ApplyLanguage(LanguageHelper.ForceEnglish);
