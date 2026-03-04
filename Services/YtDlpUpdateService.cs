@@ -73,12 +73,15 @@ namespace MortysDLP.Services
                     return null;
 
                 string? output = process.StandardOutput.ReadLine();
-                process.WaitForExit(3000); // max 3 Sekunden warten
+                if (!process.WaitForExit(3000))
+                {
+                    process.Kill();
+                    return null;
+                }
                 return output?.Trim();
             }
             catch (Exception ex)
             {
-                // Logging einbauen, z.B. mit NLog, Serilog oder Debug.WriteLine
                 Debug.WriteLine($"Fehler beim Auslesen der lokalen Version: {ex}");
                 return null;
             }

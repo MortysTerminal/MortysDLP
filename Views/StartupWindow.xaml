@@ -59,13 +59,18 @@
                     <Grid 
                         Margin="0,0,0,18" 
                         HorizontalAlignment="Center">
-                        <fa:ImageAwesome 
-                            Icon="Cog" 
-                            Spin="True" 
-                            Height="30" 
-                            Width="30" 
-                            SpinDuration="3">
-                        </fa:ImageAwesome>
+                        <TextBlock 
+                            x:Name="LoadingIcon"
+                            FontFamily="Segoe MDL2 Assets"
+                            FontSize="30"
+                            Text="&#xE895;"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            RenderTransformOrigin="0.5,0.5">
+                            <TextBlock.RenderTransform>
+                                <RotateTransform x:Name="LoadingRotation" />
+                            </TextBlock.RenderTransform>
+                        </TextBlock>
                     </Grid>
                     
                     <!-- Statuszeile -->

@@ -1,7 +1,6 @@
 ﻿<Window x:Class="MortysDLP.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:fa="clr-namespace:FontAwesome.WPF;assembly=FontAwesome.WPF"
         Icon="/Resources/Icons/mw_globe_32px.ico"
         Title="MortysDLP"
         WindowStartupLocation="CenterScreen"
@@ -253,18 +252,19 @@
                         Margin="7">
                         hh:mm:ss oder mm:ss angeben!
                     </TextBlock>
-                    <fa:ImageAwesome x:Name="imgTimespanInfo"
-                        Icon="InfoCircle"
-                        Width="18" Height="18"
+                    <TextBlock x:Name="imgTimespanInfo"
+                        FontFamily="Segoe MDL2 Assets"
+                        FontSize="18"
+                        Text="&#xE946;"
                         Opacity="0.8"
                         VerticalAlignment="Center"
                         HorizontalAlignment="Center">
-                        <fa:ImageAwesome.ToolTip>
+                        <TextBlock.ToolTip>
                             <ToolTip Name="ToolTipTimeSpan">
                                 Gültige Formate: mm:ss oder hh:mm:ss. Beispiel: 01:23 oder 01:02:03. Die Angabe bedeutet Minuten:Sekunden oder Stunden:Minuten:Sekunden. Damit kannst du z.B. einen Ausschnitt von 00:01:30 bis 00:02:45 herunterladen.
                             </ToolTip>
-                        </fa:ImageAwesome.ToolTip>
-                    </fa:ImageAwesome>
+                        </TextBlock.ToolTip>
+                    </TextBlock>
                 </StackPanel>
             </DockPanel>
 
@@ -485,12 +485,12 @@
                                 BorderThickness="0" 
                                 Padding="0"
                                 Click="btnStatusIcon_Click">
-                                <fa:ImageAwesome 
+                                <TextBlock 
                                     Name="iaStatusIcon" 
-                                    Width="20" 
-                                    Height="20"
+                                    FontFamily="Segoe MDL2 Assets"
+                                    FontSize="20"
                                     Foreground="SteelBlue">
-                                </fa:ImageAwesome>
+                                </TextBlock>
                             </Button>
                         </StackPanel>
                     </StackPanel>
