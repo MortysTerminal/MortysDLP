@@ -3,6 +3,8 @@ using MortysDLP.Services;
 using System.IO.Compression;
 using System.Windows;
 using System.Windows.Interop;
+using System.Windows.Media;
+using System.Windows.Media.Animation;
 
 namespace MortysDLP
 {
@@ -20,6 +22,19 @@ namespace MortysDLP
         {
             LanguageHelper.ApplyLanguage(LanguageHelper.ForceEnglish);
             InitializeComponent();
+            StartLoadingAnimation();
+        }
+
+        private void StartLoadingAnimation()
+        {
+            var animation = new DoubleAnimation
+            {
+                From = 0,
+                To = 360,
+                Duration = TimeSpan.FromSeconds(2),
+                RepeatBehavior = RepeatBehavior.Forever
+            };
+            LoadingRotation.BeginAnimation(RotateTransform.AngleProperty, animation);
         }
 
         public void SetStatus(string text)
@@ -324,11 +339,72 @@ namespace MortysDLP
             catch {
                 return false;
             }
-            //finally
-            //{
-            //    if (deleteZip) { try { System.IO.File.Delete(zipPath); } catch { } }
-            //    if (deleteExtractDir) { try { System.IO.Directory.Delete(tempExtractDir, true); } catch { } }
-            //}
+            finally
+            {
+                try 
+                { 
+                    if (System.IO.Directory.Exists(tempExtractDir))
+                        System.IO.Directory.Delete(tempExtractDir, true); 
+                } 
+                catch { }
+            }
+        }
+
+        private (bool AllSuccessful, List<string> FailedFiles) TryExtractMultipleExeFromZip(string zipPath, params (string ExeName, string TargetPath)[] files)
+        {
+            string tempExtractDir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "extract_" + Guid.NewGuid());
+            var failedFiles = new List<string>();
+            
+            try
+            {
+                System.IO.Directory.CreateDirectory(tempExtractDir);
+                ZipFile.ExtractToDirectory(zipPath, tempExtractDir);
+
+                foreach (var (exeName, targetPath) in files)
+                {
+                    string? foundExe = System.IO.Directory.GetFiles(tempExtractDir, exeName, System.IO.SearchOption.AllDirectories).FirstOrDefault();
+                    if (foundExe != null)
+                    {
+                        try
+                        {
+                            if (System.IO.File.Exists(targetPath))
+                                System.IO.File.Delete(targetPath);
+                            System.IO.File.Copy(foundExe, targetPath, true);
+                        }
+                        catch
+                        {
+                            failedFiles.Add(exeName);
+                        }
+                    }
+                    else
+                    {
+                        failedFiles.Add(exeName);
+                    }
+                }
+
+                return (failedFiles.Count == 0, failedFiles);
+            }
+            catch
+            {
+                failedFiles.AddRange(files.Select(f => f.ExeName));
+                return (false, failedFiles);
+            }
+            finally
+            {
+                try 
+                { 
+                    if (System.IO.File.Exists(zipPath))
+                        System.IO.File.Delete(zipPath); 
+                } 
+                catch { }
+                
+                try 
+                { 
+                    if (System.IO.Directory.Exists(tempExtractDir))
+                        System.IO.Directory.Delete(tempExtractDir, true); 
+                } 
+                catch { }
+            }
         }
 
         private void ShowError(string message)

@@ -8,36 +8,44 @@ using System.Reflection;
 
 namespace MortysDLP.Services
 {
-    internal class UpdateService
+    internal class UpdateService : IDisposable
     {
         private string GitHubApiUrl = Properties.Settings.Default.MortysDLPGitHubAPIURL;
         private readonly HttpClient _httpClient;
+        private bool _disposed = false;
 
         public UpdateService()
         {
             _httpClient = new HttpClient();
             _httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("MortysDLP-Updater");
+            _httpClient.Timeout = TimeSpan.FromSeconds(10);
         }
 
         public async Task<(string? version, string? assetUrl)> GetLatestReleaseInfoAsync()
         {
-            var response = await _httpClient.GetAsync(GitHubApiUrl);
-            if (!response.IsSuccessStatusCode)
-                return (null, null);
-
-            var json = await response.Content.ReadAsStringAsync();
-            using var doc = JsonDocument.Parse(json);
-
-            string? version = doc.RootElement.GetProperty("tag_name").GetString();
-            string? assetUrl = null;
-
-            if (doc.RootElement.TryGetProperty("assets", out var assets) && assets.GetArrayLength() > 0)
+            try
             {
-                // Nimm das erste Asset (z.B. ZIP)
-                assetUrl = assets[0].GetProperty("browser_download_url").GetString();
-            }
+                var response = await _httpClient.GetAsync(GitHubApiUrl);
+                if (!response.IsSuccessStatusCode)
+                    return (null, null);
 
-            return (version, assetUrl);
+                var json = await response.Content.ReadAsStringAsync();
+                using var doc = JsonDocument.Parse(json);
+
+                string? version = doc.RootElement.GetProperty("tag_name").GetString();
+                string? assetUrl = null;
+
+                if (doc.RootElement.TryGetProperty("assets", out var assets) && assets.GetArrayLength() > 0)
+                {
+                    assetUrl = assets[0].GetProperty("browser_download_url").GetString();
+                }
+
+                return (version, assetUrl);
+            }
+            catch
+            {
+                return (null, null);
+            }
         }
 
         public Version GetCurrentVersion()
@@ -67,15 +75,19 @@ namespace MortysDLP.Services
             return false;
         }
 
-        /// <summary>
-        /// Lädt das Release-Asset (ZIP) herunter.
-        /// </summary>
-        /// <param name="url">Download-URL der ZIP-Datei</param>
-        /// <param name="targetPath">Zielpfad für die ZIP-Datei</param>
         public async Task DownloadAssetAsync(string url, string targetPath)
         {
             var data = await _httpClient.GetByteArrayAsync(url);
             await File.WriteAllBytesAsync(targetPath, data);
+        }
+
+        public void Dispose()
+        {
+            if (!_disposed)
+            {
+                _httpClient?.Dispose();
+                _disposed = true;
+            }
         }
     }
 }

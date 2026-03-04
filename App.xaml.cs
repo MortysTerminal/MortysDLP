@@ -133,13 +133,12 @@ namespace MortysDLP
             return false;
         }
 
-        public async Task SetStatusTextAndWaitAsync(StartupWindow windowWithText, string statusText, int delay)
+        private async Task SetStatusTextAndWaitAsync(StartupWindow windowWithText, string statusText, int delay)
         {
-            int skipdelay = 0;
             windowWithText.SetStatus(statusText);
-            if (delay != skipdelay)
+            if (delay > 0)
             {
-                await Task.Delay(delay); // DEBUG
+                await Task.Delay(delay);
             }
         }
 

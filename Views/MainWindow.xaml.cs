@@ -910,28 +910,59 @@ namespace MortysDLP
         {
             Dispatcher.Invoke(() =>
             {
-                iaStatusIcon.Spin = false;
                 btnStatusIcon.IsEnabled = (type == iaStatusIconType.Success || type == iaStatusIconType.Error);
                 switch (type)
                 {
                     case iaStatusIconType.Loading:
-                        iaStatusIcon.Icon = FontAwesome.WPF.FontAwesomeIcon.Spinner;
-                        iaStatusIcon.Spin = true;
+                        // ProgressRing Symbol (⟳ = E895 in Segoe MDL2 Assets)
+                        iaStatusIcon.Text = "\uE895";
                         iaStatusIcon.Foreground = new SolidColorBrush(Colors.SteelBlue);
+                        // Rotation animation
+                        StartIconRotation(iaStatusIcon);
                         break;
                     case iaStatusIconType.Success:
-                        iaStatusIcon.Icon = FontAwesome.WPF.FontAwesomeIcon.CheckCircle;
+                        // CheckMark in Circle (✓ = E73E in Segoe MDL2 Assets)
+                        iaStatusIcon.Text = "\uE73E";
                         iaStatusIcon.Foreground = new SolidColorBrush(Colors.Green);
+                        StopIconRotation(iaStatusIcon);
                         break;
                     case iaStatusIconType.Error:
-                        iaStatusIcon.Icon = FontAwesome.WPF.FontAwesomeIcon.TimesCircle;
+                        // Error/Cancel Circle (✖ = E711 in Segoe MDL2 Assets)
+                        iaStatusIcon.Text = "\uE711";
                         iaStatusIcon.Foreground = new SolidColorBrush(Colors.Red);
+                        StopIconRotation(iaStatusIcon);
                         break;
                     default:
-                        iaStatusIcon.Icon = FontAwesome.WPF.FontAwesomeIcon.None;
+                        iaStatusIcon.Text = "";
+                        StopIconRotation(iaStatusIcon);
                         break;
                 }
             });
+        }
+
+        private void StartIconRotation(TextBlock icon)
+        {
+            var rotateTransform = new RotateTransform();
+            icon.RenderTransform = rotateTransform;
+            icon.RenderTransformOrigin = new Point(0.5, 0.5);
+
+            var animation = new System.Windows.Media.Animation.DoubleAnimation
+            {
+                From = 0,
+                To = 360,
+                Duration = TimeSpan.FromSeconds(2),
+                RepeatBehavior = System.Windows.Media.Animation.RepeatBehavior.Forever
+            };
+            rotateTransform.BeginAnimation(RotateTransform.AngleProperty, animation);
+        }
+
+        private void StopIconRotation(TextBlock icon)
+        {
+            if (icon.RenderTransform is RotateTransform rotateTransform)
+            {
+                rotateTransform.BeginAnimation(RotateTransform.AngleProperty, null);
+                icon.RenderTransform = null;
+            }
         }
 
         private void SettingsLoad()
