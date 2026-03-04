@@ -44,11 +44,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include=".github\upgrades\plan.md" />
-    <None Include=".github\upgrades\tasks.md" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Ookii.Dialogs.Wpf" Version="5.0.1" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="8.0.0" />
   </ItemGroup>

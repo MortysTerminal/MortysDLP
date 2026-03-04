@@ -64,38 +64,39 @@ namespace MortysDLP
                 string ffmpegPath = Properties.Settings.Default.FfmpegPath;
                 string ffprobePath = Properties.Settings.Default.FfprobePath;
 
-                // Existenz prüfen
+                // yt-dlp: Existenz prüfen
+                SetStatus("Prüfe yt-dlp...");
                 bool ytDlpExists = ytDlpService.ToolExists(ytDlpPath);
 
                 // yt-dlp: Download nur wenn nicht vorhanden
                 if (!ytDlpExists)
                 {
-                    progress?.Report("Lade yt-dlp herunter...");
+                    SetStatus("yt-dlp nicht gefunden – starte Download...");
                     bool downloadSuccess = await CheckAndDownloadYtDlpAsync(ytDlpService, ytDlpPath, "yt-dlp", "yt-dlp.exe");
                     if (!downloadSuccess)
-                        return false; // Abbruch, wenn Download fehlschlägt
+                        return false;
                     ytDlpExists = true;
                 }
 
                 // Version prüfen und ggf. Update anbieten (nur wenn nicht gerade installiert)
                 if (ytDlpExists)
                 {
-                    progress?.Report("Prüfe yt-dlp-Version...");
+                    SetStatus("Prüfe yt-dlp-Version...");
                     await CheckAndUpdateYtDlpVersionAsync(ytDlpService, ytDlpPath);
                 }
 
-                // ffmpeg/ffprobe: Download nur wenn nicht vorhanden
+                // ffmpeg/ffprobe: Existenz prüfen
+                SetStatus("Prüfe ffmpeg / ffprobe...");
                 bool ffmpegExists = ffmpegService.FfmpegExists(ffmpegPath);
                 bool ffprobeExists = ffmpegService.FfprobeExists(ffprobePath);
 
                 if (!ffmpegExists || !ffprobeExists)
                 {
-                    progress?.Report("Lade ffmpeg und ffprobe herunter...");
+                    SetStatus("ffmpeg / ffprobe nicht gefunden – starte Download...");
                     await CheckAndDownloadFfmpegAndFfprobeAsync(ffmpegService, ffmpegPath, ffprobePath);
                 }
 
                 // Existenz nach Download prüfen
-                ytDlpExists = ytDlpService.ToolExists(ytDlpPath);
                 ffmpegExists = ffmpegService.FfmpegExists(ffmpegPath);
                 ffprobeExists = ffmpegService.FfprobeExists(ffprobePath);
 
@@ -108,39 +109,38 @@ namespace MortysDLP
             }
         }
 
-        private async Task DownloadToolWithProgressAsync(dynamic service, string assetUrl, string toolPath, string infoText)
+        private async Task<bool> DownloadToolWithProgressAsync(IDownloadableToolService service, string assetUrl, string toolPath, string infoText)
         {
-            using (DownloadProgressDialog dialog = new(infoText))
+            string tempPath = toolPath + ".download";
+            using var dialog = new DownloadProgressDialog(infoText);
+            dialog.Owner = this;
+            dialog.Show();
+            var progressCallback = new Progress<double>(value => dialog.SetProgress(value));
+            try
             {
-                dialog.Owner = this;
-                dialog.Show();
-                var progress = new Progress<double>(value => dialog.SetProgress(value));
-                string tempPath = toolPath + ".download";
-
-                await service.DownloadAssetAsync(assetUrl, tempPath, progress);
-
-                if (System.IO.Path.GetExtension(tempPath).Equals(".zip", StringComparison.OrdinalIgnoreCase))
-                {
-                    // Suche die gewünschte EXE im entpackten Ordner
-                    string exeName = System.IO.Path.GetFileName(toolPath);
-                    bool extractionSuccess = TryExtractExeFromZip(tempPath, exeName, toolPath);
-
-                    if (!extractionSuccess)
-                    {
-                        MessageBox.Show($"{exeName} wurde im ZIP-Archiv nicht gefunden!", "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
-                    }
-                }
-                else
-                {
-                    // Für yt-dlp: einfach umbenennen/verschieben
-                    if (System.IO.File.Exists(toolPath))
-                        System.IO.File.Delete(toolPath);
-                    System.IO.File.Move(tempPath, toolPath);
-                }
+                await service.DownloadAssetAsync(assetUrl, tempPath, progressCallback, dialog.CancellationToken);
+                if (System.IO.File.Exists(toolPath))
+                    System.IO.File.Delete(toolPath);
+                System.IO.File.Move(tempPath, toolPath);
+                return true;
+            }
+            catch (OperationCanceledException)
+            {
+                SetStatus("Download abgebrochen.");
+                return false;
+            }
+            catch (Exception)
+            {
+                SetStatus("Download fehlgeschlagen.");
+                return false;
+            }
+            finally
+            {
+                try { if (System.IO.File.Exists(tempPath)) System.IO.File.Delete(tempPath); } catch { }
             }
         }
 
-        private async Task<bool> CheckAndDownloadYtDlpAsync(dynamic service, string toolPath, string toolDisplayName, string toolFileName)
+        private async Task<bool> CheckAndDownloadYtDlpAsync(YtDlpUpdateService service, string toolPath, string toolDisplayName, string toolFileName)
         {
             var releaseInfo = await service.GetLatestReleaseInfoAsync();
             string? assetUrl = releaseInfo.Item2;
@@ -160,9 +160,12 @@ namespace MortysDLP
 
             if (result == MessageBoxResult.Yes && assetUrl != null)
             {
-                await DownloadToolWithProgressAsync(service, assetUrl, toolPath, $"Lade {toolDisplayName} herunter...");
+                SetStatus($"Lade {toolDisplayName} herunter...");
+                bool downloadSuccess = await DownloadToolWithProgressAsync(service, assetUrl, toolPath, $"Lade {toolDisplayName} herunter...");
+                if (!downloadSuccess)
+                    return false;
                 MessageBox.Show($"{toolDisplayName} wurde erfolgreich heruntergeladen.", "Download abgeschlossen", MessageBoxButton.OK, MessageBoxImage.Information);
-                return service.ToolExists(toolPath); // Existenz nach Download prüfen
+                return service.ToolExists(toolPath);
             }
             else
             {
@@ -179,7 +182,7 @@ namespace MortysDLP
             }
         }
 
-        private async Task CheckAndDownloadFfmpegAndFfprobeAsync(dynamic service, string ffmpegPath, string ffprobePath)
+        private async Task CheckAndDownloadFfmpegAndFfprobeAsync(FfmpegUpdateService service, string ffmpegPath, string ffprobePath)
         {
             bool ffmpegExists = service.FfmpegExists(ffmpegPath);
             bool ffprobeExists = service.FfprobeExists(ffprobePath);
@@ -201,22 +204,29 @@ namespace MortysDLP
 
                 if (result == MessageBoxResult.Yes)
                 {
-                    var dialog = new DownloadProgressDialog("Lade ffmpeg & ffprobe herunter...");
-                    dialog.Owner = this;
-                    dialog.Show();
-
-                    var progress = new Progress<double>(value => dialog.SetProgress(value));
                     string tempZip = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "ffmpeg_download_" + System.Guid.NewGuid() + ".zip");
-                    string assetUrl = FfmpegDownloadUrl;
-                    await service.DownloadAssetAsync(assetUrl, tempZip, progress);
+                    try
+                    {
+                        using var dialog = new DownloadProgressDialog("Lade ffmpeg & ffprobe herunter...");
+                        dialog.Owner = this;
+                        dialog.Show();
+                        var progress = new Progress<double>(value => dialog.SetProgress(value));
 
-                    dialog.Close();
+                        SetStatus("Lade ffmpeg & ffprobe herunter...");
+                        await service.DownloadAssetAsync(FfmpegDownloadUrl, tempZip, progress, dialog.CancellationToken);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        SetStatus("Download abgebrochen.");
+                        return;
+                    }
 
-                    bool ffmpegSuccess = TryExtractExeFromZip(tempZip, "ffmpeg.exe", ffmpegPath);
-                    bool ffprobeSuccess = TryExtractExeFromZip(tempZip, "ffprobe.exe", ffprobePath);
+                    SetStatus("Entpacke ffmpeg & ffprobe...");
+                    var (allSuccessful, failedFiles) = await TryExtractMultipleExeFromZipAsync(tempZip,
+                        ("ffmpeg.exe", ffmpegPath),
+                        ("ffprobe.exe", ffprobePath));
 
-
-                    if (ffmpegSuccess && ffprobeSuccess)
+                    if (allSuccessful)
                     {
                         MessageBox.Show("ffmpeg und ffprobe wurden erfolgreich heruntergeladen.", "Download abgeschlossen", MessageBoxButton.OK, MessageBoxImage.Information);
                     }
@@ -243,11 +253,13 @@ namespace MortysDLP
 
         private async Task CheckAndUpdateYtDlpVersionAsync(YtDlpUpdateService ytDlpService, string ytDlpPath)
         {
+            SetStatus("Suche neueste yt-dlp-Version...");
             var releaseInfo = await ytDlpService.GetLatestReleaseInfoAsync();
             string? latestVersion = releaseInfo.Item1;
             string? assetUrl = releaseInfo.Item2;
 
-            string? localVersion = ytDlpService.GetLocalVersion(ytDlpPath);
+            SetStatus("Lese lokale yt-dlp-Version...");
+            string? localVersion = await ytDlpService.GetLocalVersionAsync(ytDlpPath);
 
             if (ytDlpService.IsUpdateRequired(localVersion, latestVersion))
             {
@@ -267,8 +279,12 @@ namespace MortysDLP
 
                 if (result == MessageBoxResult.Yes && assetUrl != null)
                 {
-                    await DownloadToolWithProgressAsync(ytDlpService, assetUrl, ytDlpPath, "Aktualisiere yt-dlp...");
-                    MessageBox.Show("yt-dlp wurde erfolgreich aktualisiert.", "Update abgeschlossen", MessageBoxButton.OK, MessageBoxImage.Information);
+                    SetStatus("Aktualisiere yt-dlp...");
+                    bool updateSuccess = await DownloadToolWithProgressAsync(ytDlpService, assetUrl, ytDlpPath, "Aktualisiere yt-dlp...");
+                    if (updateSuccess)
+                        MessageBox.Show("yt-dlp wurde erfolgreich aktualisiert.", "Update abgeschlossen", MessageBoxButton.OK, MessageBoxImage.Information);
+                    else
+                        MessageBox.Show("Update wurde abgebrochen. Die vorhandene Version wird weiter verwendet.", "Update übersprungen", MessageBoxButton.OK, MessageBoxImage.Warning);
                 }
                 else
                 {
@@ -315,6 +331,16 @@ namespace MortysDLP
             private readonly IntPtr _handle;
             public Win32Window(IntPtr handle) { _handle = handle; }
             public IntPtr Handle => _handle;
+        }
+
+        private Task<bool> TryExtractExeFromZipAsync(string zipPath, string exeName, string targetPath)
+        {
+            return Task.Run(() => TryExtractExeFromZip(zipPath, exeName, targetPath));
+        }
+
+        private Task<(bool AllSuccessful, List<string> FailedFiles)> TryExtractMultipleExeFromZipAsync(string zipPath, params (string ExeName, string TargetPath)[] files)
+        {
+            return Task.Run(() => TryExtractMultipleExeFromZip(zipPath, files));
         }
 
         private bool TryExtractExeFromZip(string zipPath, string exeName, string targetPath)

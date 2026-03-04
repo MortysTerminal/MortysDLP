@@ -8,7 +8,7 @@ using System.Windows.Threading;
 
 namespace MortysDLP.Services
 {
-    internal class YtDlpUpdateService
+    internal class YtDlpUpdateService : IDownloadableToolService
     {
         private static readonly HttpClient _httpClient;
 
@@ -20,9 +20,9 @@ namespace MortysDLP.Services
             _httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("MortysDLP-ToolUpdater");
         }
 
-        public async Task DownloadAssetAsync(string url, string targetPath, IProgress<double>? progress = null)
+        public async Task DownloadAssetAsync(string url, string targetPath, IProgress<double>? progress = null, CancellationToken cancellationToken = default)
         {
-            await ToolDownloadHelper.DownloadAssetAsync(_httpClient, url, targetPath, progress);
+            await ToolDownloadHelper.DownloadAssetAsync(_httpClient, url, targetPath, progress, cancellationToken);
         }
 
         public async Task<(string? version, string? assetUrl)> GetLatestReleaseInfoAsync()
@@ -51,6 +51,44 @@ namespace MortysDLP.Services
             }
 
             return (version, assetUrl);
+        }
+
+        public async Task<string?> GetLocalVersionAsync(string toolPath)
+        {
+            if (!File.Exists(toolPath))
+                return null;
+
+            try
+            {
+                var psi = new ProcessStartInfo
+                {
+                    FileName = toolPath,
+                    Arguments = "--version",
+                    RedirectStandardOutput = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
+                using var process = Process.Start(psi);
+                if (process == null)
+                    return null;
+
+                string? output = await process.StandardOutput.ReadLineAsync();
+                using var cts = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(3));
+                try
+                {
+                    await process.WaitForExitAsync(cts.Token);
+                }
+                catch (OperationCanceledException)
+                {
+                    process.Kill();
+                }
+                return output?.Trim();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Fehler beim Auslesen der lokalen Version: {ex}");
+                return null;
+            }
         }
 
         public string? GetLocalVersion(string toolPath)

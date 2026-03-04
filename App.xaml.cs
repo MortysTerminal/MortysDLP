@@ -4,7 +4,6 @@ using MortysDLP.Services;
 using System.Diagnostics;
 using System.IO;
 using System.Text.RegularExpressions;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 
@@ -38,12 +37,20 @@ namespace MortysDLP
             // 1. Status: Nach Software-Update suchen
             await SetStatusTextAndWaitAsync(splash, UITexte.UITexte.Splash_SearchingForUpdate, DebugSleepTimer);
 
-            if (await UpdateAvailable(CurrentVersion))
+            using var updateService = new UpdateService();
+            var (latestVersion, assetUrl) = await updateService.GetLatestReleaseInfoAsync();
+
+            bool updateAvailable = !CurrentVersion.Equals(Settings.Default.VersionSkip)
+                && latestVersion != null
+                && assetUrl != null
+                && updateService.IsNewerVersion(latestVersion, CurrentVersion);
+
+            if (updateAvailable)
             {
                 try
                 {
                     await SetStatusTextAndWaitAsync(splash, UITexte.UITexte.Splash_StartingUpdate, DebugSleepTimer);
-                    await StartUpdate(CurrentVersion);
+                    await StartUpdate(updateService, assetUrl!);
                     await SetStatusTextAndWaitAsync(splash, UITexte.UITexte.Splash_StartingApp, DebugSleepTimer);
                 }
                 catch
@@ -67,13 +74,15 @@ namespace MortysDLP
             else
             {
                 await SetStatusTextAndWaitAsync(splash, UITexte.UITexte.Splash_ToolsMissing, DebugSleepTimer);
-                return; // Beende die Anwendung, wenn Tools fehlen
+                splash.Close();
+                Application.Current.Shutdown();
+                return;
             }
 
             // 3. Splash schließen, MainWindow starten (dort werden Tools ggf. heruntergeladen)
             await SetStatusTextAndWaitAsync(splash, UITexte.UITexte.Splash_StartingApp, DebugSleepTimer);
 
-            Thread.Sleep(DebugSleepTimer); // Kurze Pause für den Splashscreen
+            await Task.Delay(DebugSleepTimer); // Kurze Pause für den Splashscreen
 
             var mainWindow = new MainWindow();
             MainWindow = mainWindow;
@@ -95,6 +104,11 @@ namespace MortysDLP
 
             if (assetUrl is null) return;
 
+            await StartUpdate(updateService, assetUrl);
+        }
+
+        private async Task StartUpdate(UpdateService updateService, string assetUrl)
+        {
             // ZIP-Datei im Temp-Ordner speichern
             string tempZipPath = Path.Combine(Path.GetTempPath(), Settings.Default.MortysDLPUpdateZipFile);
             await updateService.DownloadAssetAsync(assetUrl, tempZipPath);
@@ -171,17 +185,10 @@ namespace MortysDLP
                 {
                     string tempDir = Path.GetTempPath();
 
-                    // Exakt die im Code verwendeten Muster:
-                    // - ffmpeg_download_{GUID}.zip
-                    // - extract_{GUID}
-                    string guidPattern = "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}";
-                    var zipRegex = new Regex($"^ffmpeg_download_{guidPattern}\\.zip$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
-                    var dirRegex = new Regex($"^extract_{guidPattern}$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
-
                     foreach (var file in Directory.EnumerateFiles(tempDir, "ffmpeg_download_*.zip", SearchOption.TopDirectoryOnly))
                     {
                         string name = Path.GetFileName(file);
-                        if (zipRegex.IsMatch(name))
+                        if (FfmpegZipRegex().IsMatch(name))
                         {
                             TryDeleteFile(file);
                         }
@@ -190,7 +197,7 @@ namespace MortysDLP
                     foreach (var dir in Directory.EnumerateDirectories(tempDir, "extract_*", SearchOption.TopDirectoryOnly))
                     {
                         string name = Path.GetFileName(dir);
-                        if (dirRegex.IsMatch(name))
+                        if (ExtractDirRegex().IsMatch(name))
                         {
                             TryDeleteDirectory(dir);
                         }
@@ -202,6 +209,12 @@ namespace MortysDLP
                 }
             });
         }
+
+        [GeneratedRegex(@"^ffmpeg_download_[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\.zip$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+        private static partial Regex FfmpegZipRegex();
+
+        [GeneratedRegex(@"^extract_[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+        private static partial Regex ExtractDirRegex();
 
         private static void TryDeleteFile(string path)
         {
