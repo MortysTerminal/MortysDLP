@@ -93,6 +93,8 @@ namespace MortysDLP
             var updateService = new UpdateService();
             var (latestVersion, assetUrl) = await updateService.GetLatestReleaseInfoAsync();
 
+            if (assetUrl is null) return;
+
             // ZIP-Datei im Temp-Ordner speichern
             string tempZipPath = Path.Combine(Path.GetTempPath(), Settings.Default.MortysDLPUpdateZipFile);
             await updateService.DownloadAssetAsync(assetUrl, tempZipPath);
