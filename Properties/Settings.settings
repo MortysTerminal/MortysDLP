@@ -71,6 +71,9 @@
     <Setting Name="ForceEnglishLanguage" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
+    <Setting Name="SelectedLanguage" Type="System.String" Scope="User">
+      <Value Profile="(Default)">auto</Value>
+    </Setting>
     <Setting Name="DownloadHistoryFileName" Type="System.String" Scope="User">
       <Value Profile="(Default)">download_history.json</Value>
     </Setting>
@@ -97,6 +100,9 @@
     </Setting>
     <Setting Name="CustomFilename" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="DebugMode" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
     </Setting>
   </Settings>
 </SettingsFile>

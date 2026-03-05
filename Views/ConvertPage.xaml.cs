@@ -1,16 +1,18 @@
 ﻿using Microsoft.Win32;
 using MortysDLP.Models;
+using MortysDLP.UITexte;
 using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
 
 namespace MortysDLP.Views
 {
-    public partial class ConvertWindow : Window
+    public partial class ConvertPage : Page
     {
         private readonly ObservableCollection<ConvertFileItem> _fileList = new();
         private CancellationTokenSource? _convertCancellationTokenSource;
@@ -28,7 +30,7 @@ namespace MortysDLP.Views
         // Cache für bereits ermittelte Metadaten (gleiche Quelldatei mehrfach)
         private readonly ConcurrentDictionary<string, (int? sr, int? ch, int? brKbps)> _audioMetaCache = new();
 
-        public ConvertWindow()
+        public ConvertPage()
         {
             InitializeComponent();
 
@@ -45,24 +47,80 @@ namespace MortysDLP.Views
             cbTargetFormat.SelectedIndex = 0;
             btnConvertCancel.IsEnabled = false;
             UpdateFileButtonsState();
+            ApplyDebugMode();
+        }
+
+        private void ConvertPage_Loaded(object sender, RoutedEventArgs e)
+        {
+            SetUITexts();
+        }
+
+        public void SetUITexts()
+        {
+            var T = UITextDictionary.Get;
+            
+            Title = T("MainWindow.Nav.Convert");
+            
+            // Section 1
+            txtSection1Header.Text = T("ConvertPage.Section.SelectFiles");
+            colFilename.Header = T("ConvertPage.DataGrid.Filename");
+            colStatus.Header = T("ConvertPage.DataGrid.Status");
+            colProgress.Header = T("ConvertPage.DataGrid.Progress");
+            btnAddFiles.Content = T("ConvertPage.Button.AddFiles");
+            btnRemoveFiles.Content = T("ConvertPage.Button.Remove");
+            btnClearFiles.Content = T("ConvertPage.Button.ClearList");
+            
+            // Section 2
+            txtSection2Header.Text = T("ConvertPage.Section.TargetFormat");
+            lblTargetFormat.Content = T("ConvertPage.Label.TargetFormat");
+            lblTargetFolder.Content = T("ConvertPage.Label.TargetFolder");
+            btnBrowseTargetFolder.Content = T("ConvertPage.Button.Browse");
+            btnOpenTargetFolder.Content = T("ConvertPage.Button.OpenFolder");
+            txtUsePath.Text = T("ConvertPage.Label.UsePath");
+            btnUseSavedDownloadpath.Content = T("ConvertPage.Button.DownloadPath");
+            btnUseSavedAudioOnlyPath.Content = T("ConvertPage.Button.AudioOnlyPath");
+            
+            // Section 3
+            txtSection3Header.Text = T("ConvertPage.Section.Quality");
+            lblVideoQuality.Content = T("ConvertPage.Label.VideoQuality");
+            lblAudioQuality.Content = T("ConvertPage.Label.AudioQuality");
+            cbiVideoQualityOriginal.Content = T("ConvertPage.Quality.Original");
+            cbiAudioQualityOriginal.Content = T("ConvertPage.Quality.Original");
+            
+            // Section 4
+            btnConvertStart.Content = T("ConvertPage.Button.StartConversion");
+            btnConvertCancel.Content = T("ConvertPage.Button.CancelConversion");
+            
+            // Section 5
+            expDebug.Header = T("ConvertPage.Section.Debug");
+        }
+
+        public void ApplyDebugMode()
+        {
+            borderDebug.Visibility = Properties.Settings.Default.DebugMode ? Visibility.Visible : Visibility.Collapsed;
         }
 
         private void btnAddFiles_Click(object sender, RoutedEventArgs e)
         {
             var dlg = new OpenFileDialog
             {
-                Filter = "Medien-Dateien|*.mov;*.mp4;*.mkv;*.avi;*.mp3;*.aac;*.wav;*.flac;*.opus|Alle Dateien|*.*",
+                Filter = UITextDictionary.Get("ConvertPage.Dialog.FileFilter"),
                 Multiselect = true
             };
             if (dlg.ShowDialog() == true)
             {
-                foreach (var file in dlg.FileNames)
-                {
-                    if (!_fileList.Any(f => f.SourcePath == file))
-                        _fileList.Add(new ConvertFileItem { SourcePath = file });
-                }
+                AddFilesToList(dlg.FileNames);
             }
             UpdateFileButtonsState();
+        }
+
+        private void AddFilesToList(IEnumerable<string> files)
+        {
+            foreach (var file in files)
+            {
+                if (!_fileList.Any(f => f.SourcePath == file))
+                    _fileList.Add(new ConvertFileItem { SourcePath = file });
+            }
         }
 
         private void btnRemoveFiles_Click(object sender, RoutedEventArgs e)
@@ -82,7 +140,9 @@ namespace MortysDLP.Views
             string targetFolder = tbTargetFolder.Text;
             if (string.IsNullOrWhiteSpace(targetFolder) || !_fileList.Any())
             {
-                MessageBox.Show("Bitte Zielordner und mindestens eine Datei auswählen.", "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(UITextDictionary.Get("ConvertPage.Message.NoTargetOrFiles"), 
+                    UITextDictionary.Get("Common.Error"), 
+                    MessageBoxButton.OK, MessageBoxImage.Error);
                 UpdateFileButtonsState();
                 btnConvertCancel.IsEnabled = false;
                 return;
@@ -92,7 +152,9 @@ namespace MortysDLP.Views
                 try { Directory.CreateDirectory(targetFolder); }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Zielordner kann nicht erstellt werden:\n{ex.Message}", "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show(string.Format(UITextDictionary.Get("ConvertPage.Message.CannotCreateFolder"), ex.Message), 
+                        UITextDictionary.Get("Common.Error"), 
+                        MessageBoxButton.OK, MessageBoxImage.Error);
                     btnConvertStart.IsEnabled = true;
                     btnConvertCancel.IsEnabled = false;
                     return;
@@ -116,9 +178,11 @@ namespace MortysDLP.Views
                 try
                 {
                     await ConvertSingleAsync(file, selectedFormatStr, ffmpegPath, ffprobePath, targetFolder, token);
-                    if (file.Status == "Fertig") Interlocked.Increment(ref successCount);
-                    else if (file.Status == "Abgebrochen") Interlocked.Increment(ref canceledCount);
-                    else if (file.Status == "Fehler") Interlocked.Increment(ref failCount);
+                    var T = UITextDictionary.Get;
+                    if (file.Status == T("ConvertPage.Status.Finished")) Interlocked.Increment(ref successCount);
+                    else if (file.Status == T("ConvertPage.Status.Canceled")) Interlocked.Increment(ref canceledCount);
+                    else if (file.Status == T("ConvertPage.Status.Error")) Interlocked.Increment(ref failCount);
+
                 }
                 finally
                 {
@@ -138,10 +202,11 @@ namespace MortysDLP.Views
             btnConvertCancel.IsEnabled = false;
             UpdateFileButtonsState();
 
-            AppendDebugOutput($"--- Zusammenfassung ---");
-            AppendDebugOutput($"Erfolgreich: {successCount}");
-            AppendDebugOutput($"Fehler: {failCount}");
-            AppendDebugOutput($"Abgebrochen: {canceledCount}");
+            var T = UITextDictionary.Get;
+            AppendDebugOutput(T("ConvertPage.Debug.Summary"));
+            AppendDebugOutput(string.Format(T("ConvertPage.Debug.Successful"), successCount));
+            AppendDebugOutput(string.Format(T("ConvertPage.Debug.Failed"), failCount));
+            AppendDebugOutput(string.Format(T("ConvertPage.Debug.Canceled"), canceledCount));
 
             btnConvertStart.IsEnabled = true;
         }
@@ -184,19 +249,19 @@ namespace MortysDLP.Views
                 Path.GetFileNameWithoutExtension(file.SourcePath) + qualitySuffix + "." + extension
             );
 
-            file.Status = "Wird konvertiert...";
+            file.Status = UITextDictionary.Get("ConvertPage.Status.Converting");
             file.Progress = 0;
             Dispatcher.Invoke(() => dgFiles.Items.Refresh());
 
             if (File.Exists(destPath))
             {
-                file.Status = "Schon konvertiert";
+                file.Status = UITextDictionary.Get("ConvertPage.Status.AlreadyConverted");
                 file.Progress = 100;
                 Dispatcher.Invoke(() => dgFiles.Items.Refresh());
                 return;
             }
 
-            // Metadaten nur einmal ermitteln und cachen
+            // Metadaten nur einmal ermittlen und cachen
             var meta = _audioMetaCache.GetOrAdd(file.SourcePath, _ =>
             {
                 var m = GetAudioStreamInfo(ffprobePath, file.SourcePath);
@@ -218,19 +283,20 @@ namespace MortysDLP.Views
             try
             {
                 await RunFfmpegForItemAsync(file, ffmpegPath, args, token);
-                if (file.Status != "Abgebrochen" && file.Status != "Fehler")
+                var T = UITextDictionary.Get;
+                if (file.Status != T("ConvertPage.Status.Canceled") && file.Status != T("ConvertPage.Status.Error"))
                 {
-                    file.Status = "Fertig";
+                    file.Status = T("ConvertPage.Status.Finished");
                     file.Progress = 100;
                 }
             }
             catch (OperationCanceledException)
             {
-                file.Status = "Abgebrochen";
+                file.Status = UITextDictionary.Get("ConvertPage.Status.Canceled");
             }
             catch (Exception ex)
             {
-                file.Status = "Fehler";
+                file.Status = UITextDictionary.Get("ConvertPage.Status.Error");
                 AppendDebugOutput($"[{file.Name}] Fehler: {ex.Message}");
             }
             Dispatcher.Invoke(() => dgFiles.Items.Refresh());
@@ -501,7 +567,7 @@ namespace MortysDLP.Views
 
                 if (process.ExitCode != 0 && !token.IsCancellationRequested)
                 {
-                    file.Status = "Fehler";
+                    file.Status = UITextDictionary.Get("ConvertPage.Status.Error");
                     AppendDebugOutput($"[{file.Name}] ffmpeg ExitCode={process.ExitCode}");
                 }
             }
@@ -592,11 +658,11 @@ namespace MortysDLP.Views
         {
             var dialog = new Ookii.Dialogs.Wpf.VistaFolderBrowserDialog
             {
-                Description = "Bitte wählen Sie den Zielordner für die konvertierten Dateien aus.",
+                Description = UITextDictionary.Get("ConvertPage.Dialog.FolderBrowser"),
                 SelectedPath = tbTargetFolder.Text,
                 UseDescriptionForTitle = true
             };
-            if (dialog.ShowDialog(this) == true)
+            if (dialog.ShowDialog(Window.GetWindow(this)) == true)
                 tbTargetFolder.Text = dialog.SelectedPath;
         }
 
@@ -623,7 +689,49 @@ namespace MortysDLP.Views
             }
             else
             {
-                MessageBox.Show("Der Zielordner existiert nicht oder ist ungültig.", "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(UITextDictionary.Get("ConvertPage.Message.FolderNotExists"), 
+                    UITextDictionary.Get("Common.Error"), 
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void dgFiles_DragOver(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            {
+                e.Effects = DragDropEffects.Copy;
+            }
+            else
+            {
+                e.Effects = DragDropEffects.None;
+            }
+            e.Handled = true;
+        }
+
+        private void dgFiles_Drop(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            {
+                var files = (string[])e.Data.GetData(DataFormats.FileDrop);
+                if (files != null && files.Length > 0)
+                {
+                    var mediaExtensions = new[] { ".mov", ".mp4", ".mkv", ".avi", ".mp3", ".aac", ".wav", ".flac", ".opus" };
+                    var mediaFiles = files.Where(f => mediaExtensions.Contains(Path.GetExtension(f).ToLower())).ToList();
+                    
+                    if (mediaFiles.Any())
+                    {
+                        AddFilesToList(mediaFiles);
+                        UpdateFileButtonsState();
+                    }
+                    
+                    if (files.Length > mediaFiles.Count)
+                    {
+                        var T = UITextDictionary.Get;
+                        MessageBox.Show(string.Format(T("ConvertPage.Message.IgnoredFiles"), files.Length - mediaFiles.Count), 
+                            T("ConvertPage.Message.Info"), 
+                            MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                }
             }
         }
     }

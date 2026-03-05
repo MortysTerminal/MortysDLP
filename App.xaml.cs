@@ -23,9 +23,12 @@ namespace MortysDLP
 
         protected override async void OnStartup(StartupEventArgs e)
         {
-            /* Sprachanpassung bei Window-Start */
-            LanguageHelper.ApplyLanguage(LanguageHelper.ForceEnglish);
-
+            /* Sprachanpassung bei Window-Start - MUSS VOR ALLEM ANDEREN PASSIEREN */
+            LanguageHelper.ApplyLanguage();
+            
+            // Debug: Zeige welche Sprache geladen wurde
+            System.Diagnostics.Debug.WriteLine($"[App] Language set to: {UITexte.UITextDictionary.CurrentLanguage}");
+            System.Diagnostics.Debug.WriteLine($"[App] CurrentUICulture: {System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName}");
 
             var splash = new StartupWindow();
             splash.Show();
