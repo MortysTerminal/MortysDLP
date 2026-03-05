@@ -2,7 +2,6 @@
 using MortysDLP.Services;
 using System.IO.Compression;
 using System.Windows;
-using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 
@@ -18,9 +17,18 @@ namespace MortysDLP
 
         public StartupWindow()
         {
-            LanguageHelper.ApplyLanguage(LanguageHelper.ForceEnglish);
             InitializeComponent();
+            // Sprache wurde bereits in App.xaml.cs gesetzt - nicht nochmal aufrufen!
+            // Debug: Zeige welche Sprache aktiv ist
+            System.Diagnostics.Debug.WriteLine($"[StartupWindow] Language: {UITexte.UITextDictionary.CurrentLanguage}");
+            SetUITexts();
             StartLoadingAnimation();
+        }
+
+        private void SetUITexts()
+        {
+            var T = UITexte.UITextDictionary.Get;
+            TitleText.Text = T("StartupWindow.Title");
         }
 
         private void StartLoadingAnimation()
@@ -57,6 +65,7 @@ namespace MortysDLP
         {
             try
             {
+                var T = UITexte.UITextDictionary.Get;
                 var ytDlpService = new YtDlpUpdateService();
                 var ffmpegService = new FfmpegUpdateService();
 
@@ -65,13 +74,13 @@ namespace MortysDLP
                 string ffprobePath = Properties.Settings.Default.FfprobePath;
 
                 // yt-dlp: Existenz prüfen
-                SetStatus("Prüfe yt-dlp...");
+                SetStatus(T("StartupWindow.Status.CheckingYtDlp"));
                 bool ytDlpExists = ytDlpService.ToolExists(ytDlpPath);
 
                 // yt-dlp: Download nur wenn nicht vorhanden
                 if (!ytDlpExists)
                 {
-                    SetStatus("yt-dlp nicht gefunden – starte Download...");
+                    SetStatus(T("StartupWindow.Status.YtDlpNotFound"));
                     bool downloadSuccess = await CheckAndDownloadYtDlpAsync(ytDlpService, ytDlpPath, "yt-dlp", "yt-dlp.exe");
                     if (!downloadSuccess)
                         return false;
@@ -81,18 +90,18 @@ namespace MortysDLP
                 // Version prüfen und ggf. Update anbieten (nur wenn nicht gerade installiert)
                 if (ytDlpExists)
                 {
-                    SetStatus("Prüfe yt-dlp-Version...");
+                    SetStatus(T("StartupWindow.Status.CheckingYtDlpVersion"));
                     await CheckAndUpdateYtDlpVersionAsync(ytDlpService, ytDlpPath);
                 }
 
                 // ffmpeg/ffprobe: Existenz prüfen
-                SetStatus("Prüfe ffmpeg / ffprobe...");
+                SetStatus(T("StartupWindow.Status.CheckingFfmpeg"));
                 bool ffmpegExists = ffmpegService.FfmpegExists(ffmpegPath);
                 bool ffprobeExists = ffmpegService.FfprobeExists(ffprobePath);
 
                 if (!ffmpegExists || !ffprobeExists)
                 {
-                    SetStatus("ffmpeg / ffprobe nicht gefunden – starte Download...");
+                    SetStatus(T("StartupWindow.Status.FfmpegNotFound"));
                     await CheckAndDownloadFfmpegAndFfprobeAsync(ffmpegService, ffmpegPath, ffprobePath);
                 }
 
@@ -104,13 +113,19 @@ namespace MortysDLP
             }
             catch (Exception ex)
             {
-                Dispatcher.Invoke(() => MessageBox.Show($"Fehler beim Aktualisieren der Tools:\n{ex.Message}", "Fehler", MessageBoxButton.OK, MessageBoxImage.Error));
+                var T = UITexte.UITextDictionary.Get;
+                Dispatcher.Invoke(() => FluentMessageBox.Show(
+                    string.Format(T("StartupWindow.Error.ToolUpdate"), ex.Message),
+                    T("StartupWindow.Title.Error"),
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error));
                 return false;
             }
         }
 
         private async Task<bool> DownloadToolWithProgressAsync(IDownloadableToolService service, string assetUrl, string toolPath, string infoText)
         {
+            var T = UITexte.UITextDictionary.Get;
             string tempPath = toolPath + ".download";
             using var dialog = new DownloadProgressDialog(infoText);
             dialog.Owner = this;
@@ -126,12 +141,12 @@ namespace MortysDLP
             }
             catch (OperationCanceledException)
             {
-                SetStatus("Download abgebrochen.");
+                SetStatus(T("StartupWindow.Status.DownloadCanceled"));
                 return false;
             }
             catch (Exception)
             {
-                SetStatus("Download fehlgeschlagen.");
+                SetStatus(T("StartupWindow.Status.DownloadFailed"));
                 return false;
             }
             finally
@@ -142,40 +157,41 @@ namespace MortysDLP
 
         private async Task<bool> CheckAndDownloadYtDlpAsync(YtDlpUpdateService service, string toolPath, string toolDisplayName, string toolFileName)
         {
+            var T = UITexte.UITextDictionary.Get;
             var releaseInfo = await service.GetLatestReleaseInfoAsync();
             string? assetUrl = releaseInfo.Item2;
 
-            string message =
-                "Das Tool 'yt-dlp' ist erforderlich, um Videos und Audios von verschiedenen Plattformen herunterzuladen. " +
-                "Es handelt sich um ein Open-Source-Projekt, das als Nachfolger von youtube-dl gilt und regelmäßig aktualisiert wird.\n\n" +
-                "Ohne yt-dlp kann MortysDLP keine Downloads durchführen.\n\n" +
-                "Weitere Informationen findest du in der Dokumentation:\n" +
-                YtDlpDocUrl;
+            string message = string.Format(T("StartupWindow.YtDlp.Message"), YtDlpDocUrl);
 
-            var result = ShowCenteredMessageBox(
-                message + "\n\nMöchtest du yt-dlp jetzt herunterladen?",
-                $"{toolDisplayName} fehlt",
+            var result = FluentMessageBox.Show(
+                message + T("StartupWindow.YtDlp.Question"),
+                string.Format(T("StartupWindow.YtDlp.Title"), toolDisplayName),
                 MessageBoxButton.YesNo,
-                MessageBoxImage.Warning);
+                MessageBoxImage.Warning,
+                this);
 
             if (result == MessageBoxResult.Yes && assetUrl != null)
             {
-                SetStatus($"Lade {toolDisplayName} herunter...");
-                bool downloadSuccess = await DownloadToolWithProgressAsync(service, assetUrl, toolPath, $"Lade {toolDisplayName} herunter...");
+                SetStatus(string.Format(T("StartupWindow.Status.Downloading"), toolDisplayName));
+                bool downloadSuccess = await DownloadToolWithProgressAsync(service, assetUrl, toolPath, string.Format(T("StartupWindow.Status.Downloading"), toolDisplayName));
                 if (!downloadSuccess)
                     return false;
-                MessageBox.Show($"{toolDisplayName} wurde erfolgreich heruntergeladen.", "Download abgeschlossen", MessageBoxButton.OK, MessageBoxImage.Information);
+                FluentMessageBox.Show(
+                    string.Format(T("StartupWindow.YtDlp.Success"), toolDisplayName),
+                    T("StartupWindow.Title.DownloadComplete"),
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information,
+                    this);
                 return service.ToolExists(toolPath);
             }
             else
             {
-                MessageBox.Show(
-                    $"{toolDisplayName} ist zwingend erforderlich, damit die Software funktioniert.\n\n" +
-                    $"Du kannst das Tool auch manuell installieren. Schaue dazu in die Dokumentation:\n" +
-                    Properties.Settings.Default.MortysDLPGitHubURL,
-                    $"{toolDisplayName} fehlt",
+                FluentMessageBox.Show(
+                    string.Format(T("StartupWindow.YtDlp.Required"), toolDisplayName, Properties.Settings.Default.MortysDLPGitHubURL),
+                    string.Format(T("StartupWindow.YtDlp.Title"), toolDisplayName),
                     MessageBoxButton.OK,
-                    MessageBoxImage.Error);
+                    MessageBoxImage.Error,
+                    this);
 
                 Application.Current.Shutdown();
                 return false;
@@ -184,66 +200,72 @@ namespace MortysDLP
 
         private async Task CheckAndDownloadFfmpegAndFfprobeAsync(FfmpegUpdateService service, string ffmpegPath, string ffprobePath)
         {
+            var T = UITexte.UITextDictionary.Get;
             bool ffmpegExists = service.FfmpegExists(ffmpegPath);
             bool ffprobeExists = service.FfprobeExists(ffprobePath);
 
             if (!ffmpegExists || !ffprobeExists)
             {
-                string message =
-                    "Die Tools 'ffmpeg' und 'ffprobe' sind notwendig, um Mediendateien zu verarbeiten, zu analysieren und zu konvertieren. " +
-                    "Ohne diese Tools kann MortysDLP keine Audio-/Video-Konvertierung oder Metadatenanalyse durchführen.\n\n" +
-                    "Weitere Informationen findest du in der Dokumentation:\n" +
-                    "https://ffmpeg.org/documentation.html\n" +
-                    "https://ffmpeg.org/ffprobe.html";
+                string message = T("StartupWindow.Ffmpeg.Message");
 
-                var result = MessageBox.Show(
-                    message + "\n\nMöchtest du ffmpeg und ffprobe jetzt herunterladen?",
-                    "Tools fehlen",
+                var result = FluentMessageBox.Show(
+                    message + T("StartupWindow.Ffmpeg.Question"),
+                    string.Format(T("StartupWindow.YtDlp.Title"), "ffmpeg / ffprobe"),
                     MessageBoxButton.YesNo,
-                    MessageBoxImage.Warning);
+                    MessageBoxImage.Warning,
+                    this);
 
                 if (result == MessageBoxResult.Yes)
                 {
                     string tempZip = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "ffmpeg_download_" + System.Guid.NewGuid() + ".zip");
                     try
                     {
-                        using var dialog = new DownloadProgressDialog("Lade ffmpeg & ffprobe herunter...");
+                        using var dialog = new DownloadProgressDialog(T("StartupWindow.Ffmpeg.Downloading"));
                         dialog.Owner = this;
                         dialog.Show();
                         var progress = new Progress<double>(value => dialog.SetProgress(value));
 
-                        SetStatus("Lade ffmpeg & ffprobe herunter...");
+                        SetStatus(T("StartupWindow.Ffmpeg.Downloading"));
                         await service.DownloadAssetAsync(FfmpegDownloadUrl, tempZip, progress, dialog.CancellationToken);
                     }
                     catch (OperationCanceledException)
                     {
-                        SetStatus("Download abgebrochen.");
+                        SetStatus(T("StartupWindow.Status.DownloadCanceled"));
                         return;
                     }
 
-                    SetStatus("Entpacke ffmpeg & ffprobe...");
+                    SetStatus(T("StartupWindow.Ffmpeg.Extracting"));
                     var (allSuccessful, failedFiles) = await TryExtractMultipleExeFromZipAsync(tempZip,
                         ("ffmpeg.exe", ffmpegPath),
                         ("ffprobe.exe", ffprobePath));
 
                     if (allSuccessful)
                     {
-                        MessageBox.Show("ffmpeg und ffprobe wurden erfolgreich heruntergeladen.", "Download abgeschlossen", MessageBoxButton.OK, MessageBoxImage.Information);
+                        FluentMessageBox.Show(
+                            T("StartupWindow.Ffmpeg.Success"),
+                            T("StartupWindow.Title.DownloadComplete"),
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Information,
+                            this);
                     }
                     else
                     {
-                        MessageBox.Show("ffmpeg.exe oder ffprobe.exe wurde im ZIP-Archiv nicht gefunden - Oder heruntergeladene Datei fehlerhaft.", "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
+                        FluentMessageBox.Show(
+                            T("StartupWindow.Ffmpeg.Failed"),
+                            T("StartupWindow.Title.Error"),
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Error,
+                            this);
                     }
                 }
                 else
                 {
-                    MessageBox.Show(
-                        "ffmpeg und ffprobe sind zwingend erforderlich, damit die Software funktioniert.\n\n" +
-                        "Du kannst die Tools auch manuell installieren. Schaue dazu in die Dokumentation:\n" +
-                        "https://github.com/MortysTerminal/MortysDLP",
-                        "Tools fehlen",
+                    FluentMessageBox.Show(
+                        string.Format(T("StartupWindow.Ffmpeg.Required"), "https://github.com/MortysTerminal/MortysDLP"),
+                        string.Format(T("StartupWindow.YtDlp.Title"), "ffmpeg / ffprobe"),
                         MessageBoxButton.OK,
-                        MessageBoxImage.Error);
+                        MessageBoxImage.Error,
+                        this);
 
                     Application.Current.Shutdown();
                 }
@@ -253,85 +275,48 @@ namespace MortysDLP
 
         private async Task CheckAndUpdateYtDlpVersionAsync(YtDlpUpdateService ytDlpService, string ytDlpPath)
         {
-            SetStatus("Suche neueste yt-dlp-Version...");
+            var T = UITexte.UITextDictionary.Get;
+            SetStatus(T("StartupWindow.Status.CheckingYtDlpVersion"));
             var releaseInfo = await ytDlpService.GetLatestReleaseInfoAsync();
             string? latestVersion = releaseInfo.Item1;
             string? assetUrl = releaseInfo.Item2;
 
-            SetStatus("Lese lokale yt-dlp-Version...");
             string? localVersion = await ytDlpService.GetLocalVersionAsync(ytDlpPath);
 
             if (ytDlpService.IsUpdateRequired(localVersion, latestVersion))
             {
-                string message =
-                    $"Es ist eine neue Version von yt-dlp verfügbar!\n\n" +
-                    $"Installiert: {localVersion ?? "Nicht gefunden"}\n" +
-                    $"Neueste Version: {latestVersion}\n\n" +
-                    "Die Software funktioniert auch mit der aktuellen Version, jedoch können Fehler auftreten.\n" +
-                    "Es wird empfohlen, das Update durchzuführen.\n\n" +
-                    "Möchtest du yt-dlp jetzt aktualisieren?";
+                string message = string.Format(T("StartupWindow.YtDlpUpdate.NewVersion"), latestVersion, localVersion ?? "?");
 
-                var result = ShowCenteredMessageBox(
-                    message,
-                    "yt-dlp Update verfügbar",
+                var result = FluentMessageBox.Show(
+                    message + T("StartupWindow.YtDlpUpdate.Question"),
+                    T("StartupWindow.YtDlpUpdate.Title"),
                     MessageBoxButton.YesNo,
-                    MessageBoxImage.Information);
+                    MessageBoxImage.Information,
+                    this);
 
                 if (result == MessageBoxResult.Yes && assetUrl != null)
                 {
-                    SetStatus("Aktualisiere yt-dlp...");
-                    bool updateSuccess = await DownloadToolWithProgressAsync(ytDlpService, assetUrl, ytDlpPath, "Aktualisiere yt-dlp...");
+                    SetStatus(string.Format(T("StartupWindow.Status.Downloading"), "yt-dlp"));
+                    bool updateSuccess = await DownloadToolWithProgressAsync(ytDlpService, assetUrl, ytDlpPath, string.Format(T("StartupWindow.Status.Downloading"), "yt-dlp"));
                     if (updateSuccess)
-                        MessageBox.Show("yt-dlp wurde erfolgreich aktualisiert.", "Update abgeschlossen", MessageBoxButton.OK, MessageBoxImage.Information);
+                        FluentMessageBox.Show(
+                            T("StartupWindow.YtDlpUpdate.Success"),
+                            T("StartupWindow.Title.DownloadComplete"),
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Information,
+                            this);
                     else
-                        MessageBox.Show("Update wurde abgebrochen. Die vorhandene Version wird weiter verwendet.", "Update übersprungen", MessageBoxButton.OK, MessageBoxImage.Warning);
-                }
-                else
-                {
-                    MessageBox.Show(
-                        "Du kannst yt-dlp auch später aktualisieren. Beachte, dass ältere Versionen zu Problemen führen können.",
-                        "Update übersprungen",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Warning);
+                        FluentMessageBox.Show(
+                            T("StartupWindow.YtDlpUpdate.Failed"),
+                            T("StartupWindow.Title.Error"),
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Warning,
+                            this);
                 }
             }
         }
-        // Hilfsmethode zum Anzeigen einer zentrierten MessageBox relativ zu StartupWindow
-        private MessageBoxResult ShowCenteredMessageBox(string message, string caption, MessageBoxButton buttons, MessageBoxImage icon)
-        {
-            if (!Dispatcher.CheckAccess())
-            {
-                // Falls nicht im UI-Thread, Dispatcher verwenden
-                return Dispatcher.Invoke(() => ShowCenteredMessageBox(message, caption, buttons, icon));
-            }
-
-            this.Activate();
-
-            WindowInteropHelper helper = new(this);
-            System.Windows.Forms.IWin32Window win32Window = new Win32Window(helper.Handle);
-
-            return System.Windows.Forms.MessageBox.Show(
-                win32Window,
-                message,
-                caption,
-                (System.Windows.Forms.MessageBoxButtons)buttons,
-                (System.Windows.Forms.MessageBoxIcon)icon
-            ) switch
-            {
-                System.Windows.Forms.DialogResult.Yes => MessageBoxResult.Yes,
-                System.Windows.Forms.DialogResult.No => MessageBoxResult.No,
-                System.Windows.Forms.DialogResult.OK => MessageBoxResult.OK,
-                _ => MessageBoxResult.None
-            };
-        }
-
-        // Hilfsklasse für Win32-Handle
-        private class Win32Window : System.Windows.Forms.IWin32Window
-        {
-            private readonly IntPtr _handle;
-            public Win32Window(IntPtr handle) { _handle = handle; }
-            public IntPtr Handle => _handle;
-        }
+        private void ShowError(string message) =>
+            FluentMessageBox.Show(message, icon: MessageBoxImage.Error, owner: this);
 
         private Task<bool> TryExtractExeFromZipAsync(string zipPath, string exeName, string targetPath)
         {
@@ -429,11 +414,6 @@ namespace MortysDLP
                 } 
                 catch { }
             }
-        }
-
-        private void ShowError(string message)
-        {
-            MessageBox.Show(message, "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 }

@@ -26,9 +26,7 @@ namespace MortysDLP
 
         public DownloadProgressDialog(string info)
         {
-            /* Sprachanpassung bei Window-Start */
-            LanguageHelper.ApplyLanguage(LanguageHelper.ForceEnglish);
-
+            /* Sprache wurde bereits in App.xaml.cs gesetzt */
             InitializeComponent();
             InfoText.Text = info;
             ProgressBar.Value = 0;

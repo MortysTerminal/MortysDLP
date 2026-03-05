@@ -1,0 +1,416 @@
+using System.Collections.Generic;
+
+namespace MortysDLP.UITexte
+{
+    public static class UITextDictionary
+    {
+        private static Dictionary<string, string> _currentTexts = new();
+        private static string _currentLanguage = "en";
+
+        public static string CurrentLanguage => _currentLanguage;
+
+        public static List<LanguageOption> AvailableLanguages => new()
+        {
+            new LanguageOption { Code = "auto", IsAuto = true },
+            new LanguageOption { Code = "de", IsAuto = false },
+            new LanguageOption { Code = "en", IsAuto = false }
+        };
+        
+        public class LanguageOption
+        {
+            public string Code { get; set; } = "";
+            public bool IsAuto { get; set; }
+        }
+
+        // Deutsch
+        private static readonly Dictionary<string, string> German = new()
+        {
+            // Download Page
+            ["DownloadPage.Section.DownloadPaths"] = "DOWNLOAD-PFADE",
+            ["DownloadPage.Section.Download"] = "DOWNLOAD",
+            ["DownloadPage.Section.Options"] = "OPTIONEN",
+            ["DownloadPage.Section.Debug"] = "Debug-Ausgabe",
+            ["DownloadPage.Label.DownloadPath"] = "Download-Pfad:",
+            ["DownloadPage.Label.AudioOnlyPath"] = "Download-Audio-Pfad:",
+            ["DownloadPage.Label.EnterURL"] = "URL eingeben:",
+            ["DownloadPage.Label.CustomFilename"] = "Benutzerdefinierten Videotitel verwenden:",
+            ["DownloadPage.Label.Timespan"] = "Zeitspanne von",
+            ["DownloadPage.Label.FirstSeconds"] = "Von Start bis:",
+            ["DownloadPage.Label.Seconds"] = "Sekunden",
+            ["DownloadPage.Label.VideoFormat"] = "Videoformat für Schnittprogramme (x264)",
+            ["DownloadPage.Label.VideoFormatInfo"] = "(nicht zusammen mit nur audio)",
+            ["DownloadPage.Label.AudioOnly"] = "NUR Audio",
+            ["DownloadPage.Label.Bitrate"] = "Bitrate:",
+            ["DownloadPage.Label.VideoQuality"] = "Videoqualität:",
+            ["DownloadPage.Label.VideoContainer"] = "Videoformat:",
+            ["DownloadPage.Label.TimespanFormat"] = "hh:mm:ss oder mm:ss",
+            ["DownloadPage.Button.History"] = "Verlauf",
+            ["DownloadPage.Button.DownloadStart"] = "Download starten",
+            ["DownloadPage.Button.DownloadCancel"] = "Download abbrechen",
+            ["DownloadPage.Button.SaveSettings"] = "Einstellungen speichern",
+            ["DownloadPage.SaveSettings.Question"] = "Möchtest du die aktuellen Einstellungen speichern?",
+            ["DownloadPage.SaveSettings.Title"] = "Einstellungen speichern",
+            ["DownloadPage.SaveSettings.Saved"] = "Einstellungen wurden gespeichert.",
+            ["DownloadPage.Tooltip.CustomFilename"] = "Wenn gesetzt, wird dieser Name als Basis für die Ausgabedatei verwendet. Ungültige Zeichen werden automatisch bereinigt.",
+            ["DownloadPage.Tooltip.Timespan"] = "Gültige Formate: mm:ss oder hh:mm:ss. Beispiel: 01:23 oder 01:02:03. Die Angabe bedeutet Minuten:Sekunden oder Stunden:Minuten:Sekunden. Damit kannst du z.B. einen Ausschnitt von 00:01:30 bis 00:02:45 herunterladen.",
+            ["DownloadPage.Status.Loading"] = "Lädt...",
+            ["DownloadPage.Status.Success"] = "Abgeschlossen",
+            ["DownloadPage.Status.Canceled"] = "Abgebrochen",
+            ["DownloadPage.Status.Canceling"] = "Breche ab...",
+            ["DownloadPage.Status.Error"] = "Fehler beim Download",
+            ["DownloadPage.Status.Merging"] = "Zusammenführen...",
+            ["DownloadPage.Status.ExtractingAudio"] = "Audio extrahieren...",
+            ["DownloadPage.Status.Converting"] = "Konvertieren...",
+            ["DownloadPage.Status.Processing"] = "Nachbearbeitung...",
+            ["DownloadPage.Quality.Highest"] = "Höchste",
+            
+            // Convert Page
+            ["ConvertPage.Section.SelectFiles"] = "1. DATEIEN ZUM KONVERTIEREN AUSWÄHLEN",
+            ["ConvertPage.Section.TargetFormat"] = "2. ZIELFORMAT UND ZIELORDNER WÄHLEN",
+            ["ConvertPage.Section.Quality"] = "3. QUALITÄTSOPTIONEN (OPTIONAL)",
+            ["ConvertPage.Section.Debug"] = "Debug-Ausgabe",
+            ["ConvertPage.DataGrid.Filename"] = "Dateiname",
+            ["ConvertPage.DataGrid.Status"] = "Status",
+            ["ConvertPage.DataGrid.Progress"] = "Fortschritt",
+            ["ConvertPage.Button.AddFiles"] = "Dateien hinzufügen",
+            ["ConvertPage.Button.Remove"] = "Entfernen",
+            ["ConvertPage.Button.ClearList"] = "Liste leeren",
+            ["ConvertPage.Button.Browse"] = "Durchsuchen...",
+            ["ConvertPage.Button.OpenFolder"] = "Ordner öffnen",
+            ["ConvertPage.Button.DownloadPath"] = "Downloadpfad",
+            ["ConvertPage.Button.AudioOnlyPath"] = "Audio-Only-Pfad",
+            ["ConvertPage.Button.StartConversion"] = "Konvertierung starten",
+            ["ConvertPage.Button.CancelConversion"] = "Konvertierung abbrechen",
+            ["ConvertPage.Label.TargetFormat"] = "Zielformat:",
+            ["ConvertPage.Label.TargetFolder"] = "Zielordner:",
+            ["ConvertPage.Label.UsePath"] = "Pfad übernehmen:",
+            ["ConvertPage.Label.VideoQuality"] = "Videoqualität:",
+            ["ConvertPage.Label.AudioQuality"] = "Audioqualität:",
+            ["ConvertPage.Quality.Original"] = "Original (verlustfrei)",
+            ["ConvertPage.Status.Converting"] = "Wird konvertiert...",
+            ["ConvertPage.Status.AlreadyConverted"] = "Schon konvertiert",
+            ["ConvertPage.Status.Finished"] = "Fertig",
+            ["ConvertPage.Status.Canceled"] = "Abgebrochen",
+            ["ConvertPage.Status.Error"] = "Fehler",
+            ["ConvertPage.Message.NoTargetOrFiles"] = "Bitte Zielordner und mindestens eine Datei auswählen.",
+            ["ConvertPage.Message.CannotCreateFolder"] = "Zielordner kann nicht erstellt werden:\n{0}",
+            ["ConvertPage.Message.FolderNotExists"] = "Der Zielordner existiert nicht oder ist ungültig.",
+            ["ConvertPage.Message.IgnoredFiles"] = "{0} Datei(en) wurden ignoriert (kein unterstütztes Medienformat).",
+            ["ConvertPage.Message.Info"] = "Hinweis",
+            ["ConvertPage.Debug.Summary"] = "--- Zusammenfassung ---",
+            ["ConvertPage.Debug.Successful"] = "Erfolgreich: {0}",
+            ["ConvertPage.Debug.Failed"] = "Fehler: {0}",
+            ["ConvertPage.Debug.Canceled"] = "Abgebrochen: {0}",
+            ["ConvertPage.Dialog.FileFilter"] = "Medien-Dateien|*.mov;*.mp4;*.mkv;*.avi;*.mp3;*.aac;*.wav;*.flac;*.opus|Alle Dateien|*.*",
+            ["ConvertPage.Dialog.FolderBrowser"] = "Wähle den Zielordner für die konvertierten Dateien",
+            
+            // Settings Page
+            ["SettingsPage.Section.DownloadPaths"] = "DOWNLOAD-PFADE",
+            ["SettingsPage.Section.App"] = "APP",
+            ["SettingsPage.Section.Debug"] = "DEBUG",
+            ["SettingsPage.Section.Language"] = "SPRACHE",
+            ["SettingsPage.Button.ChangeDownloadPath"] = "Download-Pfad ändern",
+            ["SettingsPage.Button.OpenGitHub"] = "GitHub öffnen",
+            ["SettingsPage.Button.CloseApp"] = "Programm schließen",
+            ["SettingsPage.Checkbox.DebugMode"] = "Debug-Modus aktivieren (zeigt Download-Details)",
+            ["SettingsPage.Checkbox.ForceEnglish"] = "Englisch erzwingen",
+            ["SettingsPage.Label.LanguageInfo"] = "Deine Auswahl wird automatisch gespeichert.",
+            ["SettingsPage.Label.SelectLanguage"] = "Sprache auswählen:",
+            
+            // Main Window
+            ["MainWindow.Nav.Download"] = "Download",
+            ["MainWindow.Nav.Convert"] = "Konvertieren",
+            ["MainWindow.Nav.Settings"] = "Einstellungen",
+            ["MainWindow.JokeDonate.Title"] = "Projekt unterstützen",
+            ["MainWindow.JokeDonate.Subtitle"] = "Spende jetzt!",
+            ["MainWindow.JokeDonate.MessageTitle"] = "April, April! 😂",
+            ["MainWindow.JokeDonate.Message"] = "💸 Vielen Dank für dein Interesse!\n\nAber mal ehrlich – ich sitze hier in meinem Kämmerlein, programmiere für Umme und bekomme dafür... nichts.\n\nUnd das ist auch gut so.\n\nIch brauche dein Geld nicht. Ich brauche deine Freiheit. Nutz das Tool, lad Videos runter, sei glücklich – und lass das Portemonnaie wo es ist.\n\nP.S.: Falls du wirklich spenden willst, kauf dir lieber ein Eis. Du hast es verdient. 🍦",
+            ["MainWindow.AppTitle"] = "MortysDLP",
+            ["MainWindow.AppSubtitle"] = "Dein Download-Gefährte",
+            ["MainWindow.Version"] = "Version",
+            ["MainWindow.Softwareinfo"] = "Video & Audio Downloader",
+
+            // Startup Window
+            ["StartupWindow.Title"] = "MortysDLP wird vorbereitet...",
+            ["StartupWindow.Status.CheckingYtDlp"] = "Prüfe yt-dlp...",
+            ["StartupWindow.Status.YtDlpNotFound"] = "yt-dlp nicht gefunden – starte Download...",
+            ["StartupWindow.Status.CheckingYtDlpVersion"] = "Prüfe yt-dlp-Version...",
+            ["StartupWindow.Status.CheckingFfmpeg"] = "Prüfe ffmpeg / ffprobe...",
+            ["StartupWindow.Status.FfmpegNotFound"] = "ffmpeg / ffprobe nicht gefunden – starte Download...",
+            ["StartupWindow.Status.Downloading"] = "Lade {0} herunter...",
+            ["StartupWindow.Status.DownloadCanceled"] = "Download abgebrochen.",
+            ["StartupWindow.Status.DownloadFailed"] = "Download fehlgeschlagen.",
+            ["StartupWindow.YtDlp.Message"] = "Das Tool 'yt-dlp' ist erforderlich, um Videos und Audios von verschiedenen Plattformen herunterzuladen. Es handelt sich um ein Open-Source-Projekt, das als Nachfolger von youtube-dl gilt und regelmäßig aktualisiert wird.\n\nOhne yt-dlp kann MortysDLP keine Downloads durchführen.\n\nWeitere Informationen findest du in der Dokumentation:\n{0}",
+            ["StartupWindow.YtDlp.Question"] = "\n\nMöchtest du yt-dlp jetzt herunterladen?",
+            ["StartupWindow.YtDlp.Title"] = "{0} fehlt",
+            ["StartupWindow.YtDlp.Success"] = "{0} wurde erfolgreich heruntergeladen.",
+            ["StartupWindow.YtDlp.Required"] = "{0} ist zwingend erforderlich, damit die Software funktioniert.\n\nDu kannst das Tool auch manuell installieren. Schaue dazu in die Dokumentation:\n{1}",
+            ["StartupWindow.Ffmpeg.Message"] = "Die Tools 'ffmpeg' und 'ffprobe' sind notwendig, um Mediendateien zu verarbeiten, zu analysieren und zu konvertieren. Ohne diese Tools kann MortysDLP keine Audio-/Video-Konvertierung oder Metadatenanalyse durchführen.\n\nWeitere Informationen findest du in der Dokumentation:\nhttps://ffmpeg.org/documentation.html\nhttps://ffmpeg.org/ffprobe.html",
+            ["StartupWindow.Ffmpeg.Question"] = "\n\nMöchtest du ffmpeg und ffprobe jetzt herunterladen?",
+            ["StartupWindow.Ffmpeg.Downloading"] = "Lade ffmpeg herunter...",
+            ["StartupWindow.Ffmpeg.Extracting"] = "Entpacke ffmpeg...",
+            ["StartupWindow.Ffmpeg.Success"] = "ffmpeg und ffprobe wurden erfolgreich heruntergeladen.",
+            ["StartupWindow.Ffmpeg.Failed"] = "Fehler beim Herunterladen von ffmpeg.",
+            ["StartupWindow.Ffmpeg.Required"] = "ffmpeg und ffprobe sind zwingend erforderlich.\n\nDu kannst die Tools auch manuell installieren:\n{0}",
+            ["StartupWindow.YtDlpUpdate.NewVersion"] = "Neue yt-dlp-Version verfügbar: {0} (aktuell: {1})",
+            ["StartupWindow.YtDlpUpdate.Question"] = "\n\nMöchtest du jetzt aktualisieren?",
+            ["StartupWindow.YtDlpUpdate.Title"] = "yt-dlp Update verfügbar",
+            ["StartupWindow.YtDlpUpdate.Success"] = "yt-dlp wurde erfolgreich aktualisiert.",
+            ["StartupWindow.YtDlpUpdate.Failed"] = "Fehler beim Aktualisieren von yt-dlp.",
+            ["StartupWindow.Error.ToolUpdate"] = "Fehler beim Aktualisieren der Tools:\n{0}",
+            ["StartupWindow.Title.Error"] = "Fehler",
+            ["StartupWindow.Title.DownloadComplete"] = "Download abgeschlossen",
+            
+            // Language Names
+            ["Language.German"] = "Deutsch",
+            ["Language.English"] = "Englisch",
+            ["Language.Auto"] = "Automatisch (Systemsprache)",
+            
+            // Download History
+            ["DownloadHistory.Title"] = "Download-Verlauf",
+            ["DownloadHistory.Header.Title"] = "Download-Historie",
+            ["DownloadHistory.Header.Subtitle"] = "Frühere Downloads erneut verwenden",
+            ["DownloadHistory.Button.ReUse"] = "Erneut herunterladen",
+            ["DownloadHistory.Button.Clear"] = "Verlauf leeren",
+            ["DownloadHistory.Label.EmptyHistory"] = "Noch keine Downloads",
+            ["DownloadHistory.Label.EmptyHistory.Info"] = "Deine Download-Historie wird hier angezeigt.",
+            ["DownloadHistory.Type.Audio"] = "Audio",
+            ["DownloadHistory.Type.Video"] = "Video",
+
+            // Download Path Dialog
+            ["DownloadPathDialog.Title"] = "Download-Pfade konfigurieren",
+            ["DownloadPathDialog.Header.Title"] = "Download-Pfade",
+            ["DownloadPathDialog.Header.Subtitle"] = "Passe die Speicherorte für deine Downloads an",
+            ["DownloadPathDialog.Label.DownloadPath"] = "Standard Download-Pfad",
+            ["DownloadPathDialog.Label.AudioPath"] = "Audio-Only Download-Pfad",
+            ["DownloadPathDialog.Checkbox.AudioPath"] = "Separaten Pfad für Audio-Downloads verwenden",
+            ["DownloadPathDialog.Button.Browse"] = "Durchsuchen...",
+            ["DownloadPathDialog.Button.OK"] = "OK",
+            ["DownloadPathDialog.Button.Cancel"] = "Abbrechen",
+            ["DownloadPathDialog.Browse.Description"] = "Wähle den Standard-Download-Ordner",
+            ["DownloadPathDialog.Browse.AudioDescription"] = "Wähle den Audio-Only-Download-Ordner",
+            ["DownloadPathDialog.Validation.Title"] = "Kein Download-Ordner ausgewählt",
+            ["DownloadPathDialog.Validation.Message"] = "Bitte wähle einen Download-Ordner aus.\n",
+            ["DownloadPathDialog.Validation.DownloadEmpty"] = "\u2022 Standard-Download-Pfad ist leer.\n",
+            ["DownloadPathDialog.Validation.AudioEmpty"] = "\u2022 Audio-Only-Pfad ist leer.\n",
+            ["DownloadPathDialog.Validation.UseDefault"] = "\nMöchtest du den Windows-Standardordner (Downloads) verwenden?",
+
+            // Common
+            ["Common.Error"] = "Fehler",
+            ["Common.Button.OK"]     = "OK",
+            ["Common.Button.Cancel"] = "Abbrechen",
+            ["Common.Button.Yes"]    = "Ja",
+            ["Common.Button.No"]     = "Nein",
+
+            // FluentMessageBox - Standardtitel
+            ["FluentMessageBox.Title.Information"] = "Hinweis",
+            ["FluentMessageBox.Title.Warning"]     = "Warnung",
+            ["FluentMessageBox.Title.Error"]       = "Fehler",
+            ["FluentMessageBox.Title.Question"]    = "Frage",
+        };
+
+        // English - NOW IT'S A SEPARATE DICTIONARY!
+        private static readonly Dictionary<string, string> English = new()
+        {
+            // Download Page
+            ["DownloadPage.Section.DownloadPaths"] = "DOWNLOAD PATHS",
+            ["DownloadPage.Section.Download"] = "DOWNLOAD",
+            ["DownloadPage.Section.Options"] = "OPTIONS",
+            ["DownloadPage.Section.Debug"] = "Debug Output",
+            ["DownloadPage.Label.DownloadPath"] = "Download Path:",
+            ["DownloadPage.Label.AudioOnlyPath"] = "Audio-Only Path:",
+            ["DownloadPage.Label.EnterURL"] = "Enter URL:",
+            ["DownloadPage.Label.CustomFilename"] = "Use custom video title:",
+            ["DownloadPage.Label.Timespan"] = "Time span from",
+            ["DownloadPage.Label.FirstSeconds"] = "From start to:",
+            ["DownloadPage.Label.Seconds"] = "seconds",
+            ["DownloadPage.Label.VideoFormat"] = "Video format for editing software (x264)",
+            ["DownloadPage.Label.VideoFormatInfo"] = "(not together with audio only)",
+            ["DownloadPage.Label.AudioOnly"] = "Audio ONLY",
+            ["DownloadPage.Label.Bitrate"] = "Bitrate:",
+            ["DownloadPage.Label.VideoQuality"] = "Video Quality:",
+            ["DownloadPage.Label.VideoContainer"] = "Video Format:",
+            ["DownloadPage.Label.TimespanFormat"] = "hh:mm:ss or mm:ss",
+            ["DownloadPage.Button.History"] = "History",
+            ["DownloadPage.Button.DownloadStart"] = "Start Download",
+            ["DownloadPage.Button.DownloadCancel"] = "Cancel Download",
+            ["DownloadPage.Button.SaveSettings"] = "Save Settings",
+            ["DownloadPage.SaveSettings.Question"] = "Do you want to save the current settings?",
+            ["DownloadPage.SaveSettings.Title"] = "Save Settings",
+            ["DownloadPage.SaveSettings.Saved"] = "Settings have been saved.",
+            ["DownloadPage.Tooltip.CustomFilename"] = "If set, this name will be used as the basis for the output file. Invalid characters will be automatically cleaned.",
+            ["DownloadPage.Tooltip.Timespan"] = "Valid formats: mm:ss or hh:mm:ss. Example: 01:23 or 01:02:03. This means minutes:seconds or hours:minutes:seconds. You can download a clip from 00:01:30 to 00:02:45.",
+            ["DownloadPage.Status.Loading"] = "Loading...",
+            ["DownloadPage.Status.Success"] = "Completed",
+            ["DownloadPage.Status.Canceled"] = "Canceled",
+            ["DownloadPage.Status.Canceling"] = "Canceling...",
+            ["DownloadPage.Status.Error"] = "Download failed",
+            ["DownloadPage.Status.Merging"] = "Merging...",
+            ["DownloadPage.Status.ExtractingAudio"] = "Extracting audio...",
+            ["DownloadPage.Status.Converting"] = "Converting...",
+            ["DownloadPage.Status.Processing"] = "Post-processing...",
+            ["DownloadPage.Quality.Highest"] = "Highest",
+            
+            // Convert Page
+            ["ConvertPage.Section.SelectFiles"] = "1. SELECT FILES TO CONVERT",
+            ["ConvertPage.Section.TargetFormat"] = "2. SELECT TARGET FORMAT AND FOLDER",
+            ["ConvertPage.Section.Quality"] = "3. QUALITY OPTIONS (OPTIONAL)",
+            ["ConvertPage.Section.Debug"] = "Debug Output",
+            ["ConvertPage.DataGrid.Filename"] = "Filename",
+            ["ConvertPage.DataGrid.Status"] = "Status",
+            ["ConvertPage.DataGrid.Progress"] = "Progress",
+            ["ConvertPage.Button.AddFiles"] = "Add Files",
+            ["ConvertPage.Button.Remove"] = "Remove",
+            ["ConvertPage.Button.ClearList"] = "Clear List",
+            ["ConvertPage.Button.Browse"] = "Browse...",
+            ["ConvertPage.Button.OpenFolder"] = "Open Folder",
+            ["ConvertPage.Button.DownloadPath"] = "Download Path",
+            ["ConvertPage.Button.AudioOnlyPath"] = "Audio-Only Path",
+            ["ConvertPage.Button.StartConversion"] = "Start Conversion",
+            ["ConvertPage.Button.CancelConversion"] = "Cancel Conversion",
+            ["ConvertPage.Label.TargetFormat"] = "Target Format:",
+            ["ConvertPage.Label.TargetFolder"] = "Target Folder:",
+            ["ConvertPage.Label.UsePath"] = "Use Path:",
+            ["ConvertPage.Label.VideoQuality"] = "Video Quality:",
+            ["ConvertPage.Label.AudioQuality"] = "Audio Quality:",
+            ["ConvertPage.Quality.Original"] = "Original (lossless)",
+            ["ConvertPage.Status.Converting"] = "Converting...",
+            ["ConvertPage.Status.AlreadyConverted"] = "Already converted",
+            ["ConvertPage.Status.Finished"] = "Finished",
+            ["ConvertPage.Status.Canceled"] = "Canceled",
+            ["ConvertPage.Status.Error"] = "Error",
+            ["ConvertPage.Message.NoTargetOrFiles"] = "Please select a target folder and at least one file.",
+            ["ConvertPage.Message.CannotCreateFolder"] = "Cannot create target folder:\n{0}",
+            ["ConvertPage.Message.FolderNotExists"] = "The target folder does not exist or is invalid.",
+            ["ConvertPage.Message.IgnoredFiles"] = "{0} file(s) were ignored (unsupported media format).",
+            ["ConvertPage.Message.Info"] = "Info",
+            ["ConvertPage.Debug.Summary"] = "--- Summary ---",
+            ["ConvertPage.Debug.Successful"] = "Successful: {0}",
+            ["ConvertPage.Debug.Failed"] = "Failed: {0}",
+            ["ConvertPage.Debug.Canceled"] = "Canceled: {0}",
+            ["ConvertPage.Dialog.FileFilter"] = "Media Files|*.mov;*.mp4;*.mkv;*.avi;*.mp3;*.aac;*.wav;*.flac;*.opus|All Files|*.*",
+            ["ConvertPage.Dialog.FolderBrowser"] = "Select the target folder for converted files",
+            
+            // Settings Page
+            ["SettingsPage.Section.DownloadPaths"] = "DOWNLOAD PATHS",
+            ["SettingsPage.Section.App"] = "APP",
+            ["SettingsPage.Section.Debug"] = "DEBUG",
+            ["SettingsPage.Section.Language"] = "LANGUAGE",
+            ["SettingsPage.Button.ChangeDownloadPath"] = "Change Download Path",
+            ["SettingsPage.Button.OpenGitHub"] = "Open GitHub",
+            ["SettingsPage.Button.CloseApp"] = "Close Application",
+            ["SettingsPage.Checkbox.DebugMode"] = "Enable Debug Mode (shows download details)",
+            ["SettingsPage.Checkbox.ForceEnglish"] = "Force English",
+            ["SettingsPage.Label.LanguageInfo"] = "Your selection will be saved automatically.",
+            ["SettingsPage.Label.SelectLanguage"] = "Select Language:",
+            
+            // Main Window
+            ["MainWindow.Nav.Download"] = "Download",
+            ["MainWindow.Nav.Convert"] = "Convert",
+            ["MainWindow.Nav.Settings"] = "Settings",
+            ["MainWindow.JokeDonate.Title"] = "Support this project",
+            ["MainWindow.JokeDonate.Subtitle"] = "Donate now!",
+            ["MainWindow.JokeDonate.MessageTitle"] = "Got you! 😂",
+            ["MainWindow.JokeDonate.Message"] = "💸 Thank you so much for your generosity!\n\nBut let's be real – I'm sitting in my little coding cave, building this for free and getting absolutely nothing in return.\n\nAnd I'm completely fine with that.\n\nI don't want your money. I want your freedom. Use the tool, download videos, be happy – and keep your wallet right where it is.\n\nP.S.: If you really insist on spending money, go buy yourself an ice cream. You deserve it. 🍦",
+            ["MainWindow.AppTitle"] = "MortysDLP",
+            ["MainWindow.AppSubtitle"] = "Your download companion",
+            ["MainWindow.Version"] = "Version",
+            ["MainWindow.Softwareinfo"] = "Video & Audio Downloader",
+
+            // Startup Window
+            ["StartupWindow.Title"] = "Preparing MortysDLP...",
+            ["StartupWindow.Status.CheckingYtDlp"] = "Checking yt-dlp...",
+            ["StartupWindow.Status.YtDlpNotFound"] = "yt-dlp not found – starting download...",
+            ["StartupWindow.Status.CheckingYtDlpVersion"] = "Checking yt-dlp version...",
+            ["StartupWindow.Status.CheckingFfmpeg"] = "Checking ffmpeg / ffprobe...",
+            ["StartupWindow.Status.FfmpegNotFound"] = "ffmpeg / ffprobe not found – starting download...",
+            ["StartupWindow.Status.Downloading"] = "Downloading {0}...",
+            ["StartupWindow.Status.DownloadCanceled"] = "Download canceled.",
+            ["StartupWindow.Status.DownloadFailed"] = "Download failed.",
+            ["StartupWindow.YtDlp.Message"] = "The tool 'yt-dlp' is required to download videos and audio from various platforms. It is an open-source project that serves as the successor to youtube-dl and is regularly updated.\n\nWithout yt-dlp, MortysDLP cannot perform downloads.\n\nFor more information, see the documentation:\n{0}",
+            ["StartupWindow.YtDlp.Question"] = "\n\nWould you like to download yt-dlp now?",
+            ["StartupWindow.YtDlp.Title"] = "{0} missing",
+            ["StartupWindow.YtDlp.Success"] = "{0} was successfully downloaded.",
+            ["StartupWindow.YtDlp.Required"] = "{0} is required for the software to work.\n\nYou can also install the tool manually. See the documentation:\n{1}",
+            ["StartupWindow.Ffmpeg.Message"] = "The tools 'ffmpeg' and 'ffprobe' are necessary to process, analyze and convert media files. Without these tools, MortysDLP cannot perform audio/video conversion or metadata analysis.\n\nFor more information, see the documentation:\nhttps://ffmpeg.org/documentation.html\nhttps://ffmpeg.org/ffprobe.html",
+            ["StartupWindow.Ffmpeg.Question"] = "\n\nWould you like to download ffmpeg and ffprobe now?",
+            ["StartupWindow.Ffmpeg.Downloading"] = "Downloading ffmpeg...",
+            ["StartupWindow.Ffmpeg.Extracting"] = "Extracting ffmpeg...",
+            ["StartupWindow.Ffmpeg.Success"] = "ffmpeg and ffprobe were successfully downloaded.",
+            ["StartupWindow.Ffmpeg.Failed"] = "Error downloading ffmpeg.",
+            ["StartupWindow.Ffmpeg.Required"] = "ffmpeg and ffprobe are required.\n\nYou can also install the tools manually:\n{0}",
+            ["StartupWindow.YtDlpUpdate.NewVersion"] = "New yt-dlp version available: {0} (current: {1})",
+            ["StartupWindow.YtDlpUpdate.Question"] = "\n\nWould you like to update now?",
+            ["StartupWindow.YtDlpUpdate.Title"] = "yt-dlp update available",
+            ["StartupWindow.YtDlpUpdate.Success"] = "yt-dlp was successfully updated.",
+            ["StartupWindow.YtDlpUpdate.Failed"] = "Error updating yt-dlp.",
+            ["StartupWindow.Error.ToolUpdate"] = "Error updating tools:\n{0}",
+            ["StartupWindow.Title.Error"] = "Error",
+            ["StartupWindow.Title.DownloadComplete"] = "Download Complete",
+            
+            // Language Names
+            ["Language.German"] = "German",
+            ["Language.English"] = "English",
+            ["Language.Auto"] = "Automatic (System Language)",
+            
+            // Download History
+            ["DownloadHistory.Title"] = "Download History",
+            ["DownloadHistory.Header.Title"] = "Download History",
+            ["DownloadHistory.Header.Subtitle"] = "Reuse previous downloads",
+            ["DownloadHistory.Button.ReUse"] = "Download Again",
+            ["DownloadHistory.Button.Clear"] = "Clear History",
+            ["DownloadHistory.Label.EmptyHistory"] = "No downloads yet",
+            ["DownloadHistory.Label.EmptyHistory.Info"] = "Your download history will appear here.",
+            ["DownloadHistory.Type.Audio"] = "Audio",
+            ["DownloadHistory.Type.Video"] = "Video",
+
+            // Download Path Dialog
+            ["DownloadPathDialog.Title"] = "Configure Download Paths",
+            ["DownloadPathDialog.Header.Title"] = "Download Paths",
+            ["DownloadPathDialog.Header.Subtitle"] = "Adjust the save locations for your downloads",
+            ["DownloadPathDialog.Label.DownloadPath"] = "Default Download Path",
+            ["DownloadPathDialog.Label.AudioPath"] = "Audio-Only Download Path",
+            ["DownloadPathDialog.Checkbox.AudioPath"] = "Use a separate path for audio downloads",
+            ["DownloadPathDialog.Button.Browse"] = "Browse...",
+            ["DownloadPathDialog.Button.OK"] = "OK",
+            ["DownloadPathDialog.Button.Cancel"] = "Cancel",
+            ["DownloadPathDialog.Browse.Description"] = "Select the default download folder",
+            ["DownloadPathDialog.Browse.AudioDescription"] = "Select the audio-only download folder",
+            ["DownloadPathDialog.Validation.Title"] = "No download folder selected",
+            ["DownloadPathDialog.Validation.Message"] = "Please select a download folder.\n",
+            ["DownloadPathDialog.Validation.DownloadEmpty"] = "\u2022 Default download path is empty.\n",
+            ["DownloadPathDialog.Validation.AudioEmpty"] = "\u2022 Audio-only path is empty.\n",
+            ["DownloadPathDialog.Validation.UseDefault"] = "\nWould you like to use the Windows default folder (Downloads)?",
+
+            // Common
+            ["Common.Error"] = "Error",
+            ["Common.Button.OK"]     = "OK",
+            ["Common.Button.Cancel"] = "Cancel",
+            ["Common.Button.Yes"]    = "Yes",
+            ["Common.Button.No"]     = "No",
+
+            // FluentMessageBox - Default titles
+            ["FluentMessageBox.Title.Information"] = "Information",
+            ["FluentMessageBox.Title.Warning"]     = "Warning",
+            ["FluentMessageBox.Title.Error"]       = "Error",
+            ["FluentMessageBox.Title.Question"]    = "Question",
+        };
+
+        public static void SetLanguage(string language)
+        {
+            System.Diagnostics.Debug.WriteLine($"[UITextDictionary] SetLanguage called with: {language}");
+            _currentLanguage = language.ToLower();
+            _currentTexts = _currentLanguage switch
+            {
+                "de" or "german" => German,
+                _ => English
+            };
+            System.Diagnostics.Debug.WriteLine($"[UITextDictionary] Language set to: {_currentLanguage}, Dictionary has {_currentTexts.Count} entries");
+        }
+
+        public static string Get(string key)
+        {
+            return _currentTexts.TryGetValue(key, out var value) ? value : $"[{key}]";
+        }
+    }
+}

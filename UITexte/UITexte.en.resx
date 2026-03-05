@@ -214,7 +214,7 @@
     <value>From start to second:</value>
   </data>
   <data name="MainWindow_Label_TimeStartRight" xml:space="preserve">
-    <value> </value>
+    <value>download</value>
   </data>
   <data name="MainWindow_Label_Videoformat" xml:space="preserve">
     <value>Adjust video format for editing programs (x264)</value>

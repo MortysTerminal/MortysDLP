@@ -1,14 +1,120 @@
 ﻿<Application x:Class="MortysDLP.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:MortysDLP">
+             xmlns:local="clr-namespace:MortysDLP"
+             ThemeMode="System">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="pack://application:,,,/PresentationFramework.Fluent;component/Themes/Fluent.xaml" />
             </ResourceDictionary.MergedDictionaries>
+
+            <!-- Brand Colors -->
+            <Color x:Key="BrandYellow">#ffe44e</Color>
+            <Color x:Key="BrandOrange">#e67e50</Color>
+            <Color x:Key="BrandCream">#fff8e7</Color>
+            <Color x:Key="BrandDark">#1E212B</Color>
+
+            <SolidColorBrush x:Key="BrandYellowBrush"  Color="#ffe44e"/>
+            <SolidColorBrush x:Key="BrandOrangeBrush"  Color="#e67e50"/>
+            <SolidColorBrush x:Key="BrandCreamBrush"   Color="#fff8e7"/>
+            <SolidColorBrush x:Key="BrandDarkBrush"    Color="#1E212B"/>
+
+            <LinearGradientBrush x:Key="BrandGradientBrush" StartPoint="0,0" EndPoint="1,0">
+                <GradientStop Color="#ffe44e" Offset="0"/>
+                <GradientStop Color="#e67e50" Offset="1"/>
+            </LinearGradientBrush>
+
+            <!-- Global TextBlock style for adaptive Light/Dark text -->
+            <Style TargetType="TextBlock">
+                <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}"/>
+                <Style.Triggers>
+                    <Trigger Property="IsEnabled" Value="False">
+                        <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}"/>
+                        <Setter Property="Opacity" Value="0.5"/>
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+
+            <!-- Global Label style for adaptive Light/Dark text -->
+            <Style TargetType="Label">
+                <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}"/>
+                <Style.Triggers>
+                    <Trigger Property="IsEnabled" Value="False">
+                        <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}"/>
+                        <Setter Property="Opacity" Value="0.5"/>
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+
+            <!-- Card styling -->
+            <SolidColorBrush x:Key="CardBg"     Color="#FFFFFF"/>
+            <SolidColorBrush x:Key="CardBorder" Color="#E0E3E7"/>
+
+            <!-- Primary action button -->
+            <Style x:Key="PrimaryButtonStyle" TargetType="Button"
+                   BasedOn="{StaticResource {x:Type Button}}">
+                <Setter Property="Background"  Value="{StaticResource BrandOrangeBrush}"/>
+                <Setter Property="Foreground"  Value="White"/>
+                <Setter Property="FontWeight"  Value="SemiBold"/>
+                <Setter Property="Padding"     Value="14,5"/>
+                <Setter Property="BorderBrush" Value="{StaticResource BrandOrangeBrush}"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="border"
+                                    Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="4"
+                                    Padding="{TemplateBinding Padding}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="border" Property="Background" Value="#f08f62"/>
+                                    <Setter Property="Foreground" Value="White"/>
+                                </Trigger>
+                                <Trigger Property="IsPressed" Value="True">
+                                    <Setter TargetName="border" Property="Background" Value="#d4724a"/>
+                                    <Setter Property="Foreground" Value="White"/>
+                                </Trigger>
+                                <Trigger Property="IsEnabled" Value="False">
+                                    <Setter TargetName="border" Property="Opacity" Value="0.4"/>
+                                    <Setter Property="Foreground" Value="White"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <!-- Fluent ProgressBar: Track und Fill beide abgerundet, konsistentes Design -->
+            <Style x:Key="FluentProgressBarStyle" TargetType="ProgressBar">
+                <Setter Property="Background"       Value="{DynamicResource SubtleFillColorSecondaryBrush}"/>
+                <Setter Property="BorderBrush"      Value="{DynamicResource CardStrokeColorDefaultBrush}"/>
+                <Setter Property="BorderThickness"  Value="1"/>
+                <Setter Property="Foreground"       Value="{StaticResource BrandOrangeBrush}"/>
+                <Setter Property="Height"           Value="6"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="ProgressBar">
+                            <!-- Track mit CornerRadius + ClipToBounds: clippt den Fill-Balken in die Rundung -->
+                            <Border x:Name="PART_Track"
+                                    Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    CornerRadius="3"
+                                    ClipToBounds="True">
+                                <Rectangle x:Name="PART_Indicator"
+                                           Fill="{TemplateBinding Foreground}"
+                                           HorizontalAlignment="Left"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
         </ResourceDictionary>
     </Application.Resources>
 </Application>
-    
-    

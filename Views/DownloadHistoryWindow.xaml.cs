@@ -13,9 +13,7 @@ namespace MortysDLP
     {
         public DownloadHistoryWindow()
         {
-            /* Sprachanpassung bei Window-Start */
-            LanguageHelper.ApplyLanguage(LanguageHelper.ForceEnglish);
-
+            /* Sprache wurde bereits in App.xaml.cs gesetzt */
             InitializeComponent();
             SetUITexte();
             Loaded += async (_, __) => await LoadHistory();
@@ -23,11 +21,22 @@ namespace MortysDLP
 
         private void SetUITexte()
         {
-            this.Title = UITexte.UITexte.DownloadHistory_Title;
-            this.ReuseButton.Content = UITexte.UITexte.DownloadHistory_Button_ReUse;
-            this.ClearButton.Content = UITexte.UITexte.DownloadHistory_Button_Clear;
-            this.EmptyText.Text = UITexte.UITexte.DownloadHistory_Label_EmptyHistory;
-            this.InfoText.Text = UITexte.UITexte.DownloadHistory_Label_EmptyHistory_Info;
+            var T = UITexte.UITextDictionary.Get;
+            
+            // Window Title
+            this.Title = T("DownloadHistory.Title");
+            
+            // Header
+            txtHeaderTitle.Text = T("DownloadHistory.Header.Title");
+            txtHeaderSubtitle.Text = T("DownloadHistory.Header.Subtitle");
+            
+            // Buttons
+            this.ReuseButton.Content = T("DownloadHistory.Button.ReUse");
+            this.ClearButton.Content = T("DownloadHistory.Button.Clear");
+            
+            // Empty State
+            this.EmptyText.Text = T("DownloadHistory.Label.EmptyHistory");
+            this.InfoText.Text = T("DownloadHistory.Label.EmptyHistory.Info");
         }
         private async Task LoadHistory()
         {
@@ -50,7 +59,7 @@ namespace MortysDLP
                 {
                     if (window is MainWindow main)
                     {
-                        main.tbURL.Text = entry.Url;
+                        main.DownloadPage.SetDownloadUrl(entry.Url);
                         main.Activate();
                         break;
                     }
@@ -64,8 +73,7 @@ namespace MortysDLP
             bool hasItems = HistoryList.Items.Count > 0;
             ReuseButton.IsEnabled = hasItems;
             ClearButton.IsEnabled = hasItems;
-            EmptyText.Visibility = hasItems ? Visibility.Collapsed : Visibility.Visible;
-            InfoText.Visibility = hasItems ? Visibility.Collapsed : Visibility.Visible;
+            EmptyStatePanel.Visibility = hasItems ? Visibility.Collapsed : Visibility.Visible;
         }
     }
 }

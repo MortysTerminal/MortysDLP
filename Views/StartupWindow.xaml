@@ -10,80 +10,87 @@
         WindowStyle="None"
         ResizeMode="NoResize"
         WindowStartupLocation="CenterScreen"
-        Width="450" Height="300"
-        Background="{x:Null}" 
+        Width="400" Height="220"
+        Background="{DynamicResource SolidBackgroundFillColorBaseBrush}"
         AllowsTransparency="False"
         ShowInTaskbar="True">
-    <Grid>
-        
-        <Border CornerRadius="15"
-                Effect="{DynamicResource DropShadowEffect}"
-                Padding="0"
-                VerticalAlignment="Center"
-                HorizontalAlignment="Center">
-            <Grid Margin="0">
-                <StackPanel 
-                    HorizontalAlignment="Center" 
-                    VerticalAlignment="Center" 
-                    Margin="32">
-                    
-                    <!-- Logo -->
-                    <Border 
-                        x:Name="LogoBorder"
-                        Width="72" 
-                        Height="72" 
-                        CornerRadius="36" 
-                        Background="#FF2D313A" 
-                        Margin="0,0,0,18"
-                        Effect="{DynamicResource LogoShadow}">
-                        <Image 
-                            x:Name="LogoImage" 
-                            Width="72" Height="72" 
-                            VerticalAlignment="Center" 
-                            HorizontalAlignment="Center" 
-                            Source="/Resources/Logos/globus.png">
-                        </Image>
-                    </Border>
-                    
-                    <!-- Überschrift -->
-                    <TextBlock 
-                        x:Name="TitleText"
-                        Text="MortysDLP wird vorbereitet..."
-                        FontSize="22"
-                        FontWeight="SemiBold"
+
+    <!-- Äußere Card mit abgerundeten Ecken -->
+    <Border Background="{DynamicResource SolidBackgroundFillColorBaseBrush}"
+            CornerRadius="14"
+            ClipToBounds="True">
+        <Grid>
+            <Grid.RowDefinitions>
+                <!-- Gradient-Akzentstreifen -->
+                <RowDefinition Height="5"/>
+                <!-- Hauptinhalt -->
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- Akzentstreifen oben: Gelb → Orange -->
+            <Rectangle Grid.Row="0"
+                       Fill="{StaticResource BrandGradientBrush}"/>
+
+            <!-- Hauptinhalt -->
+            <StackPanel Grid.Row="1"
                         HorizontalAlignment="Center"
-                        Margin="0,0,0,10">
-                    </TextBlock>
-                    
-                    <!-- Ladekreis -->
-                    <Grid 
-                        Margin="0,0,0,18" 
-                        HorizontalAlignment="Center">
-                        <TextBlock 
-                            x:Name="LoadingIcon"
-                            FontFamily="Segoe MDL2 Assets"
-                            FontSize="30"
-                            Text="&#xE895;"
+                        VerticalAlignment="Center"
+                        Margin="28,14,28,18">
+
+                <!-- Logo mit gelbem Ring -->
+                <Border x:Name="LogoBorder"
+                        Width="58"
+                        Height="58"
+                        CornerRadius="29"
+                        Background="#252831"
+                        BorderBrush="{StaticResource BrandYellowBrush}"
+                        BorderThickness="2"
+                        HorizontalAlignment="Center"
+                        Margin="0,0,0,12">
+                    <Image x:Name="LogoImage"
+                           Width="42" Height="42"
+                           Source="/Resources/Logos/globus.png"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"/>
+                </Border>
+
+                <!-- Titel -->
+                <TextBlock x:Name="TitleText"
+                           FontSize="17"
+                           FontWeight="SemiBold"
+                           HorizontalAlignment="Center"
+                           Margin="0,0,0,10"/>
+
+                <!-- Spinner + Status in einer Zeile -->
+                <StackPanel Orientation="Horizontal"
                             HorizontalAlignment="Center"
-                            VerticalAlignment="Center"
-                            RenderTransformOrigin="0.5,0.5">
-                            <TextBlock.RenderTransform>
-                                <RotateTransform x:Name="LoadingRotation" />
-                            </TextBlock.RenderTransform>
-                        </TextBlock>
-                    </Grid>
-                    
-                    <!-- Statuszeile -->
+                            VerticalAlignment="Center">
+
+                    <!-- Rotierendes Ladeicon (Gelb) -->
+                    <TextBlock x:Name="LoadingIcon"
+                               FontFamily="Segoe MDL2 Assets"
+                               FontSize="15"
+                               Text="&#xE895;"
+                               Foreground="{StaticResource BrandYellowBrush}"
+                               VerticalAlignment="Center"
+                               RenderTransformOrigin="0.5,0.5"
+                               Margin="0,0,8,0">
+                        <TextBlock.RenderTransform>
+                            <RotateTransform x:Name="LoadingRotation"/>
+                        </TextBlock.RenderTransform>
+                    </TextBlock>
+
+                    <!-- Statustext -->
                     <TextBlock x:Name="StatusText"
                                Text=""
-                               FontSize="14"
-                               HorizontalAlignment="Center"
-                               TextAlignment="Center"
+                               FontSize="12"
+                               Opacity="0.72"
+                               VerticalAlignment="Center"
                                TextWrapping="Wrap"
-                               Margin="0,0,0,0">
-                    </TextBlock>
+                               MaxWidth="300"/>
                 </StackPanel>
-            </Grid>
-        </Border>
-    </Grid>
+
+            </StackPanel>
+        </Grid>
+    </Border>
 </Window>

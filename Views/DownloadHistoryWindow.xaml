@@ -6,88 +6,166 @@
         xmlns:local="clr-namespace:MortysDLP"
         mc:Ignorable="d"
         Icon="/Resources/Icons/mw_globe_32px.ico"
-        Title="MortysDLP - Download Historie"
-        MinWidth="400"
-        MinHeight="200"
-        WindowStartupLocation="CenterOwner">
-    <Grid Margin="7">
+        Title="Download-Historie"
+        Width="680" Height="520"
+        MinWidth="580" MinHeight="400"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource SolidBackgroundFillColorBaseBrush}">
+
+    <Window.Resources>
+        <local:BoolToAudioVideoConverter x:Key="BoolToAudioVideoConverter"/>
+    </Window.Resources>
+
+    <Grid Margin="16">
         <Grid.RowDefinitions>
-            <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <ListBox Name="HistoryList" Margin="10" Grid.Row="0">
-            <ListBox.ItemTemplate>
-                <DataTemplate>
-                    <StackPanel Margin="0,4">
-                        <TextBlock 
-                            Text="{Binding Title}" 
-                            FontWeight="Bold" 
-                            FontSize="14"/>
-                        <TextBlock 
-                            Text="{Binding Url}" 
-                            FontSize="12" 
-                            Margin="0,2,0,0"/>
-                        <TextBlock 
-                            Text="{Binding DownloadedAt, StringFormat='{}{0:dd.MM.yyyy HH:mm}'}"
-                            FontSize="11" 
-                            Margin="0,2,0,0"/>
-                    </StackPanel>
-                </DataTemplate>
-            </ListBox.ItemTemplate>
-        </ListBox>
+        <!-- Header -->
+        <Border Grid.Row="0" CornerRadius="8" Margin="0,0,0,12"
+                Background="{DynamicResource LayerFillColorDefaultBrush}"
+                Padding="16,12">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
 
-        <StackPanel 
-            Orientation="Horizontal"
-            Grid.Row="1" 
-            HorizontalAlignment="Right"
-            Margin="10">
+                <TextBlock Grid.Column="0" FontFamily="Segoe MDL2 Assets" Text="&#xE81C;" 
+                           FontSize="22" VerticalAlignment="Center" Margin="0,0,12,0"
+                           Foreground="{StaticResource BrandOrangeBrush}"/>
+                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                    <TextBlock x:Name="txtHeaderTitle" FontSize="18" FontWeight="SemiBold"/>
+                    <TextBlock x:Name="txtHeaderSubtitle" FontSize="12" Opacity="0.7" Margin="0,2,0,0"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- History List -->
+        <Border Grid.Row="1" CornerRadius="8" 
+                Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <ListBox Name="HistoryList" 
+                         Background="Transparent" 
+                         BorderThickness="0"
+                         Padding="8">
+                    <ListBox.ItemContainerStyle>
+                        <Style TargetType="ListBoxItem">
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                            <Setter Property="Margin" Value="0,0,0,8"/>
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="ListBoxItem">
+                                        <Border x:Name="ItemBorder"
+                                                Background="{DynamicResource SubtleFillColorTransparentBrush}"
+                                                BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                                                BorderThickness="1"
+                                                CornerRadius="6"
+                                                Padding="12">
+                                            <ContentPresenter/>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="ItemBorder" Property="Background" 
+                                                        Value="{DynamicResource SubtleFillColorSecondaryBrush}"/>
+                                            </Trigger>
+                                            <Trigger Property="IsSelected" Value="True">
+                                                <Setter TargetName="ItemBorder" Property="Background" 
+                                                        Value="{DynamicResource SubtleFillColorTertiaryBrush}"/>
+                                                <Setter TargetName="ItemBorder" Property="BorderBrush" 
+                                                        Value="{StaticResource BrandOrangeBrush}"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </ListBox.ItemContainerStyle>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Icon -->
+                                <Border Grid.Column="0" Width="36" Height="36" CornerRadius="18"
+                                        Background="{StaticResource BrandYellowBrush}"
+                                        VerticalAlignment="Top" Margin="0,0,12,0">
+                                    <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE896;" 
+                                               FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                               Foreground="{StaticResource BrandDarkBrush}"/>
+                                </Border>
+
+                                <!-- Content -->
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="14" TextTrimming="CharacterEllipsis"/>
+                                    <TextBlock Text="{Binding Url}" FontSize="11" Opacity="0.7" Margin="0,4,0,0" TextTrimming="CharacterEllipsis"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                        <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE787;" FontSize="10" Opacity="0.6" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{Binding DownloadedAt, StringFormat='{}{0:dd.MM.yyyy HH:mm}'}" 
+                                                   FontSize="11" Opacity="0.6" Margin="4,0,12,0" VerticalAlignment="Center"/>
+                                        <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE8B7;" FontSize="10" Opacity="0.6" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                                        <TextBlock FontSize="11" Opacity="0.6" VerticalAlignment="Center">
+                                            <Run Text="{Binding IsAudioOnly, Mode=OneWay, Converter={StaticResource BoolToAudioVideoConverter}}"/>
+                                            <Run Text="·"/>
+                                            <Run Text="{Binding VideoQuality, Mode=OneWay, TargetNullValue='-'}"/>
+                                            <Run Text="·"/>
+                                            <Run Text="{Binding VideoFormat, Mode=OneWay, TargetNullValue='-'}"/>
+                                        </TextBlock>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </ScrollViewer>
+        </Border>
+
+        <!-- Empty State -->
+        <StackPanel Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center"
+                    Name="EmptyStatePanel" Visibility="Collapsed">
+            <Border Width="80" Height="80" CornerRadius="40"
+                    Background="{DynamicResource SubtleFillColorSecondaryBrush}"
+                    Margin="0,0,0,16">
+                <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE81C;" 
+                           FontSize="36" HorizontalAlignment="Center" VerticalAlignment="Center"
+                           Opacity="0.4"/>
+            </Border>
+            <TextBlock Name="EmptyText"
+                       Text="Keine Historie vorhanden"
+                       FontSize="18" FontWeight="SemiBold"
+                       HorizontalAlignment="Center"/>
+            <TextBlock Name="InfoText"
+                       Text="Hier ist noch gähnende Leere... Aber keine Sorge: Deine nächsten Downloads landen alle hier und warten nur darauf, von dir wiederverwendet zu werden!"
+                       FontSize="13" Opacity="0.7"
+                       Margin="0,8,0,0" MaxWidth="400"
+                       HorizontalAlignment="Center"
+                       TextAlignment="Center"
+                       TextWrapping="Wrap"/>
+        </StackPanel>
+
+        <!-- Action Buttons -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0"
+                    Name="ButtonPanel">
             <StackPanel.Style>
                 <Style TargetType="StackPanel">
                     <Style.Triggers>
-                        <DataTrigger 
-                            Binding="{Binding ElementName=HistoryList, Path=Items.Count}" 
-                            Value="0">
-                            <Setter 
-                                Property="Visibility" 
-                                Value="Collapsed"> 
-                            </Setter>
+                        <DataTrigger Binding="{Binding ElementName=HistoryList, Path=Items.Count}" Value="0">
+                            <Setter Property="Visibility" Value="Collapsed"/>
                         </DataTrigger>
                     </Style.Triggers>
                 </Style>
             </StackPanel.Style>
-            <Button 
-                Name="ReuseButton" 
-                Content="Neu verwenden" 
-                Click="Reuse_Click">
-            </Button>
-            <Button 
-                Name="ClearButton" 
-                Content="Historie leeren" 
-                Click="Clear_Click" 
-                Margin="7">
-            </Button>
-        </StackPanel>
-
-        <StackPanel 
-            HorizontalAlignment="Center" 
-            VerticalAlignment="Center" 
-            Grid.RowSpan="2">
-            <TextBlock 
-               Name="EmptyText"
-               Text="Keine Historie vorhanden"
-               FontSize="18"
-               HorizontalAlignment="Center"
-               Visibility="Collapsed">
-            </TextBlock>
-            <TextBlock x:Name="InfoText"
-               Text="Hier ist noch gähnende Leere... Aber keine Sorge: Deine nächsten Downloads landen alle hier und warten nur darauf, von dir wiederverwendet zu werden!"
-               FontSize="13"
-               Margin="0,10,0,0"
-               HorizontalAlignment="Center"
-               TextAlignment="Center"
-               Visibility="Collapsed">
-            </TextBlock>
+            <Button Name="ReuseButton" Content="Neu verwenden" Click="Reuse_Click"
+                    Style="{StaticResource PrimaryButtonStyle}"/>
+            <Button Name="ClearButton" Content="Historie leeren" Click="Clear_Click" Margin="8,0,0,0"/>
         </StackPanel>
     </Grid>
 </Window>

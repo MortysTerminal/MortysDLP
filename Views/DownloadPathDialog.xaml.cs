@@ -10,9 +10,7 @@ namespace MortysDLP
     {
         public DownloadPathDialog()
         {
-            /* Sprachanpassung bei Window-Start */
-            LanguageHelper.ApplyLanguage(LanguageHelper.ForceEnglish);
-
+            /* Sprache wurde bereits in App.xaml.cs gesetzt */
             InitializeComponent();
             cbAudioOnlyPath.IsChecked = Properties.Settings.Default.CheckedAudioOnlyPath;
             tbDownloadPath.Text = Properties.Settings.Default.DownloadPath;
@@ -29,18 +27,18 @@ namespace MortysDLP
 
             if (isDownloadPathEmpty || isAudioPathEmpty)
             {
-                string message = UITexte.UITexte.DownloadPathDialog_NoDownloadFolder_Message.Replace("\\n", Environment.NewLine);
-                if (isDownloadPathEmpty)
-                    message += UITexte.UITexte.DownloadPathDialog_DownloadPathEmpty.Replace("\\n", Environment.NewLine);
-                if (isAudioPathEmpty)
-                    message += UITexte.UITexte.DownloadPathDialog_AudioPathEmpty.Replace("\\n", Environment.NewLine);
-                message += UITexte.UITexte.DownloadPathDialog_SetDefaultWindowsDownloadFolder.Replace("\\n", Environment.NewLine);
+                var T = UITexte.UITextDictionary.Get;
+                string message = T("DownloadPathDialog.Validation.Message");
+                if (isDownloadPathEmpty) message += T("DownloadPathDialog.Validation.DownloadEmpty");
+                if (isAudioPathEmpty)   message += T("DownloadPathDialog.Validation.AudioEmpty");
+                message += T("DownloadPathDialog.Validation.UseDefault");
 
-                var result = MessageBox.Show(
+                var result = FluentMessageBox.Show(
                     message,
-                    UITexte.UITexte.DownloadPathDialog_NoDownloadFolder_Title,
+                    T("DownloadPathDialog.Validation.Title"),
                     MessageBoxButton.YesNoCancel,
-                    MessageBoxImage.Warning);
+                    MessageBoxImage.Warning,
+                    this);
 
                 if (result == MessageBoxResult.Yes)
                 {
@@ -92,7 +90,7 @@ namespace MortysDLP
             #pragma warning disable CA1416 // Plattformkompatibilität überprüfen
             var dialog = new Ookii.Dialogs.Wpf.VistaFolderBrowserDialog
             {
-                Description = UITexte.UITexte.DownloadPathDialog_BrowseFolder_Description,
+                Description = UITextDictionary.Get("DownloadPathDialog.Browse.Description"),
                 SelectedPath = tbDownloadPath.Text,
                 UseDescriptionForTitle = true
             };
@@ -108,7 +106,7 @@ namespace MortysDLP
         {
             var dialog = new Ookii.Dialogs.Wpf.VistaFolderBrowserDialog
             {
-                Description = UITexte.UITexte.DownloadPathDialog_BrowseAudioFolder_Description,
+                Description = UITextDictionary.Get("DownloadPathDialog.Browse.AudioDescription"),
                 SelectedPath = tbAudioPathBox.Text,
                 UseDescriptionForTitle = true
             };
@@ -123,11 +121,8 @@ namespace MortysDLP
             {
                 if (window is MainWindow mainWindow)
                 {
-                    if (mainWindow.FindName("lblDownloadPath") is Label lbl)
-                        lbl.Content = Properties.Settings.Default.DownloadPath;
-                    if (mainWindow.FindName("lblAudioPath") is Label lblAudio)
-                        lblAudio.Content = Properties.Settings.Default.DownloadAudioOnlyPath;
-                    mainWindow.SetUiAudioEnabled(Properties.Settings.Default.CheckedAudioOnlyPath);
+                    mainWindow.DownloadPage.RefreshPaths();
+                    mainWindow.DownloadPage.SetUiAudioEnabled(Properties.Settings.Default.CheckedAudioOnlyPath);
                     break;
                 }
             }
@@ -138,26 +133,37 @@ namespace MortysDLP
         {
             if (this.cbAudioOnlyPath.IsChecked == true)
             {
+                AudioPathPanel.Visibility = Visibility.Visible;
                 tbAudioPathBox.IsEnabled = true;
                 btnSearchAudioPath.IsEnabled = true;
             }
             else
             {
+                AudioPathPanel.Visibility = Visibility.Collapsed;
                 tbAudioPathBox.Text = String.Empty;
                 tbAudioPathBox.IsEnabled = false;
                 btnSearchAudioPath.IsEnabled = false;
             }
-
         }
         private void SetUITexte()
         {
-            this.Title = UITexte.UITexte.DownloadPathDialog_Title;
-            this.lblDefaultDownloadPath.Text = UITexte.UITexte.DownloadPathDialog_StandardDownloadPathLabel;
-            this.lblDefaultAudioDownloadPath.Text = UITexte.UITexte.DownloadPathDialog_StandardAudioDownloadPathLabel;
-            this.btnDownloadPath.Content = UITexte.UITexte.Button_Browse;
-            this.btnSearchAudioPath.Content = UITexte.UITexte.Button_Browse;
-            this.btnOK.Content = UITexte.UITexte.Button_OK;
-            this.btnCancel.Content = UITexte.UITexte.Button_Cancel;
+            var T = UITextDictionary.Get;
+
+            // Window & Header
+            this.Title                            = T("DownloadPathDialog.Title");
+            txtHeaderTitle.Text                   = T("DownloadPathDialog.Header.Title");
+            txtHeaderSubtitle.Text                = T("DownloadPathDialog.Header.Subtitle");
+
+            // Labels
+            this.lblDefaultDownloadPath.Text      = T("DownloadPathDialog.Label.DownloadPath");
+            this.lblAudioOnlyPath.Text            = T("DownloadPathDialog.Label.AudioPath");
+            this.lblDefaultAudioDownloadPath.Text = T("DownloadPathDialog.Checkbox.AudioPath");
+
+            // Buttons
+            this.btnDownloadPath.Content          = T("DownloadPathDialog.Button.Browse");
+            this.btnSearchAudioPath.Content       = T("DownloadPathDialog.Button.Browse");
+            this.btnOK.Content                    = T("DownloadPathDialog.Button.OK");
+            this.btnCancel.Content                = T("DownloadPathDialog.Button.Cancel");
         }
     }
 }

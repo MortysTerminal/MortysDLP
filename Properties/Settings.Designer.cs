@@ -406,5 +406,29 @@ namespace MortysDLP.Properties {
                 this["CustomFilename"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool DebugMode {
+            get {
+                return ((bool)(this["DebugMode"]));
+            }
+            set {
+                this["DebugMode"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("auto")]
+        public string SelectedLanguage {
+            get {
+                return ((string)(this["SelectedLanguage"]));
+            }
+            set {
+                this["SelectedLanguage"] = value;
+            }
+        }
     }
 }

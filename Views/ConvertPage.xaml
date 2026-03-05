@@ -1,0 +1,156 @@
+﻿<Page x:Class="MortysDLP.Views.ConvertPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      Title="Konvertieren"
+      Loaded="ConvertPage_Loaded">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="0">
+
+            <!-- Block 1: Dateien auswählen -->
+            <Border CornerRadius="8" Padding="14,10,14,12" Margin="0,0,0,8"
+                    Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1">
+                <StackPanel>
+                    <TextBlock x:Name="txtSection1Header" FontWeight="SemiBold" FontSize="11"
+                               Foreground="{StaticResource BrandOrangeBrush}" Margin="0,0,0,8"/>
+                    <Grid MinHeight="180" MaxHeight="350">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <DataGrid x:Name="dgFiles" 
+                                  AutoGenerateColumns="False" 
+                                  IsReadOnly="True" 
+                                  Grid.Row="0" 
+                                  SelectionMode="Extended"
+                                  Margin="0,0,0,8"
+                                  AllowDrop="True"
+                                  Drop="dgFiles_Drop"
+                                  DragOver="dgFiles_DragOver">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn x:Name="colFilename" Binding="{Binding Name}" Width="*"/>
+                                <DataGridTextColumn x:Name="colStatus" Binding="{Binding Status}" Width="140"/>
+                                <DataGridTemplateColumn x:Name="colProgress" Width="120">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <ProgressBar Value="{Binding Progress}" Maximum="100" Height="18"/>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                        <StackPanel Orientation="Horizontal" Grid.Row="1" HorizontalAlignment="Right">
+                            <Button x:Name="btnAddFiles" Click="btnAddFiles_Click" Margin="0,0,8,0"/>
+                            <Button x:Name="btnRemoveFiles" Click="btnRemoveFiles_Click" Margin="0,0,8,0"/>
+                            <Button x:Name="btnClearFiles" Click="btnClearFiles_Click"/>
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- Block 2: Zielformat und Pfad -->
+            <Border CornerRadius="8" Padding="14,10,14,12" Margin="0,0,0,8"
+                    Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1">
+                <StackPanel>
+                    <TextBlock x:Name="txtSection2Header" FontWeight="SemiBold" FontSize="11"
+                               Foreground="{StaticResource BrandOrangeBrush}" Margin="0,0,0,8"/>
+                    
+                    <!-- Erste Zeile: Format und Zielordner -->
+                    <Grid Margin="0,0,0,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Label x:Name="lblTargetFormat" VerticalAlignment="Center" Grid.Column="0" Padding="2"/>
+                        <ComboBox x:Name="cbTargetFormat" Width="120" SelectionChanged="cbTargetFormat_SelectionChanged" Margin="7,0,20,0" Grid.Column="1"/>
+                        <Label x:Name="lblTargetFolder" VerticalAlignment="Center" Padding="2" Grid.Column="2"/>
+                        <TextBox x:Name="tbTargetFolder" VerticalContentAlignment="Center" Margin="7,0,0,0" Grid.Column="3"/>
+                        <Button x:Name="btnBrowseTargetFolder" Click="btnBrowseTargetFolder_Click" Margin="7,0,0,0" Grid.Column="4"/>
+                        <Button x:Name="btnOpenTargetFolder" Click="btnOpenTargetFolder_Click" Margin="7,0,0,0" Grid.Column="5"/>
+                    </Grid>
+                    
+                    <!-- Zweite Zeile: Pfad übernehmen Buttons -->
+                    <Border BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" 
+                            BorderThickness="1" CornerRadius="5" Padding="10" 
+                            Background="{DynamicResource LayerFillColorDefaultBrush}">
+                        <StackPanel>
+                            <TextBlock x:Name="txtUsePath" FontWeight="SemiBold" Margin="0,0,0,6"/>
+                            <StackPanel Orientation="Horizontal">
+                                <Button x:Name="btnUseSavedDownloadpath" Click="btnUseSavedDownloadpath_Click" Width="140" Margin="0,0,8,0"/>
+                                <Button x:Name="btnUseSavedAudioOnlyPath" Click="btnUseSavedAudioOnlyPath_Click" Width="140"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Border>
+
+            <!-- Block 3: Qualitätsoptionen -->
+            <Border CornerRadius="8" Padding="14,10,14,12" Margin="0,0,0,8"
+                    Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1">
+                <StackPanel>
+                    <TextBlock x:Name="txtSection3Header" FontWeight="SemiBold" FontSize="11"
+                               Foreground="{StaticResource BrandOrangeBrush}" Margin="0,0,0,8"/>
+                    <StackPanel Orientation="Horizontal">
+                        <Label x:Name="lblVideoQuality" VerticalAlignment="Center" MinWidth="110" Padding="2"/>
+                        <ComboBox x:Name="cbVideoQuality" Width="180" Margin="7,0,20,0">
+                            <ComboBoxItem x:Name="cbiVideoQualityOriginal" IsSelected="True"/>
+                            <ComboBoxItem Content="1080p"/>
+                            <ComboBoxItem Content="720p"/>
+                            <ComboBoxItem Content="480p"/>
+                            <ComboBoxItem Content="360p"/>
+                        </ComboBox>
+                        <Label x:Name="lblAudioQuality" VerticalAlignment="Center" MinWidth="110" Padding="2"/>
+                        <ComboBox x:Name="cbAudioQuality" Width="180" Margin="7,0,0,0">
+                            <ComboBoxItem x:Name="cbiAudioQualityOriginal" IsSelected="True"/>
+                            <ComboBoxItem Content="320k"/>
+                            <ComboBoxItem Content="192k"/>
+                            <ComboBoxItem Content="128k"/>
+                            <ComboBoxItem Content="64k"/>
+                        </ComboBox>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- Block 4: Steuerung -->
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,8">
+                <Button x:Name="btnConvertStart" Click="btnConvertStart_Click" Style="{StaticResource PrimaryButtonStyle}" Margin="0,0,8,0"/>
+                <Button x:Name="btnConvertCancel" Click="btnConvertCancel_Click"/>
+            </StackPanel>
+
+            <!-- Block 5: Debug-Ausgabe (nur sichtbar wenn Debug-Modus aktiv) -->
+            <Border x:Name="borderDebug" CornerRadius="8" Padding="14,10,14,12" Margin="0,0,0,8"
+                    Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    Visibility="Collapsed">
+                <Expander x:Name="expDebug" IsExpanded="False">
+                    <Border BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" 
+                            BorderThickness="1" Padding="5" Margin="0,8,0,0"
+                            CornerRadius="4">
+                        <ScrollViewer MaxHeight="200" VerticalScrollBarVisibility="Auto">
+                            <TextBox x:Name="tbDebugOutput"
+                                     IsReadOnly="True"
+                                     TextWrapping="Wrap"
+                                     VerticalScrollBarVisibility="Auto"
+                                     Background="Black"
+                                     Foreground="LightGray"
+                                     FontFamily="Consolas"
+                                     FontSize="12"
+                                     BorderThickness="0"/>
+                        </ScrollViewer>
+                    </Border>
+                </Expander>
+            </Border>
+
+        </StackPanel>
+    </ScrollViewer>
+</Page>

@@ -1,0 +1,199 @@
+<Page x:Class="MortysDLP.Views.DownloadPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      Title="Download"
+      Loaded="DownloadPage_Loaded">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="0">
+
+            <!-- DOWNLOAD-PFADE -->
+            <Border CornerRadius="8" Padding="14,10,14,12" Margin="0,0,0,8"
+                    Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1">
+                <StackPanel>
+                    <TextBlock x:Name="txtSectionDownloadPaths" FontWeight="SemiBold" FontSize="11"
+                               Foreground="{StaticResource BrandOrangeBrush}" Margin="0,0,0,6"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,2">
+                        <Label Name="lblDownloadPathInfo" VerticalAlignment="Center" Padding="2" MinWidth="150"/>
+                        <Label Name="lblDownloadPath" MinWidth="500" Cursor="Hand"
+                               Foreground="{StaticResource BrandYellowBrush}"
+                               MouseLeftButtonUp="DownloadPath_MouseLeftButtonUp"/>
+                    </StackPanel>
+                    <DockPanel Name="dpAudioPath">
+                        <StackPanel Orientation="Horizontal">
+                            <Label Name="lblAudioPathInfo" VerticalAlignment="Center" Padding="2" MinWidth="150"/>
+                            <Label Name="lblAudioPath" Width="500" Cursor="Hand"
+                                   Foreground="{StaticResource BrandYellowBrush}"
+                                   MouseLeftButtonUp="DownloadPath_MouseLeftButtonUp"/>
+                        </StackPanel>
+                    </DockPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- DOWNLOAD -->
+            <Border CornerRadius="8" Padding="14,10,14,12" Margin="0,0,0,8"
+                    Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1">
+                <StackPanel>
+                    <TextBlock x:Name="txtSectionDownload" FontWeight="SemiBold" FontSize="11"
+                               Foreground="{StaticResource BrandOrangeBrush}" Margin="0,0,0,8"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                        <Label Name="lblURLInfo" VerticalAlignment="Center" Padding="2" MinWidth="100"/>
+                        <TextBox Name="tbURL" Width="500" GotFocus="TextBox_GotFocus"
+                                 TextChanged="tbURL_TextChanged" KeyDown="tbURL_KeyDown"
+                                 VerticalContentAlignment="Center" Margin="7,0,0,0"/>
+                        <Button Name="btnHistory" Click="btnHistory_Click" Margin="7,0,0,0"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,0">
+                        <CheckBox Name="cbCustomFilename" Checked="cbCustomFilenameCheck" Unchecked="cbCustomFilenameCheck"
+                                  VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <TextBlock Name="txtCustomFilenameInfo" VerticalAlignment="Center" Margin="0,0,7,0"/>
+                        <TextBox Name="tbCustomFilename" Width="500" VerticalAlignment="Center" VerticalContentAlignment="Center"
+                                 IsReadOnly="True" IsEnabled="False"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- OPTIONEN -->
+            <Border CornerRadius="8" Padding="14,10,14,12" Margin="0,0,0,8"
+                    Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1">
+                <StackPanel>
+                    <TextBlock x:Name="txtSectionOptions" FontWeight="SemiBold" FontSize="11"
+                               Foreground="{StaticResource BrandOrangeBrush}" Margin="0,0,0,8"/>
+
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                        <CheckBox Name="cbTimespan" Checked="cbTimespanCheck" Unchecked="cbTimespanCheck"
+                                  VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <TextBlock Name="txtTimespanFrom" VerticalAlignment="Center" MinWidth="100"/>
+                        <TextBox Name="tbTimespanFrom" Width="100" VerticalAlignment="Center" VerticalContentAlignment="Center"
+                                 TextChanged="tbTimespanFrom_TextChanged" Margin="7,0,0,0"/>
+                        <TextBlock Name="txtTimespanDash" VerticalAlignment="Center" Margin="7,0" MinWidth="15" TextAlignment="Center"/>
+                        <TextBox Name="tbTimespanTo" Width="100" VerticalAlignment="Center" VerticalContentAlignment="Center"
+                                 TextChanged="tbTimespanTo_TextChanged" Margin="7,0,0,0"/>
+                        <TextBlock Name="txtTimespanInfo" VerticalAlignment="Center" Margin="7,0,0,0"/>
+                        <TextBlock x:Name="imgTimespanInfo" FontFamily="Segoe MDL2 Assets" FontSize="16"
+                                   Text="&#xE946;" Opacity="0.8" VerticalAlignment="Center" Margin="6,0,0,0">
+                            <TextBlock.ToolTip>
+                                <ToolTip Name="ToolTipTimeSpan"/>
+                            </TextBlock.ToolTip>
+                        </TextBlock>
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                        <CheckBox Name="cbFirstSeconds" Checked="cbFirstSecondsCheck" Unchecked="cbFirstSecondsCheck"
+                                  VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <TextBlock Name="txtFirstSecondsInfo1" VerticalAlignment="Center" MinWidth="100"/>
+                        <TextBox Name="tbFirstSecondsSeconds" Width="100" VerticalAlignment="Center" VerticalContentAlignment="Center"
+                                 TextChanged="tbFirstSecondsSeconds_TextChanged" Margin="7,0,0,0"/>
+                        <TextBlock Name="txtFirstSecondsInfo2" VerticalAlignment="Center" Margin="7,0,0,0"/>
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                        <CheckBox Name="cbVideoformat" Checked="cbVideoFormatCheck" Unchecked="cbVideoFormatCheck"
+                                  VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <TextBlock Name="txtVideoformatInfo1" VerticalAlignment="Center" MinWidth="100"/>
+                        <TextBlock Name="txtVideoformatInfo2" VerticalAlignment="Center" Margin="0,0,0,0"/>
+                        <TextBlock Name="txtVideoformatInfo3" VerticalAlignment="Center" Opacity="0.6" Margin="7,0,0,0"/>
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                        <CheckBox Name="cbAudioOnly" IsChecked="False" Checked="cbAudioOnlyCheck" Unchecked="cbAudioOnlyCheck"
+                                  VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <TextBlock Name="txtAudioOnlyInfo" VerticalAlignment="Center" MinWidth="100"/>
+                        <ComboBox x:Name="combAudioFormat" Width="100" SelectedIndex="4" Margin="8,0,0,0" VerticalContentAlignment="Center">
+                            <ComboBoxItem Content="aac"/>
+                            <ComboBoxItem Content="alac"/>
+                            <ComboBoxItem Content="flac"/>
+                            <ComboBoxItem Content="m4a"/>
+                            <ComboBoxItem Content="mp3"/>
+                            <ComboBoxItem Content="opus"/>
+                            <ComboBoxItem Content="vorbis"/>
+                            <ComboBoxItem Content="wav"/>
+                        </ComboBox>
+                        <TextBlock Name="txtBitrateLabel" VerticalAlignment="Center" Margin="12,0,0,0"/>
+                        <ComboBox Name="combAudioBitrate" Width="120" SelectedIndex="3" Margin="7,0,0,0" VerticalContentAlignment="Center">
+                            <ComboBoxItem x:Name="cbiAudioBitrateHighest"/>
+                            <ComboBoxItem Content="320k"/>
+                            <ComboBoxItem Content="256k"/>
+                            <ComboBoxItem Content="192k"/>
+                            <ComboBoxItem Content="160k"/>
+                            <ComboBoxItem Content="128k"/>
+                            <ComboBoxItem Content="96k"/>
+                            <ComboBoxItem Content="64k"/>
+                        </ComboBox>
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,0">
+                        <TextBlock Name="txtVideoQuality" VerticalAlignment="Center" MinWidth="100" Margin="28,0,0,0"/>
+                        <ComboBox Name="combVideoQuality" Width="150" SelectedIndex="0" Margin="8,0,0,0" VerticalContentAlignment="Center">
+                            <ComboBoxItem x:Name="cbiVideoQualityHighest" Tag="best"/>
+                            <ComboBoxItem Content="1440p" Tag="1440"/>
+                            <ComboBoxItem Content="1080p" Tag="1080"/>
+                            <ComboBoxItem Content="720p" Tag="720"/>
+                            <ComboBoxItem Content="480p" Tag="480"/>
+                            <ComboBoxItem Content="360p" Tag="360"/>
+                            <ComboBoxItem Content="240p" Tag="240"/>
+                            <ComboBoxItem Content="144p" Tag="144"/>
+                        </ComboBox>
+                        <TextBlock Name="txtVideoContainer" VerticalAlignment="Center" Margin="12,0,0,0"/>
+                        <ComboBox Name="combVideoFormat" Width="100" SelectedIndex="0" Margin="8,0,0,0" VerticalContentAlignment="Center">
+                            <ComboBoxItem Content="mp4"/>
+                            <ComboBoxItem Content="mkv"/>
+                            <ComboBoxItem Content="mov"/>
+                            <ComboBoxItem Content="avi"/>
+                        </ComboBox>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- AKTIONEN + FORTSCHRITT -->
+            <Border CornerRadius="8" Padding="14,10,14,10" Margin="0,0,0,8"
+                    Background="{DynamicResource CardBackgroundFillColorDefaultBrush}" BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="1">
+                <StackPanel Orientation="Horizontal">
+                    <Button Name="btnDownloadStart" Click="btnDownloadStart_Click"
+                            Style="{StaticResource PrimaryButtonStyle}" VerticalAlignment="Center"/>
+                    <Button Name="btnDownloadCancel" Click="btnDownloadCancel_Click" IsEnabled="False"
+                            VerticalAlignment="Center" Margin="7,0,0,0"/>
+                    <Separator Margin="10,0"/>
+                    <Button Name="btnSaveSettings" Click="SaveSettings"
+                            VerticalAlignment="Center"/>
+                    <Border Padding="12,0,0,0">
+                        <StackPanel Name="spLoadingbar" Visibility="Hidden" Orientation="Vertical" HorizontalAlignment="Center">
+                            <StackPanel Orientation="Horizontal" Margin="4,0,4,4">
+                                <TextBlock Name="txtDownloadStatus" FontWeight="Bold"/>
+                                <TextBlock Name="txtDownloadProgress" Text="0 %" Margin="8,0,0,0"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <ProgressBar Name="pbDownload"
+                                             Style="{StaticResource FluentProgressBarStyle}"
+                                             Width="200" Height="11"
+                                             Minimum="0" Maximum="100" Value="0"/>
+                                <Button Name="btnStatusIcon" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}"
+                                        Background="Transparent" BorderThickness="0" Padding="0" Margin="6,0,0,0"
+                                        Click="btnStatusIcon_Click">
+                                    <TextBlock Name="iaStatusIcon" FontFamily="Segoe MDL2 Assets" FontSize="18"
+                                               Foreground="{StaticResource BrandYellowBrush}"/>
+                                </Button>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Border>
+
+            <!-- DEBUG -->
+            <DockPanel Margin="0,2,0,0">
+                <Expander Name="expDebug" IsExpanded="False">
+                    <TextBox Name="tbDebugOutput" VerticalScrollBarVisibility="Auto"
+                             HorizontalScrollBarVisibility="Auto" IsReadOnly="True" TextWrapping="NoWrap"
+                             FontFamily="Consolas" FontSize="12" AcceptsReturn="True" AcceptsTab="True"
+                             MaxHeight="200" TextChanged="tbDebugOutput_TextChanged"/>
+                </Expander>
+            </DockPanel>
+
+        </StackPanel>
+    </ScrollViewer>
+</Page>
