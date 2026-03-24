@@ -11,6 +11,9 @@ namespace MortysDLP
         private readonly ConvertPage _convertPage = new();
         private readonly SettingsPage _settingsPage = new();
 
+        private string? _pendingUpdateVersion;
+        private string? _pendingUpdateChangelog;
+
         internal DownloadPage DownloadPage => _downloadPage;
         internal ConvertPage ConvertPage => _convertPage;
 
@@ -20,6 +23,46 @@ namespace MortysDLP
             lblMainVersion.Text = Properties.Settings.Default.CurrentVersion;
             NavigationList.SelectedIndex = 0;
             SetUITexts();
+            Loaded += MainWindow_Loaded;
+        }
+
+        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            if (Application.Current is App app && app.PendingUpdateInfo.HasValue)
+            {
+                var info = app.PendingUpdateInfo.Value;
+                _pendingUpdateVersion  = info.Version;
+                _pendingUpdateChangelog = info.Changelog;
+                ShowUpdateBanner(info.Version);
+            }
+        }
+
+        private void ShowUpdateBanner(string version)
+        {
+            var T = UITextDictionary.Get;
+            txtUpdateBannerMain.Text = string.Format(T("UpdateBanner.Text"), version);
+            txtUpdateBannerSub.Text  = T("UpdateBanner.SubText");
+            btnDismissBanner.ToolTip = T("UpdateBanner.Dismiss");
+            UpdateBanner.Visibility  = Visibility.Visible;
+        }
+
+        private async void btnUpdateBanner_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = new UpdateChangelogDialog(_pendingUpdateVersion ?? string.Empty, _pendingUpdateChangelog ?? string.Empty)
+            {
+                Owner = this
+            };
+
+            if (dialog.ShowDialog() == true && dialog.UpdateConfirmed)
+            {
+                UpdateBanner.Visibility = Visibility.Collapsed;
+                await ((App)Application.Current).StartUpdate(Properties.Settings.Default.CurrentVersion);
+            }
+        }
+
+        private void btnDismissBanner_Click(object sender, RoutedEventArgs e)
+        {
+            UpdateBanner.Visibility = Visibility.Collapsed;
         }
 
         public void SetUITexts()
