@@ -16,6 +16,12 @@ namespace MortysDLP
     {
         private string currentVersion = Settings.Default.CurrentVersion;
 
+        /// <summary>
+        /// Wenn beim Start ein Update gefunden wurde, wird hier die Info hinterlegt.
+        /// Das MainWindow liest dies und zeigt den Update-Banner an.
+        /// </summary>
+        public (string Version, string AssetUrl, string Changelog)? PendingUpdateInfo { get; private set; }
+
         /* 
          * DEBUG
          * */
@@ -41,7 +47,7 @@ namespace MortysDLP
             await SetStatusTextAndWaitAsync(splash, UITexte.UITexte.Splash_SearchingForUpdate, DebugSleepTimer);
 
             using var updateService = new UpdateService();
-            var (latestVersion, assetUrl) = await updateService.GetLatestReleaseInfoAsync();
+            var (latestVersion, assetUrl, changelog) = await updateService.GetLatestReleaseInfoAsync();
 
             bool updateAvailable = !CurrentVersion.Equals(Settings.Default.VersionSkip)
                 && latestVersion != null
@@ -50,17 +56,8 @@ namespace MortysDLP
 
             if (updateAvailable)
             {
-                try
-                {
-                    await SetStatusTextAndWaitAsync(splash, UITexte.UITexte.Splash_StartingUpdate, DebugSleepTimer);
-                    await StartUpdate(updateService, assetUrl!);
-                    await SetStatusTextAndWaitAsync(splash, UITexte.UITexte.Splash_StartingApp, DebugSleepTimer);
-                }
-                catch
-                {
-                    await SetStatusTextAndWaitAsync(splash, UITexte.UITexte.Splash_UpdateError, DebugSleepTimer);
-                    await SetStatusTextAndWaitAsync(splash, UITexte.UITexte.Splash_StartingApp, DebugSleepTimer);
-                }
+                PendingUpdateInfo = (latestVersion!, assetUrl!, changelog ?? string.Empty);
+                await SetStatusTextAndWaitAsync(splash, UITexte.UITexte.Splash_NoUpdate, DebugSleepTimer);
             }
             else
             {
@@ -103,7 +100,7 @@ namespace MortysDLP
         public async Task StartUpdate(string currentVersion)
         {
             var updateService = new UpdateService();
-            var (latestVersion, assetUrl) = await updateService.GetLatestReleaseInfoAsync();
+            var (latestVersion, assetUrl, _) = await updateService.GetLatestReleaseInfoAsync();
 
             if (assetUrl is null) return;
 
@@ -143,7 +140,7 @@ namespace MortysDLP
             }
 
             UpdateService updateService = new UpdateService();
-            var (latestVersion, assetUrl) = await updateService.GetLatestReleaseInfoAsync();
+            var (latestVersion, assetUrl, _) = await updateService.GetLatestReleaseInfoAsync();
 
             if (latestVersion != null && assetUrl != null && updateService.IsNewerVersion(latestVersion, currentVersion))
             {

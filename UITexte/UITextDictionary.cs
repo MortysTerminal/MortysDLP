@@ -207,6 +207,17 @@ namespace MortysDLP.UITexte
             ["FluentMessageBox.Title.Warning"]     = "Warnung",
             ["FluentMessageBox.Title.Error"]       = "Fehler",
             ["FluentMessageBox.Title.Question"]    = "Frage",
+
+            // Update Banner & Dialog
+            ["UpdateBanner.Text"]                    = "Neue Version {0} verfügbar",
+            ["UpdateBanner.SubText"]                 = "Klicken für Details & Update",
+            ["UpdateBanner.Dismiss"]                 = "Schließen",
+            ["UpdateBannerDialog.Title"]             = "Update verfügbar",
+            ["UpdateBannerDialog.Subtitle"]          = "Version {0} steht bereit",
+            ["UpdateBannerDialog.ChangelogLabel"]    = "Was ist neu:",
+            ["UpdateBannerDialog.Button.UpdateNow"]  = "Jetzt aktualisieren",
+            ["UpdateBannerDialog.Button.Later"]      = "Später",
+            ["UpdateBannerDialog.NoChangelog"]       = "Keine Änderungsnotizen vorhanden.",
         };
 
         // English - NOW IT'S A SEPARATE DICTIONARY!
@@ -394,6 +405,17 @@ namespace MortysDLP.UITexte
             ["FluentMessageBox.Title.Warning"]     = "Warning",
             ["FluentMessageBox.Title.Error"]       = "Error",
             ["FluentMessageBox.Title.Question"]    = "Question",
+
+            // Update Banner & Dialog
+            ["UpdateBanner.Text"]                    = "New version {0} available",
+            ["UpdateBanner.SubText"]                 = "Click for details & update",
+            ["UpdateBanner.Dismiss"]                 = "Dismiss",
+            ["UpdateBannerDialog.Title"]             = "Update Available",
+            ["UpdateBannerDialog.Subtitle"]          = "Version {0} is ready",
+            ["UpdateBannerDialog.ChangelogLabel"]    = "What's new:",
+            ["UpdateBannerDialog.Button.UpdateNow"]  = "Update now",
+            ["UpdateBannerDialog.Button.Later"]      = "Not now",
+            ["UpdateBannerDialog.NoChangelog"]       = "No release notes available.",
         };
 
         public static void SetLanguage(string language)

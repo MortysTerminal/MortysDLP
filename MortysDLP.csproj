@@ -105,4 +105,8 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="MortysDLP\Views\" />
+  </ItemGroup>
+
 </Project>
