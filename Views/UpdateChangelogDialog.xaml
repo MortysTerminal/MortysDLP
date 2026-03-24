@@ -1,4 +1,4 @@
-<Window x:Class="MortysDLP.Views.UpdateChangelogDialog"
+﻿<Window x:Class="MortysDLP.Views.UpdateChangelogDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Icon="/Resources/Icons/mw_globe_32px.ico"
@@ -62,21 +62,24 @@
                        Opacity="0.55"
                        Margin="0,0,0,6"/>
 
-            <!-- Changelog scrollable content -->
+            <!-- Changelog: rendered Markdown via RichTextBox -->
             <Border Grid.Row="2"
                     BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
                     BorderThickness="1"
                     CornerRadius="6"
                     Background="{DynamicResource SubtleFillColorSecondaryBrush}"
+                    ClipToBounds="True"
                     Margin="0,0,0,20">
-                <ScrollViewer VerticalScrollBarVisibility="Auto"
-                              Padding="12,10">
-                    <TextBlock x:Name="txtChangelog"
-                               FontSize="13"
-                               LineHeight="22"
-                               TextWrapping="Wrap"
-                               FontFamily="Cascadia Mono, Consolas, Courier New"/>
-                </ScrollViewer>
+                <RichTextBox x:Name="rtfChangelog"
+                             IsReadOnly="True"
+                             IsDocumentEnabled="True"
+                             BorderThickness="0"
+                             Background="Transparent"
+                             Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                             Padding="12,10"
+                             FontSize="13"
+                             ScrollViewer.VerticalScrollBarVisibility="Auto"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled"/>
             </Border>
 
             <!-- Buttons -->

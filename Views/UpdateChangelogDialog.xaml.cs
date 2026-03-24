@@ -1,3 +1,4 @@
+using MortysDLP.Helpers;
 using MortysDLP.UITexte;
 using System.Windows;
 using System.Windows.Input;
@@ -17,11 +18,14 @@ namespace MortysDLP.Views
             txtTitle.Text          = T("UpdateBannerDialog.Title");
             txtSubtitle.Text       = string.Format(T("UpdateBannerDialog.Subtitle"), version);
             txtChangelogLabel.Text = T("UpdateBannerDialog.ChangelogLabel");
-            txtChangelog.Text      = string.IsNullOrWhiteSpace(changelog)
-                                         ? T("UpdateBannerDialog.NoChangelog")
-                                         : changelog;
             btnUpdateNow.Content   = T("UpdateBannerDialog.Button.UpdateNow");
             btnLater.Content       = T("UpdateBannerDialog.Button.Later");
+
+            var markdownText = string.IsNullOrWhiteSpace(changelog)
+                ? T("UpdateBannerDialog.NoChangelog")
+                : changelog;
+
+            rtfChangelog.Document = MarkdownHelper.ToFlowDocument(markdownText);
         }
 
         private void btnUpdateNow_Click(object sender, RoutedEventArgs e)
