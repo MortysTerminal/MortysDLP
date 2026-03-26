@@ -430,15 +430,24 @@ namespace MortysDLP.Views
             return "192k";
         }
 
-        /// <summary>Baut den yt-dlp Format-Selector aus dem Tag-Wert (sprachunabhängig).</summary>
-        private static string BuildYtDlpVideoFormatSelector(string qualityTag) =>
-            qualityTag switch
+        /// <summary>Baut den yt-dlp Format-Selector aus dem Tag-Wert (sprachunabhängig).
+        /// Für MP4 werden nativ kompatible H.264/AAC-Streams bevorzugt, damit FFmpeg nur remuxen muss.</summary>
+        private static string BuildYtDlpVideoFormatSelector(string qualityTag, string container)
+        {
+            bool preferMp4Streams = container.Equals("mp4", StringComparison.OrdinalIgnoreCase);
+            string vExt = preferMp4Streams ? "[ext=mp4]" : "";
+            string aExt = preferMp4Streams ? "[ext=m4a]" : "";
+
+            return qualityTag switch
             {
-                "best" or "" => "bestvideo+bestaudio/best",
-                _ when int.TryParse(qualityTag, out int h) && h > 0
-                    => $"bestvideo[height<={h}]+bestaudio/best[height<={h}]",
-                _ => "bestvideo+bestaudio/best"
+                "best" or "" =>
+                    $"bestvideo{vExt}+bestaudio{aExt}/bestvideo+bestaudio/best",
+                _ when int.TryParse(qualityTag, out int h) && h > 0 =>
+                    $"bestvideo{vExt}[height<={h}]+bestaudio{aExt}/bestvideo[height<={h}]+bestaudio/best[height<={h}]",
+                _ =>
+                    $"bestvideo{vExt}+bestaudio{aExt}/bestvideo+bestaudio/best"
             };
+        }
 
         private string BuildYTDLPArguments(int? sourceAsr, int? sourceChannels)
         {
@@ -527,21 +536,25 @@ namespace MortysDLP.Views
             }
             else
             {
-                var fSelector = BuildYtDlpVideoFormatSelector(vqTag);
+                // Schnittmodus benötigt immer H.264 -> MP4-native Streams bevorzugen, damit der Re-Encode schneller geht
+                var fSelector = BuildYtDlpVideoFormatSelector(vqTag, isVideoformat ? "mp4" : vfContainer);
                 sb.Append($"-f \"{fSelector}\" ");
 
                 if (isVideoformat)
                 {
+                    // Re-Encode ist beim Schnittmodus zwingend erforderlich (H.264 für genaues Schneiden)
                     AppendOutput($"[VIDEO] Schnittmodus aktiv -> mp4 + x264, VQ={vqLabel}");
                     sb.Append("--recode-video mp4 ");
-                    sb.Append("--ppa \"VideoConvertor:-c:v libx264 -preset medium -crf 20 -pix_fmt yuv420p -c:a aac -ar 48000 -ac 2 -movflags +faststart\" ");
+                    // preset fast statt medium: ~2x schneller bei kaum sichtbarem Qualitätsunterschied
+                    sb.Append("--ppa \"VideoConvertor:-c:v libx264 -preset fast -crf 20 -pix_fmt yuv420p -c:a aac -ar 48000 -ac 2 -movflags +faststart\" ");
                 }
                 else
                 {
-                    AppendOutput($"[VIDEO] Recode in Container: {vfContainer}, VQ={vqLabel}");
-                    sb.Append($"--recode-video {vfContainer} ");
+                    // --merge-output-format statt --recode-video: FFmpeg remuxed nur (Stream-Copy), kein Re-Encode -> sehr schnell
+                    AppendOutput($"[VIDEO] Merge in Container: {vfContainer}, VQ={vqLabel}");
+                    sb.Append($"--merge-output-format {vfContainer} ");
                     if (vfContainer.Equals("mp4", StringComparison.OrdinalIgnoreCase))
-                        sb.Append("--ppa \"VideoConvertor:-movflags +faststart\" ");
+                        sb.Append("--postprocessor-args \"Merger:-c copy -movflags +faststart\" ");
                 }
             }
 
