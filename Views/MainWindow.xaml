@@ -182,11 +182,129 @@
         <Grid Grid.Column="1" Margin="14,14,14,14">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
+            <!-- Update-Banner (nur sichtbar wenn Update verfügbar) -->
+            <Border x:Name="UpdateBanner"
+                    Grid.Row="0"
+                    Visibility="Collapsed"
+                    CornerRadius="8"
+                    Margin="0,0,0,8"
+                    ClipToBounds="True">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                        <GradientStop Color="#2A1E00" Offset="0"/>
+                        <GradientStop Color="#2A1000" Offset="1"/>
+                    </LinearGradientBrush>
+                </Border.Background>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="4"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Farbiger Akzentstreifen links -->
+                    <Rectangle Grid.Column="0" Fill="{StaticResource BrandGradientBrush}"/>
+
+                    <!-- Klickbarer Bereich mit Icon + Text -->
+                    <Button Grid.Column="1"
+                            x:Name="btnUpdateBanner"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            Padding="12,8"
+                            HorizontalContentAlignment="Left"
+                            Cursor="Hand"
+                            Click="btnUpdateBanner_Click">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="Background" Value="Transparent"/>
+                                <Setter Property="BorderThickness" Value="0"/>
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border x:Name="bg"
+                                                    Background="{TemplateBinding Background}"
+                                                    Padding="{TemplateBinding Padding}">
+                                                <ContentPresenter HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="bg" Property="Background" Value="#15ffffff"/>
+                                                </Trigger>
+                                                <Trigger Property="IsPressed" Value="True">
+                                                    <Setter TargetName="bg" Property="Background" Value="#25ffffff"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </Button.Style>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE895;"
+                                       FontSize="15"
+                                       Foreground="{StaticResource BrandYellowBrush}"
+                                       VerticalAlignment="Center"
+                                       Margin="0,0,10,0"/>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock x:Name="txtUpdateBannerMain"
+                                           FontWeight="SemiBold" FontSize="13"
+                                           Foreground="{StaticResource BrandYellowBrush}"/>
+                                <TextBlock x:Name="txtUpdateBannerSub"
+                                           FontSize="11" Opacity="0.7"
+                                           Foreground="{StaticResource BrandCreamBrush}"
+                                           Margin="0,1,0,0"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Button>
+
+                    <!-- Schließen-Button -->
+                    <Button Grid.Column="2"
+                            x:Name="btnDismissBanner"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            Width="36" Height="36"
+                            Margin="0,0,4,0"
+                            Cursor="Hand"
+                            ToolTip="{Binding}"
+                            Click="btnDismissBanner_Click">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="Background" Value="Transparent"/>
+                                <Setter Property="BorderThickness" Value="0"/>
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border x:Name="bg"
+                                                    Background="{TemplateBinding Background}"
+                                                    CornerRadius="4"
+                                                    Width="{TemplateBinding Width}"
+                                                    Height="{TemplateBinding Height}">
+                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="bg" Property="Background" Value="#20ffffff"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </Button.Style>
+                        <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE711;"
+                                   FontSize="12"
+                                   Foreground="{StaticResource BrandCreamBrush}"
+                                   Opacity="0.7"/>
+                    </Button>
+                </Grid>
+            </Border>
+
             <!-- Header-Leiste -->
-            <Border Grid.Row="0" CornerRadius="10" ClipToBounds="True" Margin="0,0,0,10"
+            <Border Grid.Row="1" CornerRadius="10" ClipToBounds="True" Margin="0,0,0,10"
                     Background="{DynamicResource LayerFillColorDefaultBrush}">
                 <Grid>
                     <Grid.RowDefinitions>
@@ -211,7 +329,7 @@
             </Border>
 
             <!-- Seiten-Frame -->
-            <Frame x:Name="MainFrame" Grid.Row="1"
+            <Frame x:Name="MainFrame" Grid.Row="2"
                    NavigationUIVisibility="Hidden"
                    Background="Transparent"/>
         </Grid>

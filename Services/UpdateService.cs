@@ -21,30 +21,36 @@ namespace MortysDLP.Services
             _httpClient.Timeout = TimeSpan.FromSeconds(10);
         }
 
-        public async Task<(string? version, string? assetUrl)> GetLatestReleaseInfoAsync()
+        public async Task<(string? version, string? assetUrl, string? changelog)> GetLatestReleaseInfoAsync()
         {
             try
             {
                 var response = await _httpClient.GetAsync(GitHubApiUrl);
                 if (!response.IsSuccessStatusCode)
-                    return (null, null);
+                    return (null, null, null);
 
                 var json = await response.Content.ReadAsStringAsync();
                 using var doc = JsonDocument.Parse(json);
 
                 string? version = doc.RootElement.GetProperty("tag_name").GetString();
                 string? assetUrl = null;
+                string? changelog = null;
 
                 if (doc.RootElement.TryGetProperty("assets", out var assets) && assets.GetArrayLength() > 0)
                 {
                     assetUrl = assets[0].GetProperty("browser_download_url").GetString();
                 }
 
-                return (version, assetUrl);
+                if (doc.RootElement.TryGetProperty("body", out var body))
+                {
+                    changelog = body.GetString();
+                }
+
+                return (version, assetUrl, changelog);
             }
             catch
             {
-                return (null, null);
+                return (null, null, null);
             }
         }
 

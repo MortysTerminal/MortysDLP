@@ -25,7 +25,7 @@ namespace MortysDLP.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("2026.03.04")]
+        [global::System.Configuration.DefaultSettingValueAttribute("2026.03.24")]
         public string CurrentVersion {
             get {
                 return ((string)(this["CurrentVersion"]));
@@ -301,6 +301,18 @@ namespace MortysDLP.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("auto")]
+        public string SelectedLanguage {
+            get {
+                return ((string)(this["SelectedLanguage"]));
+            }
+            set {
+                this["SelectedLanguage"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("download_history.json")]
         public string DownloadHistoryFileName {
             get {
@@ -416,18 +428,6 @@ namespace MortysDLP.Properties {
             }
             set {
                 this["DebugMode"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("auto")]
-        public string SelectedLanguage {
-            get {
-                return ((string)(this["SelectedLanguage"]));
-            }
-            set {
-                this["SelectedLanguage"] = value;
             }
         }
     }
