@@ -2,7 +2,7 @@
 
 **MortysDLP** is a modern WPF desktop application for downloading videos and audio from the internet on Windows. It uses [yt-dlp](https://github.com/yt-dlp/yt-dlp) and [ffmpeg](https://ffmpeg.org/) under the hood and wraps them in a clean, Fluent-style interface — no command line required.
 
-<img width="702" height="576" alt="Screenshot 2025-07-31 075442" src="https://github.com/user-attachments/assets/8522eba1-6fe8-4f86-af61-420d6c3df3eb" />
+<img width="702" height="576" alt="mortysdlp-overlay-example" src="https://github.com/MortysTerminal/MortysDLP/blob/master/Pictures/mortysdlp-overlay-example.png" />
 
 ---
 
