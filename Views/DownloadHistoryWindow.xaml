@@ -48,11 +48,10 @@
                 Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
                 BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
                 BorderThickness="1">
-            <ScrollViewer VerticalScrollBarVisibility="Auto">
-                <ListBox Name="HistoryList" 
-                         Background="Transparent" 
-                         BorderThickness="0"
-                         Padding="8">
+            <ListBox Name="HistoryList" 
+                     Background="Transparent" 
+                     BorderThickness="0"
+                     Padding="8">
                     <ListBox.ItemContainerStyle>
                         <Style TargetType="ListBoxItem">
                             <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
@@ -125,7 +124,6 @@
                         </DataTemplate>
                     </ListBox.ItemTemplate>
                 </ListBox>
-            </ScrollViewer>
         </Border>
 
         <!-- Empty State -->

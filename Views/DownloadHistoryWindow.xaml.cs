@@ -46,6 +46,15 @@ namespace MortysDLP
 
         private async void Clear_Click(object sender, RoutedEventArgs e)
         {
+            var T = UITexte.UITextDictionary.Get;
+            var result = FluentMessageBox.Show(
+                T("DownloadHistory.Clear.Question"),
+                T("DownloadHistory.Clear.Title"),
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            if (result != MessageBoxResult.Yes) return;
+
             await DownloadHistoryService.ClearAsync();
             await LoadHistory();
         }

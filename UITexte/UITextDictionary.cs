@@ -176,6 +176,8 @@ namespace MortysDLP.UITexte
             ["DownloadHistory.Label.EmptyHistory.Info"] = "Deine Download-Historie wird hier angezeigt.",
             ["DownloadHistory.Type.Audio"] = "Audio",
             ["DownloadHistory.Type.Video"] = "Video",
+            ["DownloadHistory.Clear.Title"] = "Verlauf leeren",
+            ["DownloadHistory.Clear.Question"] = "Möchtest du den gesamten Download-Verlauf wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
 
             // Download Path Dialog
             ["DownloadPathDialog.Title"] = "Download-Pfade konfigurieren",
@@ -374,6 +376,8 @@ namespace MortysDLP.UITexte
             ["DownloadHistory.Label.EmptyHistory.Info"] = "Your download history will appear here.",
             ["DownloadHistory.Type.Audio"] = "Audio",
             ["DownloadHistory.Type.Video"] = "Video",
+            ["DownloadHistory.Clear.Title"] = "Clear History",
+            ["DownloadHistory.Clear.Question"] = "Are you sure you want to clear the entire download history? This action cannot be undone.",
 
             // Download Path Dialog
             ["DownloadPathDialog.Title"] = "Configure Download Paths",
