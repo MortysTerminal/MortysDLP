@@ -259,6 +259,42 @@ namespace MortysDLP.UITexte {
         }
         
         /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die Update fehlgeschlagen: {0} ähnelt.
+        /// </summary>
+        internal static string Error_UpdateFailed {
+            get {
+                return ResourceManager.GetString("Error_UpdateFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die Keine Update-Informationen verfügbar. Bitte versuche es später erneut. ähnelt.
+        /// </summary>
+        internal static string Error_UpdateNotAvailable {
+            get {
+                return ResourceManager.GetString("Error_UpdateNotAvailable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die Die Updater-Komponente wurde nicht gefunden. Bitte lade die neue Version manuell von GitHub herunter. ähnelt.
+        /// </summary>
+        internal static string Error_UpdaterNotFound {
+            get {
+                return ResourceManager.GetString("Error_UpdaterNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Sucht eine lokalisierte Zeichenfolge, die Die heruntergeladene Update-Datei ist beschädigt. Bitte versuche es erneut. ähnelt.
+        /// </summary>
+        internal static string Error_UpdateZipCorrupt {
+            get {
+                return ResourceManager.GetString("Error_UpdateZipCorrupt", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Sucht eine lokalisierte Zeichenfolge, die Konvertieren ähnelt.
         /// </summary>
         internal static string MainWindow_Button_Convert {

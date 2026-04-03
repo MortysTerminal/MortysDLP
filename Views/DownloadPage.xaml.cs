@@ -22,6 +22,7 @@ namespace MortysDLP.Views
         private double _lastProgress = 0;
         private Process? _ytDlpProcess;
         private bool _initialized = false;
+        private string? _lastOutputFilePath;
 
         public enum iaStatusIconType { None, Loading, Success, Error }
 
@@ -256,7 +257,72 @@ namespace MortysDLP.Views
 
             try
             {
-                _downloadTask = StartDownloadAsync(token);
+                // ── Playlist-Erkennung ──────────────────────────────────────
+                if (PlaylistHelper.IsPlaylistUrl(url))
+                {
+                    var T = UITextDictionary.Get;
+                    bool hasSingleVideo = PlaylistHelper.ContainsSingleVideoId(url);
+
+                    string message = hasSingleVideo
+                        ? T("DownloadPage.Playlist.Message")
+                        : T("DownloadPage.Playlist.MessageNoSingle");
+
+                    MessageBoxResult result;
+
+                    if (hasSingleVideo)
+                    {
+                        result = FluentMessageBox.Show(
+                            message,
+                            T("DownloadPage.Playlist.Title"),
+                            MessageBoxImage.Question,
+                            null,
+                            (T("Common.Button.Cancel"),                  MessageBoxResult.Cancel, false),
+                            (T("DownloadPage.Playlist.SingleVideo"),     MessageBoxResult.No,     false),
+                            (T("DownloadPage.Playlist.FullPlaylist"),    MessageBoxResult.Yes,    true));
+                    }
+                    else
+                    {
+                        result = FluentMessageBox.Show(
+                            message,
+                            T("DownloadPage.Playlist.Title"),
+                            MessageBoxImage.Question,
+                            null,
+                            (T("Common.Button.Cancel"),                  MessageBoxResult.Cancel, false),
+                            (T("DownloadPage.Playlist.FullPlaylist"),    MessageBoxResult.Yes,    true));
+                    }
+
+                    if (result == MessageBoxResult.Cancel ||
+                        result == MessageBoxResult.None)
+                    {
+                        throw new OperationCanceledException(token);
+                    }
+
+                    if (hasSingleVideo && result == MessageBoxResult.No)
+                    {
+                        // "Einzelnes Video laden" -> Playlist-Parameter entfernen
+                        url = PlaylistHelper.ExtractSingleVideoUrl(url);
+                        tbURL.Text = url;
+                        AppendOutput($"[PLAYLIST] Einzelvideo extrahiert: {url}");
+                        // Weiter mit normalem Single-Download
+                    }
+                    else
+                    {
+                        // "Ganze Playlist laden" -> Pipeline starten
+                        _downloadTask = StartPlaylistDownloadAsync(ytDlpPath, url, token);
+                        await _downloadTask;
+
+                        if (token.IsCancellationRequested) throw new OperationCanceledException(token);
+
+                        AppendOutput(UITexte.UITexte.MainWindow_DebugOutput_DownloadSuccess);
+                        SetiaStatusIcon(iaStatusIconType.Success);
+                        UpdateProgress(100);
+                        txtDownloadStatus.Text = UITextDictionary.Get("DownloadPage.Status.Success");
+                        return;
+                    }
+                }
+
+                // ── Normaler Single-Video-Download ──────────────────────────
+                _downloadTask = StartDownloadAsync(url, token);
 
                 bool useCustom = false;
                 string customName = "";
@@ -315,6 +381,7 @@ namespace MortysDLP.Views
                 VideoformatAdjustments();
                 TimespanAdjustments();
                 CustomFilenameAdjustments();
+                Dispatcher.Invoke(() => txtPlaylistProgress.Visibility = Visibility.Collapsed);
             }
         }
 
@@ -346,7 +413,7 @@ namespace MortysDLP.Views
                     StartInfo = new ProcessStartInfo
                     {
                         FileName  = ytDlpPath,
-                        Arguments = $"--no-check-certificates -f bestaudio --print \"%(asr)s|%(audio_channels)s\" \"{url}\"",
+                        Arguments = $"--no-check-certificates --no-playlist -f bestaudio --print \"%(asr)s|%(audio_channels)s\" \"{url}\"",
                         RedirectStandardOutput = true,
                         RedirectStandardError  = true,
                         UseShellExecute  = false,
@@ -431,27 +498,37 @@ namespace MortysDLP.Views
         }
 
         /// <summary>Baut den yt-dlp Format-Selector aus dem Tag-Wert (sprachunabhängig).
-        /// Für MP4 werden nativ kompatible H.264/AAC-Streams bevorzugt, damit FFmpeg nur remuxen muss.</summary>
+        /// Container-Kompatibilität:
+        ///   mp4 – ISOBMFF: H.264/H.265/AV1 + AAC. Filter: [ext=mp4]+[ext=m4a] (AV1 in mp4 ist gültig)
+        ///   mov – QuickTime: H.264/H.265 + AAC. Kein AV1! Filter: [vcodec^=avc1]+[ext=m4a]
+        ///   avi – RIFF: nur H.264 + AAC/MP3 praxistauglich. Kein AV1/VP9! Filter: [vcodec^=avc1]+[ext=m4a]
+        ///   mkv – Matroska: universell, akzeptiert alle Codecs → kein Filter nötig</summary>
         private static string BuildYtDlpVideoFormatSelector(string qualityTag, string container)
         {
-            bool preferMp4Streams = container.Equals("mp4", StringComparison.OrdinalIgnoreCase);
-            string vExt = preferMp4Streams ? "[ext=mp4]" : "";
-            string aExt = preferMp4Streams ? "[ext=m4a]" : "";
+            bool isMp4 = container.Equals("mp4", StringComparison.OrdinalIgnoreCase);
+            bool needsH264 = container.Equals("mov", StringComparison.OrdinalIgnoreCase)
+                          || container.Equals("avi", StringComparison.OrdinalIgnoreCase);
+
+            // mov/avi: Codec-Filter (H.264 = avc1), da AV1 in diesen Containern nicht funktioniert
+            // mp4:     Container-Filter reicht (mp4 unterstützt AV1 nativ)
+            // mkv:     kein Filter nötig
+            string vFilter = needsH264 ? "[vcodec^=avc1]" : (isMp4 ? "[ext=mp4]" : "");
+            string aFilter = (needsH264 || isMp4) ? "[ext=m4a]" : "";
 
             return qualityTag switch
             {
                 "best" or "" =>
-                    $"bestvideo{vExt}+bestaudio{aExt}/bestvideo+bestaudio/best",
+                    $"bestvideo{vFilter}+bestaudio{aFilter}/bestvideo+bestaudio/best",
                 _ when int.TryParse(qualityTag, out int h) && h > 0 =>
-                    $"bestvideo{vExt}[height<={h}]+bestaudio{aExt}/bestvideo[height<={h}]+bestaudio/best[height<={h}]",
+                    $"bestvideo{vFilter}[height<={h}]+bestaudio{aFilter}/bestvideo[height<={h}]+bestaudio/best[height<={h}]",
                 _ =>
-                    $"bestvideo{vExt}+bestaudio{aExt}/bestvideo+bestaudio/best"
+                    $"bestvideo{vFilter}+bestaudio{aFilter}/bestvideo+bestaudio/best"
             };
         }
 
-        private string BuildYTDLPArguments(int? sourceAsr, int? sourceChannels)
+        private string BuildYTDLPArguments(int? sourceAsr, int? sourceChannels, string urlOverride)
         {
-            string url = "";
+            string url = urlOverride;
             string timespanFrom = "";
             string timespanTo = "";
             string firstSeconds = "";
@@ -471,7 +548,6 @@ namespace MortysDLP.Views
 
             Dispatcher.Invoke(() =>
             {
-                url = tbURL.Text;
                 timespanFrom = tbTimespanFrom.Text;
                 timespanTo = tbTimespanTo.Text;
                 firstSeconds = tbFirstSecondsSeconds.Text;
@@ -542,18 +618,19 @@ namespace MortysDLP.Views
 
                 if (isVideoformat)
                 {
-                    // Re-Encode ist beim Schnittmodus zwingend erforderlich (H.264 für genaues Schneiden)
+                    // Schnittmodus: nur in MP4 mergen (Stream-Copy), H.264-Konvertierung erfolgt nach dem Download per ffmpeg
+                    // yt-dlp's --recode-video prüft nur den Container, nicht den Codec → AV1-in-MP4 wird übersprungen
                     AppendOutput($"[VIDEO] Schnittmodus aktiv -> mp4 + x264, VQ={vqLabel}");
-                    sb.Append("--recode-video mp4 ");
-                    // preset fast statt medium: ~2x schneller bei kaum sichtbarem Qualitätsunterschied
-                    sb.Append("--ppa \"VideoConvertor:-c:v libx264 -preset fast -crf 20 -pix_fmt yuv420p -c:a aac -ar 48000 -ac 2 -movflags +faststart\" ");
+                    sb.Append("--merge-output-format mp4 ");
+                    sb.Append("--postprocessor-args \"Merger:-c copy -movflags +faststart\" ");
                 }
                 else
                 {
                     // --merge-output-format statt --recode-video: FFmpeg remuxed nur (Stream-Copy), kein Re-Encode -> sehr schnell
                     AppendOutput($"[VIDEO] Merge in Container: {vfContainer}, VQ={vqLabel}");
                     sb.Append($"--merge-output-format {vfContainer} ");
-                    if (vfContainer.Equals("mp4", StringComparison.OrdinalIgnoreCase))
+                    if (vfContainer.Equals("mp4", StringComparison.OrdinalIgnoreCase)
+                        || vfContainer.Equals("mov", StringComparison.OrdinalIgnoreCase))
                         sb.Append("--postprocessor-args \"Merger:-c copy -movflags +faststart\" ");
                 }
             }
@@ -601,7 +678,8 @@ namespace MortysDLP.Views
                 sb.Append($"--downloader \"{ffmpegPath}\" --downloader-args \"ffmpeg:-t {firstSeconds}\" ");
 
             // --newline: Progress-Updates als separate Zeilen (statt \r), verbessert Parsing
-            sb.Append("--no-check-certificates --no-mtime --newline ");
+            // --no-playlist: verhindert, dass yt-dlp eigenständig eine Playlist expandiert
+            sb.Append("--no-check-certificates --no-mtime --newline --no-playlist ");
             sb.Append($"\"{url}\"");
 
             AppendOutput("ARGS: " + sb);
@@ -767,6 +845,25 @@ namespace MortysDLP.Views
         {
             AppendOutput(isError ? $"[STDERR] {line}" : line);
 
+            // Ausgabedatei-Pfad tracken (für Post-Processing / Schnittmodus)
+            if (!isError)
+            {
+                if (line.StartsWith("[Merger] Merging formats into \""))
+                {
+                    var m = System.Text.RegularExpressions.Regex.Match(line, @"\[Merger\] Merging formats into ""(.+)""");
+                    if (m.Success) _lastOutputFilePath = m.Groups[1].Value;
+                }
+                else if (line.StartsWith("[download] Destination: "))
+                {
+                    _lastOutputFilePath = line["[download] Destination: ".Length..].Trim();
+                }
+                else if (line.StartsWith("[download] ") && line.EndsWith(" has already been downloaded"))
+                {
+                    const string suffix = " has already been downloaded";
+                    _lastOutputFilePath = line["[download] ".Length..^suffix.Length].Trim();
+                }
+            }
+
             var (progress, speed) = ParseYtDlpDownloadProgress(line);
             if (progress.HasValue)
             {
@@ -801,6 +898,7 @@ namespace MortysDLP.Views
 
         private async Task RunYtDlpAsync(string ytDlpPath, string arguments, CancellationToken token)
         {
+            _lastOutputFilePath = null;
             string timespanTo = string.Empty;
             string timespanFrom = string.Empty;
             bool isTimespanChecked = false;
@@ -854,6 +952,11 @@ namespace MortysDLP.Views
                 // CancellationToken.None: sauber warten bis Kill abgeschlossen ist
                 await process.WaitForExitAsync(CancellationToken.None);
 
+                // Synchrones WaitForExit stellt sicher, dass alle asynchronen Output-Events
+                // (OutputDataReceived/ErrorDataReceived) vollständig verarbeitet wurden,
+                // bevor wir _lastOutputFilePath auswerten.
+                process.WaitForExit();
+
                 if (token.IsCancellationRequested)
                     throw new OperationCanceledException(token);
 
@@ -866,6 +969,236 @@ namespace MortysDLP.Views
             {
                 _ytDlpProcess = null;
                 process.Dispose();
+            }
+        }
+
+        // ─── Post-Download Codec-Garantie (Schnittmodus) ────────────────────────────
+
+        /// <summary>Löst den tatsächlichen Ausgabedateipfad auf.
+        /// yt-dlp sanitisiert Sonderzeichen (z.B. 【】) in der Konsolenausgabe,
+        /// behält sie aber im echten Dateinamen bei → geparster Pfad ≠ echter Pfad.
+        /// Fallback: Suche im Download-Verzeichnis anhand der Video-ID im Dateinamen.</summary>
+        private string? ResolveOutputFilePath()
+        {
+            if (!string.IsNullOrEmpty(_lastOutputFilePath) && System.IO.File.Exists(_lastOutputFilePath))
+                return _lastOutputFilePath;
+
+            // Fallback: Datei per Video-ID-Suffix suchen
+            if (!string.IsNullOrEmpty(_lastOutputFilePath))
+            {
+                string? found = TryFindOutputFileByIdSuffix(_lastOutputFilePath);
+                if (found != null) return found;
+            }
+
+            return null;
+        }
+
+        /// <summary>Sucht die Ausgabedatei anhand der Video-ID im Dateinamen.
+        /// Unser Output-Template endet immer mit _%(id)s.%(ext)s –
+        /// die Video-ID wird von yt-dlp nie sanitisiert, nur der Titel.</summary>
+        private string? TryFindOutputFileByIdSuffix(string parsedPath)
+        {
+            try
+            {
+                string? dir = System.IO.Path.GetDirectoryName(parsedPath);
+                if (string.IsNullOrEmpty(dir) || !System.IO.Directory.Exists(dir)) return null;
+
+                string fileNameWithoutExt = System.IO.Path.GetFileNameWithoutExtension(parsedPath);
+                string ext = System.IO.Path.GetExtension(parsedPath);
+
+                // Video-ID ist immer am Ende: ..._{id}.{ext}
+                int lastUnderscore = fileNameWithoutExt.LastIndexOf('_');
+                if (lastUnderscore < 0) return null;
+
+                string idSuffix = fileNameWithoutExt[lastUnderscore..]; // z.B. "_TeQ0NNpiQWs"
+                string searchPattern = $"*{idSuffix}{ext}";
+
+                var matches = System.IO.Directory.GetFiles(dir, searchPattern);
+                if (matches.Length == 1)
+                {
+                    AppendOutput($"[SCHNITT] Datei per Video-ID gefunden: {System.IO.Path.GetFileName(matches[0])}");
+                    return matches[0];
+                }
+                else if (matches.Length > 1)
+                {
+                    // Mehrere Treffer → neueste Datei verwenden
+                    var newest = matches.OrderByDescending(f => System.IO.File.GetLastWriteTimeUtc(f)).First();
+                    AppendOutput($"[SCHNITT] Datei per Video-ID gefunden ({matches.Length} Treffer, neueste): {System.IO.Path.GetFileName(newest)}");
+                    return newest;
+                }
+            }
+            catch { }
+            return null;
+        }
+
+        /// <summary>Prüft den Video-Codec der heruntergeladenen Datei und konvertiert zu H.264 falls nötig.
+        /// Nutzt GPU-Beschleunigung (NVENC/QSV/AMF) wenn verfügbar, sonst CPU (libx264).</summary>
+        private async Task EnsureH264CodecAsync(string filePath, CancellationToken token)
+        {
+            string ffprobePath = Properties.Settings.Default.FfprobePath;
+            string ffmpegPath = Properties.Settings.Default.FfmpegPath;
+
+            // 1. Codec und Auflösung prüfen (ein ffprobe-Aufruf)
+            Dispatcher.Invoke(() => txtDownloadStatus.Text = UITextDictionary.Get("DownloadPage.Status.CheckingCodec"));
+            var (codec, videoWidth, videoHeight) = await GetVideoStreamInfoAsync(ffprobePath, filePath);
+
+            if (codec != null && (codec.StartsWith("h264", StringComparison.OrdinalIgnoreCase)
+                               || codec.StartsWith("avc", StringComparison.OrdinalIgnoreCase)))
+            {
+                AppendOutput($"[SCHNITT] Video-Codec ist bereits H.264 ({codec}, {videoWidth}x{videoHeight}) – keine Konvertierung nötig.");
+                return;
+            }
+
+            AppendOutput($"[SCHNITT] Video-Codec ist {codec ?? "unbekannt"} ({videoWidth}x{videoHeight}) – Konvertierung zu H.264 erforderlich.");
+
+            // 2. Besten Encoder ermitteln (GPU > CPU, auflösungsabhängig)
+            Dispatcher.Invoke(() => txtDownloadStatus.Text = UITextDictionary.Get("DownloadPage.Status.DetectingEncoder"));
+            string encoder = await HwAccelHelper.DetectBestH264EncoderAsync(ffmpegPath, videoWidth, videoHeight);
+            AppendOutput($"[SCHNITT] Encoder: {HwAccelHelper.GetEncoderDisplayName(encoder)}");
+
+            // 3. Konvertierung starten
+            Dispatcher.Invoke(() => txtDownloadStatus.Text = UITextDictionary.Get("DownloadPage.Status.ConvertingH264"));
+            UpdateProgress(0);
+
+            string dir = System.IO.Path.GetDirectoryName(filePath)!;
+            string tempPath = System.IO.Path.Combine(dir,
+                System.IO.Path.GetFileNameWithoutExtension(filePath) + "_h264_tmp" + System.IO.Path.GetExtension(filePath));
+
+            string args = HwAccelHelper.BuildH264Args(encoder, filePath, tempPath);
+            await RunFfmpegConvertAsync(ffmpegPath, args, filePath, token);
+
+            // 4. Original durch konvertierte Datei ersetzen
+            if (System.IO.File.Exists(tempPath))
+            {
+                System.IO.File.Delete(filePath);
+                System.IO.File.Move(tempPath, filePath);
+                AppendOutput($"[SCHNITT] Konvertierung abgeschlossen: {System.IO.Path.GetFileName(filePath)}");
+            }
+        }
+
+        /// <summary>Ermittelt Video-Codec und Auflösung einer Datei per ffprobe (ein Aufruf).</summary>
+        private async Task<(string? Codec, int Width, int Height)> GetVideoStreamInfoAsync(string ffprobePath, string filePath)
+        {
+            try
+            {
+                var psi = new ProcessStartInfo
+                {
+                    FileName = ffprobePath,
+                    Arguments = $"-v error -select_streams v:0 -show_entries stream=codec_name,width,height -of default=noprint_wrappers=1 \"{filePath}\"",
+                    RedirectStandardOutput = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
+                using var proc = Process.Start(psi);
+                if (proc == null) return (null, 0, 0);
+                string output = (await proc.StandardOutput.ReadToEndAsync()).Trim();
+                await proc.WaitForExitAsync();
+
+                string? codec = null;
+                int width = 0, height = 0;
+
+                foreach (var line in output.Split('\n', '\r', StringSplitOptions.RemoveEmptyEntries))
+                {
+                    if (line.StartsWith("codec_name="))
+                        codec = line["codec_name=".Length..].Trim();
+                    else if (line.StartsWith("width=") && int.TryParse(line["width=".Length..].Trim(), out int w))
+                        width = w;
+                    else if (line.StartsWith("height=") && int.TryParse(line["height=".Length..].Trim(), out int h))
+                        height = h;
+                }
+
+                return (string.IsNullOrWhiteSpace(codec) ? null : codec, width, height);
+            }
+            catch
+            {
+                return (null, 0, 0);
+            }
+        }
+
+        /// <summary>Ermittelt die Gesamtdauer einer Mediendatei in Sekunden per ffprobe.</summary>
+        private async Task<double> GetMediaDurationAsync(string ffprobePath, string filePath)
+        {
+            try
+            {
+                var psi = new ProcessStartInfo
+                {
+                    FileName = ffprobePath,
+                    Arguments = $"-v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 \"{filePath}\"",
+                    RedirectStandardOutput = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
+                using var proc = Process.Start(psi);
+                if (proc == null) return 0;
+                string output = (await proc.StandardOutput.ReadToEndAsync()).Trim();
+                await proc.WaitForExitAsync();
+                if (double.TryParse(output, NumberStyles.Any, CultureInfo.InvariantCulture, out double duration))
+                    return duration;
+            }
+            catch { }
+            return 0;
+        }
+
+        /// <summary>Führt ffmpeg-Konvertierung aus und zeigt Fortschritt basierend auf der Quelldatei-Dauer.</summary>
+        private async Task RunFfmpegConvertAsync(string ffmpegPath, string arguments, string inputFile, CancellationToken token)
+        {
+            string ffprobePath = Properties.Settings.Default.FfprobePath;
+            double totalSeconds = await GetMediaDurationAsync(ffprobePath, inputFile);
+
+            AppendOutput($"[ffmpeg] CMD: {ffmpegPath} {arguments}");
+
+            using var process = new Process
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = ffmpegPath,
+                    Arguments = arguments,
+                    RedirectStandardError = true,
+                    RedirectStandardOutput = false,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                }
+            };
+
+            process.ErrorDataReceived += (_, e) =>
+            {
+                if (string.IsNullOrEmpty(e.Data)) return;
+                AppendOutput($"[ffmpeg] {e.Data}");
+
+                if (totalSeconds > 0)
+                {
+                    var m = System.Text.RegularExpressions.Regex.Match(e.Data, @"time=(\d{2}:\d{2}:\d{2}\.\d{2})");
+                    if (m.Success && TimeSpan.TryParse(m.Groups[1].Value, out var current))
+                    {
+                        double pct = (current.TotalSeconds / totalSeconds) * 100.0;
+                        UpdateProgress(Math.Max(0, Math.Min(100, pct)));
+                    }
+                }
+            };
+
+            try
+            {
+                process.Start();
+                process.BeginErrorReadLine();
+
+                await using var tokenReg = token.Register(() =>
+                {
+                    try { process.Kill(entireProcessTree: true); } catch { }
+                });
+
+                await process.WaitForExitAsync(CancellationToken.None);
+
+                if (token.IsCancellationRequested)
+                    throw new OperationCanceledException(token);
+
+                AppendOutput($"[ffmpeg] Beendet mit Exit-Code: {process.ExitCode}");
+
+                if (process.ExitCode != 0)
+                    throw new InvalidOperationException($"ffmpeg-Konvertierung fehlgeschlagen (Exit-Code {process.ExitCode})");
+            }
+            finally
+            {
+                try { process.CancelErrorRead(); } catch { }
             }
         }
 
@@ -1101,12 +1434,13 @@ namespace MortysDLP.Views
             tbCustomFilename.IsReadOnly = !(enabled && cbCustomFilename.IsChecked == true);
         }
 
-        private async Task StartDownloadAsync(CancellationToken token)
+        private async Task StartDownloadAsync(string urlOverride, CancellationToken token)
         {
             int? sourceAsr = null;
             int? sourceChannels = null;
             bool needsMeta = false;
-            string url = "";
+            bool isVideoformat = false;
+            string url = urlOverride;
             string ytDlpPath = Properties.Settings.Default.YtdlpPath;
 
             Dispatcher.Invoke(() =>
@@ -1114,7 +1448,7 @@ namespace MortysDLP.Views
                 bool videoformat = cbVideoformat.IsChecked == true && cbAudioOnly.IsChecked != true;
                 bool audioOnly = cbAudioOnly.IsChecked == true;
                 needsMeta = videoformat || audioOnly;
-                url = tbURL.Text;
+                isVideoformat = videoformat;
             });
 
             if (needsMeta)
@@ -1124,8 +1458,143 @@ namespace MortysDLP.Views
                 sourceChannels = meta.Channels;
             }
 
-            string args = BuildYTDLPArguments(sourceAsr, sourceChannels);
+            string args = BuildYTDLPArguments(sourceAsr, sourceChannels, url);
             await RunYtDlpAsync(ytDlpPath, args, token);
+
+            // Post-Download: Schnittmodus-Codec-Garantie (H.264)
+            if (isVideoformat)
+            {
+                string? resolvedPath = ResolveOutputFilePath();
+                if (string.IsNullOrEmpty(resolvedPath))
+                {
+                    AppendOutput($"[SCHNITT] WARNUNG: Ausgabedatei konnte nicht ermittelt werden (geparst: {_lastOutputFilePath ?? "null"}) – Codec-Prüfung übersprungen.");
+                }
+                else
+                {
+                    await EnsureH264CodecAsync(resolvedPath, token);
+                }
+            }
+        }
+
+        private async Task StartPlaylistDownloadAsync(string ytDlpPath, string playlistUrl, CancellationToken token)
+        {
+            var T = UITextDictionary.Get;
+
+            // ── Phase 1: Playlist auflösen (schnell, kein Metadaten-Load) ──
+            Dispatcher.Invoke(() =>
+            {
+                txtDownloadStatus.Text = T("DownloadPage.Playlist.Resolving");
+                txtPlaylistProgress.Visibility = Visibility.Visible;
+                txtPlaylistProgress.Text = "";
+            });
+
+            AppendOutput("[PLAYLIST] Löse Playlist auf (--flat-playlist)...");
+            var videoIds = await PlaylistHelper.GetPlaylistVideoIdsAsync(ytDlpPath, playlistUrl, token);
+
+            if (videoIds.Count == 0)
+            {
+                AppendOutput(T("DownloadPage.Playlist.ResolveFailed"));
+                throw new InvalidOperationException(T("DownloadPage.Playlist.ResolveFailed"));
+            }
+
+            AppendOutput($"[PLAYLIST] {videoIds.Count} Videos gefunden.");
+
+            int totalVideos = videoIds.Count;
+
+            // ── Prüfen ob Metadaten benötigt werden ──
+            bool needsMeta = false;
+            bool isVideoformat = false;
+            Dispatcher.Invoke(() =>
+            {
+                bool videoformat = cbVideoformat.IsChecked == true && cbAudioOnly.IsChecked != true;
+                bool audioOnly = cbAudioOnly.IsChecked == true;
+                needsMeta = videoformat || audioOnly;
+                isVideoformat = videoformat;
+            });
+
+            // ── Phase 2: Pipeline – Probe(n+1) parallel zu Download(n) ──
+            Task<(int? SampleRate, int? Channels)>? nextProbeTask = null;
+
+            for (int i = 0; i < totalVideos; i++)
+            {
+                token.ThrowIfCancellationRequested();
+
+                string videoUrl = PlaylistHelper.BuildVideoUrl(videoIds[i]);
+                int videoNum = i + 1;
+
+                // Fortschritt aktualisieren
+                Dispatcher.Invoke(() =>
+                {
+                    txtPlaylistProgress.Text = string.Format(T("DownloadPage.Playlist.VideoProgress"), videoNum, totalVideos);
+                    txtPlaylistProgress.Visibility = Visibility.Visible;
+                });
+
+                int? sourceAsr = null;
+                int? sourceChannels = null;
+
+                if (needsMeta)
+                {
+                    if (nextProbeTask != null)
+                    {
+                        // Probe-Ergebnis vom vorherigen Prefetch verwenden
+                        var meta = await nextProbeTask;
+                        sourceAsr = meta.SampleRate;
+                        sourceChannels = meta.Channels;
+                    }
+                    else
+                    {
+                        // Erste Probe (kein Prefetch vorhanden)
+                        AppendOutput(string.Format(T("DownloadPage.Playlist.ProbingNext"), videoNum, totalVideos));
+                        var meta = await GetSourceAudioMetadataAsync(ytDlpPath, videoUrl, token);
+                        sourceAsr = meta.SampleRate;
+                        sourceChannels = meta.Channels;
+                    }
+
+                    // Prefetch: Probe für das nächste Video parallel starten
+                    if (i + 1 < totalVideos)
+                    {
+                        string nextVideoUrl = PlaylistHelper.BuildVideoUrl(videoIds[i + 1]);
+                        int nextNum = i + 2;
+                        AppendOutput(string.Format(T("DownloadPage.Playlist.ProbingNext"), nextNum, totalVideos));
+                        nextProbeTask = GetSourceAudioMetadataAsync(ytDlpPath, nextVideoUrl, token);
+                    }
+                    else
+                    {
+                        nextProbeTask = null;
+                    }
+                }
+
+                // Download für aktuelles Video
+                AppendOutput(string.Format(T("DownloadPage.Playlist.Downloading"), videoNum, totalVideos, videoUrl));
+                UpdateProgress(0);
+                Dispatcher.Invoke(() => txtDownloadStatus.Text = T("DownloadPage.Status.Loading"));
+
+                string args = BuildYTDLPArguments(sourceAsr, sourceChannels, videoUrl);
+                await RunYtDlpAsync(ytDlpPath, args, token);
+
+                // Post-Download: Schnittmodus-Codec-Garantie (H.264)
+                if (isVideoformat)
+                {
+                    string? resolvedPath = ResolveOutputFilePath();
+                    if (string.IsNullOrEmpty(resolvedPath))
+                    {
+                        AppendOutput($"[SCHNITT] WARNUNG: Ausgabedatei konnte nicht ermittelt werden (geparst: {_lastOutputFilePath ?? "null"}) – Codec-Prüfung übersprungen.");
+                    }
+                    else
+                    {
+                        await EnsureH264CodecAsync(resolvedPath, token);
+                    }
+                }
+
+                AppendOutput($"[PLAYLIST] Video {videoNum}/{totalVideos} abgeschlossen.");
+            }
+
+            string doneMsg = string.Format(T("DownloadPage.Playlist.Done"), totalVideos);
+            AppendOutput(doneMsg);
+            Dispatcher.Invoke(() =>
+            {
+                txtPlaylistProgress.Text = doneMsg;
+            });
         }
 
         private void tbDebugOutput_TextChanged(object sender, TextChangedEventArgs e) => tbDebugOutput.ScrollToEnd();

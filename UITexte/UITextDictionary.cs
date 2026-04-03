@@ -62,8 +62,24 @@ namespace MortysDLP.UITexte
             ["DownloadPage.Status.ExtractingAudio"] = "Audio extrahieren...",
             ["DownloadPage.Status.Converting"] = "Konvertieren...",
             ["DownloadPage.Status.Processing"] = "Nachbearbeitung...",
+            ["DownloadPage.Status.CheckingCodec"] = "Prüfe Video-Codec...",
+            ["DownloadPage.Status.DetectingEncoder"] = "Encoder wird ermittelt...",
+            ["DownloadPage.Status.ConvertingH264"] = "Konvertiere zu H.264...",
             ["DownloadPage.Quality.Highest"] = "Höchste",
-            
+
+            // Playlist
+            ["DownloadPage.Playlist.Title"] = "Playlist erkannt",
+            ["DownloadPage.Playlist.Message"] = "Der Link enthält eine YouTube-Playlist.\n\nMöchtest du die gesamte Playlist herunterladen oder nur das einzelne Video?",
+            ["DownloadPage.Playlist.MessageNoSingle"] = "Der Link enthält eine YouTube-Playlist.\n\nMöchtest du die gesamte Playlist herunterladen?",
+            ["DownloadPage.Playlist.FullPlaylist"] = "Ganze Playlist laden",
+            ["DownloadPage.Playlist.SingleVideo"] = "Einzelnes Video laden",
+            ["DownloadPage.Playlist.Resolving"] = "Playlist wird aufgelöst...",
+            ["DownloadPage.Playlist.VideoProgress"] = "Video {0}/{1}",
+            ["DownloadPage.Playlist.ProbingNext"] = "[PLAYLIST] Prüfe Metadaten für Video {0}/{1}...",
+            ["DownloadPage.Playlist.Downloading"] = "[PLAYLIST] Download Video {0}/{1}: {2}",
+            ["DownloadPage.Playlist.Done"] = "Playlist abgeschlossen ({0} Videos)",
+            ["DownloadPage.Playlist.ResolveFailed"] = "Playlist konnte nicht aufgelöst werden.",
+
             // Convert Page
             ["ConvertPage.Section.SelectFiles"] = "1. DATEIEN ZUM KONVERTIEREN AUSWÄHLEN",
             ["ConvertPage.Section.TargetFormat"] = "2. ZIELFORMAT UND ZIELORDNER WÄHLEN",
@@ -262,8 +278,24 @@ namespace MortysDLP.UITexte
             ["DownloadPage.Status.ExtractingAudio"] = "Extracting audio...",
             ["DownloadPage.Status.Converting"] = "Converting...",
             ["DownloadPage.Status.Processing"] = "Post-processing...",
+            ["DownloadPage.Status.CheckingCodec"] = "Checking video codec...",
+            ["DownloadPage.Status.DetectingEncoder"] = "Detecting encoder...",
+            ["DownloadPage.Status.ConvertingH264"] = "Converting to H.264...",
             ["DownloadPage.Quality.Highest"] = "Highest",
-            
+
+            // Playlist
+            ["DownloadPage.Playlist.Title"] = "Playlist Detected",
+            ["DownloadPage.Playlist.Message"] = "This link contains a YouTube playlist.\n\nWould you like to download the entire playlist or just the single video?",
+            ["DownloadPage.Playlist.MessageNoSingle"] = "This link contains a YouTube playlist.\n\nWould you like to download the entire playlist?",
+            ["DownloadPage.Playlist.FullPlaylist"] = "Download Full Playlist",
+            ["DownloadPage.Playlist.SingleVideo"] = "Download Single Video",
+            ["DownloadPage.Playlist.Resolving"] = "Resolving playlist...",
+            ["DownloadPage.Playlist.VideoProgress"] = "Video {0}/{1}",
+            ["DownloadPage.Playlist.ProbingNext"] = "[PLAYLIST] Probing metadata for video {0}/{1}...",
+            ["DownloadPage.Playlist.Downloading"] = "[PLAYLIST] Downloading video {0}/{1}: {2}",
+            ["DownloadPage.Playlist.Done"] = "Playlist completed ({0} videos)",
+            ["DownloadPage.Playlist.ResolveFailed"] = "Failed to resolve playlist.",
+
             // Convert Page
             ["ConvertPage.Section.SelectFiles"] = "1. SELECT FILES TO CONVERT",
             ["ConvertPage.Section.TargetFormat"] = "2. SELECT TARGET FORMAT AND FOLDER",

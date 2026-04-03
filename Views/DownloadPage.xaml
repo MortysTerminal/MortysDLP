@@ -164,6 +164,8 @@
                     <Border Padding="12,0,0,0">
                         <StackPanel Name="spLoadingbar" Visibility="Hidden" Orientation="Vertical" HorizontalAlignment="Center">
                             <StackPanel Orientation="Horizontal" Margin="4,0,4,4">
+                                <TextBlock Name="txtPlaylistProgress" FontWeight="Bold" Foreground="{StaticResource BrandOrangeBrush}"
+                                           Visibility="Collapsed" Margin="0,0,8,0"/>
                                 <TextBlock Name="txtDownloadStatus" FontWeight="Bold"/>
                                 <TextBlock Name="txtDownloadProgress" Text="0 %" Margin="8,0,0,0"/>
                             </StackPanel>

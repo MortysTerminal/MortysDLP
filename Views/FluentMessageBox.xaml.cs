@@ -19,6 +19,17 @@ namespace MortysDLP
             ConfigureButtons(buttons);
         }
 
+        private FluentMessageBox(string message, string title, MessageBoxImage icon,
+            params (string Text, MessageBoxResult Result, bool Primary)[] customButtons)
+        {
+            InitializeComponent();
+            TitleBlock.Text  = title;
+            MessageBlock.Text = message;
+            ConfigureIcon(icon);
+            foreach (var (text, result, primary) in customButtons)
+                AddButton(text, result, primary);
+        }
+
         // ─── Icon-Konfiguration ───────────────────────────────────────────────────────
 
         private void ConfigureIcon(MessageBoxImage icon)
@@ -139,6 +150,26 @@ namespace MortysDLP
             {
                 owner ??= FindActiveWindow();
                 var box = new FluentMessageBox(message, resolvedTitle, buttons, icon);
+                if (owner != null) box.Owner = owner;
+                box.ShowDialog();
+                return box.Result;
+            });
+        }
+
+        /// <summary>Zeigt eine Fluent-MessageBox mit benutzerdefinierten Button-Texten an.</summary>
+        public static MessageBoxResult Show(
+            string message,
+            string title,
+            MessageBoxImage icon,
+            Window? owner,
+            params (string Text, MessageBoxResult Result, bool Primary)[] customButtons)
+        {
+            string resolvedTitle = string.IsNullOrWhiteSpace(title) ? ResolveDefaultTitle(icon) : title;
+
+            return Dispatch(() =>
+            {
+                owner ??= FindActiveWindow();
+                var box = new FluentMessageBox(message, resolvedTitle, icon, customButtons);
                 if (owner != null) box.Owner = owner;
                 box.ShowDialog();
                 return box.Result;

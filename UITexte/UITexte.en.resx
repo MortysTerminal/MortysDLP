@@ -327,4 +327,16 @@
   <data name="MainWindow_Button_Convert" xml:space="preserve">
     <value>Convert</value>
   </data>
+  <data name="Error_UpdateNotAvailable" xml:space="preserve">
+    <value>No update information is available. Please try again later.</value>
+  </data>
+  <data name="Error_UpdateZipCorrupt" xml:space="preserve">
+    <value>The downloaded update file is corrupted. Please try again.</value>
+  </data>
+  <data name="Error_UpdaterNotFound" xml:space="preserve">
+    <value>The updater component was not found. Please download the new version manually from GitHub.</value>
+  </data>
+  <data name="Error_UpdateFailed" xml:space="preserve">
+    <value>Update failed: {0}</value>
+  </data>
 </root>

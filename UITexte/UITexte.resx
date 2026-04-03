@@ -327,4 +327,16 @@
   <data name="MainWindow_Button_Convert" xml:space="preserve">
     <value>Konvertieren</value>
   </data>
+  <data name="Error_UpdateNotAvailable" xml:space="preserve">
+    <value>Keine Update-Informationen verfügbar. Bitte versuche es später erneut.</value>
+  </data>
+  <data name="Error_UpdateZipCorrupt" xml:space="preserve">
+    <value>Die heruntergeladene Update-Datei ist beschädigt. Bitte versuche es erneut.</value>
+  </data>
+  <data name="Error_UpdaterNotFound" xml:space="preserve">
+    <value>Die Updater-Komponente wurde nicht gefunden. Bitte lade die neue Version manuell von GitHub herunter.</value>
+  </data>
+  <data name="Error_UpdateFailed" xml:space="preserve">
+    <value>Update fehlgeschlagen: {0}</value>
+  </data>
 </root>

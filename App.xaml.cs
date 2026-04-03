@@ -99,54 +99,88 @@ namespace MortysDLP
 
         public async Task StartUpdate(string currentVersion)
         {
-            var updateService = new UpdateService();
-            var (latestVersion, assetUrl, _) = await updateService.GetLatestReleaseInfoAsync();
-
-            if (assetUrl is null) return;
-
-            await StartUpdate(updateService, assetUrl);
-        }
-
-        private async Task StartUpdate(UpdateService updateService, string assetUrl)
-        {
-            // ZIP-Datei im Temp-Ordner speichern
-            string tempZipPath = Path.Combine(Path.GetTempPath(), Settings.Default.MortysDLPUpdateZipFile);
-            await updateService.DownloadAssetAsync(assetUrl, tempZipPath);
-
-            // Updater in ein temporäres Verzeichnis kopieren (rekursiv, inkl. aller Dateien und Unterordner)
-            string sourceUpdaterDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Settings.Default.MortysDLPUpdaterBaseFolderName);
-            string tempUpdaterDir = Path.Combine(Path.GetTempPath(), Settings.Default.MortysDLPUpdaterFolderName);
-            CopyDirectory(sourceUpdaterDir, tempUpdaterDir);
-
-            // Argumente: <MainExeName> <ZipPath> <TargetDir>
-            string mainExeName = Settings.Default.MortysDLPExeFile;
-            string arguments = $"\"{mainExeName}\" \"{tempZipPath}\" \"{AppDomain.CurrentDomain.BaseDirectory}\"";
-
-            // Updater starten und App beenden
-            Process.Start(new ProcessStartInfo
+            // PendingUpdateInfo nutzen statt erneut die API aufzurufen
+            if (PendingUpdateInfo is not { } info || string.IsNullOrEmpty(info.AssetUrl))
             {
-                FileName = Path.Combine(tempUpdaterDir, Settings.Default.MortysDLPUpdateExeFile),
-                Arguments = arguments,
-                UseShellExecute = false
-            });
-            Shutdown();
-        }
+                // Fallback: Wenn kein PendingUpdateInfo vorhanden, nochmal prüfen
+                using var updateService = new UpdateService();
+                var (_, assetUrl, _) = await updateService.GetLatestReleaseInfoAsync();
 
-        public async Task<bool> UpdateAvailable(string currentVersion)
-        {
-            if (currentVersion.Equals(Settings.Default.VersionSkip))
-            {
-                return false; // DEBUG: Nie Update verfügbar
+                if (assetUrl is null)
+                {
+                    MessageBox.Show(
+                        UITexte.UITexte.Error_UpdateNotAvailable,
+                        UITexte.UITexte.Error,
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                await StartUpdateCore(assetUrl);
+                return;
             }
 
-            UpdateService updateService = new UpdateService();
-            var (latestVersion, assetUrl, _) = await updateService.GetLatestReleaseInfoAsync();
+            await StartUpdateCore(info.AssetUrl);
+        }
 
-            if (latestVersion != null && assetUrl != null && updateService.IsNewerVersion(latestVersion, currentVersion))
+        private async Task StartUpdateCore(string assetUrl)
+        {
+            try
             {
-                return true;
+                // 1. Sicheren Temp-Pfad ermitteln (mit Fallback-Verzeichnissen)
+                string tempDir = UpdateService.GetSafeTempDirectory();
+                string tempZipPath = Path.Combine(tempDir, Settings.Default.MortysDLPUpdateZipFile);
+
+                // 2. Download mit Retry
+                using var updateService = new UpdateService();
+                await updateService.DownloadAssetAsync(assetUrl, tempZipPath);
+
+                // 3. ZIP-Integrität prüfen
+                if (!UpdateService.ValidateZipIntegrity(tempZipPath))
+                {
+                    try { if (File.Exists(tempZipPath)) File.Delete(tempZipPath); } catch { }
+                    MessageBox.Show(
+                        UITexte.UITexte.Error_UpdateZipCorrupt,
+                        UITexte.UITexte.Error,
+                        MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                // 4. Updater in Temp kopieren
+                string sourceUpdaterDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Settings.Default.MortysDLPUpdaterBaseFolderName);
+                if (!Directory.Exists(sourceUpdaterDir))
+                {
+                    MessageBox.Show(
+                        UITexte.UITexte.Error_UpdaterNotFound,
+                        UITexte.UITexte.Error,
+                        MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                string tempUpdaterDir = Path.Combine(tempDir, Settings.Default.MortysDLPUpdaterFolderName);
+                CopyDirectory(sourceUpdaterDir, tempUpdaterDir);
+
+                // 5. Argumente: <MainExeName> <ZipPath> <TargetDir> <ProcessId>
+                string mainExeName = Settings.Default.MortysDLPExeFile;
+                int currentPid = Environment.ProcessId;
+                string arguments = $"\"{mainExeName}\" \"{tempZipPath}\" \"{AppDomain.CurrentDomain.BaseDirectory}\" {currentPid}";
+
+                // 6. Updater starten und App beenden
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = Path.Combine(tempUpdaterDir, Settings.Default.MortysDLPUpdateExeFile),
+                    Arguments = arguments,
+                    UseShellExecute = false
+                });
+                Shutdown();
             }
-            return false;
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[App] Update fehlgeschlagen: {ex}");
+                MessageBox.Show(
+                    string.Format(UITexte.UITexte.Error_UpdateFailed, ex.Message),
+                    UITexte.UITexte.Error,
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         private async Task SetStatusTextAndWaitAsync(StartupWindow windowWithText, string statusText, int delay)

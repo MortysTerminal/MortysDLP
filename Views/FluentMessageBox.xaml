@@ -4,9 +4,10 @@
         Icon="/Resources/Icons/mw_globe_32px.ico"
         WindowStyle="None"
         AllowsTransparency="False"
-        ResizeMode="NoResize"
-        SizeToContent="Height"
-        Width="440"
+         ResizeMode="NoResize"
+        SizeToContent="WidthAndHeight"
+        MinWidth="440"
+        MaxWidth="640"
         ShowInTaskbar="False"
         WindowStartupLocation="CenterOwner"
         Background="{DynamicResource SolidBackgroundFillColorBaseBrush}">
