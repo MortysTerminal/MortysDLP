@@ -108,6 +108,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="MortysDLP\Helpers\" />
     <Folder Include="MortysDLP\Views\" />
     <Folder Include="Pictures\" />
   </ItemGroup>
