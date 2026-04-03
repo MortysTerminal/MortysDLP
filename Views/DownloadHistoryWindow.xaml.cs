@@ -61,7 +61,7 @@ namespace MortysDLP
 
         private void Reuse_Click(object sender, RoutedEventArgs e)
         {
-            if (HistoryList.SelectedItem is DownloadHistoryEntry entry)
+            if (HistoryList.SelectedItem is DownloadHistoryEntry entry && !string.IsNullOrEmpty(entry.Url))
             {
                 // MainWindow suchen und URL setzen
                 foreach (Window window in Application.Current.Windows)

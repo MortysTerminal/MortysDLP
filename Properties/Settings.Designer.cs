@@ -25,7 +25,7 @@ namespace MortysDLP.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("2026.03.27")]
+        [global::System.Configuration.DefaultSettingValueAttribute("2026.04.03")]
         public string CurrentVersion {
             get {
                 return ((string)(this["CurrentVersion"]));
