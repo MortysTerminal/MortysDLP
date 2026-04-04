@@ -74,6 +74,15 @@
                         <TextBlock Name="txtTimespanDash" VerticalAlignment="Center" Margin="7,0" MinWidth="15" TextAlignment="Center"/>
                         <TextBox Name="tbTimespanTo" Width="100" VerticalAlignment="Center" VerticalContentAlignment="Center"
                                  TextChanged="tbTimespanTo_TextChanged" Margin="7,0,0,0"/>
+                        <Button Name="btnOpenTimeline" Click="btnOpenTimeline_Click"
+                                VerticalAlignment="Center" Margin="7,0,0,0" Padding="6,3"
+                                IsEnabled="False">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock x:Name="txtTimelineBtnIcon" FontFamily="Segoe MDL2 Assets" Text="&#xEC50;" FontSize="14"
+                                           VerticalAlignment="Center" Margin="0,0,5,0"/>
+                                <TextBlock x:Name="txtTimelineBtn" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
                         <TextBlock Name="txtTimespanInfo" VerticalAlignment="Center" Margin="7,0,0,0"/>
                         <TextBlock x:Name="imgTimespanInfo" FontFamily="Segoe MDL2 Assets" FontSize="16"
                                    Text="&#xE946;" Opacity="0.8" VerticalAlignment="Center" Margin="6,0,0,0">

@@ -1,0 +1,105 @@
+<Window x:Class="MortysDLP.Views.TimelineWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Icon="/Resources/Icons/mw_globe_32px.ico"
+        Title="Timeline"
+        Width="720" SizeToContent="Height"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        Background="{DynamicResource SolidBackgroundFillColorBaseBrush}">
+
+    <Grid Margin="24,20,24,24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Gradient-Akzentstreifen -->
+        <Rectangle Grid.Row="0" Height="4" Margin="-24,-20,-24,16"
+                   Fill="{StaticResource BrandGradientBrush}"/>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="1" Margin="0,0,0,16">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xEC50;" FontSize="20"
+                           Foreground="{StaticResource BrandOrangeBrush}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                <TextBlock x:Name="txtHeaderTitle" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center"/>
+            </StackPanel>
+            <TextBlock x:Name="txtVideoDuration" FontSize="12" Opacity="0.7" Margin="0,6,0,0"/>
+        </StackPanel>
+
+        <!-- Zeitanzeigen über der Timeline -->
+        <Grid Grid.Row="2" Margin="0,0,0,2">
+            <TextBlock x:Name="txtStartLabel" HorizontalAlignment="Left"
+                       Foreground="{StaticResource BrandYellowBrush}" FontFamily="Consolas" FontSize="13"/>
+            <TextBlock x:Name="txtSelectionDuration" HorizontalAlignment="Center"
+                       FontWeight="SemiBold" FontSize="13"/>
+            <TextBlock x:Name="txtEndLabel" HorizontalAlignment="Right"
+                       Foreground="{StaticResource BrandYellowBrush}" FontFamily="Consolas" FontSize="13"/>
+        </Grid>
+
+        <!-- Timeline-Track -->
+        <Grid x:Name="gridTrack" Grid.Row="3" Margin="0,4,0,4" Height="48"
+              Background="Transparent"
+              MouseLeftButtonDown="TrackGrid_MouseLeftButtonDown"
+              MouseMove="TrackGrid_MouseMove"
+              MouseLeftButtonUp="TrackGrid_MouseLeftButtonUp">
+            <!-- Gesamter Track (Hintergrund) -->
+            <Border Background="{DynamicResource SubtleFillColorSecondaryBrush}"
+                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1" CornerRadius="6" Height="14" VerticalAlignment="Center"/>
+
+            <!-- Ausgewählter Bereich (farbig) -->
+            <Canvas x:Name="canvasTrack" Height="14" VerticalAlignment="Center" ClipToBounds="True"
+                    SizeChanged="canvasTrack_SizeChanged">
+                <Border x:Name="selectedRange" Background="{StaticResource BrandOrangeBrush}"
+                        CornerRadius="6" Height="14" Opacity="0.75" Canvas.Top="0"/>
+            </Canvas>
+
+            <!-- Start-Slider (unsichtbar für Maus – Steuerung über Grid) -->
+            <Slider x:Name="sliderStart" Minimum="0" Maximum="100" Value="0"
+                    VerticalAlignment="Center" IsSnapToTickEnabled="False"
+                    IsHitTestVisible="False"
+                    ValueChanged="SliderStart_ValueChanged"
+                    Margin="0"/>
+
+            <!-- End-Slider (unsichtbar für Maus – Steuerung über Grid) -->
+            <Slider x:Name="sliderEnd" Minimum="0" Maximum="100" Value="100"
+                    VerticalAlignment="Center" IsSnapToTickEnabled="False"
+                    IsHitTestVisible="False"
+                    ValueChanged="SliderEnd_ValueChanged"
+                    Margin="0"/>
+        </Grid>
+
+        <!-- Tick-Markierungen -->
+        <Canvas x:Name="canvasTicks" Grid.Row="4" Height="20" Margin="0,0,0,8"
+                SizeChanged="canvasTicks_SizeChanged"/>
+
+        <!-- Manuelle Feineingabe -->
+        <Border Grid.Row="5" CornerRadius="8" Padding="14,10,14,12" Margin="0,4,0,16"
+                Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="1">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <TextBlock x:Name="txtManualFrom" VerticalAlignment="Center" Margin="0,0,8,0" FontWeight="SemiBold"/>
+                <TextBox x:Name="tbManualStart" Width="110" FontFamily="Consolas" FontSize="13"
+                         VerticalContentAlignment="Center" TextChanged="ManualTime_TextChanged"/>
+                <TextBlock Text="—" VerticalAlignment="Center" Margin="14,0" FontSize="14" Opacity="0.5"/>
+                <TextBlock x:Name="txtManualTo" VerticalAlignment="Center" Margin="0,0,8,0" FontWeight="SemiBold"/>
+                <TextBox x:Name="tbManualEnd" Width="110" FontFamily="Consolas" FontSize="13"
+                         VerticalContentAlignment="Center" TextChanged="ManualTime_TextChanged"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Buttons -->
+        <StackPanel Grid.Row="6" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button x:Name="btnCancel" Click="btnCancel_Click" Padding="14,5" Margin="0,0,8,0"/>
+            <Button x:Name="btnApply" Click="btnApply_Click"
+                    Style="{StaticResource PrimaryButtonStyle}"/>
+        </StackPanel>
+    </Grid>
+</Window>

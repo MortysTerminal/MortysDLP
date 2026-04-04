@@ -28,9 +28,13 @@
 
   <ItemGroup>
     <Compile Remove="Assets\**" />
+    <Compile Remove="MortysDLP\**" />
     <EmbeddedResource Remove="Assets\**" />
+    <EmbeddedResource Remove="MortysDLP\**" />
     <None Remove="Assets\**" />
+    <None Remove="MortysDLP\**" />
     <Page Remove="Assets\**" />
+    <Page Remove="MortysDLP\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -108,8 +112,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="MortysDLP\Helpers\" />
-    <Folder Include="MortysDLP\Views\" />
     <Folder Include="Pictures\" />
   </ItemGroup>
 

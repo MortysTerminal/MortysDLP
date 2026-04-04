@@ -97,6 +97,7 @@ namespace MortysDLP.Views
             txtTimespanDash.Text = "-";
             txtTimespanInfo.Text = T("DownloadPage.Label.TimespanFormat");
             ToolTipTimeSpan.Content = T("DownloadPage.Tooltip.Timespan");
+            txtTimelineBtn.Text = T("DownloadPage.Button.Timeline");
             
             txtFirstSecondsInfo1.Text = T("DownloadPage.Label.FirstSeconds");
             txtFirstSecondsInfo2.Text = T("DownloadPage.Label.Seconds");
@@ -699,6 +700,9 @@ namespace MortysDLP.Views
             txtFirstSecondsInfo1.IsEnabled = b;
             txtFirstSecondsInfo2.IsEnabled = b;
             cbTimespan.IsEnabled = !b;
+
+            if (!b)
+                tbFirstSecondsSeconds.Text = string.Empty;
         }
 
         private string GetSelectedAudioFormat()
@@ -1432,6 +1436,7 @@ namespace MortysDLP.Views
             cbCustomFilename.IsEnabled = enabled;
             tbCustomFilename.IsEnabled = enabled && cbCustomFilename.IsChecked == true;
             tbCustomFilename.IsReadOnly = !(enabled && cbCustomFilename.IsChecked == true);
+            btnOpenTimeline.IsEnabled = enabled && cbTimespan.IsChecked == true;
         }
 
         private async Task StartDownloadAsync(string urlOverride, CancellationToken token)
@@ -1613,6 +1618,119 @@ namespace MortysDLP.Views
 
         private void tbURL_TextChanged(object sender, TextChangedEventArgs e) => ValidateDownloadButton();
 
+        private async void btnOpenTimeline_Click(object sender, RoutedEventArgs e)
+        {
+            string url = tbURL.Text.Trim();
+            if (string.IsNullOrWhiteSpace(url))
+            {
+                FluentMessageBox.Show(
+                    UITextDictionary.Get("Timeline.Error.NoUrl"),
+                    UITextDictionary.Get("Timeline.Title"),
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+                return;
+            }
+
+            string ytDlpPath = Properties.Settings.Default.YtdlpPath;
+            btnOpenTimeline.IsEnabled = false;
+
+            // Lade-Zustand anzeigen
+            string originalIcon = txtTimelineBtnIcon.Text;
+            string originalText = txtTimelineBtn.Text;
+            txtTimelineBtnIcon.Text = "\uE10C"; // Lade-Symbol (Segoe MDL2: &#xE10C; = Uhren-Icon)
+            txtTimelineBtn.Text = UITextDictionary.Get("Timeline.Loading");
+
+            try
+            {
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+                double durationSec = await GetVideoDurationFromUrlAsync(ytDlpPath, url, cts.Token);
+
+                if (durationSec <= 0)
+                {
+                    FluentMessageBox.Show(
+                        UITextDictionary.Get("Timeline.Error.NoDuration"),
+                        UITextDictionary.Get("Common.Error"),
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Warning);
+                    return;
+                }
+
+                var totalDuration = TimeSpan.FromSeconds(durationSec);
+
+                TryParseFlexibleTime(tbTimespanFrom.Text, out var currentStart);
+                TryParseFlexibleTime(tbTimespanTo.Text, out var currentEnd);
+
+                var timeline = new TimelineWindow(
+                    totalDuration,
+                    currentStart > TimeSpan.Zero ? currentStart : null,
+                    currentEnd > TimeSpan.Zero ? currentEnd : null);
+
+                timeline.Owner = Window.GetWindow(this);
+
+                if (timeline.ShowDialog() == true && timeline.Confirmed)
+                {
+                    tbTimespanFrom.Text = timeline.SelectedStart.ToString(@"hh\:mm\:ss");
+                    tbTimespanTo.Text = timeline.SelectedEnd.ToString(@"hh\:mm\:ss");
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                AppendOutput("[TIMELINE] Timeout bei Videodauer-Abfrage.");
+            }
+            catch (Exception ex)
+            {
+                AppendOutput($"[TIMELINE] Fehler: {ex.Message}");
+            }
+            finally
+            {
+                txtTimelineBtnIcon.Text = originalIcon;
+                txtTimelineBtn.Text = originalText;
+                btnOpenTimeline.IsEnabled = cbTimespan.IsChecked == true;
+            }
+        }
+
+        private async Task<double> GetVideoDurationFromUrlAsync(string ytDlpPath, string url, CancellationToken token)
+        {
+            try
+            {
+                using var process = new Process
+                {
+                    StartInfo = new ProcessStartInfo
+                    {
+                        FileName = ytDlpPath,
+                        Arguments = $"--no-check-certificates --no-playlist --print \"%(duration)s\" \"{url}\"",
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        UseShellExecute = false,
+                        CreateNoWindow = true,
+                        StandardOutputEncoding = System.Text.Encoding.UTF8,
+                    }
+                };
+
+                process.Start();
+                await using var reg = token.Register(() => { try { process.Kill(true); } catch { } });
+
+                string output = (await process.StandardOutput.ReadToEndAsync()).Trim();
+                await process.WaitForExitAsync(CancellationToken.None);
+
+                if (token.IsCancellationRequested)
+                    throw new OperationCanceledException(token);
+
+                var firstLine = output.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).FirstOrDefault() ?? "";
+                if (double.TryParse(firstLine, NumberStyles.Any, CultureInfo.InvariantCulture, out double seconds))
+                {
+                    AppendOutput($"[TIMELINE] Videodauer: {seconds:F1}s ({TimeSpan.FromSeconds(seconds):hh\\:mm\\:ss})");
+                    return seconds;
+                }
+            }
+            catch (OperationCanceledException) { throw; }
+            catch (Exception ex)
+            {
+                AppendOutput($"[TIMELINE] Fehler bei Dauer-Abfrage: {ex.Message}");
+            }
+            return 0;
+        }
+
         private void TextBox_GotFocus(object sender, RoutedEventArgs e)
         {
             if (sender is TextBox textBox)
@@ -1630,7 +1748,15 @@ namespace MortysDLP.Views
             txtTimespanDash.IsEnabled = t;
             txtTimespanInfo.IsEnabled = t;
             imgTimespanInfo.IsEnabled = t;
+            btnOpenTimeline.IsEnabled = t;
             cbFirstSeconds.IsEnabled = !t;
+
+            if (!t)
+            {
+                tbTimespanFrom.Text = string.Empty;
+                tbTimespanTo.Text = string.Empty;
+            }
+
             ValidateDownloadButton();
         }
 
@@ -1717,6 +1843,9 @@ namespace MortysDLP.Views
             bool enabled = cbCustomFilename.IsChecked == true;
             tbCustomFilename.IsEnabled = enabled;
             tbCustomFilename.IsReadOnly = !enabled;
+
+            if (!enabled)
+                tbCustomFilename.Text = string.Empty;
         }
     }
 }

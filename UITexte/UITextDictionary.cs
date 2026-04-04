@@ -48,6 +48,7 @@ namespace MortysDLP.UITexte
             ["DownloadPage.Button.DownloadStart"] = "Download starten",
             ["DownloadPage.Button.DownloadCancel"] = "Download abbrechen",
             ["DownloadPage.Button.SaveSettings"] = "Einstellungen speichern",
+            ["DownloadPage.Button.Timeline"] = "Timeline",
             ["DownloadPage.SaveSettings.Question"] = "Möchtest du die aktuellen Einstellungen speichern?",
             ["DownloadPage.SaveSettings.Title"] = "Einstellungen speichern",
             ["DownloadPage.SaveSettings.Saved"] = "Einstellungen wurden gespeichert.",
@@ -66,6 +67,18 @@ namespace MortysDLP.UITexte
             ["DownloadPage.Status.DetectingEncoder"] = "Encoder wird ermittelt...",
             ["DownloadPage.Status.ConvertingH264"] = "Konvertiere zu H.264...",
             ["DownloadPage.Quality.Highest"] = "Höchste",
+
+            // Timeline Window
+            ["Timeline.Title"] = "Zeitspanne auswählen",
+            ["Timeline.TotalDuration"] = "Gesamtdauer: {0}",
+            ["Timeline.Selection"] = "Auswahl: {0}",
+            ["Timeline.From"] = "Von:",
+            ["Timeline.To"] = "Bis:",
+            ["Timeline.Apply"] = "Übernehmen",
+            ["Timeline.Cancel"] = "Abbrechen",
+            ["Timeline.Error.NoDuration"] = "Die Videodauer konnte nicht ermittelt werden.\nPrüfe die URL und versuche es erneut.",
+            ["Timeline.Loading"] = "Lade Videodauer...",
+            ["Timeline.Error.NoUrl"] = "Bitte gib zuerst eine URL ein, bevor du die Timeline öffnest.",
 
             // Playlist
             ["DownloadPage.Playlist.Title"] = "Playlist erkannt",
@@ -264,6 +277,7 @@ namespace MortysDLP.UITexte
             ["DownloadPage.Button.DownloadStart"] = "Start Download",
             ["DownloadPage.Button.DownloadCancel"] = "Cancel Download",
             ["DownloadPage.Button.SaveSettings"] = "Save Settings",
+            ["DownloadPage.Button.Timeline"] = "Timeline",
             ["DownloadPage.SaveSettings.Question"] = "Do you want to save the current settings?",
             ["DownloadPage.SaveSettings.Title"] = "Save Settings",
             ["DownloadPage.SaveSettings.Saved"] = "Settings have been saved.",
@@ -282,6 +296,18 @@ namespace MortysDLP.UITexte
             ["DownloadPage.Status.DetectingEncoder"] = "Detecting encoder...",
             ["DownloadPage.Status.ConvertingH264"] = "Converting to H.264...",
             ["DownloadPage.Quality.Highest"] = "Highest",
+
+            // Timeline Window
+            ["Timeline.Title"] = "Select Time Range",
+            ["Timeline.TotalDuration"] = "Total Duration: {0}",
+            ["Timeline.Selection"] = "Selection: {0}",
+            ["Timeline.From"] = "From:",
+            ["Timeline.To"] = "To:",
+            ["Timeline.Apply"] = "Apply",
+            ["Timeline.Cancel"] = "Cancel",
+            ["Timeline.Error.NoDuration"] = "Could not determine the video duration.\nCheck the URL and try again.",
+            ["Timeline.Loading"] = "Loading duration...",
+            ["Timeline.Error.NoUrl"] = "Please enter a URL first before opening the timeline.",
 
             // Playlist
             ["DownloadPage.Playlist.Title"] = "Playlist Detected",
