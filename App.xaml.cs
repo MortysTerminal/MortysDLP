@@ -162,7 +162,8 @@ namespace MortysDLP
                 // 5. Argumente: <MainExeName> <ZipPath> <TargetDir> <ProcessId>
                 string mainExeName = Settings.Default.MortysDLPExeFile;
                 int currentPid = Environment.ProcessId;
-                string arguments = $"\"{mainExeName}\" \"{tempZipPath}\" \"{AppDomain.CurrentDomain.BaseDirectory}\" {currentPid}";
+                string targetDir = AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\');
+                string arguments = $"\"{mainExeName}\" \"{tempZipPath}\" \"{targetDir}\" {currentPid}";
 
                 // 6. Updater starten und App beenden
                 Process.Start(new ProcessStartInfo
