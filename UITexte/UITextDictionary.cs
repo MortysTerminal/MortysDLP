@@ -38,7 +38,7 @@ namespace MortysDLP.UITexte
             ["DownloadPage.Label.FirstSeconds"] = "Von Start bis:",
             ["DownloadPage.Label.Seconds"] = "Sekunden",
             ["DownloadPage.Label.VideoFormat"] = "Videoformat für Schnittprogramme (x264)",
-            ["DownloadPage.Label.VideoFormatInfo"] = "(nicht zusammen mit nur audio)",
+            ["DownloadPage.Label.VideoFormatInfo"] = "(nicht zusammen mit NUR Audio)",
             ["DownloadPage.Label.AudioOnly"] = "NUR Audio",
             ["DownloadPage.Label.Bitrate"] = "Bitrate:",
             ["DownloadPage.Label.VideoQuality"] = "Videoqualität:",

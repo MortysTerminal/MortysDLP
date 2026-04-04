@@ -162,17 +162,38 @@ namespace MortysDLP
                 // 5. Argumente: <MainExeName> <ZipPath> <TargetDir> <ProcessId>
                 string mainExeName = Settings.Default.MortysDLPExeFile;
                 int currentPid = Environment.ProcessId;
-                string targetDir = AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\');
+                string targetDir = AppDomain.CurrentDomain.BaseDirectory.TrimEnd(
+                    Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
                 string arguments = $"\"{mainExeName}\" \"{tempZipPath}\" \"{targetDir}\" {currentPid}";
 
-                // 6. Updater starten und App beenden
-                Process.Start(new ProcessStartInfo
+                string updaterExePath = Path.Combine(tempUpdaterDir, Settings.Default.MortysDLPUpdateExeFile);
+                Debug.WriteLine($"[App] Starte Updater: {updaterExePath}");
+                Debug.WriteLine($"[App] Argumente: {arguments}");
+
+                // 6. Updater starten – UseShellExecute = true für unabhängigen Prozess
+                var updaterProcess = Process.Start(new ProcessStartInfo
                 {
-                    FileName = Path.Combine(tempUpdaterDir, Settings.Default.MortysDLPUpdateExeFile),
+                    FileName = updaterExePath,
                     Arguments = arguments,
-                    UseShellExecute = false
+                    UseShellExecute = true
                 });
+
+                if (updaterProcess == null)
+                {
+                    MessageBox.Show(
+                        "Der Updater-Prozess konnte nicht gestartet werden.",
+                        UITexte.UITexte.Error,
+                        MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                Debug.WriteLine($"[App] Updater gestartet (PID: {updaterProcess.Id}). Beende Hauptanwendung...");
+
+                // 7. App sicher beenden – Shutdown + Environment.Exit als Fallback
                 Shutdown();
+                // Kurze Verzögerung, damit Shutdown-Events verarbeitet werden
+                await Task.Delay(500);
+                Environment.Exit(0);
             }
             catch (Exception ex)
             {
