@@ -25,7 +25,7 @@ namespace MortysDLP.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("2026.04.04")]
+        [global::System.Configuration.DefaultSettingValueAttribute("2026.05.07")]
         public string CurrentVersion {
             get {
                 return ((string)(this["CurrentVersion"]));
@@ -428,6 +428,42 @@ namespace MortysDLP.Properties {
             }
             set {
                 this["DebugMode"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Tools\\\\Whisper\\\\whisper.exe")]
+        public string WhisperPath {
+            get {
+                return ((string)(this["WhisperPath"]));
+            }
+            set {
+                this["WhisperPath"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Tools\\\\Whisper\\\\models")]
+        public string WhisperModelsDir {
+            get {
+                return ((string)(this["WhisperModelsDir"]));
+            }
+            set {
+                this["WhisperModelsDir"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("https://api.github.com/repos/ggerganov/whisper.cpp/releases/latest")]
+        public string WhisperReleaseURL {
+            get {
+                return ((string)(this["WhisperReleaseURL"]));
+            }
+            set {
+                this["WhisperReleaseURL"] = value;
             }
         }
     }

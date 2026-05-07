@@ -79,6 +79,7 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
                 <!-- Logo + App-Titel -->
@@ -116,6 +117,30 @@
                     </ListBoxItem>
                     <ListBoxItem>
                         <StackPanel Orientation="Horizontal" Margin="0,1,0,1">
+                            <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE8F1;"
+                                       VerticalAlignment="Center" Margin="0,0,10,0" FontSize="15"/>
+                            <TextBlock x:Name="txtNavTranscribe" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </ListBoxItem>
+                </ListBox>
+
+                <!-- Einstellungen – abgesetzt unten links, über dem Spenden-Button -->
+                <ListBox x:Name="SettingsNavigationList" Grid.Row="3"
+                         Background="Transparent" BorderThickness="0"
+                         SelectionChanged="SettingsNavigationList_SelectionChanged"
+                         ItemContainerStyle="{StaticResource NavItemStyle}"
+                         Margin="0,0,0,8">
+                    <ListBox.Template>
+                        <ControlTemplate TargetType="ListBox">
+                            <StackPanel>
+                                <Separator Margin="0,0,0,8"
+                                           Background="{DynamicResource CardStrokeColorDefaultBrush}"/>
+                                <ItemsPresenter/>
+                            </StackPanel>
+                        </ControlTemplate>
+                    </ListBox.Template>
+                    <ListBoxItem>
+                        <StackPanel Orientation="Horizontal" Margin="0,1,0,1">
                             <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE713;"
                                        VerticalAlignment="Center" Margin="0,0,10,0" FontSize="15"/>
                             <TextBlock x:Name="txtNavSettings" FontWeight="SemiBold" VerticalAlignment="Center"/>
@@ -124,7 +149,7 @@
                 </ListBox>
 
                 <!-- joke: Support-Button unten links -->
-                <Button x:Name="btnJokeDonate" Grid.Row="3"
+                <Button x:Name="btnJokeDonate" Grid.Row="4"
                         Click="btnJokeDonate_Click"
                         Margin="0,0,0,0"
                         Padding="10,8"

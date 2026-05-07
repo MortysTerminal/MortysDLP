@@ -127,29 +127,19 @@
             </StackPanel>
 
             <!-- Block 5: Debug-Ausgabe (nur sichtbar wenn Debug-Modus aktiv) -->
-            <Border x:Name="borderDebug" CornerRadius="8" Padding="14,10,14,12" Margin="0,0,0,8"
-                    Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
-                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
-                    BorderThickness="1"
-                    Visibility="Collapsed">
+            <DockPanel x:Name="borderDebug" Margin="0,2,0,0" Visibility="Collapsed">
                 <Expander x:Name="expDebug" IsExpanded="False">
-                    <Border BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" 
-                            BorderThickness="1" Padding="5" Margin="0,8,0,0"
-                            CornerRadius="4">
-                        <ScrollViewer MaxHeight="200" VerticalScrollBarVisibility="Auto">
-                            <TextBox x:Name="tbDebugOutput"
-                                     IsReadOnly="True"
-                                     TextWrapping="Wrap"
-                                     VerticalScrollBarVisibility="Auto"
-                                     Background="Black"
-                                     Foreground="LightGray"
-                                     FontFamily="Consolas"
-                                     FontSize="12"
-                                     BorderThickness="0"/>
-                        </ScrollViewer>
-                    </Border>
+                    <TextBox x:Name="tbDebugOutput"
+                             VerticalScrollBarVisibility="Auto"
+                             HorizontalScrollBarVisibility="Auto"
+                             IsReadOnly="True"
+                             TextWrapping="NoWrap"
+                             FontFamily="Consolas"
+                             FontSize="12"
+                             AcceptsReturn="True"
+                             MaxHeight="200"/>
                 </Expander>
-            </Border>
+            </DockPanel>
 
         </StackPanel>
     </ScrollViewer>

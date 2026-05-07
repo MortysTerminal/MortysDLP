@@ -10,12 +10,14 @@ namespace MortysDLP
         private readonly DownloadPage _downloadPage = new();
         private readonly ConvertPage _convertPage = new();
         private readonly SettingsPage _settingsPage = new();
+        private readonly TranscribePage _transcribePage = new();
 
         private string? _pendingUpdateVersion;
         private string? _pendingUpdateChangelog;
 
         internal DownloadPage DownloadPage => _downloadPage;
         internal ConvertPage ConvertPage => _convertPage;
+        internal TranscribePage TranscribePage => _transcribePage;
 
         public MainWindow()
         {
@@ -77,6 +79,7 @@ namespace MortysDLP
             txtNavDownload.Text = T("MainWindow.Nav.Download");
             txtNavConvert.Text = T("MainWindow.Nav.Convert");
             txtNavSettings.Text = T("MainWindow.Nav.Settings");
+            txtNavTranscribe.Text = T("MainWindow.Nav.Transcribe");
 
             // Version Label und Softwareinfo
             txtVersionLabel.Text = T("MainWindow.Version");
@@ -92,23 +95,37 @@ namespace MortysDLP
 
         public void RefreshSectionTitle()
         {
+            var T = UITextDictionary.Get;
+
+            // Einstellungen in separater ListBox prüfen
+            if (SettingsNavigationList.SelectedIndex >= 0)
+            {
+                txtSectionTitle.Text = T("MainWindow.Nav.Settings");
+                return;
+            }
+
             int idx = NavigationList.SelectedIndex;
             if (idx < 0) return;
 
-            var T = UITextDictionary.Get;
             var sectionTitles = new[] {
                 T("MainWindow.Nav.Download"),
                 T("MainWindow.Nav.Convert"),
-                T("MainWindow.Nav.Settings")
+                T("MainWindow.Nav.Transcribe"),
             };
 
-            txtSectionTitle.Text = sectionTitles[idx];
+            if (idx < sectionTitles.Length)
+                txtSectionTitle.Text = sectionTitles[idx];
         }
 
         private void NavigationList_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             int idx = NavigationList.SelectedIndex;
             if (idx < 0) return;
+
+            // Einstellungs-ListBox abwählen
+            SettingsNavigationList.SelectionChanged -= SettingsNavigationList_SelectionChanged;
+            SettingsNavigationList.SelectedIndex = -1;
+            SettingsNavigationList.SelectionChanged += SettingsNavigationList_SelectionChanged;
 
             RefreshSectionTitle();
 
@@ -122,9 +139,23 @@ namespace MortysDLP
                     MainFrame.Navigate(_convertPage);
                     break;
                 case 2:
-                    MainFrame.Navigate(_settingsPage);
+                    _transcribePage.RefreshAll();
+                    MainFrame.Navigate(_transcribePage);
                     break;
             }
+        }
+
+        private void SettingsNavigationList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (SettingsNavigationList.SelectedIndex < 0) return;
+
+            // Haupt-NavList abwählen
+            NavigationList.SelectionChanged -= NavigationList_SelectionChanged;
+            NavigationList.SelectedIndex = -1;
+            NavigationList.SelectionChanged += NavigationList_SelectionChanged;
+
+            RefreshSectionTitle();
+            MainFrame.Navigate(_settingsPage);
         }
 
         // joke

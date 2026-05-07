@@ -147,6 +147,7 @@ namespace MortysDLP.Views
                 {
                     mainWindow.DownloadPage.ApplyDebugMode();
                     mainWindow.ConvertPage.ApplyDebugMode();
+                    mainWindow.TranscribePage.ApplyDebugMode();
                     break;
                 }
             }

@@ -1,0 +1,245 @@
+<Page x:Class="MortysDLP.Views.TranscribePage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      Title="Transkribieren"
+      Loaded="TranscribePage_Loaded">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="0">
+
+            <!-- INFO -->
+            <Border CornerRadius="8" Padding="14,10,14,12" Margin="0,0,0,8"
+                    Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="1">
+                <StackPanel>
+                    <TextBlock x:Name="txtSectionInfo" FontWeight="SemiBold" FontSize="11"
+                               Foreground="{StaticResource BrandOrangeBrush}" Margin="0,0,0,8"/>
+                    <TextBlock x:Name="txtInfoText" TextWrapping="Wrap" LineHeight="20" Opacity="0.9"/>
+                </StackPanel>
+            </Border>
+
+            <!-- WHISPER STATUS -->
+            <Border CornerRadius="8" Padding="14,10,14,12" Margin="0,0,0,8"
+                    Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="1">
+                <StackPanel>
+                    <TextBlock x:Name="txtSectionWhisper" FontWeight="SemiBold" FontSize="11"
+                               Foreground="{StaticResource BrandOrangeBrush}" Margin="0,0,0,10"/>
+
+                    <!-- Setup-Schritte (sichtbar wenn nicht vollständig eingerichtet) -->
+                    <Border x:Name="pnlSetup" CornerRadius="6" Padding="12,10" Margin="0,0,0,10"
+                            Background="{DynamicResource SubtleFillColorSecondaryBrush}"
+                            Visibility="Collapsed">
+                        <StackPanel>
+                            <TextBlock x:Name="txtSetupHint" TextWrapping="Wrap" Margin="0,0,0,10" Opacity="0.85"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                <TextBlock x:Name="txtSetupStep1" FontWeight="SemiBold" VerticalAlignment="Center" MinWidth="260"/>
+                                <TextBlock x:Name="txtSetupStep1Status" VerticalAlignment="Center" Margin="8,0,0,0" Opacity="0.7"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock x:Name="txtSetupStep2" FontWeight="SemiBold" VerticalAlignment="Center" MinWidth="260"/>
+                                <TextBlock x:Name="txtSetupStep2Status" VerticalAlignment="Center" Margin="8,0,0,0" Opacity="0.7"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Fertig-Status (sichtbar wenn alles eingerichtet) -->
+                    <TextBlock x:Name="txtWhisperStatus" TextWrapping="Wrap" Margin="0,0,0,10" Opacity="0.85"/>
+
+                    <StackPanel Orientation="Horizontal">
+                        <Button x:Name="btnManageModels" Click="btnManageModels_Click"
+                                Style="{StaticResource PrimaryButtonStyle}" Margin="0,0,8,0"/>
+                        <Button x:Name="btnInstallWhisper" Click="btnInstallWhisper_Click"
+                                Visibility="Collapsed"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- EINGABEDATEI -->
+            <Border x:Name="borderInput" CornerRadius="8" Padding="14,10,14,12" Margin="0,0,0,8"
+                    Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="1">
+                <StackPanel>
+                    <TextBlock x:Name="txtSectionInput" FontWeight="SemiBold" FontSize="11"
+                               Foreground="{StaticResource BrandOrangeBrush}" Margin="0,0,0,8"/>
+                    <StackPanel Orientation="Horizontal">
+                        <Label x:Name="lblInputFile" VerticalAlignment="Center" Padding="2" MinWidth="130"/>
+                        <TextBox x:Name="tbInputFile" Width="450" IsReadOnly="True"
+                                 VerticalContentAlignment="Center" Margin="7,0,7,0"
+                                 ToolTip="{Binding ElementName=tbInputFile, Path=Text}">
+                            <TextBox.Style>
+                                <Style TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+                                    <Style.Triggers>
+                                        <Trigger Property="Text" Value="">
+                                            <Setter Property="Background" Value="{DynamicResource CardBackgroundFillColorDefaultBrush}"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBox.Style>
+                        </TextBox>
+                        <Button x:Name="btnBrowseInput" Click="btnBrowseInput_Click">
+                            <TextBlock x:Name="txtBrowseInput"/>
+                        </Button>
+                        <TextBlock x:Name="imgInputInfo" FontFamily="Segoe MDL2 Assets" FontSize="16"
+                                   Text="&#xE946;" Opacity="0.8" VerticalAlignment="Center" Margin="8,0,0,0">
+                            <TextBlock.ToolTip>
+                                <ToolTip x:Name="tooltipInputFile"/>
+                            </TextBlock.ToolTip>
+                        </TextBlock>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- EINSTELLUNGEN -->
+            <Border x:Name="borderSettings" CornerRadius="8" Padding="14,10,14,12" Margin="0,0,0,8"
+                    Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="1">
+                <StackPanel>
+                    <TextBlock x:Name="txtSectionSettings" FontWeight="SemiBold" FontSize="11"
+                               Foreground="{StaticResource BrandOrangeBrush}" Margin="0,0,0,8"/>
+
+                    <!-- Modell -->
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                        <Label x:Name="lblModel" VerticalAlignment="Center" Padding="2" MinWidth="130"/>
+                        <ComboBox x:Name="combModel" Width="280" Margin="7,0,0,0" VerticalContentAlignment="Center">
+                            <TextBlock x:Name="imgModelInfo" FontFamily="Segoe MDL2 Assets" FontSize="16"
+                                       Text="&#xE946;" Opacity="0.8" VerticalAlignment="Center" Margin="8,0,0,0">
+                                <TextBlock.ToolTip>
+                                    <ToolTip x:Name="tooltipModel"/>
+                                </TextBlock.ToolTip>
+                            </TextBlock>
+                        </ComboBox>
+                        <TextBlock x:Name="imgModelInfoIcon" FontFamily="Segoe MDL2 Assets" FontSize="16"
+                                   Text="&#xE946;" Opacity="0.8" VerticalAlignment="Center" Margin="8,0,0,0">
+                            <TextBlock.ToolTip>
+                                <ToolTip x:Name="tooltipModel2"/>
+                            </TextBlock.ToolTip>
+                        </TextBlock>
+                    </StackPanel>
+
+                    <!-- Sprache -->
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                        <Label x:Name="lblLanguage" VerticalAlignment="Center" Padding="2" MinWidth="130"/>
+                        <ComboBox x:Name="combLanguage" Width="200" Margin="7,0,0,0" VerticalContentAlignment="Center"/>
+                        <TextBlock x:Name="imgLangInfo" FontFamily="Segoe MDL2 Assets" FontSize="16"
+                                   Text="&#xE946;" Opacity="0.8" VerticalAlignment="Center" Margin="8,0,0,0">
+                            <TextBlock.ToolTip>
+                                <ToolTip x:Name="tooltipLang"/>
+                            </TextBlock.ToolTip>
+                        </TextBlock>
+                    </StackPanel>
+
+                    <!-- Ausgabeformat -->
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,0">
+                        <Label x:Name="lblOutputFormat" VerticalAlignment="Center" Padding="2" MinWidth="130"/>
+                        <StackPanel Margin="7,0,0,0">
+                            <CheckBox x:Name="cbOutputTxt" IsChecked="True" Margin="0,0,0,4">
+                                <TextBlock x:Name="txtOutputTxt"/>
+                            </CheckBox>
+                            <CheckBox x:Name="cbOutputSrt" IsChecked="True" Margin="0,0,0,4">
+                                <TextBlock x:Name="txtOutputSrt"/>
+                            </CheckBox>
+                            <CheckBox x:Name="cbOutputVtt" Margin="0,0,0,0">
+                                <TextBlock x:Name="txtOutputVtt"/>
+                            </CheckBox>
+                        </StackPanel>
+                        <TextBlock x:Name="imgFormatInfo" FontFamily="Segoe MDL2 Assets" FontSize="16"
+                                   Text="&#xE946;" Opacity="0.8" VerticalAlignment="Top" Margin="8,2,0,0">
+                            <TextBlock.ToolTip>
+                                <ToolTip x:Name="tooltipFormat"/>
+                            </TextBlock.ToolTip>
+                        </TextBlock>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- AUSGABE -->
+            <Border x:Name="borderOutput" CornerRadius="8" Padding="14,10,14,12" Margin="0,0,0,8"
+                    Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="1">
+                <StackPanel>
+                    <TextBlock x:Name="txtSectionOutput" FontWeight="SemiBold" FontSize="11"
+                               Foreground="{StaticResource BrandOrangeBrush}" Margin="0,0,0,8"/>
+                    <StackPanel Orientation="Horizontal">
+                        <Label x:Name="lblOutputDir" VerticalAlignment="Center" Padding="2" MinWidth="130"/>
+                        <TextBox x:Name="tbOutputDir" Width="450" VerticalContentAlignment="Center"
+                                 Margin="7,0,7,0"/>
+                        <Button x:Name="btnBrowseOutput" Click="btnBrowseOutput_Click" Margin="0,0,7,0">
+                            <TextBlock x:Name="txtBrowseOutput"/>
+                        </Button>
+                        <Button x:Name="btnOpenOutput" Click="btnOpenOutput_Click">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xED25;" FontSize="14"
+                                           VerticalAlignment="Center" Margin="0,0,5,0"/>
+                                <TextBlock x:Name="txtOpenOutput" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- AKTIONEN + FORTSCHRITT -->
+            <Border x:Name="borderActions" CornerRadius="8" Padding="14,10,14,10" Margin="0,0,0,8"
+                    Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="1">
+                <StackPanel Orientation="Horizontal">
+                    <Button x:Name="btnStart" Click="btnStart_Click"
+                            Style="{StaticResource PrimaryButtonStyle}" VerticalAlignment="Center">
+                        <Button.ToolTip>
+                            <ToolTip x:Name="tooltipBtnStart"/>
+                        </Button.ToolTip>
+                    </Button>
+                    <Button x:Name="btnCancel" Click="btnCancel_Click" IsEnabled="False"
+                            VerticalAlignment="Center" Margin="7,0,0,0"/>
+
+                    <!-- Fortschritt (läuft) -->
+                    <Border x:Name="pnlRunning" Padding="12,0,0,0" Visibility="Hidden">
+                        <StackPanel VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                <TextBlock x:Name="txtStatus" FontWeight="Bold"/>
+                                <TextBlock x:Name="txtProgressPercent" Margin="8,0,0,0" Opacity="0.7"/>
+                            </StackPanel>
+                            <ProgressBar x:Name="pbProgress"
+                                         Style="{StaticResource FluentProgressBarStyle}"
+                                         Width="250" Height="8"
+                                         Minimum="0" Maximum="100" Value="0"
+                                         IsIndeterminate="False"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Ergebnis (fertig / Fehler / abgebrochen) -->
+                    <Border x:Name="pnlResult" Padding="12,0,0,0" Visibility="Collapsed">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock x:Name="txtResultIcon" FontFamily="Segoe MDL2 Assets" FontSize="18"
+                                       VerticalAlignment="Center" Margin="0,0,6,0"/>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock x:Name="txtResultTitle" FontWeight="SemiBold"/>
+                                <TextBlock x:Name="txtResultFile" Opacity="0.65" FontSize="11"
+                                           MaxWidth="320" TextTrimming="CharacterEllipsis"/>
+                            </StackPanel>
+                            <Button x:Name="btnOpenResult" Click="btnOpenResult_Click"
+                                    Margin="12,0,0,0" Padding="6,3" Visibility="Collapsed">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xED25;" FontSize="13"
+                                               VerticalAlignment="Center" Margin="0,0,4,0"/>
+                                    <TextBlock x:Name="txtOpenResult" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Border>
+
+            <!-- AUSGABE-LOG -->
+            <DockPanel x:Name="dockLog" Margin="0,2,0,0">
+                <Expander x:Name="expLog" IsExpanded="False">
+                    <TextBox x:Name="tbLog" VerticalScrollBarVisibility="Auto"
+                             HorizontalScrollBarVisibility="Auto" IsReadOnly="True"
+                             TextWrapping="NoWrap" FontFamily="Consolas" FontSize="12"
+                             AcceptsReturn="True" MaxHeight="200"
+                             TextChanged="tbLog_TextChanged"/>
+                </Expander>
+            </DockPanel>
+
+        </StackPanel>
+    </ScrollViewer>
+</Page>
