@@ -28,6 +28,18 @@
 - Selectable target format, output folder, video and audio quality
 - Per-file progress tracking
 
+### Transcribe
+- Transcribe any video or audio file to text — fully **offline**, no data leaves your PC
+- Powered by [whisper.cpp](https://github.com/ggerganov/whisper.cpp) (OpenAI Whisper, running locally)
+- Output formats: plain text (`.txt`), subtitles (`.srt`), WebVTT (`.vtt`)
+- SRT files work directly in DaVinci Resolve, Premiere Pro, and most video editors
+- **19 supported languages** including German, English, French, Spanish, Japanese, Chinese, and more
+- Automatic language detection or manual language selection
+- **Six model sizes** to choose between speed and accuracy: Tiny, Base, Small, Medium, Large-v3-Turbo, Large-v3
+- Whisper engine and language models are downloaded directly inside the app — no manual setup
+- Individual models can be downloaded or deleted to manage disk space
+- **Repair option** — remove only the tool while keeping downloaded models, then reinstall without re-downloading
+
 ### App
 - **Automatic tool management** – yt-dlp, ffmpeg, and ffprobe are downloaded automatically on first launch if missing; yt-dlp is kept up to date
 - **Opt-in software updates** – a subtle banner appears at the top of the window when a new version is available; the changelog is shown before you decide to update
@@ -68,6 +80,14 @@
 2. Choose the target format and output folder
 3. Optionally adjust video and audio quality
 4. Click **Start Conversion**
+
+### Transcribe tab
+1. Open **Manage Whisper** and install the Whisper engine
+2. Download at least one language model (Base is a good starting point)
+3. Go back to the **Transcribe** tab, select your input file
+4. Choose a language model, the spoken language, and the desired output format(s)
+5. Click **Start Transcription** — progress is shown in real time
+6. Once finished, use **Open Folder** to access the output files directly
 
 ### Settings tab
 - Change the default download path and the separate audio-only download path
