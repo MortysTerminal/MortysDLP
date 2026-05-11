@@ -252,6 +252,7 @@ namespace MortysDLP.UITexte
 
             // Main Window Navigation
             ["MainWindow.Nav.Transcribe"] = "Transkribieren",
+            ["MainWindow.Nav.GifMaker"] = "GIF-Maker",
 
             // Transcribe Page
             ["TranscribePage.Section.Info"]          = "WAS IST TRANSKRIPTION?",
@@ -344,6 +345,50 @@ namespace MortysDLP.UITexte
             ["WhisperModels.UpdateCheck.Error"]      = "Update-Prüfung fehlgeschlagen. Bitte überprüfe deine Internetverbindung.",
             ["WhisperModels.NoAsset"]                = "Kein passendes Windows-Paket im aktuellen Release gefunden.",
             ["WhisperModels.Info.ModelsDir"]         = "Modelle-Ordner: {0}",
+
+            // GIF-Maker Page
+            ["GifPage.Section.Info"]             = "WAS IST DER GIF-MAKER?",
+            ["GifPage.Info.Text"]                = "Der GIF-Maker wandelt Videos in animierte GIFs um – direkt auf deinem PC, ohne Cloud. Perfekt für Discord, soziale Medien und das Web.\n\nDu kannst beliebige Video- oder Audiodateien auswählen, einen Zeitabschnitt festlegen und die Qualität steuern. Die GIFs werden mit FFmpeg und einem Zwei-Phasen-Algorithmus erstellt, der für maximale Qualität bei kleiner Dateigröße sorgt.",
+            ["GifPage.Section.Input"]            = "EINGABEDATEI",
+            ["GifPage.Label.InputFile"]          = "Datei auswählen:",
+            ["GifPage.Button.BrowseInput"]       = "Durchsuchen...",
+            ["GifPage.Tooltip.InputFile"]        = "Wähle eine Videodatei, die in ein GIF umgewandelt werden soll. Unterstützte Formate: mp4, mkv, mov, avi, webm u.v.m.",
+            ["GifPage.Section.Settings"]         = "GIF-EINSTELLUNGEN",
+            ["GifPage.Label.Quality"]            = "Qualität:",
+            ["GifPage.Label.TimeRange"]          = "Zeitbereich festlegen",
+            ["GifPage.Label.StartTime"]          = "Start (hh:mm:ss):",
+            ["GifPage.Label.EndTime"]            = "Ende (hh:mm:ss):",
+            ["GifPage.Tooltip.Quality"]          = "Niedrig: 320px, 8fps – ideal für kleine Dateien.\nMittel: 480px, 12fps – gutes Gleichgewicht.\nHoch: 640px, 18fps – beste Qualität.\nWeb/Discord: 480px, 15fps – optimiert für Discord (≤8 MB).",
+            ["GifPage.Tooltip.Time"]             = "Optional: Lege Start- und Endzeit für den GIF-Ausschnitt fest. Leer lassen für das gesamte Video. Format: hh:mm:ss oder mm:ss.",
+            ["GifPage.Quality.Low"]              = "Niedrig (320px, 8fps)",
+            ["GifPage.Quality.Medium"]           = "Mittel (480px, 12fps)",
+            ["GifPage.Quality.High"]             = "Hoch (640px, 18fps)",
+            ["GifPage.Quality.Web"]              = "Web / Discord (480px, 15fps)",
+            ["GifPage.Section.Output"]           = "AUSGABE",
+            ["GifPage.Label.OutputFolder"]       = "Ausgabeordner:",
+            ["GifPage.Button.BrowseOutput"]      = "Durchsuchen...",
+            ["GifPage.Button.OpenOutput"]        = "Ordner öffnen",
+            ["GifPage.Button.Start"]             = "GIF erstellen",
+            ["GifPage.Button.Cancel"]            = "Abbrechen",
+            ["GifPage.Button.OpenResult"]        = "Ordner öffnen",
+            ["GifPage.Status.Ready"]             = "Bereit",
+            ["GifPage.Status.Converting"]        = "GIF wird erstellt...",
+            ["GifPage.Status.Success"]           = "GIF erfolgreich erstellt",
+            ["GifPage.Status.Error"]             = "Fehler beim Erstellen",
+            ["GifPage.Status.Canceled"]          = "Abgebrochen",
+            ["GifPage.Error.NoFile"]             = "Bitte wähle eine Eingabedatei aus.",
+            ["GifPage.Error.NoOutput"]           = "Bitte wähle einen Ausgabeordner aus.",
+            ["GifPage.Error.FfmpegMissing"]      = "ffmpeg wurde nicht gefunden. ffmpeg ist für die GIF-Erstellung erforderlich.",
+            ["GifPage.Success.OpenFolder"]       = "GIF erfolgreich erstellt!\n\nDie Datei befindet sich in:\n{0}\n\nOrdner öffnen?",
+            ["GifPage.Section.UsePath"]          = "Pfad übernehmen:",
+            ["GifPage.Button.UseDownloadPath"]   = "Downloadpfad",
+
+            // Download Page – GIF-Option
+            ["DownloadPage.Section.GifMaker"]    = "GIF-MAKER NACH DOWNLOAD",
+            ["DownloadPage.GifMaker.Enable"]     = "Nach dem Download automatisch als GIF speichern",
+            ["DownloadPage.GifMaker.Quality"]    = "GIF-Qualität:",
+            ["DownloadPage.GifMaker.Tooltip"]    = "Wenn aktiviert, wird das heruntergeladene Video nach dem Download automatisch mit FFmpeg in ein GIF umgewandelt. Das GIF wird im selben Ordner wie das Video gespeichert.",
+            ["DownloadPage.Status.CreatingGif"]  = "GIF wird erstellt...",
 
             // Download Page – Transkriptions-Option
             ["DownloadPage.Section.Transcription"]   = "TRANSKRIPTION NACH DOWNLOAD",
@@ -589,6 +634,7 @@ namespace MortysDLP.UITexte
 
             // Main Window Navigation
             ["MainWindow.Nav.Transcribe"] = "Transcribe",
+            ["MainWindow.Nav.GifMaker"] = "GIF Maker",
 
             // Transcribe Page
             ["TranscribePage.Section.Info"]          = "WHAT IS TRANSCRIPTION?",
@@ -681,6 +727,50 @@ namespace MortysDLP.UITexte
             ["WhisperModels.UpdateCheck.Error"]      = "Update check failed. Please check your internet connection.",
             ["WhisperModels.NoAsset"]                = "No compatible Windows package found in the current release.",
             ["WhisperModels.Info.ModelsDir"]         = "Models folder: {0}",
+
+            // GIF-Maker Page
+            ["GifPage.Section.Info"]             = "WHAT IS GIF MAKER?",
+            ["GifPage.Info.Text"]                = "GIF Maker converts videos to animated GIFs – directly on your PC, no cloud required. Perfect for Discord, social media and the web.\n\nYou can select any video file, define a time range and control the quality. GIFs are created with FFmpeg using a two-phase algorithm for maximum quality at small file size.",
+            ["GifPage.Section.Input"]            = "INPUT FILE",
+            ["GifPage.Label.InputFile"]          = "Select file:",
+            ["GifPage.Button.BrowseInput"]       = "Browse...",
+            ["GifPage.Tooltip.InputFile"]        = "Select a video file to convert to a GIF. Supported formats: mp4, mkv, mov, avi, webm and more.",
+            ["GifPage.Section.Settings"]         = "GIF SETTINGS",
+            ["GifPage.Label.Quality"]            = "Quality:",
+            ["GifPage.Label.TimeRange"]          = "Set time range",
+            ["GifPage.Label.StartTime"]          = "Start (hh:mm:ss):",
+            ["GifPage.Label.EndTime"]            = "End (hh:mm:ss):",
+            ["GifPage.Tooltip.Quality"]          = "Low: 320px, 8fps – ideal for small files.\nMedium: 480px, 12fps – good balance.\nHigh: 640px, 18fps – best quality.\nWeb/Discord: 480px, 15fps – optimized for Discord (≤8 MB).",
+            ["GifPage.Tooltip.Time"]             = "Optional: Set start and end time for the GIF clip. Leave empty for the entire video. Format: hh:mm:ss or mm:ss.",
+            ["GifPage.Quality.Low"]              = "Low (320px, 8fps)",
+            ["GifPage.Quality.Medium"]           = "Medium (480px, 12fps)",
+            ["GifPage.Quality.High"]             = "High (640px, 18fps)",
+            ["GifPage.Quality.Web"]              = "Web / Discord (480px, 15fps)",
+            ["GifPage.Section.Output"]           = "OUTPUT",
+            ["GifPage.Label.OutputFolder"]       = "Output folder:",
+            ["GifPage.Button.BrowseOutput"]      = "Browse...",
+            ["GifPage.Button.OpenOutput"]        = "Open Folder",
+            ["GifPage.Button.Start"]             = "Create GIF",
+            ["GifPage.Button.Cancel"]            = "Cancel",
+            ["GifPage.Button.OpenResult"]        = "Open Folder",
+            ["GifPage.Status.Ready"]             = "Ready",
+            ["GifPage.Status.Converting"]        = "Creating GIF...",
+            ["GifPage.Status.Success"]           = "GIF created successfully",
+            ["GifPage.Status.Error"]             = "Error creating GIF",
+            ["GifPage.Status.Canceled"]          = "Canceled",
+            ["GifPage.Error.NoFile"]             = "Please select an input file.",
+            ["GifPage.Error.NoOutput"]           = "Please select an output folder.",
+            ["GifPage.Error.FfmpegMissing"]      = "ffmpeg was not found. ffmpeg is required for GIF creation.",
+            ["GifPage.Success.OpenFolder"]       = "GIF created successfully!\n\nThe file is located in:\n{0}\n\nOpen folder?",
+            ["GifPage.Section.UsePath"]          = "Use Path:",
+            ["GifPage.Button.UseDownloadPath"]   = "Download Path",
+
+            // Download Page – GIF option
+            ["DownloadPage.Section.GifMaker"]    = "GIF MAKER AFTER DOWNLOAD",
+            ["DownloadPage.GifMaker.Enable"]     = "Automatically save as GIF after download",
+            ["DownloadPage.GifMaker.Quality"]    = "GIF Quality:",
+            ["DownloadPage.GifMaker.Tooltip"]    = "When enabled, the downloaded video will automatically be converted to a GIF by FFmpeg. The GIF will be saved in the same folder as the video.",
+            ["DownloadPage.Status.CreatingGif"]  = "Creating GIF...",
 
             // Download Page – Transcription option
             ["DownloadPage.Section.Transcription"]   = "TRANSCRIPTION AFTER DOWNLOAD",

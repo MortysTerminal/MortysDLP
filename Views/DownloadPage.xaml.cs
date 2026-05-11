@@ -126,6 +126,16 @@ namespace MortysDLP.Views
             
             // Debug
             expDebug.Header = T("DownloadPage.Section.Debug");
+
+            // Section: GIF-Maker
+            txtSectionGifMaker.Text         = T("DownloadPage.Section.GifMaker");
+            txtGifMakerEnable.Text          = T("DownloadPage.GifMaker.Enable");
+            txtGifMakerQualityLabel.Text    = T("DownloadPage.GifMaker.Quality");
+            tooltipGifMaker.Content         = T("DownloadPage.GifMaker.Tooltip");
+            cbiGifQualityWeb.Content        = T("GifPage.Quality.Web");
+            cbiGifQualityLow.Content        = T("GifPage.Quality.Low");
+            cbiGifQualityMedium.Content     = T("GifPage.Quality.Medium");
+            cbiGifQualityHigh.Content       = T("GifPage.Quality.High");
         }
 
         private static async Task AddDownloadToHistoryAsync(string url, string title, string downloadDirectory,
@@ -691,6 +701,8 @@ namespace MortysDLP.Views
         private void cbFirstSecondsCheck(object sender, RoutedEventArgs e) { FirstSecondsAdjustments(); ValidateDownloadButton(); }
         private void cbTimespanCheck(object sender, RoutedEventArgs e) => TimespanAdjustments();
         private void cbVideoFormatCheck(object sender, RoutedEventArgs e) => VideoformatAdjustments();
+        private void cbGifMakerCheck(object sender, RoutedEventArgs e) =>
+            combGifMakerQuality.IsEnabled = cbGifMaker.IsChecked == true;
 
         private void FirstSecondsAdjustments()
         {
@@ -1033,6 +1045,41 @@ namespace MortysDLP.Views
             }
             catch { }
             return null;
+        }
+
+        /// <summary>Konvertiert eine heruntergeladene Videodatei nach dem Download in ein GIF.</summary>
+        private async Task ConvertDownloadedVideoToGifAsync(string inputFile, int presetIndex, CancellationToken token)
+        {
+            // Quality presets: (fps, width, bayerScale) – sync mit GifPage.QualityPresets
+            (int Fps, int Width, int BayerScale)[] presets =
+            {
+                (15, 480, 3),  // Web/Discord
+                (8,  320, 2),  // Low
+                (12, 480, 3),  // Medium
+                (18, 640, 4),  // High
+            };
+
+            var (fps, width, bayerScale) = presets[Math.Clamp(presetIndex, 0, presets.Length - 1)];
+            string ffmpegPath = Properties.Settings.Default.FfmpegPath;
+
+            string outputDir  = System.IO.Path.GetDirectoryName(inputFile) ?? "";
+            string baseName   = System.IO.Path.GetFileNameWithoutExtension(inputFile);
+            string outputFile = System.IO.Path.Combine(outputDir, baseName + "_gifmaker.gif");
+
+            int counter = 1;
+            while (System.IO.File.Exists(outputFile))
+                outputFile = System.IO.Path.Combine(outputDir, $"{baseName}_gifmaker_{counter++}.gif");
+
+            string filter = $"fps={fps},scale={width}:-1:flags=lanczos,split[s0][s1];" +
+                           $"[s0]palettegen=max_colors=256:stats_mode=diff[p];" +
+                           $"[s1][p]paletteuse=dither=bayer:bayer_scale={bayerScale}:diff_mode=rectangle";
+            string args   = $"-i \"{inputFile}\" -vf \"{filter}\" -loop 0 -y \"{outputFile}\"";
+
+            AppendOutput($"[GIF] Starte GIF-Konvertierung: {System.IO.Path.GetFileName(outputFile)}");
+            AppendOutput($"[GIF] CMD: {ffmpegPath} {args}");
+
+            await RunFfmpegConvertAsync(ffmpegPath, args, inputFile, token);
+            AppendOutput($"[GIF] Fertig: {outputFile}");
         }
 
         /// <summary>Prüft den Video-Codec der heruntergeladenen Datei und konvertiert zu H.264 falls nötig.
@@ -1437,6 +1484,9 @@ namespace MortysDLP.Views
             tbCustomFilename.IsEnabled = enabled && cbCustomFilename.IsChecked == true;
             tbCustomFilename.IsReadOnly = !(enabled && cbCustomFilename.IsChecked == true);
             btnOpenTimeline.IsEnabled = enabled && cbTimespan.IsChecked == true;
+
+            cbGifMaker.IsEnabled = enabled;
+            combGifMakerQuality.IsEnabled = enabled && cbGifMaker.IsChecked == true;
         }
 
         private async Task StartDownloadAsync(string urlOverride, CancellationToken token)
@@ -1477,6 +1527,30 @@ namespace MortysDLP.Views
                 else
                 {
                     await EnsureH264CodecAsync(resolvedPath, token);
+                }
+            }
+
+            // Post-Download: GIF-Konvertierung
+            bool gifEnabled = false;
+            int gifPresetIndex = 0;
+            Dispatcher.Invoke(() =>
+            {
+                gifEnabled    = cbGifMaker.IsChecked == true;
+                gifPresetIndex = combGifMakerQuality.SelectedIndex < 0 ? 0 : combGifMakerQuality.SelectedIndex;
+            });
+
+            if (gifEnabled)
+            {
+                string? sourcePath = ResolveOutputFilePath();
+                if (!string.IsNullOrEmpty(sourcePath) && System.IO.File.Exists(sourcePath))
+                {
+                    Dispatcher.Invoke(() => txtDownloadStatus.Text = UITextDictionary.Get("DownloadPage.Status.CreatingGif"));
+                    UpdateProgress(0);
+                    await ConvertDownloadedVideoToGifAsync(sourcePath, gifPresetIndex, token);
+                }
+                else
+                {
+                    AppendOutput("[GIF] WARNUNG: Ausgabedatei nicht gefunden – GIF-Konvertierung übersprungen.");
                 }
             }
         }

@@ -11,6 +11,7 @@ namespace MortysDLP
         private readonly ConvertPage _convertPage = new();
         private readonly SettingsPage _settingsPage = new();
         private readonly TranscribePage _transcribePage = new();
+        private readonly GifPage _gifPage = new();
 
         private string? _pendingUpdateVersion;
         private string? _pendingUpdateChangelog;
@@ -80,6 +81,7 @@ namespace MortysDLP
             txtNavConvert.Text = T("MainWindow.Nav.Convert");
             txtNavSettings.Text = T("MainWindow.Nav.Settings");
             txtNavTranscribe.Text = T("MainWindow.Nav.Transcribe");
+            txtNavGifMaker.Text = T("MainWindow.Nav.GifMaker");
 
             // Version Label und Softwareinfo
             txtVersionLabel.Text = T("MainWindow.Version");
@@ -111,6 +113,7 @@ namespace MortysDLP
                 T("MainWindow.Nav.Download"),
                 T("MainWindow.Nav.Convert"),
                 T("MainWindow.Nav.Transcribe"),
+                T("MainWindow.Nav.GifMaker"),
             };
 
             if (idx < sectionTitles.Length)
@@ -141,6 +144,9 @@ namespace MortysDLP
                 case 2:
                     _transcribePage.RefreshAll();
                     MainFrame.Navigate(_transcribePage);
+                    break;
+                case 3:
+                    MainFrame.Navigate(_gifPage);
                     break;
             }
         }

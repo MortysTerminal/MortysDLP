@@ -159,6 +159,36 @@
                 </StackPanel>
             </Border>
 
+            <!-- GIF-MAKER -->
+            <Border CornerRadius="8" Padding="14,10,14,12" Margin="0,0,0,8"
+                    Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1">
+                <StackPanel>
+                    <TextBlock x:Name="txtSectionGifMaker" FontWeight="SemiBold" FontSize="11"
+                               Foreground="{StaticResource BrandOrangeBrush}" Margin="0,0,0,8"/>
+                    <StackPanel Orientation="Horizontal">
+                        <CheckBox x:Name="cbGifMaker" VerticalAlignment="Center" Margin="0,0,8,0"
+                                  Checked="cbGifMakerCheck" Unchecked="cbGifMakerCheck"/>
+                        <TextBlock x:Name="txtGifMakerEnable" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                        <TextBlock x:Name="txtGifMakerQualityLabel" VerticalAlignment="Center" Margin="0,0,7,0"/>
+                        <ComboBox x:Name="combGifMakerQuality" Width="220" IsEnabled="False"
+                                  VerticalContentAlignment="Center">
+                            <ComboBoxItem x:Name="cbiGifQualityWeb" IsSelected="True"/>
+                            <ComboBoxItem x:Name="cbiGifQualityLow"/>
+                            <ComboBoxItem x:Name="cbiGifQualityMedium"/>
+                            <ComboBoxItem x:Name="cbiGifQualityHigh"/>
+                        </ComboBox>
+                        <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="16"
+                                   Text="&#xE946;" Opacity="0.8" VerticalAlignment="Center" Margin="8,0,0,0">
+                            <TextBlock.ToolTip>
+                                <ToolTip x:Name="tooltipGifMaker"/>
+                            </TextBlock.ToolTip>
+                        </TextBlock>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
             <!-- AKTIONEN + FORTSCHRITT -->
             <Border CornerRadius="8" Padding="14,10,14,10" Margin="0,0,0,8"
                     Background="{DynamicResource CardBackgroundFillColorDefaultBrush}" BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="1">
