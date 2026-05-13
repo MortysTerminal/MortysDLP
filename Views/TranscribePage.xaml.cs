@@ -94,7 +94,6 @@ namespace MortysDLP.Views
             txtOpenOutput.Text = T("TranscribePage.Button.OpenOutput");
             btnStart.Content = T("TranscribePage.Button.Start");
             btnCancel.Content = T("TranscribePage.Button.Cancel");
-            txtOpenResult.Text = T("TranscribePage.Button.OpenOutput");
             expLog.Header = T("DownloadPage.Section.Debug");
 
             ApplyDebugMode();

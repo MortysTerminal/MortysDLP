@@ -2,9 +2,6 @@
 <SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="MortysDLP.Properties" GeneratedClassName="Settings">
   <Profiles />
   <Settings>
-    <Setting Name="CurrentVersion" Type="System.String" Scope="User">
-      <Value Profile="(Default)">2026.05.07</Value>
-    </Setting>
     <Setting Name="DownloadPath" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
@@ -112,6 +109,9 @@
     </Setting>
     <Setting Name="WhisperReleaseURL" Type="System.String" Scope="User">
       <Value Profile="(Default)">https://api.github.com/repos/ggerganov/whisper.cpp/releases/latest</Value>
+    </Setting>
+    <Setting Name="CurrentVersion" Type="System.String" Scope="User">
+      <Value Profile="(Default)">2026.05.13</Value>
     </Setting>
   </Settings>
 </SettingsFile>

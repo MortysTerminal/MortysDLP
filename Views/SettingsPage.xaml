@@ -7,7 +7,7 @@
         <StackPanel Margin="0">
 
             <!-- DOWNLOAD-PFADE -->
-            <Border CornerRadius="8" Padding="14,10,14,12" Margin="0,0,0,8"
+            <Border CornerRadius="8" Padding="14,12" Margin="0,0,0,8"
                     Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
                     BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
                     BorderThickness="1">
@@ -15,12 +15,12 @@
                     <TextBlock x:Name="txtSectionDownloadPaths" FontWeight="SemiBold" FontSize="11"
                                Foreground="{StaticResource BrandOrangeBrush}" Margin="0,0,0,8"/>
                     <Button x:Name="btnChangeDownloadPath" Click="btnChangeDownloadPath_Click"
-                            Style="{StaticResource PrimaryButtonStyle}" HorizontalAlignment="Left"/>
+                            MinWidth="100" Padding="12,5" Style="{StaticResource PrimaryButtonStyle}" HorizontalAlignment="Left"/>
                 </StackPanel>
             </Border>
 
             <!-- APP -->
-            <Border CornerRadius="8" Padding="14,10,14,12" Margin="0,0,0,8"
+            <Border CornerRadius="8" Padding="14,12" Margin="0,0,0,8"
                     Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
                     BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
                     BorderThickness="1">
@@ -28,14 +28,14 @@
                     <TextBlock x:Name="txtSectionApp" FontWeight="SemiBold" FontSize="11"
                                Foreground="{StaticResource BrandOrangeBrush}" Margin="0,0,0,8"/>
                     <WrapPanel>
-                        <Button x:Name="btnGitHub" Click="btnGitHub_Click" Margin="0,0,8,0"/>
-                        <Button x:Name="btnClose" Click="btnClose_Click"/>
+                        <Button x:Name="btnGitHub" Click="btnGitHub_Click" MinWidth="100" Padding="12,5" Margin="0,0,8,0"/>
+                        <Button x:Name="btnClose" Click="btnClose_Click" MinWidth="100" Padding="12,5"/>
                     </WrapPanel>
                 </StackPanel>
             </Border>
 
             <!-- DEBUG -->
-            <Border CornerRadius="8" Padding="14,10,14,12" Margin="0,0,0,8"
+            <Border CornerRadius="8" Padding="14,12" Margin="0,0,0,8"
                     Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
                     BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
                     BorderThickness="1">
@@ -48,7 +48,7 @@
             </Border>
 
             <!-- LANGUAGE -->
-            <Border CornerRadius="8" Padding="14,10,14,12" Margin="0,0,0,8"
+            <Border CornerRadius="8" Padding="14,12" Margin="0,0,0,8"
                     Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
                     BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
                     BorderThickness="1">

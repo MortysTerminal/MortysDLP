@@ -7,7 +7,7 @@
         <StackPanel Margin="0">
 
             <!-- DOWNLOAD-PFADE -->
-            <Border CornerRadius="8" Padding="14,10,14,12" Margin="0,0,0,8"
+            <Border CornerRadius="8" Padding="14,12" Margin="0,0,0,8"
                     Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
                     BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
                     BorderThickness="1">
@@ -16,14 +16,16 @@
                                Foreground="{StaticResource BrandOrangeBrush}" Margin="0,0,0,6"/>
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,2">
                         <Label Name="lblDownloadPathInfo" VerticalAlignment="Center" Padding="2" MinWidth="150"/>
-                        <Label Name="lblDownloadPath" MinWidth="500" Cursor="Hand"
+                        <Label Name="lblDownloadPath" MinWidth="400" Cursor="Hand"
                                Foreground="{StaticResource BrandYellowBrush}"
                                MouseLeftButtonUp="DownloadPath_MouseLeftButtonUp"/>
+                        <Button x:Name="btnChangeDownloadPath" Click="btnChangeDownloadPath_Click"
+                                Margin="8,0,0,0" Padding="8,3"/>
                     </StackPanel>
                     <DockPanel Name="dpAudioPath">
                         <StackPanel Orientation="Horizontal">
                             <Label Name="lblAudioPathInfo" VerticalAlignment="Center" Padding="2" MinWidth="150"/>
-                            <Label Name="lblAudioPath" Width="500" Cursor="Hand"
+                            <Label Name="lblAudioPath" Width="400" Cursor="Hand"
                                    Foreground="{StaticResource BrandYellowBrush}"
                                    MouseLeftButtonUp="DownloadPath_MouseLeftButtonUp"/>
                         </StackPanel>
@@ -32,38 +34,39 @@
             </Border>
 
             <!-- DOWNLOAD -->
-            <Border CornerRadius="8" Padding="14,10,14,12" Margin="0,0,0,8"
+            <Border CornerRadius="8" Padding="14,12" Margin="0,0,0,8"
                     Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
                     BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
                     BorderThickness="1">
                 <StackPanel>
                     <TextBlock x:Name="txtSectionDownload" FontWeight="SemiBold" FontSize="11"
                                Foreground="{StaticResource BrandOrangeBrush}" Margin="0,0,0,8"/>
-                    <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,0">
                         <Label Name="lblURLInfo" VerticalAlignment="Center" Padding="2" MinWidth="100"/>
                         <TextBox Name="tbURL" Width="500" GotFocus="TextBox_GotFocus"
                                  TextChanged="tbURL_TextChanged" KeyDown="tbURL_KeyDown"
                                  VerticalContentAlignment="Center" Margin="7,0,0,0"/>
-                        <Button Name="btnHistory" Click="btnHistory_Click" Margin="7,0,0,0"/>
-                    </StackPanel>
-                    <StackPanel Orientation="Horizontal" Margin="0,0,0,0">
-                        <CheckBox Name="cbCustomFilename" Checked="cbCustomFilenameCheck" Unchecked="cbCustomFilenameCheck"
-                                  VerticalAlignment="Center" Margin="0,0,8,0"/>
-                        <TextBlock Name="txtCustomFilenameInfo" VerticalAlignment="Center" Margin="0,0,7,0"/>
-                        <TextBox Name="tbCustomFilename" Width="500" VerticalAlignment="Center" VerticalContentAlignment="Center"
-                                 IsReadOnly="True" IsEnabled="False"/>
+                        <Button Name="btnHistory" Click="btnHistory_Click" MinWidth="100" Padding="12,5" Margin="7,0,0,0"/>
                     </StackPanel>
                 </StackPanel>
             </Border>
 
             <!-- OPTIONEN -->
-            <Border CornerRadius="8" Padding="14,10,14,12" Margin="0,0,0,8"
+            <Border CornerRadius="8" Padding="14,12" Margin="0,0,0,8"
                     Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
                     BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
                     BorderThickness="1">
                 <StackPanel>
                     <TextBlock x:Name="txtSectionOptions" FontWeight="SemiBold" FontSize="11"
                                Foreground="{StaticResource BrandOrangeBrush}" Margin="0,0,0,8"/>
+
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                        <CheckBox Name="cbCustomFilename" Checked="cbCustomFilenameCheck" Unchecked="cbCustomFilenameCheck"
+                                  VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <TextBlock Name="txtCustomFilenameInfo" VerticalAlignment="Center" Margin="0,0,7,0"/>
+                        <TextBox Name="tbCustomFilename" Width="500" VerticalAlignment="Center" VerticalContentAlignment="Center"
+                                 IsReadOnly="True" IsEnabled="False"/>
+                    </StackPanel>
 
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
                         <CheckBox Name="cbTimespan" Checked="cbTimespanCheck" Unchecked="cbTimespanCheck"
@@ -160,7 +163,7 @@
             </Border>
 
             <!-- GIF-MAKER -->
-            <Border CornerRadius="8" Padding="14,10,14,12" Margin="0,0,0,8"
+            <Border CornerRadius="8" Padding="14,12" Margin="0,0,0,8"
                     Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
                     BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
                     BorderThickness="1">
@@ -190,15 +193,15 @@
             </Border>
 
             <!-- AKTIONEN + FORTSCHRITT -->
-            <Border CornerRadius="8" Padding="14,10,14,10" Margin="0,0,0,8"
+            <Border CornerRadius="8" Padding="14,12" Margin="0,0,0,8"
                     Background="{DynamicResource CardBackgroundFillColorDefaultBrush}" BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="1">
                 <StackPanel Orientation="Horizontal">
-                    <Button Name="btnDownloadStart" Click="btnDownloadStart_Click"
+                    <Button Name="btnDownloadStart" Click="btnDownloadStart_Click" MinWidth="100" Padding="12,5"
                             Style="{StaticResource PrimaryButtonStyle}" VerticalAlignment="Center"/>
-                    <Button Name="btnDownloadCancel" Click="btnDownloadCancel_Click" IsEnabled="False"
+                    <Button Name="btnDownloadCancel" Click="btnDownloadCancel_Click" IsEnabled="False" MinWidth="100" Padding="12,5"
                             VerticalAlignment="Center" Margin="7,0,0,0"/>
                     <Separator Margin="10,0"/>
-                    <Button Name="btnSaveSettings" Click="SaveSettings"
+                    <Button Name="btnSaveSettings" Click="SaveSettings" MinWidth="100" Padding="12,5"
                             VerticalAlignment="Center"/>
                     <Border Padding="12,0,0,0">
                         <StackPanel Name="spLoadingbar" Visibility="Hidden" Orientation="Vertical" HorizontalAlignment="Center">
@@ -216,7 +219,7 @@
                                 <Button Name="btnStatusIcon" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}"
                                         Background="Transparent" BorderThickness="0" Padding="0" Margin="6,0,0,0"
                                         Click="btnStatusIcon_Click">
-                                    <TextBlock Name="iaStatusIcon" FontFamily="Segoe MDL2 Assets" FontSize="18"
+                                    <TextBlock Name="iaStatusIcon" FontFamily="Segoe MDL2 Assets" FontSize="20"
                                                Foreground="{StaticResource BrandYellowBrush}"/>
                                 </Button>
                             </StackPanel>

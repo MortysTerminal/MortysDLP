@@ -4,8 +4,8 @@
         Icon="/Resources/Icons/mw_globe_32px.ico"
         Title="MortysDLP"
         WindowStartupLocation="CenterScreen"
-        Width="1120" Height="720"
-        MinWidth="1050" MinHeight="680">
+        Width="1300" Height="850"
+        MinWidth="1300" MinHeight="850">
 
     <Window.Resources>
         <Style x:Key="NavItemStyle" TargetType="ListBoxItem">
@@ -106,6 +106,13 @@
                             <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE896;"
                                        VerticalAlignment="Center" Margin="0,0,10,0" FontSize="15"/>
                             <TextBlock x:Name="txtNavDownload" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </ListBoxItem>
+                    <ListBoxItem>
+                        <StackPanel Orientation="Horizontal" Margin="0,1,0,1">
+                            <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE71D;"
+                                       VerticalAlignment="Center" Margin="0,0,10,0" FontSize="15"/>
+                            <TextBlock x:Name="txtNavBatchDownload" FontWeight="SemiBold" VerticalAlignment="Center"/>
                         </StackPanel>
                     </ListBoxItem>
                     <ListBoxItem>

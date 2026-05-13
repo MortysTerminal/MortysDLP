@@ -7,7 +7,7 @@
         <StackPanel Margin="0">
 
             <!-- INFO -->
-            <Border CornerRadius="8" Padding="14,10,14,12" Margin="0,0,0,8"
+            <Border CornerRadius="8" Padding="14,12" Margin="0,0,0,8"
                     Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
                     BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="1">
                 <StackPanel>
@@ -18,7 +18,7 @@
             </Border>
 
             <!-- WHISPER STATUS -->
-            <Border CornerRadius="8" Padding="14,10,14,12" Margin="0,0,0,8"
+            <Border CornerRadius="8" Padding="14,12" Margin="0,0,0,8"
                     Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
                     BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="1">
                 <StackPanel>
@@ -46,16 +46,16 @@
                     <TextBlock x:Name="txtWhisperStatus" TextWrapping="Wrap" Margin="0,0,0,10" Opacity="0.85"/>
 
                     <StackPanel Orientation="Horizontal">
-                        <Button x:Name="btnManageModels" Click="btnManageModels_Click"
+                        <Button x:Name="btnManageModels" Click="btnManageModels_Click" MinWidth="100" Padding="12,5"
                                 Style="{StaticResource PrimaryButtonStyle}" Margin="0,0,8,0"/>
-                        <Button x:Name="btnInstallWhisper" Click="btnInstallWhisper_Click"
+                        <Button x:Name="btnInstallWhisper" Click="btnInstallWhisper_Click" MinWidth="100" Padding="12,5"
                                 Visibility="Collapsed"/>
                     </StackPanel>
                 </StackPanel>
             </Border>
 
             <!-- EINGABEDATEI -->
-            <Border x:Name="borderInput" CornerRadius="8" Padding="14,10,14,12" Margin="0,0,0,8"
+            <Border x:Name="borderInput" CornerRadius="8" Padding="14,12" Margin="0,0,0,8"
                     Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
                     BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="1">
                 <StackPanel>
@@ -72,14 +72,14 @@
                                         <Trigger Property="Text" Value="">
                                             <Setter Property="Background" Value="{DynamicResource CardBackgroundFillColorDefaultBrush}"/>
                                         </Trigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </TextBox.Style>
-                        </TextBox>
-                        <Button x:Name="btnBrowseInput" Click="btnBrowseInput_Click">
-                            <TextBlock x:Name="txtBrowseInput"/>
-                        </Button>
-                        <TextBlock x:Name="imgInputInfo" FontFamily="Segoe MDL2 Assets" FontSize="16"
+                                                              </Style.Triggers>
+                                                         </Style>
+                                                     </TextBox.Style>
+                                                 </TextBox>
+                                                 <Button x:Name="btnBrowseInput" Click="btnBrowseInput_Click" MinWidth="100" Padding="12,5">
+                                                     <TextBlock x:Name="txtBrowseInput"/>
+                                                 </Button>
+                                                 <TextBlock x:Name="imgInputInfo" FontFamily="Segoe MDL2 Assets" FontSize="16"
                                    Text="&#xE946;" Opacity="0.8" VerticalAlignment="Center" Margin="8,0,0,0">
                             <TextBlock.ToolTip>
                                 <ToolTip x:Name="tooltipInputFile"/>
@@ -90,7 +90,7 @@
             </Border>
 
             <!-- EINSTELLUNGEN -->
-            <Border x:Name="borderSettings" CornerRadius="8" Padding="14,10,14,12" Margin="0,0,0,8"
+            <Border x:Name="borderSettings" CornerRadius="8" Padding="14,12" Margin="0,0,0,8"
                     Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
                     BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="1">
                 <StackPanel>
@@ -209,20 +209,17 @@
                     <!-- Ergebnis (fertig / Fehler / abgebrochen) -->
                     <Border x:Name="pnlResult" Padding="12,0,0,0" Visibility="Collapsed">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                            <TextBlock x:Name="txtResultIcon" FontFamily="Segoe MDL2 Assets" FontSize="18"
+                            <TextBlock x:Name="txtResultIcon" FontFamily="Segoe MDL2 Assets" FontSize="20"
                                        VerticalAlignment="Center" Margin="0,0,6,0"/>
                             <StackPanel VerticalAlignment="Center">
                                 <TextBlock x:Name="txtResultTitle" FontWeight="SemiBold"/>
                                 <TextBlock x:Name="txtResultFile" Opacity="0.65" FontSize="11"
                                            MaxWidth="320" TextTrimming="CharacterEllipsis"/>
                             </StackPanel>
-                            <Button x:Name="btnOpenResult" Click="btnOpenResult_Click"
-                                    Margin="12,0,0,0" Padding="6,3" Visibility="Collapsed">
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xED25;" FontSize="13"
-                                               VerticalAlignment="Center" Margin="0,0,4,0"/>
-                                    <TextBlock x:Name="txtOpenResult" VerticalAlignment="Center"/>
-                                </StackPanel>
+                            <Button x:Name="btnOpenResult" Click="btnOpenResult_Click" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}"
+                                    Background="Transparent" BorderThickness="0" Margin="12,0,0,0" Padding="0" Visibility="Collapsed">
+                                    <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE8B7;" FontSize="20"
+                                               Foreground="{StaticResource BrandYellowBrush}" VerticalAlignment="Center"/>
                             </Button>
                         </StackPanel>
                     </Border>
