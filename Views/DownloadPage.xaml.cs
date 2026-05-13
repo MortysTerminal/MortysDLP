@@ -83,6 +83,7 @@ namespace MortysDLP.Views
             txtSectionDownloadPaths.Text = T("DownloadPage.Section.DownloadPaths");
             lblDownloadPathInfo.Content = T("DownloadPage.Label.DownloadPath");
             lblAudioPathInfo.Content = T("DownloadPage.Label.AudioOnlyPath");
+            btnChangeDownloadPath.Content = T("DownloadPage.Button.ChangePath");
             
             // Section: Download
             txtSectionDownload.Text = T("DownloadPage.Section.Download");
@@ -788,6 +789,13 @@ namespace MortysDLP.Views
                     string.Format(UITexte.UITexte.MainWindow_Label_Click_DownloadPathNotFound, path),
                     icon: MessageBoxImage.Error);
             }
+        }
+
+        private void btnChangeDownloadPath_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = new DownloadPathDialog { Owner = Window.GetWindow(this) };
+            if (dialog.ShowDialog() == true)
+                RefreshPaths();
         }
 
         private double? ParseFfmpegTimeProgress(string line, string timespanFrom, string timespanTo, out double? secondsCurrent, out double? secondsTotal)
@@ -1915,6 +1923,7 @@ namespace MortysDLP.Views
         private void CustomFilenameAdjustments()
         {
             bool enabled = cbCustomFilename.IsChecked == true;
+            txtCustomFilenameInfo.IsEnabled = enabled;
             tbCustomFilename.IsEnabled = enabled;
             tbCustomFilename.IsReadOnly = !enabled;
 

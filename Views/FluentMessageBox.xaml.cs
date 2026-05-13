@@ -79,19 +79,19 @@ namespace MortysDLP
                     break;
 
                 case MessageBoxButton.OKCancel:
+                    AddButton(T("Common.Button.OK"), MessageBoxResult.OK, primary: true);
                     AddButton(T("Common.Button.Cancel"), MessageBoxResult.Cancel, primary: false);
-                    AddButton(T("Common.Button.OK"),     MessageBoxResult.OK,     primary: true);
                     break;
 
                 case MessageBoxButton.YesNo:
-                    AddButton(T("Common.Button.No"),  MessageBoxResult.No,  primary: false);
                     AddButton(T("Common.Button.Yes"), MessageBoxResult.Yes, primary: true);
+                    AddButton(T("Common.Button.No"),  MessageBoxResult.No,  primary: false);
                     break;
 
                 case MessageBoxButton.YesNoCancel:
+                    AddButton(T("Common.Button.Yes"), MessageBoxResult.Yes, primary: true);
+                    AddButton(T("Common.Button.No"), MessageBoxResult.No, primary: false);
                     AddButton(T("Common.Button.Cancel"), MessageBoxResult.Cancel, primary: false);
-                    AddButton(T("Common.Button.No"),     MessageBoxResult.No,     primary: false);
-                    AddButton(T("Common.Button.Yes"),    MessageBoxResult.Yes,    primary: true);
                     break;
             }
         }

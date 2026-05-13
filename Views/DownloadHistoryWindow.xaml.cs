@@ -11,9 +11,12 @@ namespace MortysDLP
     /// </summary>
     public partial class DownloadHistoryWindow : Window
     {
-        public DownloadHistoryWindow()
+        private readonly Action<string>? _addToBatchCallback;
+
+        public DownloadHistoryWindow(Action<string>? addToBatchCallback = null)
         {
             /* Sprache wurde bereits in App.xaml.cs gesetzt */
+            _addToBatchCallback = addToBatchCallback;
             InitializeComponent();
             SetUITexte();
             Loaded += async (_, __) => await LoadHistory();
@@ -63,7 +66,15 @@ namespace MortysDLP
         {
             if (HistoryList.SelectedItem is DownloadHistoryEntry entry && !string.IsNullOrEmpty(entry.Url))
             {
-                // MainWindow suchen und URL setzen
+                if (_addToBatchCallback != null)
+                {
+                    // Batch-Modus: URL direkt in die Liste übergeben
+                    _addToBatchCallback(entry.Url);
+                    this.Close();
+                    return;
+                }
+
+                // Standard-Modus: DownloadPage setzen
                 foreach (Window window in Application.Current.Windows)
                 {
                     if (window is MainWindow main)

@@ -77,7 +77,6 @@ namespace MortysDLP.Views
             txtUseDownloadPath.Text  = T("GifPage.Button.UseDownloadPath");
             txtBtnStart.Text         = T("GifPage.Button.Start");
             txtBtnCancel.Text        = T("GifPage.Button.Cancel");
-            txtOpenResult.Text       = T("GifPage.Button.OpenResult");
             expDebug.Header          = T("DownloadPage.Section.Debug");
 
             ApplyDebugMode();
