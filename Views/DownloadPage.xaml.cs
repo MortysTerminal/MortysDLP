@@ -23,6 +23,7 @@ namespace MortysDLP.Views
         private Process? _ytDlpProcess;
         private bool _initialized = false;
         private string? _lastOutputFilePath;
+        private volatile bool _bandwidthKillPending = false;
 
         public enum iaStatusIconType { None, Loading, Success, Error }
 
@@ -137,6 +138,18 @@ namespace MortysDLP.Views
             cbiGifQualityLow.Content        = T("GifPage.Quality.Low");
             cbiGifQualityMedium.Content     = T("GifPage.Quality.Medium");
             cbiGifQualityHigh.Content       = T("GifPage.Quality.High");
+
+            // Bandwidth-Hinweis
+            double bw = Properties.Settings.Default.DownloadBandwidthMBps;
+            if (bw > 0)
+            {
+                txtBandwidthHint.Text = string.Format(T("Global.BandwidthHint"), bw.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                borderBandwidthHint.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                borderBandwidthHint.Visibility = Visibility.Collapsed;
+            }
         }
 
         private static async Task AddDownloadToHistoryAsync(string url, string title, string downloadDirectory,
@@ -691,6 +704,9 @@ namespace MortysDLP.Views
 
             // --newline: Progress-Updates als separate Zeilen (statt \r), verbessert Parsing
             // --no-playlist: verhindert, dass yt-dlp eigenständig eine Playlist expandiert
+            double bwLimit = Properties.Settings.Default.DownloadBandwidthMBps;
+            if (bwLimit > 0)
+                sb.Append($"--limit-rate {bwLimit.ToString(System.Globalization.CultureInfo.InvariantCulture)}M ");
             sb.Append("--no-check-certificates --no-mtime --newline --no-playlist ");
             sb.Append($"\"{url}\"");
 
@@ -920,8 +936,11 @@ namespace MortysDLP.Views
                 _ => null
             };
 
-        private async Task RunYtDlpAsync(string ytDlpPath, string arguments, CancellationToken token)
+        private async Task<bool> RunYtDlpAsync(string ytDlpPath, string arguments, CancellationToken token)
         {
+            // --continue sicherstellen (für Neustart nach Limit-Wechsel)
+            string args = arguments.Contains("--continue") ? arguments : "--continue " + arguments;
+
             _lastOutputFilePath = null;
             string timespanTo = string.Empty;
             string timespanFrom = string.Empty;
@@ -938,7 +957,7 @@ namespace MortysDLP.Views
                 StartInfo = new ProcessStartInfo
                 {
                     FileName  = ytDlpPath,
-                    Arguments = arguments,
+                    Arguments = args,
                     RedirectStandardOutput = true,
                     RedirectStandardError  = true,
                     UseShellExecute  = false,
@@ -967,19 +986,21 @@ namespace MortysDLP.Views
                 process.BeginOutputReadLine();
                 process.BeginErrorReadLine();
 
-                // Token-Registrierung: Prozess bei Abbruch sofort killen
                 await using var tokenReg = token.Register(() =>
                 {
                     try { process.Kill(entireProcessTree: true); } catch { }
                 });
 
-                // CancellationToken.None: sauber warten bis Kill abgeschlossen ist
                 await process.WaitForExitAsync(CancellationToken.None);
-
-                // Synchrones WaitForExit stellt sicher, dass alle asynchronen Output-Events
-                // (OutputDataReceived/ErrorDataReceived) vollständig verarbeitet wurden,
-                // bevor wir _lastOutputFilePath auswerten.
                 process.WaitForExit();
+
+                // Absichtlicher Kill wegen Limit-Änderung → kein Fehler, Neustart nötig
+                if (_bandwidthKillPending)
+                {
+                    _bandwidthKillPending = false;
+                    token.ThrowIfCancellationRequested();
+                    return true;
+                }
 
                 if (token.IsCancellationRequested)
                     throw new OperationCanceledException(token);
@@ -994,6 +1015,8 @@ namespace MortysDLP.Views
                 _ytDlpProcess = null;
                 process.Dispose();
             }
+
+            return false;
         }
 
         // ─── Post-Download Codec-Garantie (Schnittmodus) ────────────────────────────
@@ -1521,8 +1544,13 @@ namespace MortysDLP.Views
                 sourceChannels = meta.Channels;
             }
 
-            string args = BuildYTDLPArguments(sourceAsr, sourceChannels, url);
-            await RunYtDlpAsync(ytDlpPath, args, token);
+            // Neustart-Schleife: bei Limit-Änderung während des Downloads neu starten
+            while (true)
+            {
+                string args = BuildYTDLPArguments(sourceAsr, sourceChannels, url);
+                bool needsRestart = await RunYtDlpAsync(ytDlpPath, args, token);
+                if (!needsRestart) break;
+            }
 
             // Post-Download: Schnittmodus-Codec-Garantie (H.264)
             if (isVideoformat)
@@ -1656,8 +1684,12 @@ namespace MortysDLP.Views
                 UpdateProgress(0);
                 Dispatcher.Invoke(() => txtDownloadStatus.Text = T("DownloadPage.Status.Loading"));
 
-                string args = BuildYTDLPArguments(sourceAsr, sourceChannels, videoUrl);
-                await RunYtDlpAsync(ytDlpPath, args, token);
+                while (true)
+                {
+                    string args = BuildYTDLPArguments(sourceAsr, sourceChannels, videoUrl);
+                    bool needsRestart = await RunYtDlpAsync(ytDlpPath, args, token);
+                    if (!needsRestart) break;
+                }
 
                 // Post-Download: Schnittmodus-Codec-Garantie (H.264)
                 if (isVideoformat)
@@ -1929,6 +1961,17 @@ namespace MortysDLP.Views
 
             if (!enabled)
                 tbCustomFilename.Text = string.Empty;
+        }
+
+        /// <summary>Wird von SettingsPage aufgerufen wenn das Bandbreiten-Limit geändert wird.</summary>
+        public void ApplyBandwidthChange()
+        {
+            if (_ytDlpProcess != null && !_ytDlpProcess.HasExited)
+            {
+                _bandwidthKillPending = true;
+                AppendOutput($"[LIMIT] Bandbreite geändert – yt-dlp wird mit --continue neu gestartet");
+                try { _ytDlpProcess.Kill(entireProcessTree: true); } catch { }
+            }
         }
     }
 }

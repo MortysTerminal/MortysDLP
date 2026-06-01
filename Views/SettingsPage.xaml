@@ -65,6 +65,29 @@
                 </StackPanel>
             </Border>
 
+            <!-- DOWNLOAD-GESCHWINDIGKEIT -->
+            <Border CornerRadius="8" Padding="14,12" Margin="0,0,0,8"
+                    Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1">
+                <StackPanel>
+                    <TextBlock x:Name="txtSectionBandwidth" FontWeight="SemiBold" FontSize="11"
+                               Foreground="{StaticResource BrandOrangeBrush}" Margin="0,0,0,8"/>
+                    <TextBlock x:Name="txtBandwidthInfo" Opacity="0.7" Margin="0,0,0,10" TextWrapping="Wrap"/>
+                    <CheckBox x:Name="cbBandwidthEnabled" Margin="0,0,0,8"
+                              Checked="cbBandwidthEnabled_Changed" Unchecked="cbBandwidthEnabled_Changed"/>
+                    <StackPanel Orientation="Horizontal">
+                        <Label x:Name="lblBandwidthLimit" VerticalAlignment="Center" MinWidth="200"/>
+                        <TextBox x:Name="tbBandwidthLimit" Width="80" VerticalContentAlignment="Center"
+                                 Margin="7,0,0,0" MaxLength="6"
+                                 PreviewTextInput="tbBandwidthLimit_PreviewTextInput"
+                                 TextChanged="tbBandwidthLimit_TextChanged"
+                                 LostFocus="tbBandwidthLimit_LostFocus"/>
+                        <TextBlock x:Name="txtBandwidthUnit" VerticalAlignment="Center" Margin="6,0,0,0" Opacity="0.7"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
         </StackPanel>
     </ScrollViewer>
 </Page>

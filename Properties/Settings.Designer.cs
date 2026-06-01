@@ -12,7 +12,7 @@ namespace MortysDLP.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "18.5.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "18.6.0.0")]
     internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
         
         private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
@@ -457,7 +457,55 @@ namespace MortysDLP.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("2026.05.13")]
+        [global::System.Configuration.DefaultSettingValueAttribute("Tools\\\\TwitchDownloaderCLI.exe")]
+        public string TwitchDownloaderPath {
+            get {
+                return ((string)(this["TwitchDownloaderPath"]));
+            }
+            set {
+                this["TwitchDownloaderPath"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("https://api.github.com/repos/lay295/TwitchDownloader/releases/latest")]
+        public string TwitchDownloaderReleaseURL {
+            get {
+                return ((string)(this["TwitchDownloaderReleaseURL"]));
+            }
+            set {
+                this["TwitchDownloaderReleaseURL"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string TwitchDownloaderOutputPath {
+            get {
+                return ((string)(this["TwitchDownloaderOutputPath"]));
+            }
+            set {
+                this["TwitchDownloaderOutputPath"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public double DownloadBandwidthMBps {
+            get {
+                return ((double)(this["DownloadBandwidthMBps"]));
+            }
+            set {
+                this["DownloadBandwidthMBps"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("2026.06.01")]
         public string CurrentVersion {
             get {
                 return ((string)(this["CurrentVersion"]));

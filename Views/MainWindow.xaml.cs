@@ -13,6 +13,7 @@ namespace MortysDLP
         private readonly TranscribePage _transcribePage = new();
         private readonly GifPage _gifPage = new();
         private readonly BatchDownloadPage _batchDownloadPage = new();
+        private readonly TwitchPage _twitchPage = new();
 
         private string? _pendingUpdateVersion;
         private string? _pendingUpdateChangelog;
@@ -20,6 +21,8 @@ namespace MortysDLP
         internal DownloadPage DownloadPage => _downloadPage;
         internal ConvertPage ConvertPage => _convertPage;
         internal TranscribePage TranscribePage => _transcribePage;
+        internal TwitchPage TwitchPage => _twitchPage;
+        internal BatchDownloadPage BatchDownloadPage => _batchDownloadPage;
 
         public MainWindow()
         {
@@ -83,11 +86,16 @@ namespace MortysDLP
             txtNavSettings.Text = T("MainWindow.Nav.Settings");
             txtNavTranscribe.Text = T("MainWindow.Nav.Transcribe");
             txtNavGifMaker.Text = T("MainWindow.Nav.GifMaker");
+            txtNavTwitchDownload.Text = T("MainWindow.Nav.TwitchDownload");
             txtNavBatchDownload.Text = T("MainWindow.Nav.BatchDownload");
 
             // Version Label und Softwareinfo
             txtVersionLabel.Text = T("MainWindow.Version");
             lblSoftwareinfo.Text = T("MainWindow.Softwareinfo");
+
+            // Credits-Button
+            txtCreditsTitle.Text    = T("MainWindow.Credits.Title");
+            txtCreditsSubtitle.Text = T("MainWindow.Credits.Subtitle");
 
             // joke: Support-Button
             txtJokeDonateTitle.Text    = T("MainWindow.JokeDonate.Title");
@@ -117,6 +125,7 @@ namespace MortysDLP
                 T("MainWindow.Nav.Convert"),
                 T("MainWindow.Nav.Transcribe"),
                 T("MainWindow.Nav.GifMaker"),
+                T("MainWindow.Nav.TwitchDownload"),
             };
 
             if (idx < sectionTitles.Length)
@@ -155,6 +164,9 @@ namespace MortysDLP
                 case 4:
                     MainFrame.Navigate(_gifPage);
                     break;
+                case 5:
+                    MainFrame.Navigate(_twitchPage);
+                    break;
             }
         }
 
@@ -169,6 +181,12 @@ namespace MortysDLP
 
             RefreshSectionTitle();
             MainFrame.Navigate(_settingsPage);
+        }
+
+        private void btnCredits_Click(object sender, RoutedEventArgs e)
+        {
+            var win = new CreditsWindow { Owner = this };
+            win.ShowDialog();
         }
 
         // joke

@@ -4,8 +4,8 @@
         Icon="/Resources/Icons/mw_globe_32px.ico"
         Title="MortysDLP"
         WindowStartupLocation="CenterScreen"
-        Width="1300" Height="850"
-        MinWidth="1300" MinHeight="850">
+        Width="1430" Height="950"
+        MinWidth="1430" MinHeight="950">
 
     <Window.Resources>
         <Style x:Key="NavItemStyle" TargetType="ListBoxItem">
@@ -64,7 +64,7 @@
 
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="220"/>
+            <ColumnDefinition Width="250"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
@@ -78,6 +78,7 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
@@ -136,6 +137,13 @@
                             <TextBlock x:Name="txtNavGifMaker" FontWeight="SemiBold" VerticalAlignment="Center"/>
                         </StackPanel>
                     </ListBoxItem>
+                    <ListBoxItem>
+                        <StackPanel Orientation="Horizontal" Margin="0,1,0,1">
+                            <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE93E;"
+                                       VerticalAlignment="Center" Margin="0,0,10,0" FontSize="15"/>
+                            <TextBlock x:Name="txtNavTwitchDownload" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </ListBoxItem>
                 </ListBox>
 
                 <!-- Einstellungen – abgesetzt unten links, über dem Spenden-Button -->
@@ -162,8 +170,59 @@
                     </ListBoxItem>
                 </ListBox>
 
+                <!-- Credits-Button -->
+                <Button x:Name="btnCredits" Grid.Row="4"
+                        Click="btnCredits_Click"
+                        Margin="0,0,0,6"
+                        Padding="10,8"
+                        HorizontalAlignment="Stretch"
+                        Cursor="Hand"
+                        ToolTip="Open Source &amp; Credits">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                            <Setter Property="Background" Value="Transparent"/>
+                            <Setter Property="BorderThickness" Value="1"/>
+                            <Setter Property="BorderBrush" Value="{DynamicResource CardStrokeColorDefaultBrush}"/>
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border x:Name="btnBorderC"
+                                                Background="{TemplateBinding Background}"
+                                                BorderBrush="{TemplateBinding BorderBrush}"
+                                                BorderThickness="{TemplateBinding BorderThickness}"
+                                                CornerRadius="6"
+                                                Padding="{TemplateBinding Padding}">
+                                            <ContentPresenter HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="btnBorderC" Property="Background"
+                                                        Value="{DynamicResource SubtleFillColorSecondaryBrush}"/>
+                                                <Setter TargetName="btnBorderC" Property="BorderBrush"
+                                                        Value="{DynamicResource TextFillColorSecondaryBrush}"/>
+                                            </Trigger>
+                                            <Trigger Property="IsPressed" Value="True">
+                                                <Setter TargetName="btnBorderC" Property="Background"
+                                                        Value="{DynamicResource SubtleFillColorTertiaryBrush}"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </Button.Style>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="&#xE946;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                   Foreground="#5B9BD5" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock x:Name="txtCreditsTitle" FontWeight="SemiBold" FontSize="12"/>
+                            <TextBlock x:Name="txtCreditsSubtitle" FontSize="10" Opacity="0.6"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Button>
+
                 <!-- joke: Support-Button unten links -->
-                <Button x:Name="btnJokeDonate" Grid.Row="4"
+                <Button x:Name="btnJokeDonate" Grid.Row="5"
                         Click="btnJokeDonate_Click"
                         Margin="0,0,0,0"
                         Padding="10,8"

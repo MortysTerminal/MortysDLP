@@ -20,6 +20,13 @@ namespace MortysDLP.Views
             _isInitializing = true;
             
             cbDebugMode.IsChecked = Properties.Settings.Default.DebugMode;
+
+            // Bandbreiten-Limit laden
+            double bw = Properties.Settings.Default.DownloadBandwidthMBps;
+            bool bwEnabled = bw > 0;
+            cbBandwidthEnabled.IsChecked = bwEnabled;
+            tbBandwidthLimit.IsEnabled = bwEnabled;
+            tbBandwidthLimit.Text = bwEnabled ? bw.ToString(System.Globalization.CultureInfo.InvariantCulture) : "10";
             
             // Lade verfügbare Sprachen
             cbLanguage.Items.Clear();
@@ -96,7 +103,16 @@ namespace MortysDLP.Views
             txtSectionLanguage.Text = T("SettingsPage.Section.Language");
             lblSelectLanguage.Content = T("SettingsPage.Label.SelectLanguage");
             txtLanguageInfo.Text = T("SettingsPage.Label.LanguageInfo");
-            
+
+            // Bandwidth Section
+            txtSectionBandwidth.Text  = T("SettingsPage.Section.Bandwidth");
+            txtBandwidthInfo.Text     = T("SettingsPage.Bandwidth.Info");
+            cbBandwidthEnabled.Content = T("SettingsPage.Bandwidth.EnableCheckbox");
+            lblBandwidthLimit.Content = T("SettingsPage.Bandwidth.Label");
+            txtBandwidthUnit.Text     = T("SettingsPage.Bandwidth.Unit");
+            lblBandwidthLimit.IsEnabled = cbBandwidthEnabled.IsChecked == true;
+            tbBandwidthLimit.IsEnabled  = cbBandwidthEnabled.IsChecked == true;
+
             // Aktualisiere Dropdown-Inhalte
             if (!_isInitializing)
             {
@@ -133,6 +149,60 @@ namespace MortysDLP.Views
         private void btnClose_Click(object sender, RoutedEventArgs e)
         {
             Application.Current.Shutdown();
+        }
+
+        private void tbBandwidthLimit_PreviewTextInput(object sender, System.Windows.Input.TextCompositionEventArgs e)
+        {
+            // Nur Ziffern und maximal ein Dezimalpunkt erlauben
+            e.Handled = !System.Text.RegularExpressions.Regex.IsMatch(e.Text, @"[\d\.]");
+        }
+
+        private void tbBandwidthLimit_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_isInitializing) return;
+            if (cbBandwidthEnabled.IsChecked != true) return;
+            string raw = tbBandwidthLimit.Text.Trim();
+            if (double.TryParse(raw, System.Globalization.NumberStyles.Any,
+                System.Globalization.CultureInfo.InvariantCulture, out double val) && val > 0)
+            {
+                Properties.Settings.Default.DownloadBandwidthMBps = val;
+                Properties.Settings.Default.Save();
+                // Neustart erfolgt erst beim Verlassen der TextBox (LostFocus)
+            }
+        }
+
+        private void tbBandwidthLimit_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (_isInitializing) return;
+            if (cbBandwidthEnabled.IsChecked != true) return;
+            NotifyBandwidthChanged();
+        }
+
+        private void cbBandwidthEnabled_Changed(object sender, RoutedEventArgs e)
+        {
+            if (_isInitializing) return;
+            bool enabled = cbBandwidthEnabled.IsChecked == true;
+            tbBandwidthLimit.IsEnabled = enabled;
+            lblBandwidthLimit.IsEnabled = enabled;
+            if (enabled)
+            {
+                // Gespeicherten Wert wieder einsetzen, Fallback 10 MB/s
+                string raw = tbBandwidthLimit.Text.Trim();
+                if (!double.TryParse(raw, System.Globalization.NumberStyles.Any,
+                    System.Globalization.CultureInfo.InvariantCulture, out double val) || val <= 0)
+                {
+                    tbBandwidthLimit.Text = "10";
+                    val = 10;
+                }
+                Properties.Settings.Default.DownloadBandwidthMBps = val;
+            }
+            else
+            {
+                Properties.Settings.Default.DownloadBandwidthMBps = 0;
+            }
+            Properties.Settings.Default.Save();
+            RefreshBandwidthHints();
+            NotifyBandwidthChanged();
         }
 
         private void cbDebugMode_Changed(object sender, RoutedEventArgs e)
@@ -186,6 +256,34 @@ namespace MortysDLP.Views
                 // Hotload: Aktualisiere alle UI-Texte
                 RefreshAllUITexts();
             }
+        }
+
+        private async void btnInstallTwitchDownloader_Click(object sender, RoutedEventArgs e)
+        {
+            // Navigiere zur TwitchPage und starte dort die Installation
+            foreach (Window window in Application.Current.Windows)
+            {
+                if (window is MainWindow mainWindow)
+                {
+                    mainWindow.NavigationList.SelectedIndex = 5;
+                    break;
+                }
+            }
+        }
+
+        private void RefreshBandwidthHints()
+        {
+            if (Window.GetWindow(this) is not MainWindow mw) return;
+            if (mw.DownloadPage.IsLoaded) mw.DownloadPage.SetUITexts();
+        }
+
+        /// <summary>Benachrichtigt alle laufenden Download-Seiten über die geänderte Bandbreite.</summary>
+        private void NotifyBandwidthChanged()
+        {
+            if (Window.GetWindow(this) is not MainWindow mw) return;
+            mw.TwitchPage.ApplyBandwidthChange();
+            mw.DownloadPage.ApplyBandwidthChange();
+            mw.BatchDownloadPage.ApplyBandwidthChange();
         }
 
         private void RefreshAllUITexts()

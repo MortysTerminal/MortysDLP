@@ -110,8 +110,20 @@
     <Setting Name="WhisperReleaseURL" Type="System.String" Scope="User">
       <Value Profile="(Default)">https://api.github.com/repos/ggerganov/whisper.cpp/releases/latest</Value>
     </Setting>
+    <Setting Name="TwitchDownloaderPath" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Tools\\TwitchDownloaderCLI.exe</Value>
+    </Setting>
+    <Setting Name="TwitchDownloaderReleaseURL" Type="System.String" Scope="User">
+      <Value Profile="(Default)">https://api.github.com/repos/lay295/TwitchDownloader/releases/latest</Value>
+    </Setting>
+    <Setting Name="TwitchDownloaderOutputPath" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="DownloadBandwidthMBps" Type="System.Double" Scope="User">
+      <Value Profile="(Default)">0</Value>
+    </Setting>
     <Setting Name="CurrentVersion" Type="System.String" Scope="User">
-      <Value Profile="(Default)">2026.05.13</Value>
+      <Value Profile="(Default)">2026.06.01</Value>
     </Setting>
   </Settings>
 </SettingsFile>

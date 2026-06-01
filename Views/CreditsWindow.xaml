@@ -1,0 +1,94 @@
+<Window x:Class="MortysDLP.Views.CreditsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Credits &amp; Open Source"
+        Width="680" Height="620"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        Background="{DynamicResource ApplicationPageBackgroundThemeBrush}">
+
+    <Window.Resources>
+        <!-- Stil für Tool-Karten -->
+        <Style x:Key="ToolCardStyle" TargetType="Border">
+            <Setter Property="Background" Value="{DynamicResource LayerFillColorDefaultBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource CardStrokeColorDefaultBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="14,10"/>
+            <Setter Property="Margin" Value="0,0,0,8"/>
+        </Style>
+
+        <!-- Stil für Link-Buttons -->
+        <Style x:Key="LinkButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <TextBlock x:Name="txt"
+                                   Text="{TemplateBinding Content}"
+                                   FontSize="11"
+                                   TextDecorations="Underline"
+                                   Foreground="#5B9BD5"/>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="txt" Property="Foreground" Value="#89C0F0"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="20,18,20,16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,14">
+            <TextBlock Text="Credits &amp; Open-Source-Tools"
+                       FontSize="20" FontWeight="Bold" Margin="0,0,0,4"/>
+            <TextBlock FontSize="12" Opacity="0.65" TextWrapping="Wrap">
+                MortysDLP ist kostenlos und quelloffen. Für alle Kernfunktionen werden externe Open-Source-Tools eingesetzt.
+                Hier findest du eine vollständige Übersicht mit Links zu den jeweiligen Projekten.
+            </TextBlock>
+        </StackPanel>
+
+        <!-- Trennlinie -->
+        <Separator Grid.Row="1" Margin="0,0,0,12"
+                   Background="{DynamicResource CardStrokeColorDefaultBrush}"/>
+
+        <!-- Tool-Liste -->
+        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+            <StackPanel x:Name="spTools"/>
+        </ScrollViewer>
+
+        <!-- Footer -->
+        <Border Grid.Row="3" Margin="0,12,0,0"
+                BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                BorderThickness="0,1,0,0" Padding="0,10,0,0">
+            <Grid>
+                <TextBlock HorizontalAlignment="Left" FontSize="11" Opacity="0.5"
+                           VerticalAlignment="Center"
+                           Text="Alle genannten Tools stehen unter ihren jeweiligen Open-Source-Lizenzen."/>
+                <Button x:Name="btnClose" Content="Schließen"
+                        HorizontalAlignment="Right"
+                        Padding="20,6" Click="btnClose_Click">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                            <Setter Property="Background" Value="{DynamicResource SubtleFillColorSecondaryBrush}"/>
+                        </Style>
+                    </Button.Style>
+                </Button>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

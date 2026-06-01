@@ -64,6 +64,8 @@ namespace MortysDLP.Views
         private bool _initialized = false;
         private string _lastDownloadPath = "";
         private bool _downloadRunning = false;
+        private Process? _currentBatchYtDlpProcess;
+        private volatile bool _batchBandwidthKillPending = false;
 
         public BatchDownloadPage()
         {
@@ -161,6 +163,18 @@ namespace MortysDLP.Views
             btnStartAll.Content            = T("BatchDownloadPage.Button.StartAll");
             btnCancelAll.Content           = T("BatchDownloadPage.Button.CancelAll");
             expDebug.Header                = T("DownloadPage.Section.Debug");
+
+            // Bandwidth-Hinweis
+            double bw = Properties.Settings.Default.DownloadBandwidthMBps;
+            if (bw > 0)
+            {
+                txtBandwidthHint.Text = string.Format(T("Global.BandwidthHint"), bw.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                borderBandwidthHint.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                borderBandwidthHint.Visibility = Visibility.Collapsed;
+            }
         }
 
         // ── Download-Pfad ────────────────────────────────────────────────
@@ -504,10 +518,14 @@ namespace MortysDLP.Views
 
                 try
                 {
-                    await RunDownloadAsync(
-                        entry, ytDlpPath, downloadPath,
-                        audioOnly, useX264, audioFormat, audioBitrate, isHighestAbr,
-                        videoQualityTag, videoFormat, token);
+                    bool needsRestart;
+                    do
+                    {
+                        needsRestart = await RunDownloadAsync(
+                            entry, ytDlpPath, downloadPath,
+                            audioOnly, useX264, audioFormat, audioBitrate, isHighestAbr,
+                            videoQualityTag, videoFormat, token);
+                    } while (needsRestart);
 
                     entry.Status   = UITextDictionary.Get("BatchDownloadPage.Status.Done");
                     entry.Progress = 100;
@@ -582,7 +600,7 @@ namespace MortysDLP.Views
                 Process.Start(new ProcessStartInfo { FileName = _lastDownloadPath, UseShellExecute = true });
         }
 
-        private async Task RunDownloadAsync(
+        private async Task<bool> RunDownloadAsync(
             BatchDownloadEntry entry, string ytDlpPath, string downloadPath,
             bool audioOnly, bool useX264,
             string audioFormat, string audioBitrate, bool isHighestAbr,
@@ -614,7 +632,10 @@ namespace MortysDLP.Views
             }
 
             args.Append($"-o \"{downloadPath}\\%(title)s_%(id)s.%(ext)s\" ");
-            args.Append("--no-check-certificates --no-mtime --newline --no-playlist ");
+            double bwLimit = Properties.Settings.Default.DownloadBandwidthMBps;
+            if (bwLimit > 0)
+                args.Append($"--limit-rate {bwLimit.ToString(System.Globalization.CultureInfo.InvariantCulture)}M ");
+            args.Append("--continue --no-check-certificates --no-mtime --newline --no-playlist ");
             args.Append($"\"{entry.Url}\"");
 
             AppendDebug($"[START] {entry.Url}");
@@ -674,17 +695,28 @@ namespace MortysDLP.Views
                 process.Start();
                 process.BeginOutputReadLine();
                 process.BeginErrorReadLine();
+                _currentBatchYtDlpProcess = process;
 
                 await using var reg = token.Register(() => { try { process.Kill(entireProcessTree: true); } catch { } });
 
                 await process.WaitForExitAsync(CancellationToken.None);
                 process.WaitForExit();
+                _currentBatchYtDlpProcess = null;
+
+                // Absichtlicher Kill wegen Limit-Änderung → kein Fehler, Neustart nötig
+                if (_batchBandwidthKillPending)
+                {
+                    _batchBandwidthKillPending = false;
+                    token.ThrowIfCancellationRequested();
+                    return true;
+                }
 
                 if (token.IsCancellationRequested) throw new OperationCanceledException(token);
                 if (process.ExitCode != 0) throw new Exception($"yt-dlp exit code {process.ExitCode}");
             }
             finally
             {
+                _currentBatchYtDlpProcess = null;
                 process.Dispose();
             }
 
@@ -693,6 +725,8 @@ namespace MortysDLP.Views
             {
                 await RunBatchFfmpegConvertAsync(entry, lastOutputFile, token);
             }
+
+            return false;
         }
 
         /// <summary>Erkennt die aktuelle yt-dlp Verarbeitungsphase für Batch-Einträge.</summary>
@@ -935,6 +969,17 @@ namespace MortysDLP.Views
         private void tbDebugOutput_TextChanged(object sender, TextChangedEventArgs e)
         {
             tbDebugOutput.ScrollToEnd();
+        }
+
+        /// <summary>Wird von SettingsPage aufgerufen wenn das Bandbreiten-Limit geändert wird.</summary>
+        public void ApplyBandwidthChange()
+        {
+            if (_currentBatchYtDlpProcess != null && !_currentBatchYtDlpProcess.HasExited)
+            {
+                _batchBandwidthKillPending = true;
+                AppendDebug($"[LIMIT] Bandbreite geändert – yt-dlp wird mit --continue neu gestartet");
+                try { _currentBatchYtDlpProcess.Kill(entireProcessTree: true); } catch { }
+            }
         }
     }
 }
