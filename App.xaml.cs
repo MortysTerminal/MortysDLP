@@ -60,7 +60,7 @@ namespace MortysDLP
                 // 1. Status: Nach Software-Update suchen
                 await SetStatusTextAndWaitAsync(splash, UITexte.UITexte.Splash_SearchingForUpdate, DebugSleepTimer);
 
-                using var updateService = new UpdateService();
+                var updateService = new UpdateService();
                 var (latestVersion, assetUrl, changelog) = await updateService.GetLatestReleaseInfoAsync();
 
                 bool updateAvailable = EvaluateUpdateAvailability(latestVersion) && assetUrl != null;
@@ -245,7 +245,7 @@ namespace MortysDLP
             if (PendingUpdateInfo is not { } info || string.IsNullOrEmpty(info.AssetUrl))
             {
                 // Fallback: Wenn kein PendingUpdateInfo vorhanden, nochmal prüfen
-                using var updateService = new UpdateService();
+                var updateService = new UpdateService();
                 var (_, assetUrl, _) = await updateService.GetLatestReleaseInfoAsync();
 
                 if (assetUrl is null)
@@ -273,8 +273,7 @@ namespace MortysDLP
                 string tempZipPath = Path.Combine(tempDir, Settings.Default.MortysDLPUpdateZipFile);
 
                 // 2. Download mit Retry
-                using var updateService = new UpdateService();
-                await updateService.DownloadAssetAsync(assetUrl, tempZipPath);
+                await UpdateService.DownloadAssetAsync(assetUrl, tempZipPath);
 
                 // 3. ZIP-Integrität prüfen
                 if (!UpdateService.ValidateZipIntegrity(tempZipPath))

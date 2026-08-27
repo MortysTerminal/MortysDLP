@@ -1,7 +1,6 @@
 ﻿using MortysDLP.Helpers;
 using System.IO;
 using System.Linq;
-using System.Net.Http;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Interop;
@@ -11,24 +10,22 @@ namespace MortysDLP.Services
 {
     internal class YtDlpUpdateService : IDownloadableToolService
     {
-        private static readonly HttpClient _httpClient;
-
         private string LatestReleaseApi = Properties.Settings.Default.YtdlpReleaseURL;
-
-        static YtDlpUpdateService()
-        {
-            _httpClient = new HttpClient();
-            _httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("MortysDLP-ToolUpdater");
-        }
 
         public async Task DownloadAssetAsync(string url, string targetPath, IProgress<double>? progress = null, CancellationToken cancellationToken = default)
         {
-            await ToolDownloadHelper.DownloadAssetAsync(_httpClient, url, targetPath, progress, cancellationToken);
+            await ToolDownloadHelper.DownloadAssetAsync(Http.Shared, url, targetPath, progress, cancellationToken);
         }
 
         public async Task<(string? version, string? assetUrl)> GetLatestReleaseInfoAsync()
         {
-            var response = await _httpClient.GetAsync(LatestReleaseApi);
+            if (GitHubRateLimit.IsExhausted(DateTimeOffset.UtcNow))
+                return (null, null);
+
+            using var response = await Http.SendWithRetryAsync(
+                Http.Shared, () => Http.CreateGitHubApiRequest(LatestReleaseApi));
+            GitHubRateLimit.Observe(response.Headers, DateTimeOffset.UtcNow);
+
             if (!response.IsSuccessStatusCode)
                 return (null, null);
 

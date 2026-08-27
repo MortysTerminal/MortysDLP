@@ -1,7 +1,7 @@
+using MortysDLP.Helpers;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
-using System.Net.Http;
 using System.Text.Json;
 
 namespace MortysDLP.Services
@@ -12,20 +12,12 @@ namespace MortysDLP.Services
     /// </summary>
     internal class WhisperUpdateService : IDownloadableToolService
     {
-        private static readonly HttpClient _httpClient;
         private const string ReleaseApi = "https://api.github.com/repos/ggerganov/whisper.cpp/releases/latest";
-
-        static WhisperUpdateService()
-        {
-            _httpClient = new HttpClient();
-            _httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("MortysDLP-ToolUpdater");
-            _httpClient.Timeout = TimeSpan.FromMinutes(10);
-        }
 
         public async Task DownloadAssetAsync(string url, string targetPath, IProgress<double>? progress = null,
             CancellationToken cancellationToken = default)
         {
-            await ToolDownloadHelper.DownloadAssetAsync(_httpClient, url, targetPath, progress, cancellationToken);
+            await ToolDownloadHelper.DownloadAssetAsync(Http.Shared, url, targetPath, progress, cancellationToken);
         }
 
         /// <summary>Ruft die neueste Release-Info von GitHub ab.</summary>
@@ -33,7 +25,13 @@ namespace MortysDLP.Services
         {
             try
             {
-                var response = await _httpClient.GetAsync(ReleaseApi);
+                if (GitHubRateLimit.IsExhausted(DateTimeOffset.UtcNow))
+                    return (null, null);
+
+                using var response = await Http.SendWithRetryAsync(
+                    Http.Shared, () => Http.CreateGitHubApiRequest(ReleaseApi));
+                GitHubRateLimit.Observe(response.Headers, DateTimeOffset.UtcNow);
+
                 if (!response.IsSuccessStatusCode) return (null, null);
 
                 var json = await response.Content.ReadAsStringAsync();
@@ -174,7 +172,7 @@ namespace MortysDLP.Services
             string tempPath = targetPath + ".download";
             try
             {
-                await ToolDownloadHelper.DownloadAssetAsync(_httpClient, downloadUrl, tempPath, progress, cancellationToken);
+                await ToolDownloadHelper.DownloadAssetAsync(Http.Shared, downloadUrl, tempPath, progress, cancellationToken);
                 if (File.Exists(targetPath))
                     File.Delete(targetPath);
                 File.Move(tempPath, targetPath);

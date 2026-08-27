@@ -13,15 +13,6 @@ namespace MortysDLP.Services
     /// </summary>
     internal class TwitchDownloaderService : IDownloadableToolService
     {
-        private static readonly HttpClient _httpClient;
-
-        static TwitchDownloaderService()
-        {
-            _httpClient = new HttpClient();
-            _httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("MortysDLP-ToolUpdater");
-            _httpClient.Timeout = TimeSpan.FromMinutes(10);
-        }
-
         // ── Pfade ────────────────────────────────────────────────────────────────
 
         public static string CliExePath => AppPaths.TwitchCli;
@@ -33,15 +24,21 @@ namespace MortysDLP.Services
         public async Task DownloadAssetAsync(string url, string targetPath, IProgress<double>? progress = null,
             CancellationToken cancellationToken = default)
         {
-            await ToolDownloadHelper.DownloadAssetAsync(_httpClient, url, targetPath, progress, cancellationToken);
+            await ToolDownloadHelper.DownloadAssetAsync(Http.Shared, url, targetPath, progress, cancellationToken);
         }
 
         public async Task<(string? Version, string? AssetUrl)> GetLatestReleaseInfoAsync()
         {
             try
             {
+                if (GitHubRateLimit.IsExhausted(DateTimeOffset.UtcNow))
+                    return (null, null);
+
                 string api = Properties.Settings.Default.TwitchDownloaderReleaseURL;
-                var response = await _httpClient.GetAsync(api);
+                using var response = await Http.SendWithRetryAsync(
+                    Http.Shared, () => Http.CreateGitHubApiRequest(api));
+                GitHubRateLimit.Observe(response.Headers, DateTimeOffset.UtcNow);
+
                 if (!response.IsSuccessStatusCode) return (null, null);
 
                 var json = await response.Content.ReadAsStringAsync();
@@ -264,11 +261,13 @@ namespace MortysDLP.Services
                     ? $"[{{\"query\":\"query {{ clip(slug: \\\"{contentId}\\\") {{ title }} }}\"}}]"
                     : $"[{{\"query\":\"query {{ video(id: \\\"{contentId}\\\") {{ title }} }}\"}}]";
 
-                using var req = new HttpRequestMessage(HttpMethod.Post, gqlUrl);
-                req.Headers.Add("Client-Id", clientId);
-                req.Content = new StringContent(query, System.Text.Encoding.UTF8, "application/json");
-
-                using var resp = await _httpClient.SendAsync(req, cancellationToken);
+                using var resp = await Http.SendWithRetryAsync(Http.Shared, () =>
+                {
+                    var request = new HttpRequestMessage(HttpMethod.Post, gqlUrl);
+                    request.Headers.Add("Client-Id", clientId);
+                    request.Content = new StringContent(query, System.Text.Encoding.UTF8, "application/json");
+                    return request;
+                }, ct: cancellationToken);
                 if (!resp.IsSuccessStatusCode) return null;
 
                 var json = await resp.Content.ReadAsStringAsync(cancellationToken);

@@ -12,27 +12,23 @@ using System.Reflection;
 
 namespace MortysDLP.Services
 {
-    internal class UpdateService : IDisposable
+    internal class UpdateService
     {
         private string GitHubApiUrl = Properties.Settings.Default.MortysDLPGitHubAPIURL;
-        private readonly HttpClient _httpClient;
-        private bool _disposed = false;
 
-        private const int DefaultMaxRetries = 3;
         private const int DownloadBufferSize = 81920;
-
-        public UpdateService()
-        {
-            _httpClient = new HttpClient();
-            _httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("MortysDLP-Updater");
-            _httpClient.Timeout = TimeSpan.FromSeconds(30);
-        }
 
         public async Task<(string? version, string? assetUrl, string? changelog)> GetLatestReleaseInfoAsync()
         {
+            if (GitHubRateLimit.IsExhausted(DateTimeOffset.UtcNow))
+                return (null, null, null);
+
             try
             {
-                var response = await _httpClient.GetAsync(GitHubApiUrl);
+                using var response = await Http.SendWithRetryAsync(
+                    Http.Shared, () => Http.CreateGitHubApiRequest(GitHubApiUrl));
+                GitHubRateLimit.Observe(response.Headers, DateTimeOffset.UtcNow);
+
                 if (!response.IsSuccessStatusCode)
                     return (null, null, null);
 
@@ -76,47 +72,33 @@ namespace MortysDLP.Services
         }
 
         /// <summary>
-        /// Lädt ein Asset mit Fortschrittsanzeige und automatischem Retry bei Fehlern herunter.
+        /// Lädt ein Asset mit Fortschrittsanzeige herunter. Wiederholversuche laufen über
+        /// <see cref="Http.SendWithRetryAsync"/> — nur für den Verbindungsaufbau/die
+        /// Kopfzeilen, nicht mehr blind für jeden Fehler wie zuvor (ein 404 wurde früher
+        /// dreimal wiederholt, ohne je zu einem anderen Ergebnis zu führen).
         /// </summary>
-        public async Task DownloadAssetAsync(string url, string targetPath, IProgress<double>? progress = null, CancellationToken ct = default, int maxRetries = DefaultMaxRetries)
+        public static async Task DownloadAssetAsync(string url, string targetPath, IProgress<double>? progress = null, CancellationToken ct = default)
         {
-            for (int attempt = 1; attempt <= maxRetries; attempt++)
+            using var response = await Http.SendWithRetryAsync(
+                Http.Shared, () => new HttpRequestMessage(HttpMethod.Get, url), ct: ct);
+            response.EnsureSuccessStatusCode();
+
+            long totalBytes = response.Content.Headers.ContentLength ?? -1;
+            long bytesRead = 0;
+
+            await using var contentStream = await response.Content.ReadAsStreamAsync(ct);
+            await using var fileStream = new FileStream(targetPath, FileMode.Create, FileAccess.Write, FileShare.None, DownloadBufferSize, useAsync: true);
+
+            var buffer = new byte[DownloadBufferSize];
+            int read;
+
+            while ((read = await contentStream.ReadAsync(buffer, ct)) > 0)
             {
-                try
-                {
-                    using var response = await _httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, ct);
-                    response.EnsureSuccessStatusCode();
+                await fileStream.WriteAsync(buffer.AsMemory(0, read), ct);
+                bytesRead += read;
 
-                    long totalBytes = response.Content.Headers.ContentLength ?? -1;
-                    long bytesRead = 0;
-
-                    await using var contentStream = await response.Content.ReadAsStreamAsync(ct);
-                    await using var fileStream = new FileStream(targetPath, FileMode.Create, FileAccess.Write, FileShare.None, DownloadBufferSize, useAsync: true);
-
-                    var buffer = new byte[DownloadBufferSize];
-                    int read;
-
-                    while ((read = await contentStream.ReadAsync(buffer, ct)) > 0)
-                    {
-                        await fileStream.WriteAsync(buffer.AsMemory(0, read), ct);
-                        bytesRead += read;
-
-                        if (totalBytes > 0)
-                            progress?.Report((double)bytesRead / totalBytes * 100);
-                    }
-
-                    return; // Erfolg
-                }
-                catch (Exception ex) when (attempt < maxRetries)
-                {
-                    Log.Warn($"Download-Versuch {attempt}/{maxRetries} fehlgeschlagen, neuer Versuch...", ex);
-
-                    // Exponentielles Backoff
-                    await Task.Delay(TimeSpan.FromSeconds(Math.Pow(2, attempt)), ct);
-
-                    try { if (File.Exists(targetPath)) File.Delete(targetPath); }
-                    catch { /* Best-effort */ }
-                }
+                if (totalBytes > 0)
+                    progress?.Report((double)bytesRead / totalBytes * 100);
             }
         }
 
@@ -173,15 +155,6 @@ namespace MortysDLP.Services
             catch
             {
                 return false;
-            }
-        }
-
-        public void Dispose()
-        {
-            if (!_disposed)
-            {
-                _httpClient?.Dispose();
-                _disposed = true;
             }
         }
     }

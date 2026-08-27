@@ -42,6 +42,14 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
   „Protokollordner öffnen" angezeigt. Bei Fehlern, die nur eine einzelne Aktion betreffen,
   läuft die Anwendung danach normal weiter.
 
+### Geändert
+- Netzabfragen (Update-Prüfung, Werkzeug-Versionsprüfung, Downloads) melden Störungen jetzt
+  verständlich statt lautlos zu scheitern: Vorübergehende Fehler werden automatisch mit
+  steigender Wartezeit wiederholt, dauerhafte Fehler (z. B. „nicht gefunden") sofort gemeldet
+  statt erst nach mehreren nutzlosen Versuchen. Ist das stündliche Anfragekontingent von
+  GitHub erschöpft, erkennt MortysDLP das jetzt als solches, statt fälschlich „kein Update
+  verfügbar" zu melden.
+
 ### Behoben
 - Nach der Installation eines Updates zeigt MortysDLP jetzt die neue Versionsnummer an, und
   der Update-Hinweis erscheint nicht mehr wiederholt, obwohl das Update längst installiert
@@ -83,6 +91,9 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
   Jetzt erscheint sie genau einmal, stderr-Zeilen weiterhin erkennbar markiert.
 
 ### Intern
+- Alle Netzabfragen laufen jetzt über eine gemeinsame Verbindungsverwaltung statt über fünf
+  getrennte, jeweils eigene Verbindungen aufbauende Instanzen. Mit umfangreicher
+  Testabdeckung für die Wiederholstrategie und die GitHub-Kontingent-Auswertung.
 - Ein neuer, toleranterer Versionsvergleich ist als Grundbaustein vorbereitet (noch nicht im
   Update-Ablauf eingesetzt). Er erkennt künftig auch Hotfix-Tags am selben Tag
   (`2026.06.01.1`) und Vorab-Versionen (`2026.09.01-dev.1`) korrekt als neuer bzw. älter, statt

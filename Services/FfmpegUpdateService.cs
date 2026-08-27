@@ -1,21 +1,17 @@
-﻿using System;
+﻿using MortysDLP.Helpers;
 using System.IO;
-using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace MortysDLP.Services
 {
     internal class FfmpegUpdateService : IDownloadableToolService
     {
-        private readonly HttpClient _httpClient = new();
-        public FfmpegUpdateService() { }
-
         /// <summary>
         /// Lädt das ZIP-Asset herunter.
         /// </summary>
         public async Task DownloadAssetAsync(string url, string targetPath, IProgress<double>? progress = null, CancellationToken cancellationToken = default)
         {
-            await ToolDownloadHelper.DownloadAssetAsync(_httpClient, url, targetPath, progress, cancellationToken);
+            await ToolDownloadHelper.DownloadAssetAsync(Http.Shared, url, targetPath, progress, cancellationToken);
         }
 
         /// <summary>
