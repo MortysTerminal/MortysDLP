@@ -49,14 +49,18 @@ Ablauf beim Start (`App.OnStartup`):
 2. **Startbildschirm** mit rotierendem Ladesymbol und Statustext erscheint.
 3. **Suche nach App-Update** — GitHub-Release-API wird abgefragt. Ist eine neuere Version
    verfügbar, wird sie gemerkt (der Banner erscheint später im Hauptfenster).
-4. **Werkzeuge prüfen**
+4. **Installationsort prüfen** — läuft MortysDLP erkennbar direkt aus der ZIP-Vorschau des
+   Explorers (also aus einem temporären Ordner, der beim Schließen verschwindet), erscheint
+   ein Hinweis mit den Optionen „Ordner öffnen" und „Trotzdem fortfahren". Der Hinweis blockt
+   nicht — die Erkennung ist eine Heuristik, kein sicherer Nachweis.
+5. **Werkzeuge prüfen**
    - yt-dlp vorhanden? Wenn nicht: Nachfrage, dann Download mit Fortschrittsdialog.
      Lehnt der Nutzer ab, beendet sich die App.
    - yt-dlp-Version gegen GitHub prüfen; bei Abweichung Update anbieten.
    - ffmpeg und ffprobe vorhanden? Wenn nicht: Nachfrage, dann ZIP-Download und Entpacken.
      Lehnt der Nutzer ab, beendet sich die App.
-5. **Hauptfenster öffnen**, Startbildschirm schließen.
-6. Im Hintergrund werden alte Temp-Dateien früherer Downloads aufgeräumt
+6. **Hauptfenster öffnen**, Startbildschirm schließen.
+7. Im Hintergrund werden alte Temp-Dateien früherer Downloads aufgeräumt
    (`ffmpeg_download_*.zip`, `extract_*`).
 
 > **Bekannte Einschränkung:** Alle Prüfungen laufen nacheinander und bei jedem Start neu; die

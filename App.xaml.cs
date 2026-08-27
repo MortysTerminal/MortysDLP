@@ -145,6 +145,9 @@ namespace MortysDLP
             Log.Info($"AppDir={AppPaths.AppDir}");
             Log.Info($"DataDir={AppPaths.DataDir}");
             Log.Info($"ToolsDir={AppPaths.ToolsDir}");
+
+            var installInfo = InstallLocation.Analyze();
+            Log.Info($"Installationsort: {InstallLocation.DescribeForLog(installInfo)}");
         }
 
         public string CurrentVersion { get => currentVersion; set => currentVersion = value; }

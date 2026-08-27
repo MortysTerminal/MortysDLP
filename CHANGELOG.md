@@ -32,6 +32,10 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
   Befehlszeilenargumente unterschieben.
 
 ### Hinzugefügt
+- MortysDLP erkennt beim Start, wenn es direkt aus der ZIP-Vorschau des Explorers gestartet
+  wurde (also aus einem temporären Ordner, der beim Schließen verschwindet) und zeigt dann
+  einen Hinweis mit der Möglichkeit, den Ordner zu öffnen oder trotzdem fortzufahren. So bleibt
+  nicht mehr unklar, warum heruntergeladene Werkzeuge nach jedem Neustart erneut fehlen.
 - Unerwartete Fehler beenden MortysDLP nicht mehr wortlos. Sie werden protokolliert
   (`%LOCALAPPDATA%\MortysDLP\logs\`, 14 Tage bzw. 10 MB je Datei) und in einem Dialog mit
   verständlichem Kurztext, ausklappbaren technischen Details, „Details kopieren" und

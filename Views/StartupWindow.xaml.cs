@@ -65,6 +65,9 @@ namespace MortysDLP
             try
             {
                 var T = UITexte.UITextDictionary.Get;
+
+                WarnIfRunningFromArchive(T);
+
                 var ytDlpService = new YtDlpUpdateService();
                 var ffmpegService = new FfmpegUpdateService();
 
@@ -124,6 +127,30 @@ namespace MortysDLP
                     MessageBoxButton.OK,
                     MessageBoxImage.Error));
                 return false;
+            }
+        }
+
+        /// <summary>Zeigt einen nicht blockierenden Hinweis, wenn MortysDLP erkennbar aus der
+        /// ZIP-Vorschau des Explorers gestartet wurde — heruntergeladene Werkzeuge gingen sonst
+        /// beim Schließen kommentarlos verloren. Die Erkennung ist heuristisch, deshalb wird
+        /// nicht blockiert: der Nutzer entscheidet, ob er den Ordner öffnet oder fortfährt.</summary>
+        private void WarnIfRunningFromArchive(Func<string, string> t)
+        {
+            var info = InstallLocation.Analyze();
+            if (info.Kind != InstallKind.RunningFromArchive) return;
+
+            var result = FluentMessageBox.Show(
+                t("InstallLocation.Warning.Archive"),
+                "",
+                MessageBoxImage.Warning,
+                this,
+                (t("InstallLocation.Button.OpenFolder"), MessageBoxResult.Yes, true),
+                (t("InstallLocation.Button.Continue"), MessageBoxResult.No, false));
+
+            if (result == MessageBoxResult.Yes)
+            {
+                try { System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo { FileName = info.Path, UseShellExecute = true }); }
+                catch (Exception ex) { Log.Warn("Installationsordner konnte nicht geöffnet werden", ex); }
             }
         }
 

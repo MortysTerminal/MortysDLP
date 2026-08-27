@@ -194,7 +194,14 @@ namespace MortysDLP.UITexte
             ["StartupWindow.Error.ToolUpdate"] = "Fehler beim Aktualisieren der Tools:\n{0}",
             ["StartupWindow.Title.Error"] = "Fehler",
             ["StartupWindow.Title.DownloadComplete"] = "Download abgeschlossen",
-            
+
+            // Installationsort
+            ["InstallLocation.Warning.Archive"] = "MortysDLP läuft gerade aus einem temporären Ordner, weil es direkt aus der ZIP-Datei gestartet wurde.\n\nAlle heruntergeladenen Werkzeuge gehen beim Schließen verloren.\n\nBitte entpacke die ZIP-Datei zuerst in einen richtigen Ordner.",
+            ["InstallLocation.Warning.Elevation"] = "MortysDLP liegt in einem geschützten Systemordner. Updates von Anwendung und Werkzeugen benötigen dort Administratorrechte.",
+            ["InstallLocation.Warning.ReadOnly"] = "Der Installationsordner von MortysDLP ist nicht beschreibbar. Updates von Anwendung und Werkzeugen sind an diesem Ort nicht möglich.",
+            ["InstallLocation.Button.OpenFolder"] = "Ordner öffnen",
+            ["InstallLocation.Button.Continue"] = "Trotzdem fortfahren",
+
             // Language Names
             ["Language.German"] = "Deutsch",
             ["Language.English"] = "Englisch",
@@ -755,7 +762,14 @@ namespace MortysDLP.UITexte
             ["StartupWindow.Error.ToolUpdate"] = "Error updating tools:\n{0}",
             ["StartupWindow.Title.Error"] = "Error",
             ["StartupWindow.Title.DownloadComplete"] = "Download Complete",
-            
+
+            // Install location
+            ["InstallLocation.Warning.Archive"] = "MortysDLP is currently running from a temporary folder because it was started directly from the ZIP file.\n\nAll downloaded tools will be lost when it closes.\n\nPlease extract the ZIP file to a proper folder first.",
+            ["InstallLocation.Warning.Elevation"] = "MortysDLP is located in a protected system folder. Updating the application and its tools requires administrator rights there.",
+            ["InstallLocation.Warning.ReadOnly"] = "The MortysDLP installation folder is not writable. Updating the application and its tools is not possible at this location.",
+            ["InstallLocation.Button.OpenFolder"] = "Open folder",
+            ["InstallLocation.Button.Continue"] = "Continue anyway",
+
             // Language Names
             ["Language.German"] = "German",
             ["Language.English"] = "English",
