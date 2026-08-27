@@ -36,6 +36,10 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
   Update automatisch übernommen.
 - Dateinamen mit reservierten Windows-Namen (z. B. `NUL`, `CON`) oder abschließenden Punkten
   bzw. Leerzeichen führen nicht mehr zu Dateien, die sich nicht anlegen lassen.
+- Einstellungen liegen jetzt einheitlich unter `%LOCALAPPDATA%\MortysDLP\` statt in einem
+  abweichend benannten Ordner. Bereits gespeicherte Einstellungen aus früheren Versionen
+  gehen dadurch einmalig verloren und werden beim nächsten Start neu mit den Standardwerten
+  angelegt.
 
 ### Intern
 - `CHANGELOG.md` und `docs/FUNKTIONEN.md` eingeführt. Ab jetzt wird jede Änderung

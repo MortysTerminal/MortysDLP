@@ -336,6 +336,6 @@ Wandelt Videos in animierte GIFs.
 | Externe Werkzeuge | `<Entpackungsordner>\Tools\` |
 | Whisper-Modelle | `<Entpackungsordner>\Tools\Whisper\models\` |
 | Download-Verlauf | `%LOCALAPPDATA%\MortysDLP\download_history.json` |
-| Einstellungen | `%LOCALAPPDATA%\MORTYS_WELT\MortysDLP.exe_*\<Version>\user.config` |
+| Einstellungen | `%LOCALAPPDATA%\MortysDLP\MortysDLP.exe_*\<Version>\user.config` |
 | Startcache | `%LOCALAPPDATA%\MortysDLP\startup_cache.json` (angelegt, aber ungenutzt) |
 | Temporäres | `%TEMP%` (`ffmpeg_download_*.zip`, `extract_*`, `whisper_audio_*.wav`) |
