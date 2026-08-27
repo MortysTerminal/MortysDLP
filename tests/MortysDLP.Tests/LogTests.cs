@@ -106,6 +106,38 @@ public class LogTests : IDisposable
     }
 
     [Fact]
+    public void Info_VerzeichnisExistiertNicht_WirdAngelegt()
+    {
+        string nichtVorhandenesVerzeichnis = Path.Combine(_tempDir, "noch-nicht-angelegt");
+        Log.LogsDirectory = nichtVorhandenesVerzeichnis;
+
+        var ex = Record.Exception(() =>
+        {
+            Log.Info("Erste Zeile in neuem Verzeichnis");
+            Log.CloseForTests();
+        });
+
+        Assert.Null(ex);
+        Assert.True(Directory.Exists(nichtVorhandenesVerzeichnis));
+        Assert.True(File.Exists(Log.CurrentLogFile));
+        Assert.Contains("Erste Zeile in neuem Verzeichnis", File.ReadAllText(Log.CurrentLogFile));
+    }
+
+    [Fact]
+    public void Error_MitInnerException_BeideErscheinenImProtokoll()
+    {
+        var inner = new InvalidOperationException("innere Ursache");
+        var outer = new IOException("äußerer Fehler", inner);
+
+        Log.Error("Fehler mit Ursache", outer);
+        Log.CloseForTests();
+
+        string content = File.ReadAllText(Log.CurrentLogFile);
+        Assert.Contains("äußerer Fehler", content);
+        Assert.Contains("innere Ursache", content);
+    }
+
+    [Fact]
     public void TryRotateOversizeFile_BenenntUebergrosseDateiUm()
     {
         string path = Path.Combine(_tempDir, "mortysdlp-2026-01-01.log");

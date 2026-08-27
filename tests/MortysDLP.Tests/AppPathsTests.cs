@@ -13,6 +13,7 @@ public class AppPathsTests
     [InlineData("CON")]
     [InlineData("con")]
     [InlineData("COM1")]
+    [InlineData("com1")]
     [InlineData("LPT9")]
     public void SanitizeFileName_ErsetztReservierteNamenOhneEndung(string reservedName)
     {
@@ -61,6 +62,14 @@ public class AppPathsTests
     }
 
     [Fact]
+    public void SanitizeFileName_EntferntMehrereAbschliessendeLeerzeichen()
+    {
+        var ergebnis = AppPaths.SanitizeFileName("Ende   ");
+
+        Assert.Equal("Ende", ergebnis);
+    }
+
+    [Fact]
     public void SanitizeFileName_BegrenztDieLaenge()
     {
         string sehrLangerName = new string('a', 500);
@@ -68,6 +77,16 @@ public class AppPathsTests
         var ergebnis = AppPaths.SanitizeFileName(sehrLangerName, maxLength: 150);
 
         Assert.True(ergebnis.Length <= 150);
+    }
+
+    [Fact]
+    public void SanitizeFileName_BegrenztDieLaengeAuchOhneExplizitesLimit()
+    {
+        string name300Zeichen = new string('a', 300);
+
+        var ergebnis = AppPaths.SanitizeFileName(name300Zeichen);
+
+        Assert.True(ergebnis.Length <= 150); // Standard-Höchstlänge
     }
 
     [Theory]
@@ -80,11 +99,23 @@ public class AppPathsTests
         Assert.Equal(eingabe, ergebnis);
     }
 
-    [Fact]
-    public void SanitizeFileName_LeererName_GibtFallbackZurueck()
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void SanitizeFileName_LeererOderNurLeerzeichenName_GibtFallbackZurueck(string eingabe)
     {
-        var ergebnis = AppPaths.SanitizeFileName("   ");
+        var ergebnis = AppPaths.SanitizeFileName(eingabe);
 
         Assert.False(string.IsNullOrWhiteSpace(ergebnis));
+    }
+
+    [Fact]
+    public void SanitizeFileName_NurPunkte_GibtFallbackZurueckStattLeeremString()
+    {
+        // "..." besteht ausschließlich aus abschließenden Punkten, die entfernt werden -
+        // das Ergebnis darf trotzdem nie leer sein.
+        var ergebnis = AppPaths.SanitizeFileName("...");
+
+        Assert.False(string.IsNullOrEmpty(ergebnis));
     }
 }

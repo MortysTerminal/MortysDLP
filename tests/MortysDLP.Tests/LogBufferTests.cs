@@ -99,6 +99,37 @@ public class LogBufferTests
     }
 
     [Fact]
+    public void Append_600ZeilenBeiMaxLines500_GenauFuenfhundertUebrigAelstesteFehlt()
+    {
+        RunOnSta(() =>
+        {
+            using var buffer = new LogBuffer(new TextBox(), maxLines: 500, alsoToFile: false);
+
+            for (int i = 0; i < 600; i++)
+                buffer.Append($"Zeile {i}");
+
+            var lines = buffer.GetText().Split(Environment.NewLine);
+            Assert.Equal(500, lines.Length);
+            Assert.Equal("Zeile 100", lines[0]);   // älteste 100 Zeilen (0..99) sind herausgefallen
+            Assert.Equal("Zeile 599", lines[^1]);
+        });
+    }
+
+    [Fact]
+    public void Dispose_StopptDenTimer()
+    {
+        RunOnSta(() =>
+        {
+            var buffer = new LogBuffer(new TextBox(), maxLines: 10, alsoToFile: false);
+            Assert.True(buffer.IsTimerRunningForTests);
+
+            buffer.Dispose();
+
+            Assert.False(buffer.IsTimerRunningForTests);
+        });
+    }
+
+    [Fact]
     public void Clear_LeertDenPufferSofort()
     {
         RunOnSta(() =>

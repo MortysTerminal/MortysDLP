@@ -93,5 +93,8 @@ namespace MortysDLP.Helpers
         {
             _timer.Stop();
         }
+
+        /// <summary>Nur für Tests: ob der Timer nach <see cref="Dispose"/> noch läuft.</summary>
+        internal bool IsTimerRunningForTests => _timer.IsEnabled;
     }
 }

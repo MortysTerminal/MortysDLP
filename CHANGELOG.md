@@ -78,6 +78,9 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
   Jetzt erscheint sie genau einmal, stderr-Zeilen weiterhin erkennbar markiert.
 
 ### Intern
+- Testabdeckung für die Grundbausteine (Pfad-/Dateinamensbehandlung, Protokollierung,
+  Debug-Puffer, Installationsort-Erkennung, Prozessausführung) erweitert und gegen die
+  wichtigsten Randfälle abgesichert.
 - `CHANGELOG.md` und `docs/FUNKTIONEN.md` eingeführt. Ab jetzt wird jede Änderung
   fortlaufend dokumentiert, und `docs/FUNKTIONEN.md` beschreibt jederzeit den tatsächlichen
   Funktionsumfang der Anwendung.

@@ -157,4 +157,19 @@ public class InstallLocationTests
         Assert.Contains(@"C:\Tools\MortysDLP", description);
         Assert.Contains("Writable", description);
     }
+
+    [Fact]
+    public void DescribeForLog_UncPfad_AlsNetzwerkErkannt()
+    {
+        // Bekannter, bewusst fehlschlagender Test - siehe Befund W-10 in werkstatt/ANALYSE.md.
+        // Path.GetPathRoot liefert für UNC-Pfade korrekt "\\server\share", aber DriveInfo
+        // akzeptiert nur Laufwerksbuchstaben/"C:\"-Wurzeln und wirft eine ArgumentException.
+        // DescribeForLog fängt das ab und meldet dann keine Laufwerksdetails - UNC-Netzpfade
+        // werden dadurch nicht als "Network" erkannt, wie es diese Aufgabe verlangt.
+        var info = new InstallInfo(InstallKind.Writable, @"\\server\share\MortysDLP", true, true, "");
+
+        string description = InstallLocation.DescribeForLog(info);
+
+        Assert.Contains("Network", description);
+    }
 }

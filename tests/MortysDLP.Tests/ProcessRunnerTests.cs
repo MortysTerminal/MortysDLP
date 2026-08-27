@@ -58,6 +58,8 @@ public class ProcessRunnerTests : IDisposable
     [InlineData("mit Leerzeichen")]
     [InlineData("amp & sign")]
     [InlineData("nur\"Anfuehrungszeichen\"")]
+    [InlineData("%PATH%")]
+    [InlineData(@"Pfad\mit\abschliessendem\Backslash\")]
     public async Task RunAsync_UebergibtSonderzeichenAlsGenauEinArgument(string eingabe)
     {
         var result = await ProcessRunner.RunAsync("powershell.exe", BuildArgs(0, 0, eingabe));
