@@ -34,6 +34,9 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
 - Gemeinsame Projekteinstellungen (`Directory.Build.props`) eingeführt und .NET-Analyzer
   aktiviert, damit mögliche Fehler früher auffallen. Ungenutzte Paketabhängigkeit
   `System.Configuration.ConfigurationManager` entfernt.
+- Testprojekt eingeführt: `dotnet test` prüft jetzt automatisch die Auswahl von
+  Video-Qualität und -Codec beim Download. Erste zehn Testfälle decken das bestehende
+  Verhalten ab.
 
 ---
 

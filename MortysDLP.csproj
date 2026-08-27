@@ -26,12 +26,16 @@
   <ItemGroup>
     <Compile Remove="Assets\**" />
     <Compile Remove="MortysDLP\**" />
+    <Compile Remove="tests\**" />
     <EmbeddedResource Remove="Assets\**" />
     <EmbeddedResource Remove="MortysDLP\**" />
+    <EmbeddedResource Remove="tests\**" />
     <None Remove="Assets\**" />
     <None Remove="MortysDLP\**" />
+    <None Remove="tests\**" />
     <Page Remove="Assets\**" />
     <Page Remove="MortysDLP\**" />
+    <Page Remove="tests\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -46,6 +50,10 @@
 
   <ItemGroup>
     <PackageReference Include="Ookii.Dialogs.Wpf" Version="5.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="MortysDLP.Tests" />
   </ItemGroup>
 
   <ItemGroup>

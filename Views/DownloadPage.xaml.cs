@@ -528,7 +528,7 @@ namespace MortysDLP.Views
         ///   mov – QuickTime: H.264/H.265 + AAC. Kein AV1! Filter: [vcodec^=avc1]+[ext=m4a]
         ///   avi – RIFF: nur H.264 + AAC/MP3 praxistauglich. Kein AV1/VP9! Filter: [vcodec^=avc1]+[ext=m4a]
         ///   mkv – Matroska: universell, akzeptiert alle Codecs → kein Filter nötig</summary>
-        private static string BuildYtDlpVideoFormatSelector(string qualityTag, string container)
+        internal static string BuildYtDlpVideoFormatSelector(string qualityTag, string container)
         {
             bool isMp4 = container.Equals("mp4", StringComparison.OrdinalIgnoreCase);
             bool needsH264 = container.Equals("mov", StringComparison.OrdinalIgnoreCase)
