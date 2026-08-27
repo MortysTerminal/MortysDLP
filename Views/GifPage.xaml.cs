@@ -1,4 +1,5 @@
 using Microsoft.Win32;
+using MortysDLP.Helpers;
 using MortysDLP.UITexte;
 using System.Diagnostics;
 using System.Globalization;
@@ -156,7 +157,7 @@ namespace MortysDLP.Views
             var T = UITextDictionary.Get;
             string inputFile  = tbInputFile.Text.Trim();
             string outputDir  = tbOutputFolder.Text.Trim();
-            string ffmpegPath = Properties.Settings.Default.FfmpegPath;
+            string ffmpegPath = AppPaths.Ffmpeg;
 
             if (string.IsNullOrWhiteSpace(inputFile) || !File.Exists(inputFile))
             {
@@ -293,7 +294,7 @@ namespace MortysDLP.Views
             string startTime = useTimeRange ? tbStartTime.Text.Trim() : string.Empty;
             string endTime   = useTimeRange ? tbEndTime.Text.Trim()   : string.Empty;
 
-            string baseName  = Path.GetFileNameWithoutExtension(inputFile);
+            string baseName  = AppPaths.SanitizeFileName(Path.GetFileNameWithoutExtension(inputFile));
             string outputFile = Path.Combine(outputDir, baseName + "_gifmaker.gif");
 
             // Ensure unique output filename
@@ -352,7 +353,7 @@ namespace MortysDLP.Views
 
             try
             {
-                string ffprobePath = Properties.Settings.Default.FfprobePath;
+                string ffprobePath = AppPaths.Ffprobe;
                 if (string.IsNullOrWhiteSpace(ffprobePath) || !File.Exists(ffprobePath))
                     return 0;
 

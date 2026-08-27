@@ -69,9 +69,9 @@ namespace MortysDLP
                 var ytDlpService = new YtDlpUpdateService();
                 var ffmpegService = new FfmpegUpdateService();
 
-                string ytDlpPath = Properties.Settings.Default.YtdlpPath;
-                string ffmpegPath = Properties.Settings.Default.FfmpegPath;
-                string ffprobePath = Properties.Settings.Default.FfprobePath;
+                string ytDlpPath = AppPaths.YtDlp;
+                string ffmpegPath = AppPaths.Ffmpeg;
+                string ffprobePath = AppPaths.Ffprobe;
 
                 // yt-dlp: Existenz prüfen
                 SetStatus(T("StartupWindow.Status.CheckingYtDlp"));

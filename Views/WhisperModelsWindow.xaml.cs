@@ -1,3 +1,4 @@
+using MortysDLP.Helpers;
 using MortysDLP.Models;
 using MortysDLP.Services;
 using MortysDLP.UITexte;
@@ -114,7 +115,7 @@ namespace MortysDLP.Views
                 await service.DownloadAssetAsync(assetUrl, tempZip, progress, _cts.Token);
                 SetStatus(T("StartupWindow.Ffmpeg.Extracting") ?? "Entpacke...");
 
-                string whisperExe = Properties.Settings.Default.WhisperPath;
+                string whisperExe = AppPaths.Whisper;
                 string? whisperDir = Path.GetDirectoryName(whisperExe);
                 if (!string.IsNullOrEmpty(whisperDir) && !Directory.Exists(whisperDir))
                     Directory.CreateDirectory(whisperDir);

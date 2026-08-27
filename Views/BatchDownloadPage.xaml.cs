@@ -293,7 +293,7 @@ namespace MortysDLP.Views
         {
             try
             {
-                string ytDlpPath = Properties.Settings.Default.YtdlpPath;
+                string ytDlpPath = AppPaths.YtDlp;
                 using var process = new Process
                 {
                     StartInfo = new ProcessStartInfo
@@ -484,7 +484,7 @@ namespace MortysDLP.Views
                 : Properties.Settings.Default.DownloadPath;
             _lastDownloadPath = downloadPath;
 
-            string ytDlpPath       = Properties.Settings.Default.YtdlpPath;
+            string ytDlpPath       = AppPaths.YtDlp;
             string audioFormat     = (combAudioFormat.SelectedItem    as ComboBoxItem)?.Content?.ToString() ?? "mp3";
             string audioBitrate    = (combAudioBitrate.SelectedItem   as ComboBoxItem)?.Content?.ToString() ?? "192k";
             string videoQualityTag = (combVideoQuality.SelectedItem   as ComboBoxItem)?.Tag?.ToString()    ?? "best";
@@ -783,8 +783,8 @@ namespace MortysDLP.Views
         /// <summary>Konvertiert nach dem Download zu H.264 via ffmpeg und zeigt Fortschritt am Eintrag.</summary>
         private async Task RunBatchFfmpegConvertAsync(BatchDownloadEntry entry, string filePath, CancellationToken token)
         {
-            string ffmpegPath  = Properties.Settings.Default.FfmpegPath;
-            string ffprobePath = Properties.Settings.Default.FfprobePath;
+            string ffmpegPath  = AppPaths.Ffmpeg;
+            string ffprobePath = AppPaths.Ffprobe;
 
             entry.Status   = UITextDictionary.Get("DownloadPage.Status.CheckingCodec");
             entry.Progress = 0;

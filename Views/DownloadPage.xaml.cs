@@ -275,7 +275,7 @@ namespace MortysDLP.Views
             var token = _downloadCancellationTokenSource.Token;
 
             string url = tbURL.Text;
-            string ytDlpPath = Properties.Settings.Default.YtdlpPath;
+            string ytDlpPath = AppPaths.YtDlp;
             string downloadDir = lblDownloadPath.Content?.ToString() ?? "";
 
             Task? titleTask = null;
@@ -589,7 +589,7 @@ namespace MortysDLP.Views
                 vfContainer = GetSelectedVideoFormat();
                 abitrate = GetSelectedAudioBitrate();
 
-                ffmpegPath = Properties.Settings.Default.FfmpegPath;
+                ffmpegPath = AppPaths.Ffmpeg;
 
                 useCustomName = cbCustomFilename.IsChecked == true;
                 customName = tbCustomFilename.Text?.Trim() ?? "";
@@ -685,7 +685,7 @@ namespace MortysDLP.Views
             string fileBase;
             if (useCustomName && !string.IsNullOrWhiteSpace(customName))
             {
-                fileBase = SanitizeSegment(customName);
+                fileBase = AppPaths.SanitizeFileName(SanitizeSegment(customName));
                 AppendOutput($"[NAME] Benutzerdefinierter Dateiname aktiv: \"{fileBase}\"");
             }
             else
@@ -1091,7 +1091,7 @@ namespace MortysDLP.Views
             };
 
             var (fps, width, bayerScale) = presets[Math.Clamp(presetIndex, 0, presets.Length - 1)];
-            string ffmpegPath = Properties.Settings.Default.FfmpegPath;
+            string ffmpegPath = AppPaths.Ffmpeg;
 
             string outputDir  = System.IO.Path.GetDirectoryName(inputFile) ?? "";
             string baseName   = System.IO.Path.GetFileNameWithoutExtension(inputFile);
@@ -1117,8 +1117,8 @@ namespace MortysDLP.Views
         /// Nutzt GPU-Beschleunigung (NVENC/QSV/AMF) wenn verfügbar, sonst CPU (libx264).</summary>
         private async Task EnsureH264CodecAsync(string filePath, CancellationToken token)
         {
-            string ffprobePath = Properties.Settings.Default.FfprobePath;
-            string ffmpegPath = Properties.Settings.Default.FfmpegPath;
+            string ffprobePath = AppPaths.Ffprobe;
+            string ffmpegPath = AppPaths.Ffmpeg;
 
             // 1. Codec und Auflösung prüfen (ein ffprobe-Aufruf)
             Dispatcher.Invoke(() => txtDownloadStatus.Text = UITextDictionary.Get("DownloadPage.Status.CheckingCodec"));
@@ -1224,7 +1224,7 @@ namespace MortysDLP.Views
         /// <summary>Führt ffmpeg-Konvertierung aus und zeigt Fortschritt basierend auf der Quelldatei-Dauer.</summary>
         private async Task RunFfmpegConvertAsync(string ffmpegPath, string arguments, string inputFile, CancellationToken token)
         {
-            string ffprobePath = Properties.Settings.Default.FfprobePath;
+            string ffprobePath = AppPaths.Ffprobe;
             double totalSeconds = await GetMediaDurationAsync(ffprobePath, inputFile);
 
             AppendOutput($"[ffmpeg] CMD: {ffmpegPath} {arguments}");
@@ -1527,7 +1527,7 @@ namespace MortysDLP.Views
             bool needsMeta = false;
             bool isVideoformat = false;
             string url = urlOverride;
-            string ytDlpPath = Properties.Settings.Default.YtdlpPath;
+            string ytDlpPath = AppPaths.YtDlp;
 
             Dispatcher.Invoke(() =>
             {
@@ -1745,7 +1745,7 @@ namespace MortysDLP.Views
                 return;
             }
 
-            string ytDlpPath = Properties.Settings.Default.YtdlpPath;
+            string ytDlpPath = AppPaths.YtDlp;
             btnOpenTimeline.IsEnabled = false;
 
             // Lade-Zustand anzeigen

@@ -1,4 +1,5 @@
-﻿using MortysDLP.Models;
+﻿using MortysDLP.Helpers;
+using MortysDLP.Models;
 using System.IO;
 using System.Text.Json;
 
@@ -6,7 +7,7 @@ namespace MortysDLP.Services
 {
     public static class DownloadHistoryService
     {
-        private static readonly string HistoryPath = Properties.Settings.Default.DownloadHistoryFileName;
+        private static readonly string HistoryPath = AppPaths.HistoryFile;
         private static readonly short MaxEntries = Properties.Settings.Default.DownloadHistoryFileMaxEntries;
         private static readonly SemaphoreSlim _lock = new(1, 1);
 

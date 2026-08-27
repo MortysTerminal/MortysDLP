@@ -1,3 +1,4 @@
+using MortysDLP.Helpers;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
@@ -23,11 +24,7 @@ namespace MortysDLP.Services
 
         // ── Pfade ────────────────────────────────────────────────────────────────
 
-        public static string CliExePath =>
-            NormalizePath(Properties.Settings.Default.TwitchDownloaderPath);
-
-        private static string NormalizePath(string path) =>
-            string.IsNullOrEmpty(path) ? path : System.IO.Path.GetFullPath(path);
+        public static string CliExePath => AppPaths.TwitchCli;
 
         public static bool IsInstalled() => File.Exists(CliExePath);
 

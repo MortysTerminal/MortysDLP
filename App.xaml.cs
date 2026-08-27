@@ -29,6 +29,10 @@ namespace MortysDLP
 
         protected override async void OnStartup(StartupEventArgs e)
         {
+            // Nutzerverzeichnisse anlegen und ggf. vorhandenen Verlauf übernehmen -
+            // muss vor jedem Zugriff auf AppPaths.HistoryFile passiert sein.
+            AppPaths.EnsureDataDirs();
+
             /* Sprachanpassung bei Window-Start - MUSS VOR ALLEM ANDEREN PASSIEREN */
             LanguageHelper.ApplyLanguage();
             

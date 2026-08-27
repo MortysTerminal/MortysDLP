@@ -1,3 +1,4 @@
+using MortysDLP.Helpers;
 using MortysDLP.Models;
 using System.Diagnostics;
 using System.IO;
@@ -13,15 +14,9 @@ namespace MortysDLP.Services
     {
         // ── Pfade ───────────────────────────────────────────────────────────────────
 
-        public static string WhisperExePath =>
-            NormalizePath(Properties.Settings.Default.WhisperPath);
+        public static string WhisperExePath => AppPaths.Whisper;
 
-        public static string ModelsDirectory =>
-            NormalizePath(Properties.Settings.Default.WhisperModelsDir);
-
-        /// <summary>Normalisiert Windows-Pfade: ersetzt doppelte Backslashes durch einfache.</summary>
-        private static string NormalizePath(string path) =>
-            string.IsNullOrEmpty(path) ? path : System.IO.Path.GetFullPath(path);
+        public static string ModelsDirectory => AppPaths.WhisperModels;
 
         public static bool IsWhisperInstalled() =>
             File.Exists(WhisperExePath);

@@ -1,4 +1,5 @@
 using Microsoft.Win32;
+using MortysDLP.Helpers;
 using MortysDLP.Models;
 using MortysDLP.Services;
 using MortysDLP.UITexte;
@@ -324,7 +325,7 @@ namespace MortysDLP.Views
                 return;
             }
 
-            string ffmpegPath = Properties.Settings.Default.FfmpegPath;
+            string ffmpegPath = AppPaths.Ffmpeg;
             if (!File.Exists(ffmpegPath))
             {
                 FluentMessageBox.Show(T("TranscribePage.Error.FfmpegMissing"), icon: MessageBoxImage.Error,

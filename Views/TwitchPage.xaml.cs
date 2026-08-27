@@ -1,3 +1,4 @@
+using MortysDLP.Helpers;
 using MortysDLP.Services;
 using MortysDLP.UITexte;
 using System.Diagnostics;
@@ -242,7 +243,7 @@ namespace MortysDLP.Views
             bool isTwitchUrl   = hasUrl && urlText is { } url && url.Trim().Contains("twitch.tv", StringComparison.OrdinalIgnoreCase);
             bool hasOutput     = !string.IsNullOrWhiteSpace(tbOutputPath?.Text);
             bool chatInstalled = TwitchDownloaderService.IsInstalled();
-            bool ytdlpExists   = File.Exists(Properties.Settings.Default.YtdlpPath);
+            bool ytdlpExists   = File.Exists(AppPaths.YtDlp);
             bool wantsVideo    = cbDownloadVideo?.IsChecked == true;
             bool wantsChat     = cbDownloadChat?.IsChecked  == true;
             bool hasAction     = wantsVideo || wantsChat;
@@ -297,7 +298,7 @@ namespace MortysDLP.Views
 
             try
             {
-                string path = System.IO.Path.GetFullPath(Properties.Settings.Default.TwitchDownloaderPath);
+                string path = AppPaths.TwitchCli;
                 if (File.Exists(path)) File.Delete(path);
                 RefreshToolStatus();
                 ValidateStartButton();
@@ -341,7 +342,7 @@ namespace MortysDLP.Views
                     return;
                 }
 
-                string targetPath = System.IO.Path.GetFullPath(Properties.Settings.Default.TwitchDownloaderPath);
+                string targetPath = AppPaths.TwitchCli;
                 string? targetDir = System.IO.Path.GetDirectoryName(targetPath);
                 if (!string.IsNullOrEmpty(targetDir) && !Directory.Exists(targetDir))
                     Directory.CreateDirectory(targetDir);
@@ -565,6 +566,7 @@ namespace MortysDLP.Views
                 // Mehrfache Leerzeichen und führende/nachfolgende Sonderzeichen bereinigen
                 safeTitle = System.Text.RegularExpressions.Regex.Replace(safeTitle, @"\s+", " ").Trim(' ', '.');
                 if (string.IsNullOrEmpty(safeTitle)) safeTitle = contentId;
+                safeTitle = AppPaths.SanitizeFileName(safeTitle);
 
                 string fileBase = System.IO.Path.Combine(outputDir, safeTitle);
                 string presetSuffix = renderChat
@@ -613,7 +615,7 @@ namespace MortysDLP.Views
                 // ── Video via yt-dlp ──────────────────────────────────────────────
                 if (downloadVideo)
                 {
-                    string ytDlpPath    = Properties.Settings.Default.YtdlpPath;
+                    string ytDlpPath    = AppPaths.YtDlp;
                     string safeTitleForTemplate = safeTitle.Replace("\"", "'");
                     string outputTemplate = $"\"{outputDir}\\{safeTitleForTemplate}{presetSuffix}_%(id)s.%(ext)s\"";
                     string mergeArg  = isClip ? "" : "--merge-output-format mp4 ";

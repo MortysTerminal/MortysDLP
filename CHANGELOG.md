@@ -25,6 +25,18 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
 
 ## [Unreleased]
 
+### Behoben
+- Externe Werkzeuge (yt-dlp, ffmpeg, ffprobe, Whisper, TwitchDownloaderCLI) werden jetzt
+  zuverlässig gefunden, unabhängig davon, wie MortysDLP gestartet wird — etwa über eine
+  Verknüpfung mit abweichendem Arbeitsverzeichnis, als Administrator oder über die
+  Aufgabenplanung. Bisher konnte es dabei zu „nicht gefunden"-Meldungen kommen, obwohl das
+  Werkzeug vorhanden war.
+- Der Download-Verlauf liegt jetzt an einem festen, vom Startort unabhängigen Ort
+  (`%LOCALAPPDATA%\MortysDLP\`). Ein vorhandener Verlauf wird beim ersten Start nach dem
+  Update automatisch übernommen.
+- Dateinamen mit reservierten Windows-Namen (z. B. `NUL`, `CON`) oder abschließenden Punkten
+  bzw. Leerzeichen führen nicht mehr zu Dateien, die sich nicht anlegen lassen.
+
 ### Intern
 - `CHANGELOG.md` und `docs/FUNKTIONEN.md` eingeführt. Ab jetzt wird jede Änderung
   fortlaufend dokumentiert, und `docs/FUNKTIONEN.md` beschreibt jederzeit den tatsächlichen

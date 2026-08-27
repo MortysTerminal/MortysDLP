@@ -1,4 +1,5 @@
 ﻿using Microsoft.Win32;
+using MortysDLP.Helpers;
 using MortysDLP.Models;
 using MortysDLP.UITexte;
 using System.Collections.Concurrent;
@@ -165,8 +166,8 @@ namespace MortysDLP.Views
             var token = _convertCancellationTokenSource.Token;
 
             string selectedFormatStr = cbTargetFormat.SelectedItem?.ToString()?.ToLower() ?? "mp3";
-            string ffmpegPath = Properties.Settings.Default.FfmpegPath;
-            string ffprobePath = Properties.Settings.Default.FfprobePath;
+            string ffmpegPath = AppPaths.Ffmpeg;
+            string ffprobePath = AppPaths.Ffprobe;
 
             int successCount = 0;
             int failCount = 0;
@@ -246,7 +247,7 @@ namespace MortysDLP.Views
             string extension = isVideoTarget ? videoFormat.ToString().ToLower() : audioFormat.ToString().ToLower();
             string destPath = Path.Combine(
                 targetFolder,
-                Path.GetFileNameWithoutExtension(file.SourcePath) + qualitySuffix + "." + extension
+                AppPaths.SanitizeFileName(Path.GetFileNameWithoutExtension(file.SourcePath)) + qualitySuffix + "." + extension
             );
 
             file.Status = UITextDictionary.Get("ConvertPage.Status.Converting");
@@ -516,7 +517,7 @@ namespace MortysDLP.Views
 
         private async Task RunFfmpegForItemAsync(ConvertFileItem file, string ffmpegPath, string arguments, CancellationToken token)
         {
-            string ffprobePath = Properties.Settings.Default.FfprobePath;
+            string ffprobePath = AppPaths.Ffprobe;
             double totalSeconds = GetMediaDurationInSeconds(ffprobePath, file.SourcePath) ?? 0;
 
             using var process = new Process

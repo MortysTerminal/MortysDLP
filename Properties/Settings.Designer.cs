@@ -37,42 +37,6 @@ namespace MortysDLP.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("Tools\\\\yt-dlp.exe")]
-        public string YtdlpPath {
-            get {
-                return ((string)(this["YtdlpPath"]));
-            }
-            set {
-                this["YtdlpPath"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("Tools\\\\ffmpeg.exe")]
-        public string FfmpegPath {
-            get {
-                return ((string)(this["FfmpegPath"]));
-            }
-            set {
-                this["FfmpegPath"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("Tools\\\\ffprobe.exe")]
-        public string FfprobePath {
-            get {
-                return ((string)(this["FfprobePath"]));
-            }
-            set {
-                this["FfprobePath"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
         public string TimespanFrom {
             get {
@@ -301,18 +265,6 @@ namespace MortysDLP.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("download_history.json")]
-        public string DownloadHistoryFileName {
-            get {
-                return ((string)(this["DownloadHistoryFileName"]));
-            }
-            set {
-                this["DownloadHistoryFileName"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("30")]
         public short DownloadHistoryFileMaxEntries {
             get {
@@ -421,30 +373,6 @@ namespace MortysDLP.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("Tools\\\\Whisper\\\\whisper.exe")]
-        public string WhisperPath {
-            get {
-                return ((string)(this["WhisperPath"]));
-            }
-            set {
-                this["WhisperPath"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("Tools\\\\Whisper\\\\models")]
-        public string WhisperModelsDir {
-            get {
-                return ((string)(this["WhisperModelsDir"]));
-            }
-            set {
-                this["WhisperModelsDir"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("https://api.github.com/repos/ggerganov/whisper.cpp/releases/latest")]
         public string WhisperReleaseURL {
             get {
@@ -452,18 +380,6 @@ namespace MortysDLP.Properties {
             }
             set {
                 this["WhisperReleaseURL"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("Tools\\\\TwitchDownloaderCLI.exe")]
-        public string TwitchDownloaderPath {
-            get {
-                return ((string)(this["TwitchDownloaderPath"]));
-            }
-            set {
-                this["TwitchDownloaderPath"] = value;
             }
         }
         
