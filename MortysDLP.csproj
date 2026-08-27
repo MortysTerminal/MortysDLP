@@ -9,6 +9,18 @@
     <TargetFramework>net10.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
     <ApplicationIcon>Resources\Icons\mw_globe_32px.ico</ApplicationIcon>
+
+    <!-- EINZIGE manuell gepflegte Versionsangabe. Muss dem GitHub-Tag entsprechen. -->
+    <ReleaseVersion>2026.06.01</ReleaseVersion>
+
+    <!-- Numerische Assembly-Version: führende Nullen sind dort verboten (2026.06.01 -> 2026.6.1) -->
+    <Version>$([System.Text.RegularExpressions.Regex]::Replace($(ReleaseVersion), '\.0(\d)', '.$1'))</Version>
+
+    <!-- Nur der numerische Teil: ein Vorab-Suffix erzeugt in FileVersion die Warnung CS7035 -->
+    <FileVersion>$([System.Text.RegularExpressions.Regex]::Replace($(Version), '-.*$', ''))</FileVersion>
+
+    <!-- Anzeigeversion: exakt der Tag -->
+    <InformationalVersion>$(ReleaseVersion)</InformationalVersion>
   </PropertyGroup>
 
   <ItemGroup>

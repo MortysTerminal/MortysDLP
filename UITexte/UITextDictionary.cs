@@ -162,6 +162,7 @@ namespace MortysDLP.UITexte
             ["MainWindow.AppTitle"] = "MortysDLP",
             ["MainWindow.AppSubtitle"] = "Dein Download-Gefährte",
             ["MainWindow.Version"] = "Version",
+            ["MainWindow.Version.Unknown"] = "unbekannt",
             ["MainWindow.Softwareinfo"] = "Video & Audio Downloader",
 
             // Startup Window
@@ -730,6 +731,7 @@ namespace MortysDLP.UITexte
             ["MainWindow.AppTitle"] = "MortysDLP",
             ["MainWindow.AppSubtitle"] = "Your download companion",
             ["MainWindow.Version"] = "Version",
+            ["MainWindow.Version.Unknown"] = "unknown",
             ["MainWindow.Softwareinfo"] = "Video & Audio Downloader",
 
             // Startup Window

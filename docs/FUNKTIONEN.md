@@ -331,9 +331,7 @@ Wandelt Videos in animierte GIFs.
 6. Die App beendet sich; der Updater wartet auf das Prozessende, entpackt und startet die
    App neu.
 
-> **Bekannte Einschränkungen:** Die angezeigte Versionsnummer wird in der Nutzerkonfiguration
-> festgehalten und bleibt nach einem Update auf dem alten Stand — der Update-Hinweis erscheint
-> dadurch erneut. Außerdem gibt es beim Herunterladen des Updates keine Fortschrittsanzeige
+> **Bekannte Einschränkungen:** Beim Herunterladen des Updates gibt es keine Fortschrittsanzeige
 > und keine Möglichkeit, ein fehlgeschlagenes Update zurückzunehmen. Eine überarbeitete
 > Update-Mechanik ist in Vorbereitung.
 

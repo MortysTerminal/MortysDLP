@@ -421,13 +421,13 @@ namespace MortysDLP.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("2026.06.01")]
-        public string CurrentVersion {
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool SettingsUpgradeRequired {
             get {
-                return ((string)(this["CurrentVersion"]));
+                return ((bool)(this["SettingsUpgradeRequired"]));
             }
             set {
-                this["CurrentVersion"] = value;
+                this["SettingsUpgradeRequired"] = value;
             }
         }
     }

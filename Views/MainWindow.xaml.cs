@@ -1,3 +1,4 @@
+using MortysDLP.Helpers;
 using MortysDLP.UITexte;
 using MortysDLP.Views;
 using System.Windows;
@@ -27,7 +28,7 @@ namespace MortysDLP
         public MainWindow()
         {
             InitializeComponent();
-            lblMainVersion.Text = Properties.Settings.Default.CurrentVersion;
+            lblMainVersion.Text = AppInfo.Current ?? UITextDictionary.Get("MainWindow.Version.Unknown");
             NavigationList.SelectedIndex = 0;
             SetUITexts();
             Loaded += MainWindow_Loaded;
@@ -63,7 +64,7 @@ namespace MortysDLP
             if (dialog.ShowDialog() == true && dialog.UpdateConfirmed)
             {
                 UpdateBanner.Visibility = Visibility.Collapsed;
-                await ((App)Application.Current).StartUpdate(Properties.Settings.Default.CurrentVersion);
+                await ((App)Application.Current).StartUpdate();
             }
         }
 

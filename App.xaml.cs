@@ -1,6 +1,8 @@
 ﻿using MortysDLP.Helpers;
+using MortysDLP.Models;
 using MortysDLP.Properties;
 using MortysDLP.Services;
+using System.Configuration;
 using System.Diagnostics;
 using System.IO;
 using System.Text.RegularExpressions;
@@ -14,8 +16,6 @@ namespace MortysDLP
     /// </summary>
     public partial class App : Application
     {
-        private string currentVersion = Settings.Default.CurrentVersion;
-
         /// <summary>
         /// Wenn beim Start ein Update gefunden wurde, wird hier die Info hinterlegt.
         /// Das MainWindow liest dies und zeigt den Update-Banner an.
@@ -30,6 +30,12 @@ namespace MortysDLP
         protected override async void OnStartup(StartupEventArgs e)
         {
             RegisterGlobalExceptionHandlers();
+
+            // Ganz früh, vor dem ersten Lesen einer Einstellung: Seit die AssemblyVersion pro
+            // Release wechselt (W2-T02), wechselt auch der user.config-Ordner. Ohne diese
+            // Übernahme stünde der Nutzer nach jedem Update vor Standardeinstellungen.
+            ApplySettingsUpgradeIfNeeded();
+
             LogEnvironmentInfo();
 
             try
@@ -57,10 +63,7 @@ namespace MortysDLP
                 using var updateService = new UpdateService();
                 var (latestVersion, assetUrl, changelog) = await updateService.GetLatestReleaseInfoAsync();
 
-                bool updateAvailable = !CurrentVersion.Equals(Settings.Default.VersionSkip)
-                    && latestVersion != null
-                    && assetUrl != null
-                    && updateService.IsNewerVersion(latestVersion, CurrentVersion);
+                bool updateAvailable = EvaluateUpdateAvailability(latestVersion) && assetUrl != null;
 
                 if (updateAvailable)
                 {
@@ -140,7 +143,7 @@ namespace MortysDLP
 
         private static void LogEnvironmentInfo()
         {
-            Log.Info($"MortysDLP {Settings.Default.CurrentVersion} startet " +
+            Log.Info($"MortysDLP {AppInfo.Current ?? "unbekannt"} startet " +
                 $"(Windows {Environment.OSVersion.Version}, .NET {Environment.Version})");
             Log.Info($"AppDir={AppPaths.AppDir}");
             Log.Info($"DataDir={AppPaths.DataDir}");
@@ -150,9 +153,93 @@ namespace MortysDLP
             Log.Info($"Installationsort: {InstallLocation.DescribeForLog(installInfo)}");
         }
 
-        public string CurrentVersion { get => currentVersion; set => currentVersion = value; }
+        /// <summary>Übernimmt einmalig Einstellungen der vorherigen Version, sobald sich der
+        /// user.config-Ordner mit der AssemblyVersion ändert (siehe
+        /// <c>werkstatt/04-UPDATE-ARCHITEKTUR.md</c>, Abschnitt 11.1). Das Kennzeichen muss VOR
+        /// dem Aufruf von <c>Upgrade()</c> gelesen werden, weil dieser es im Speicher mit dem
+        /// Wert der Vorgängerversion überschreibt.</summary>
+        private static void ApplySettingsUpgradeIfNeeded()
+        {
+            try
+            {
+                if (!Settings.Default.SettingsUpgradeRequired)
+                    return;
 
-        public async Task StartUpdate(string currentVersion)
+                string? sourceDir = FindPreviousSettingsDirectory();
+
+                Settings.Default.Upgrade();
+                Settings.Default.SettingsUpgradeRequired = false;
+                Settings.Default.Save();
+
+                Log.Info(sourceDir != null
+                    ? $"Einstellungen aus vorheriger Version übernommen: {sourceDir}"
+                    : "Keine Einstellungen einer vorherigen Version gefunden - Standardwerte werden verwendet.");
+            }
+            catch (Exception ex)
+            {
+                // Eine defekte user.config darf den Start nicht verhindern - Standardwerte
+                // gelten dann einfach weiter.
+                Log.Warn("Einstellungen konnten nicht aus einer vorherigen Version übernommen werden", ex);
+            }
+        }
+
+        /// <summary>Ermittelt best-effort das Verzeichnis, aus dem <c>Settings.Default.Upgrade()</c>
+        /// vermutlich übernimmt - für die Protokollzeile, nicht für die Übernahme selbst (die
+        /// erledigt .NET). Ohne diese Zeile ist ein „meine Einstellungen sind weg" später nicht
+        /// zu klären.</summary>
+        private static string? FindPreviousSettingsDirectory()
+        {
+            try
+            {
+                string? currentConfigPath = ConfigurationManager
+                    .OpenExeConfiguration(ConfigurationUserLevel.PerUserRoamingAndLocal).FilePath;
+                if (string.IsNullOrEmpty(currentConfigPath))
+                    return null;
+
+                string? versionDir = Path.GetDirectoryName(currentConfigPath);
+                string? hashDir = versionDir != null ? Path.GetDirectoryName(versionDir) : null;
+                if (versionDir == null || hashDir == null)
+                    return null;
+
+                if (!Version.TryParse(Path.GetFileName(versionDir), out var currentVersion))
+                    return null;
+
+                return SettingsUpgradeHelper.FindPreviousVersionDirectory(hashDir, currentVersion);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        /// <summary>Prüft, ob ein Update angeboten werden soll, und protokolliert dabei immer
+        /// beide Versionen - auch im Normalfall. Diese Zeile wird bei jeder künftigen
+        /// Nutzermeldung als Erstes gebraucht.</summary>
+        private static bool EvaluateUpdateAvailability(string? latestVersion)
+        {
+            if (AppInfo.CurrentVersion is not { } current)
+            {
+                Log.Error("Eigene Version nicht ermittelbar - Update-Prüfung übersprungen.");
+                return false;
+            }
+
+            if (latestVersion == null)
+                return false;
+
+            if (!AppVersion.TryParse(latestVersion, out var latest))
+            {
+                Log.Warn($"Release-Tag nicht lesbar: '{latestVersion}'");
+                return false;
+            }
+
+            bool isNewer = latest > current;
+            Log.Info($"Versionsvergleich: laufend={AppInfo.Current}, neueste={latestVersion} " +
+                $"(Quelle GitHub) -> {(isNewer ? "Update verfügbar" : "kein Update")}");
+
+            return isNewer && !string.Equals(Settings.Default.VersionSkip, AppInfo.Current, StringComparison.Ordinal);
+        }
+
+        public async Task StartUpdate()
         {
             // PendingUpdateInfo nutzen statt erneut die API aufzurufen
             if (PendingUpdateInfo is not { } info || string.IsNullOrEmpty(info.AssetUrl))

@@ -43,6 +43,11 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
   läuft die Anwendung danach normal weiter.
 
 ### Behoben
+- Nach der Installation eines Updates zeigt MortysDLP jetzt die neue Versionsnummer an, und
+  der Update-Hinweis erscheint nicht mehr wiederholt, obwohl das Update längst installiert
+  ist. Gespeicherte Einstellungen (Download-Pfad, Sprache, Bandbreitenlimit usw.) bleiben
+  dabei erhalten. Auch die Dateieigenschaften der EXE zeigen jetzt die echte Version statt
+  „1.0.0.0".
 - Externe Werkzeuge (yt-dlp, ffmpeg, ffprobe, Whisper, TwitchDownloaderCLI) werden jetzt
   zuverlässig gefunden, unabhängig davon, wie MortysDLP gestartet wird — etwa über eine
   Verknüpfung mit abweichendem Arbeitsverzeichnis, als Administrator oder über die

@@ -75,19 +75,6 @@ namespace MortysDLP.Services
             return false;
         }
 
-        public bool IsNewerVersion(string latestVersion, string currentVersion)
-        {
-            // Entferne führendes "v" falls vorhanden
-            latestVersion = latestVersion.TrimStart('v', 'V');
-            DateTime latest, current;
-            if (DateTime.TryParseExact(latestVersion, "yyyy.MM.dd", null, System.Globalization.DateTimeStyles.None, out latest) &&
-                DateTime.TryParseExact(currentVersion, "yyyy.MM.dd", null, System.Globalization.DateTimeStyles.None, out current))
-            {
-                return latest > current;
-            }
-            return false;
-        }
-
         /// <summary>
         /// Lädt ein Asset mit Fortschrittsanzeige und automatischem Retry bei Fehlern herunter.
         /// </summary>

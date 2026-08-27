@@ -101,8 +101,8 @@
     <Setting Name="DownloadBandwidthMBps" Type="System.Double" Scope="User">
       <Value Profile="(Default)">0</Value>
     </Setting>
-    <Setting Name="CurrentVersion" Type="System.String" Scope="User">
-      <Value Profile="(Default)">2026.06.01</Value>
+    <Setting Name="SettingsUpgradeRequired" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
     </Setting>
   </Settings>
 </SettingsFile>
