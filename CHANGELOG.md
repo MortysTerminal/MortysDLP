@@ -29,6 +29,8 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
 - `CHANGELOG.md` und `docs/FUNKTIONEN.md` eingeführt. Ab jetzt wird jede Änderung
   fortlaufend dokumentiert, und `docs/FUNKTIONEN.md` beschreibt jederzeit den tatsächlichen
   Funktionsumfang der Anwendung.
+- `.gitignore` ergänzt (Werkzeug- und Verlaufsdateien werden nie versioniert) und
+  `.editorconfig` angelegt, damit alle Werkzeuge Code einheitlich formatieren.
 
 ---
 
