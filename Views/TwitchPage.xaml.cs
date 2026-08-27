@@ -736,16 +736,14 @@ namespace MortysDLP.Views
         {
             List<string> args = arguments.Contains("--continue") ? arguments : ["--continue", .. arguments];
 
-            void OnStdOut(string line)
-            {
-                progress?.Report(line);
-                Dispatcher.BeginInvoke(() => AppendDebug(line));
-            }
-            void OnStdErr(string line)
-            {
-                progress?.Report(line);
-                Dispatcher.BeginInvoke(() => AppendDebug($"[STDERR] {line}"));
-            }
+            // Progress<T> marshallt in den Kontext, in dem es erzeugt wurde (UI-Thread) -
+            // ein zusätzliches Dispatcher.BeginInvoke(() => AppendDebug(...)) würde jede
+            // Zeile doppelt protokollieren. Ohne übergebenes Progress ginge die Ausgabe sonst
+            // verloren, deshalb hier ein Rückfall auf direktes Protokollieren.
+            IProgress<string> report = progress ?? new Progress<string>(AppendDebug);
+
+            void OnStdOut(string line) => report.Report(line);
+            void OnStdErr(string line) => report.Report($"[STDERR] {line}");
 
             var result = await ProcessRunner.RunStreamingAsync(
                 ytDlpPath, args,

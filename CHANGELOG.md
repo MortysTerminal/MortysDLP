@@ -70,6 +70,8 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
   einer laufenden Konvertierung erhalten. Bisher baute sich die gesamte Liste bei jeder
   Fortschrittszeile neu auf, wodurch die Auswahl verloren ging und die Ansicht bei mehreren
   gleichzeitigen Konvertierungen sichtbar flackerte.
+- Auf der Twitch-Seite erschien jede Zeile der yt-dlp-Ausgabe doppelt im Debug-Protokoll.
+  Jetzt erscheint sie genau einmal, stderr-Zeilen weiterhin erkennbar markiert.
 
 ### Intern
 - `CHANGELOG.md` und `docs/FUNKTIONEN.md` eingeführt. Ab jetzt wird jede Änderung
