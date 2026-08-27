@@ -155,6 +155,14 @@ namespace MortysDLP.Helpers
                 if (string.IsNullOrEmpty(root))
                     return $"{info.Path} ({info.Kind})";
 
+                // UNC-Wurzeln (\\server\share) akzeptiert DriveInfo nicht - der Konstruktor
+                // wirft ArgumentException. Der Laufwerkstyp ist hier aber ohnehin bekannt:
+                // ein UNC-Pfad ist immer ein Netzlaufwerk. Freier Platz und Dateisystem
+                // blieben ein P/Invoke fuer eine Protokollzeile, der bei nicht erreichbarer
+                // Freigabe ins Zeitlimit laufen wuerde - "Network" ist die wertvolle Angabe.
+                if (root.StartsWith(@"\\", StringComparison.Ordinal))
+                    return $"{info.Path} ({info.Kind}, {DriveType.Network})";
+
                 var drive = new DriveInfo(root);
                 if (!drive.IsReady)
                     return $"{info.Path} ({info.Kind})";

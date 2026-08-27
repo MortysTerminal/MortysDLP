@@ -78,6 +78,10 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
   Jetzt erscheint sie genau einmal, stderr-Zeilen weiterhin erkennbar markiert.
 
 ### Intern
+- Liegt MortysDLP auf einem Netzlaufwerk, das über einen UNC-Pfad (`\\server\share\…`)
+  angesprochen wird, weist die Startprotokollzeile zum Installationsort dies jetzt als
+  `Network` aus. Bisher fehlte diese Angabe ausgerechnet beim Installationsort, der am
+  häufigsten Probleme macht.
 - Testabdeckung für die Grundbausteine (Pfad-/Dateinamensbehandlung, Protokollierung,
   Debug-Puffer, Installationsort-Erkennung, Prozessausführung) erweitert und gegen die
   wichtigsten Randfälle abgesichert.
