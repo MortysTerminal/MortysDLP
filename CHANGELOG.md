@@ -66,6 +66,10 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
   mehr unbegrenzt und bremst die Oberfläche bei langen Vorgängen (z. B. großen Playlists)
   nicht mehr spürbar aus. Scrollt man während einer laufenden Ausgabe nach oben, um etwas
   nachzulesen, reißt eine neue Zeile die Ansicht jetzt nicht mehr nach unten.
+- Auf der Konvertieren-Seite bleiben Auswahl und Scrollposition der Dateiliste jetzt während
+  einer laufenden Konvertierung erhalten. Bisher baute sich die gesamte Liste bei jeder
+  Fortschrittszeile neu auf, wodurch die Auswahl verloren ging und die Ansicht bei mehreren
+  gleichzeitigen Konvertierungen sichtbar flackerte.
 
 ### Intern
 - `CHANGELOG.md` und `docs/FUNKTIONEN.md` eingeführt. Ab jetzt wird jede Änderung

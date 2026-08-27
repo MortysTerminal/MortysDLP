@@ -1,16 +1,36 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 
 namespace MortysDLP.Models
 {
-    public class ConvertFileItem
+    public class ConvertFileItem : INotifyPropertyChanged
     {
-        public string SourcePath { get; set; } = "";
+        private string _sourcePath = "";
+        private string _status = "Bereit";
+        private double _progress;
+
+        public string SourcePath
+        {
+            get => _sourcePath;
+            set { _sourcePath = value; OnPropertyChanged(); OnPropertyChanged(nameof(Name)); }
+        }
+
         public string Name => System.IO.Path.GetFileName(SourcePath);
-        public string Status { get; set; } = "Bereit";
-        public double Progress { get; set; } = 0;
+
+        public string Status
+        {
+            get => _status;
+            set { _status = value; OnPropertyChanged(); }
+        }
+
+        public double Progress
+        {
+            get => _progress;
+            set { _progress = value; OnPropertyChanged(); }
+        }
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+        protected void OnPropertyChanged([CallerMemberName] string? name = null)
+            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
 }

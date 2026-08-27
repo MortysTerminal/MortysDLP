@@ -254,13 +254,11 @@ namespace MortysDLP.Views
 
             file.Status = UITextDictionary.Get("ConvertPage.Status.Converting");
             file.Progress = 0;
-            Dispatcher.Invoke(() => dgFiles.Items.Refresh());
 
             if (File.Exists(destPath))
             {
                 file.Status = UITextDictionary.Get("ConvertPage.Status.AlreadyConverted");
                 file.Progress = 100;
-                Dispatcher.Invoke(() => dgFiles.Items.Refresh());
                 return;
             }
 
@@ -302,7 +300,6 @@ namespace MortysDLP.Views
                 file.Status = UITextDictionary.Get("ConvertPage.Status.Error");
                 AppendDebugOutput($"[{file.Name}] Fehler: {ex.Message}");
             }
-            Dispatcher.Invoke(() => dgFiles.Items.Refresh());
         }
 
         private List<string> BuildFfmpegArguments(
@@ -519,16 +516,15 @@ namespace MortysDLP.Views
 
             void OnStdErr(string line)
             {
-                Dispatcher.Invoke(() =>
-                {
-                    AppendDebugOutput($"[{file.Name}] {line}");
-                    var percent = ParseFfmpegProgress(line, totalSeconds);
-                    if (percent.HasValue)
-                    {
-                        file.Progress = percent.Value;
-                        dgFiles.Items.Refresh();
-                    }
-                });
+                // AppendDebugOutput greift auf ein Steuerelement zu -> muss auf den UI-Thread.
+                // file.Progress ist eine einfache gebundene Eigenschaft; WPF marshallt die
+                // PropertyChanged-Benachrichtigung selbst, ein Dispatcher.Invoke ist hier
+                // nicht nötig und würde nur unnötig Last auf den UI-Thread bringen.
+                Dispatcher.Invoke(() => AppendDebugOutput($"[{file.Name}] {line}"));
+
+                var percent = ParseFfmpegProgress(line, totalSeconds);
+                if (percent.HasValue)
+                    file.Progress = percent.Value;
             }
 
             AppendDebugOutput($"[{file.Name}] CMD: ffmpeg {string.Join(' ', arguments)}");
