@@ -20,7 +20,7 @@ namespace MortysDLP.Services
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Fehler beim Löschen der Historie: {ex.Message}");
+                Log.Warn("Fehler beim Löschen der Historie", ex);
             }
             finally
             {
@@ -41,7 +41,7 @@ namespace MortysDLP.Services
             }
             catch (JsonException ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Fehler beim Laden der Historie: {ex.Message}");
+                Log.Warn("Fehler beim Laden der Historie", ex);
                 return new List<DownloadHistoryEntry>();
             }
             finally

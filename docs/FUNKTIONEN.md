@@ -62,6 +62,13 @@ Ablauf beim Start (`App.OnStartup`):
 > **Bekannte Einschränkung:** Alle Prüfungen laufen nacheinander und bei jedem Start neu; die
 > yt-dlp-Release-API wird dabei zweimal abgefragt.
 
+**Fehlerbehandlung:** Ein unerwarteter Fehler beendet MortysDLP nicht mehr wortlos. Er wird in
+einer Protokolldatei festgehalten (siehe Abschnitt 13) und in einem Dialog mit verständlichem
+Kurztext und ausklappbaren technischen Details angezeigt — mit Knöpfen zum Kopieren der
+Details und zum Öffnen des Protokollordners. Bei Fehlern, die nur eine einzelne Aktion
+betreffen, läuft die Anwendung danach normal weiter. Scheitert bereits der Programmstart
+selbst, bleibt nur „Beenden".
+
 ---
 
 ## 3. Werkzeuge (externe Tools)
@@ -337,5 +344,6 @@ Wandelt Videos in animierte GIFs.
 | Whisper-Modelle | `<Entpackungsordner>\Tools\Whisper\models\` |
 | Download-Verlauf | `%LOCALAPPDATA%\MortysDLP\download_history.json` |
 | Einstellungen | `%LOCALAPPDATA%\MortysDLP\MortysDLP.exe_*\<Version>\user.config` |
+| Protokolle | `%LOCALAPPDATA%\MortysDLP\logs\mortysdlp-JJJJ-MM-TT.log` (14 Tage bzw. 10 MB je Datei) |
 | Startcache | `%LOCALAPPDATA%\MortysDLP\startup_cache.json` (angelegt, aber ungenutzt) |
 | Temporäres | `%TEMP%` (`ffmpeg_download_*.zip`, `extract_*`, `whisper_audio_*.wav`) |

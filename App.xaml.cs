@@ -29,74 +29,122 @@ namespace MortysDLP
 
         protected override async void OnStartup(StartupEventArgs e)
         {
-            // Nutzerverzeichnisse anlegen und ggf. vorhandenen Verlauf übernehmen -
-            // muss vor jedem Zugriff auf AppPaths.HistoryFile passiert sein.
-            AppPaths.EnsureDataDirs();
+            RegisterGlobalExceptionHandlers();
+            LogEnvironmentInfo();
 
-            /* Sprachanpassung bei Window-Start - MUSS VOR ALLEM ANDEREN PASSIEREN */
-            LanguageHelper.ApplyLanguage();
-            
-            // Debug: Zeige welche Sprache geladen wurde
-            System.Diagnostics.Debug.WriteLine($"[App] Language set to: {UITexte.UITextDictionary.CurrentLanguage}");
-            System.Diagnostics.Debug.WriteLine($"[App] CurrentUICulture: {System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName}");
-
-            var splash = new StartupWindow();
-            splash.Show();
-
-            // Splash: Logo und Titel (optional)
-            // splash.SetLogo("Assets/dein_logo.png");
-            // splash.SetTitle("Dein Produktname");
-
-            // 1. Status: Nach Software-Update suchen
-            await SetStatusTextAndWaitAsync(splash, UITexte.UITexte.Splash_SearchingForUpdate, DebugSleepTimer);
-
-            using var updateService = new UpdateService();
-            var (latestVersion, assetUrl, changelog) = await updateService.GetLatestReleaseInfoAsync();
-
-            bool updateAvailable = !CurrentVersion.Equals(Settings.Default.VersionSkip)
-                && latestVersion != null
-                && assetUrl != null
-                && updateService.IsNewerVersion(latestVersion, CurrentVersion);
-
-            if (updateAvailable)
+            try
             {
-                PendingUpdateInfo = (latestVersion!, assetUrl!, changelog ?? string.Empty);
-                await SetStatusTextAndWaitAsync(splash, UITexte.UITexte.Splash_NoUpdate, DebugSleepTimer);
+                // Nutzerverzeichnisse anlegen und ggf. vorhandenen Verlauf übernehmen -
+                // muss vor jedem Zugriff auf AppPaths.HistoryFile passiert sein.
+                AppPaths.EnsureDataDirs();
+
+                /* Sprachanpassung bei Window-Start - MUSS VOR ALLEM ANDEREN PASSIEREN */
+                LanguageHelper.ApplyLanguage();
+
+                Log.Debug($"Language set to: {UITexte.UITextDictionary.CurrentLanguage}");
+                Log.Debug($"CurrentUICulture: {System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName}");
+
+                var splash = new StartupWindow();
+                splash.Show();
+
+                // Splash: Logo und Titel (optional)
+                // splash.SetLogo("Assets/dein_logo.png");
+                // splash.SetTitle("Dein Produktname");
+
+                // 1. Status: Nach Software-Update suchen
+                await SetStatusTextAndWaitAsync(splash, UITexte.UITexte.Splash_SearchingForUpdate, DebugSleepTimer);
+
+                using var updateService = new UpdateService();
+                var (latestVersion, assetUrl, changelog) = await updateService.GetLatestReleaseInfoAsync();
+
+                bool updateAvailable = !CurrentVersion.Equals(Settings.Default.VersionSkip)
+                    && latestVersion != null
+                    && assetUrl != null
+                    && updateService.IsNewerVersion(latestVersion, CurrentVersion);
+
+                if (updateAvailable)
+                {
+                    PendingUpdateInfo = (latestVersion!, assetUrl!, changelog ?? string.Empty);
+                    await SetStatusTextAndWaitAsync(splash, UITexte.UITexte.Splash_NoUpdate, DebugSleepTimer);
+                }
+                else
+                {
+                    await SetStatusTextAndWaitAsync(splash, UITexte.UITexte.Splash_NoUpdate, DebugSleepTimer);
+                }
+                // 2. Status: Voraussetzungen prüfen (nur Info, Download im MainWindow)
+                await SetStatusTextAndWaitAsync(splash, UITexte.UITexte.Splash_CheckingTools, DebugSleepTimer);
+
+                // Start des ToolUpdaters
+                if (await splash.ToolUpdaterAsync())
+                {
+                    await SetStatusTextAndWaitAsync(splash, UITexte.UITexte.Splash_AllToolsOk, DebugSleepTimer);
+                }
+                else
+                {
+                    await SetStatusTextAndWaitAsync(splash, UITexte.UITexte.Splash_ToolsMissing, DebugSleepTimer);
+                    splash.Close();
+                    Application.Current.Shutdown();
+                    return;
+                }
+
+                // 3. Splash schließen, MainWindow starten (dort werden Tools ggf. heruntergeladen)
+                await SetStatusTextAndWaitAsync(splash, UITexte.UITexte.Splash_StartingApp, DebugSleepTimer);
+
+                await Task.Delay(DebugSleepTimer); // Kurze Pause für den Splashscreen
+
+                var mainWindow = new MainWindow();
+                MainWindow = mainWindow;
+                mainWindow.Show();
+                mainWindow.Activate();
+
+                // Aufräumen der temporären ffmpeg-/Entpack-Artefakte (nicht blockierend, Best-Effort)
+                _ = CleanupTempArtifactsAsync();
+
+                splash.Close(); // Splash explizit schließen
             }
-            else
+            catch (Exception ex)
             {
-                await SetStatusTextAndWaitAsync(splash, UITexte.UITexte.Splash_NoUpdate, DebugSleepTimer);
+                Log.Error("Start fehlgeschlagen", ex);
+                Views.ErrorDialog.Show(ex, fatal: true);
+                Shutdown();
             }
-            // 2. Status: Voraussetzungen prüfen (nur Info, Download im MainWindow)
-            await SetStatusTextAndWaitAsync(splash, UITexte.UITexte.Splash_CheckingTools, DebugSleepTimer);
+        }
 
-            // Start des ToolUpdaters 
-            if (await splash.ToolUpdaterAsync())
+        /// <summary>Registriert die drei globalen Ausnahmebehandler. Muss ganz am Anfang von
+        /// <see cref="OnStartup"/> passieren, bevor irgendetwas fehlschlagen kann.</summary>
+        private void RegisterGlobalExceptionHandlers()
+        {
+            DispatcherUnhandledException += (s, e) =>
             {
-                await SetStatusTextAndWaitAsync(splash, UITexte.UITexte.Splash_AllToolsOk, DebugSleepTimer);
-            }
-            else
+                Log.Error("Unbehandelte Ausnahme im UI-Thread", e.Exception);
+                Views.ErrorDialog.Show(e.Exception, fatal: false);
+                e.Handled = true; // Anwendung läuft weiter
+            };
+
+            AppDomain.CurrentDomain.UnhandledException += (s, e) =>
             {
-                await SetStatusTextAndWaitAsync(splash, UITexte.UITexte.Splash_ToolsMissing, DebugSleepTimer);
-                splash.Close();
-                Application.Current.Shutdown();
-                return;
-            }
+                // Hier ist die Anwendung nicht mehr zu retten: nur protokollieren, Puffer leeren.
+                if (e.ExceptionObject is Exception ex)
+                    Log.Error("Unbehandelte Ausnahme (Anwendung wird beendet)", ex);
+                else
+                    Log.Error($"Unbehandelte Ausnahme (Anwendung wird beendet): {e.ExceptionObject}");
+                Log.Flush(TimeSpan.FromSeconds(2));
+            };
 
-            // 3. Splash schließen, MainWindow starten (dort werden Tools ggf. heruntergeladen)
-            await SetStatusTextAndWaitAsync(splash, UITexte.UITexte.Splash_StartingApp, DebugSleepTimer);
+            TaskScheduler.UnobservedTaskException += (s, e) =>
+            {
+                Log.Warn("Unbeobachtete Task-Ausnahme", e.Exception);
+                e.SetObserved();
+            };
+        }
 
-            await Task.Delay(DebugSleepTimer); // Kurze Pause für den Splashscreen
-
-            var mainWindow = new MainWindow();
-            MainWindow = mainWindow;
-            mainWindow.Show();
-            mainWindow.Activate();
-
-            // Aufräumen der temporären ffmpeg-/Entpack-Artefakte (nicht blockierend, Best-Effort)
-            _ = CleanupTempArtifactsAsync();
-
-            splash.Close(); // Splash explizit schließen
+        private static void LogEnvironmentInfo()
+        {
+            Log.Info($"MortysDLP {Settings.Default.CurrentVersion} startet " +
+                $"(Windows {Environment.OSVersion.Version}, .NET {Environment.Version})");
+            Log.Info($"AppDir={AppPaths.AppDir}");
+            Log.Info($"DataDir={AppPaths.DataDir}");
+            Log.Info($"ToolsDir={AppPaths.ToolsDir}");
         }
 
         public string CurrentVersion { get => currentVersion; set => currentVersion = value; }
@@ -171,8 +219,8 @@ namespace MortysDLP
                 string arguments = $"\"{mainExeName}\" \"{tempZipPath}\" \"{targetDir}\" {currentPid}";
 
                 string updaterExePath = Path.Combine(tempUpdaterDir, Settings.Default.MortysDLPUpdateExeFile);
-                Debug.WriteLine($"[App] Starte Updater: {updaterExePath}");
-                Debug.WriteLine($"[App] Argumente: {arguments}");
+                Log.Info($"Starte Updater: {updaterExePath}");
+                Log.Info($"Argumente: {arguments}");
 
                 // 6. Updater starten – UseShellExecute = true für unabhängigen Prozess
                 var updaterProcess = Process.Start(new ProcessStartInfo
@@ -191,7 +239,7 @@ namespace MortysDLP
                     return;
                 }
 
-                Debug.WriteLine($"[App] Updater gestartet (PID: {updaterProcess.Id}). Beende Hauptanwendung...");
+                Log.Info($"Updater gestartet (PID: {updaterProcess.Id}). Beende Hauptanwendung...");
 
                 // 7. App sicher beenden – Shutdown + Environment.Exit als Fallback
                 Shutdown();
@@ -201,7 +249,7 @@ namespace MortysDLP
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"[App] Update fehlgeschlagen: {ex}");
+                Log.Error("Update fehlgeschlagen", ex);
                 MessageBox.Show(
                     string.Format(UITexte.UITexte.Error_UpdateFailed, ex.Message),
                     UITexte.UITexte.Error,

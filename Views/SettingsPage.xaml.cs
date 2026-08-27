@@ -210,6 +210,7 @@ namespace MortysDLP.Views
             bool newValue = cbDebugMode.IsChecked == true;
             Properties.Settings.Default.DebugMode = newValue;
             Properties.Settings.Default.Save();
+            Log.MinLevel = newValue ? LogLevel.Debug : LogLevel.Info;
 
             foreach (Window window in Application.Current.Windows)
             {

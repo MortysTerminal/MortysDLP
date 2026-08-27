@@ -1,0 +1,128 @@
+<Window x:Class="MortysDLP.Views.ErrorDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Icon="/Resources/Icons/mw_globe_32px.ico"
+        WindowStyle="None"
+        AllowsTransparency="False"
+        ResizeMode="NoResize"
+        SizeToContent="Height"
+        Width="520"
+        ShowInTaskbar="True"
+        Topmost="True"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource SolidBackgroundFillColorBaseBrush}">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="4"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Akzentstreifen -->
+        <Rectangle Grid.Row="0" Fill="{StaticResource BrandGradientBrush}"/>
+
+        <!-- Inhalt -->
+        <Grid Grid.Row="1" Margin="24,20,24,24">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Icon + Titel -->
+            <Grid Grid.Row="0" Margin="0,0,0,12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Border Width="42" Height="42" CornerRadius="21"
+                        Background="#22C42B1C"
+                        VerticalAlignment="Center"
+                        Margin="0,0,14,0">
+                    <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xEA39;"
+                               FontSize="21"
+                               Foreground="#C42B1C"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"/>
+                </Border>
+
+                <TextBlock x:Name="TitleBlock"
+                           Grid.Column="1"
+                           FontSize="15"
+                           FontWeight="SemiBold"
+                           VerticalAlignment="Center"
+                           TextWrapping="Wrap"/>
+            </Grid>
+
+            <!-- Nachricht -->
+            <TextBlock x:Name="MessageBlock"
+                       Grid.Row="1"
+                       FontSize="13"
+                       TextWrapping="Wrap"
+                       Opacity="0.85"
+                       LineHeight="22"
+                       Margin="0,0,0,10"/>
+
+            <!-- Datenschutz-Hinweis -->
+            <TextBlock x:Name="PrivacyHintBlock"
+                       Grid.Row="2"
+                       FontSize="11"
+                       TextWrapping="Wrap"
+                       Opacity="0.6"
+                       Margin="0,0,0,14"/>
+
+            <!-- Ausklappbare technische Details -->
+            <Expander x:Name="DetailsExpander"
+                      Grid.Row="3"
+                      Margin="0,0,0,20">
+                <Border BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="6"
+                        Background="{DynamicResource SubtleFillColorSecondaryBrush}"
+                        Margin="0,8,0,0">
+                    <TextBox x:Name="DetailsBox"
+                             IsReadOnly="True"
+                             TextWrapping="Wrap"
+                             FontFamily="Consolas"
+                             FontSize="11"
+                             BorderThickness="0"
+                             Background="Transparent"
+                             MaxHeight="220"
+                             Padding="10"
+                             VerticalScrollBarVisibility="Auto"
+                             HorizontalScrollBarVisibility="Disabled"/>
+                </Border>
+            </Expander>
+
+            <!-- Buttons -->
+            <StackPanel x:Name="ButtonPanel"
+                        Grid.Row="4"
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Right">
+                <Button x:Name="btnCopyDetails"
+                        MinWidth="80"
+                        Padding="14,8"
+                        Margin="0,0,8,0"
+                        Click="btnCopyDetails_Click"/>
+                <Button x:Name="btnOpenLogFolder"
+                        MinWidth="80"
+                        Padding="14,8"
+                        Margin="0,0,8,0"
+                        Click="btnOpenLogFolder_Click"/>
+                <Button x:Name="btnExit"
+                        MinWidth="80"
+                        Padding="14,8"
+                        Margin="0,0,8,0"
+                        Click="btnExit_Click"/>
+                <Button x:Name="btnClose"
+                        MinWidth="80"
+                        Padding="14,8"
+                        Style="{StaticResource PrimaryButtonStyle}"
+                        Click="btnClose_Click"/>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Window>

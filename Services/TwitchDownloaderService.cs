@@ -126,7 +126,7 @@ namespace MortysDLP.Services
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"[TwitchDownloaderService] Fehler beim Auslesen der Version: {ex}");
+                Log.Warn("Fehler beim Auslesen der Version", ex);
                 return null;
             }
         }

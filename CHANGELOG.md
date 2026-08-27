@@ -25,6 +25,13 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
 
 ## [Unreleased]
 
+### Hinzugefügt
+- Unerwartete Fehler beenden MortysDLP nicht mehr wortlos. Sie werden protokolliert
+  (`%LOCALAPPDATA%\MortysDLP\logs\`, 14 Tage bzw. 10 MB je Datei) und in einem Dialog mit
+  verständlichem Kurztext, ausklappbaren technischen Details, „Details kopieren" und
+  „Protokollordner öffnen" angezeigt. Bei Fehlern, die nur eine einzelne Aktion betreffen,
+  läuft die Anwendung danach normal weiter.
+
 ### Behoben
 - Externe Werkzeuge (yt-dlp, ffmpeg, ffprobe, Whisper, TwitchDownloaderCLI) werden jetzt
   zuverlässig gefunden, unabhängig davon, wie MortysDLP gestartet wird — etwa über eine

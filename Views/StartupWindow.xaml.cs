@@ -19,8 +19,7 @@ namespace MortysDLP
         {
             InitializeComponent();
             // Sprache wurde bereits in App.xaml.cs gesetzt - nicht nochmal aufrufen!
-            // Debug: Zeige welche Sprache aktiv ist
-            System.Diagnostics.Debug.WriteLine($"[StartupWindow] Language: {UITexte.UITextDictionary.CurrentLanguage}");
+            Log.Debug($"Language: {UITexte.UITextDictionary.CurrentLanguage}");
             SetUITexts();
             StartLoadingAnimation();
         }
@@ -109,11 +108,16 @@ namespace MortysDLP
                 ffmpegExists = ffmpegService.FfmpegExists(ffmpegPath);
                 ffprobeExists = ffmpegService.FfprobeExists(ffprobePath);
 
+                string? ytDlpVersion = ytDlpExists ? await ytDlpService.GetLocalVersionAsync(ytDlpPath) : null;
+                Log.Info($"Werkzeuge: yt-dlp={(ytDlpExists ? ytDlpVersion ?? "gefunden" : "fehlt")}, " +
+                    $"ffmpeg={(ffmpegExists ? "gefunden" : "fehlt")}, ffprobe={(ffprobeExists ? "gefunden" : "fehlt")}");
+
                 return ytDlpExists && ffmpegExists && ffprobeExists;
             }
             catch (Exception ex)
             {
                 var T = UITexte.UITextDictionary.Get;
+                Log.Error("Werkzeug-Prüfung beim Start fehlgeschlagen", ex);
                 Dispatcher.Invoke(() => FluentMessageBox.Show(
                     string.Format(T("StartupWindow.Error.ToolUpdate"), ex.Message),
                     T("StartupWindow.Title.Error"),

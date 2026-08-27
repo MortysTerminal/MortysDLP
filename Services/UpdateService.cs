@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MortysDLP.Helpers;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
@@ -119,9 +120,9 @@ namespace MortysDLP.Services
 
                     return; // Erfolg
                 }
-                catch (Exception) when (attempt < maxRetries)
+                catch (Exception ex) when (attempt < maxRetries)
                 {
-                    Debug.WriteLine($"[UpdateService] Download-Versuch {attempt}/{maxRetries} fehlgeschlagen, neuer Versuch...");
+                    Log.Warn($"Download-Versuch {attempt}/{maxRetries} fehlgeschlagen, neuer Versuch...", ex);
 
                     // Exponentielles Backoff
                     await Task.Delay(TimeSpan.FromSeconds(Math.Pow(2, attempt)), ct);

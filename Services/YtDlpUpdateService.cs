@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using MortysDLP.Helpers;
+using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using System.Text.Json;
@@ -86,7 +87,7 @@ namespace MortysDLP.Services
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Fehler beim Auslesen der lokalen Version: {ex}");
+                Log.Warn("Fehler beim Auslesen der lokalen Version", ex);
                 return null;
             }
         }
@@ -120,7 +121,7 @@ namespace MortysDLP.Services
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Fehler beim Auslesen der lokalen Version: {ex}");
+                Log.Warn("Fehler beim Auslesen der lokalen Version", ex);
                 return null;
             }
         }

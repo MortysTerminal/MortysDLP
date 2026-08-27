@@ -1,3 +1,4 @@
+using MortysDLP.Helpers;
 using MortysDLP.Views;
 using System.Collections.Generic;
 
@@ -236,6 +237,8 @@ namespace MortysDLP.UITexte
             ["Common.Button.Cancel"] = "Abbrechen",
             ["Common.Button.Yes"]    = "Ja",
             ["Common.Button.No"]     = "Nein",
+            ["Common.Button.Close"]  = "Schließen",
+            ["Common.Button.Exit"]   = "Beenden",
 
             // FluentMessageBox - Standardtitel
             ["FluentMessageBox.Title.Information"] = "Hinweis",
@@ -530,6 +533,15 @@ namespace MortysDLP.UITexte
             ["SettingsPage.TwitchDownloader.UninstallFailed"]  = "Deinstallation fehlgeschlagen:\n{0}",
             ["SettingsPage.TwitchDownloader.Info"]           = "TwitchDownloaderCLI ist ein optionales Modul zum Herunterladen von Twitch-VODs und -Chats. Es wird automatisch in 'Tools\\TwitchDownloaderCLI.exe' abgelegt.",
 
+            // Fehlerdialog
+            ["ErrorDialog.Title"]                 = "MortysDLP",
+            ["ErrorDialog.Header"]                 = "MortysDLP ist auf ein Problem gestoßen",
+            ["ErrorDialog.DefaultMessage"]         = "Es ist ein unerwarteter Fehler aufgetreten. Die Anwendung läuft weiter, aber diese Aktion konnte nicht abgeschlossen werden.",
+            ["ErrorDialog.PrivacyHint"]            = "Das Protokoll kann URLs und Dateinamen enthalten. Bitte prüfe das, bevor du es weitergibst.",
+            ["ErrorDialog.DetailsLabel"]           = "Technische Details",
+            ["ErrorDialog.Button.CopyDetails"]     = "Details kopieren",
+            ["ErrorDialog.Button.OpenLogFolder"]   = "Protokollordner öffnen",
+
             // Main Window Navigation
             ["MainWindow.Nav.TwitchDownload"]         = "Twitch Video + Chat",
         };
@@ -786,6 +798,8 @@ namespace MortysDLP.UITexte
             ["Common.Button.Cancel"] = "Cancel",
             ["Common.Button.Yes"]    = "Yes",
             ["Common.Button.No"]     = "No",
+            ["Common.Button.Close"]  = "Close",
+            ["Common.Button.Exit"]   = "Exit",
 
             // FluentMessageBox - Default titles
             ["FluentMessageBox.Title.Information"] = "Information",
@@ -1041,20 +1055,29 @@ namespace MortysDLP.UITexte
             ["SettingsPage.TwitchDownloader.UninstallFailed"]  = "Uninstallation failed:\n{0}",
             ["SettingsPage.TwitchDownloader.Info"]           = "TwitchDownloaderCLI is an optional module for downloading Twitch VODs and chats. It will be stored automatically in 'Tools\\TwitchDownloaderCLI.exe'.",
 
+            // Error dialog
+            ["ErrorDialog.Title"]                 = "MortysDLP",
+            ["ErrorDialog.Header"]                 = "MortysDLP ran into a problem",
+            ["ErrorDialog.DefaultMessage"]         = "An unexpected error occurred. The application keeps running, but this action could not be completed.",
+            ["ErrorDialog.PrivacyHint"]            = "The log can contain URLs and file names. Please check it before sharing.",
+            ["ErrorDialog.DetailsLabel"]           = "Technical details",
+            ["ErrorDialog.Button.CopyDetails"]     = "Copy details",
+            ["ErrorDialog.Button.OpenLogFolder"]   = "Open log folder",
+
             // Main Window Navigation
             ["MainWindow.Nav.TwitchDownload"]         = "Twitch Vid+Chat",
         };
 
         public static void SetLanguage(string language)
         {
-            System.Diagnostics.Debug.WriteLine($"[UITextDictionary] SetLanguage called with: {language}");
+            Log.Debug($"SetLanguage called with: {language}");
             _currentLanguage = language.ToLower();
             _currentTexts = _currentLanguage switch
             {
                 "de" or "german" => German,
                 _ => English
             };
-            System.Diagnostics.Debug.WriteLine($"[UITextDictionary] Language set to: {_currentLanguage}, Dictionary has {_currentTexts.Count} entries");
+            Log.Debug($"Language set to: {_currentLanguage}, dictionary has {_currentTexts.Count} entries");
         }
 
         public static string Get(string key)
