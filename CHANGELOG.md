@@ -58,6 +58,10 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
   in Videotiteln bei bestimmten Abläufen sind damit ausgeschlossen. Beim Abbrechen wird jetzt
   überall auch der komplette Prozessbaum beendet, sodass ffmpeg nicht mehr im Hintergrund
   weiterlaufen und die Zieldatei gesperrt halten kann.
+- Eine beschädigte, gesperrte oder aus einem schreibgeschützten Ordner geladene Verlaufsdatei
+  lässt den Download-Verlauf nicht mehr abstürzen. Er öffnet stattdessen leer, eine defekte
+  Datei wird zur Rettung als Sicherung abgelegt statt verworfen, und das Schreiben erfolgt
+  jetzt so, dass ein Abbruch mittendrin nie eine bestehende, gültige Datei beschädigt.
 
 ### Intern
 - `CHANGELOG.md` und `docs/FUNKTIONEN.md` eingeführt. Ab jetzt wird jede Änderung

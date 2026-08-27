@@ -19,7 +19,15 @@ namespace MortysDLP
             _addToBatchCallback = addToBatchCallback;
             InitializeComponent();
             SetUITexte();
-            Loaded += async (_, __) => await LoadHistory();
+            Loaded += async (_, __) =>
+            {
+                try { await LoadHistory(); }
+                catch (Exception ex)
+                {
+                    Log.Error("Verlauf konnte nicht geladen werden", ex);
+                    ShowEmptyState();
+                }
+            };
         }
 
         private void SetUITexte()
@@ -94,6 +102,12 @@ namespace MortysDLP
             ReuseButton.IsEnabled = hasItems;
             ClearButton.IsEnabled = hasItems;
             EmptyStatePanel.Visibility = hasItems ? Visibility.Collapsed : Visibility.Visible;
+        }
+
+        private void ShowEmptyState()
+        {
+            HistoryList.ItemsSource = new List<DownloadHistoryEntry>();
+            UpdateButtonStates();
         }
     }
 }
