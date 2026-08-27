@@ -7,9 +7,6 @@
     <Copyright>Copyright © 2026</Copyright>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0-windows</TargetFramework>
-    <LangVersion>latest</LangVersion>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <ApplicationIcon>Resources\Icons\mw_globe_32px.ico</ApplicationIcon>
   </PropertyGroup>
@@ -49,9 +46,6 @@
 
   <ItemGroup>
     <PackageReference Include="Ookii.Dialogs.Wpf" Version="5.0.1" />
-    <PackageReference Include="System.Configuration.ConfigurationManager" Version="9.0.5">
-      <NoWarn>NU1510</NoWarn>
-    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>

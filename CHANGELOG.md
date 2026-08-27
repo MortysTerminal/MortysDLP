@@ -31,6 +31,9 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
   Funktionsumfang der Anwendung.
 - `.gitignore` ergänzt (Werkzeug- und Verlaufsdateien werden nie versioniert) und
   `.editorconfig` angelegt, damit alle Werkzeuge Code einheitlich formatieren.
+- Gemeinsame Projekteinstellungen (`Directory.Build.props`) eingeführt und .NET-Analyzer
+  aktiviert, damit mögliche Fehler früher auffallen. Ungenutzte Paketabhängigkeit
+  `System.Configuration.ConfigurationManager` entfernt.
 
 ---
 
