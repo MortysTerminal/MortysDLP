@@ -78,6 +78,11 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
   Jetzt erscheint sie genau einmal, stderr-Zeilen weiterhin erkennbar markiert.
 
 ### Intern
+- Ein neuer, toleranterer Versionsvergleich ist als Grundbaustein vorbereitet (noch nicht im
+  Update-Ablauf eingesetzt). Er erkennt künftig auch Hotfix-Tags am selben Tag
+  (`2026.06.01.1`) und Vorab-Versionen (`2026.09.01-dev.1`) korrekt als neuer bzw. älter, statt
+  Update-Hinweise für solche Tags stillschweigend zu unterdrücken. Mit umfangreicher
+  Testabdeckung, auch unter fremdsprachigen Systemeinstellungen.
 - Liegt MortysDLP auf einem Netzlaufwerk, das über einen UNC-Pfad (`\\server\share\…`)
   angesprochen wird, weist die Startprotokollzeile zum Installationsort dies jetzt als
   `Network` aus. Bisher fehlte diese Angabe ausgerechnet beim Installationsort, der am
