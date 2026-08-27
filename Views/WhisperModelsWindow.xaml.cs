@@ -296,7 +296,9 @@ namespace MortysDLP.Views
     }
 
     // ── ViewModel für die Modellliste ──────────────────────────────────────────────
-    internal class ModelViewModel : System.ComponentModel.INotifyPropertyChanged
+    // Kein INotifyPropertyChanged: RefreshModelList() baut icModels.ItemsSource bei jeder
+    // Änderung komplett neu auf, es gibt keine Live-Bindung auf einzelne Instanzen.
+    internal class ModelViewModel
     {
         public string ModelId { get; set; } = "";
         public string DisplayName { get; set; } = "";
@@ -311,7 +313,5 @@ namespace MortysDLP.Views
         public string DeleteButtonText { get; set; } = "Delete";
         public Visibility DownloadVisibility { get; set; }
         public Visibility DeleteVisibility { get; set; }
-
-        public event PropertyChangedEventHandler? PropertyChanged;
     }
 }

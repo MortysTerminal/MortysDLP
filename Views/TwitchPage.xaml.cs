@@ -193,14 +193,22 @@ namespace MortysDLP.Views
 
         private void cbDownloadVideo_Changed(object sender, RoutedEventArgs e)
         {
+            // cbDownloadVideo hat im XAML IsChecked="True" gesetzt und feuert dadurch schon
+            // waehrend InitializeComponent(). cbDownloadChat ist als spaeter deklariertes
+            // x:Name-Element zu diesem Zeitpunkt noch null.
+            if (cbDownloadChat is null) return;
+
             // Mindestens Video oder Chat muss aktiv sein
-            if (cbDownloadVideo.IsChecked != true && cbDownloadChat?.IsChecked != true)
+            if (cbDownloadVideo.IsChecked != true && cbDownloadChat.IsChecked != true)
                 cbDownloadChat.IsChecked = true;
             ValidateStartButton();
         }
 
         private void cbDownloadChat_Changed(object sender, RoutedEventArgs e)
         {
+            // Siehe cbDownloadVideo_Changed: gleiche Absicherung fuer die Initialisierungsphase.
+            if (cbDownloadVideo is null) return;
+
             bool active = cbDownloadChat.IsChecked == true;
             if (pnlChatOptions != null)
                 pnlChatOptions.Visibility = active ? Visibility.Visible : Visibility.Collapsed;
@@ -211,7 +219,7 @@ namespace MortysDLP.Views
                     pnlGpuHint.Visibility = Visibility.Collapsed;
             }
             // Mindestens Video oder Chat muss aktiv sein
-            if (cbDownloadChat.IsChecked != true && cbDownloadVideo?.IsChecked != true)
+            if (cbDownloadChat.IsChecked != true && cbDownloadVideo.IsChecked != true)
                 cbDownloadVideo.IsChecked = true;
             ValidateStartButton();
         }
@@ -227,8 +235,11 @@ namespace MortysDLP.Views
 
         private void ValidateStartButton()
         {
-            bool hasUrl        = !string.IsNullOrWhiteSpace(tbURL?.Text);
-            bool isTwitchUrl   = hasUrl && tbURL.Text.Trim().Contains("twitch.tv", StringComparison.OrdinalIgnoreCase);
+            // urlText einmal auslesen statt tbURL mehrfach zu dereferenzieren, damit die
+            // Nullprüfung für beide folgenden Zeilen gilt.
+            string? urlText    = tbURL?.Text;
+            bool hasUrl        = !string.IsNullOrWhiteSpace(urlText);
+            bool isTwitchUrl   = hasUrl && urlText is { } url && url.Trim().Contains("twitch.tv", StringComparison.OrdinalIgnoreCase);
             bool hasOutput     = !string.IsNullOrWhiteSpace(tbOutputPath?.Text);
             bool chatInstalled = TwitchDownloaderService.IsInstalled();
             bool ytdlpExists   = File.Exists(Properties.Settings.Default.YtdlpPath);

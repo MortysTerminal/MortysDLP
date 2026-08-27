@@ -12,12 +12,10 @@
     <EnforceCodeStyleInBuild>false</EnforceCodeStyleInBuild>
 
     <!-- Diese Warnungen sind Fehler: sie führen zu echten Laufzeitproblemen -->
-    <!-- CS8602 bewusst NICHT dabei: 3 bestehende Vorkommen in TwitchPage.xaml.cs,
-         Behebung ist W0-T05. Erst danach hier ergänzen. -->
     <WarningsAsErrors>
       CS4014;<!-- Task nicht erwartet (vergessenes await) -->
       CS1998;<!-- async ohne await -->
-      CS8600;CS8603;CS8604<!-- mögliche Null-Zugriffe -->
+      CS8600;CS8602;CS8603;CS8604<!-- mögliche Null-Zugriffe -->
     </WarningsAsErrors>
   </PropertyGroup>
 </Project>

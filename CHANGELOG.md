@@ -37,6 +37,10 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
 - Testprojekt eingeführt: `dotnet test` prüft jetzt automatisch die Auswahl von
   Video-Qualität und -Codec beim Download. Erste zehn Testfälle decken das bestehende
   Verhalten ab.
+- Vier bestehende Compilerwarnungen behoben (mögliche Nullzugriffe in den
+  Twitch-Häkchen und ein ungenutztes Ereignis im Whisper-Modellfenster). Verhalten für
+  Nutzer unverändert. Mögliche Nullzugriffe lösen jetzt projektweit einen Build-Fehler
+  statt nur einer Warnung aus, damit neue Fälle sofort auffallen.
 
 ---
 
