@@ -136,28 +136,10 @@ namespace MortysDLP.Services
 
             try
             {
-                var psi = new ProcessStartInfo
-                {
-                    FileName = whisperPath,
-                    Arguments = "--version",
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true
-                };
-
-                using var process = Process.Start(psi);
-                if (process == null) return null;
-
-                string output = await process.StandardOutput.ReadToEndAsync();
-                string errOutput = await process.StandardError.ReadToEndAsync();
-
-                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-                try { await process.WaitForExitAsync(cts.Token); }
-                catch (OperationCanceledException) { process.Kill(); }
+                var result = await ProcessRunner.RunAsync(whisperPath, ["--version"], timeout: TimeSpan.FromSeconds(15));
 
                 // Whisper gibt Version in stdout oder stderr aus
-                string combined = output + errOutput;
+                string combined = result.StdOut + result.StdErr;
                 var match = System.Text.RegularExpressions.Regex.Match(combined, @"whisper\.cpp\s+version\s+([\d.]+)",
                     System.Text.RegularExpressions.RegexOptions.IgnoreCase);
                 if (match.Success) return match.Groups[1].Value.Trim();

@@ -1,4 +1,5 @@
 using MortysDLP.Helpers;
+using MortysDLP.Services;
 using MortysDLP.UITexte;
 using MortysDLP.Views;
 using System.Collections.ObjectModel;
@@ -294,24 +295,12 @@ namespace MortysDLP.Views
             try
             {
                 string ytDlpPath = AppPaths.YtDlp;
-                using var process = new Process
-                {
-                    StartInfo = new ProcessStartInfo
-                    {
-                        FileName               = ytDlpPath,
-                        Arguments              = $"--no-check-certificates --print \"%(title)s\" \"{entry.Url}\"",
-                        RedirectStandardOutput = true,
-                        RedirectStandardError  = true,
-                        UseShellExecute        = false,
-                        CreateNoWindow         = true,
-                        StandardOutputEncoding = System.Text.Encoding.UTF8,
-                    }
-                };
-                process.Start();
-                string output = await process.StandardOutput.ReadToEndAsync();
-                await process.WaitForExitAsync();
+                var result = await ProcessRunner.RunAsync(
+                    ytDlpPath,
+                    ["--no-check-certificates", "--print", "%(title)s", entry.Url],
+                    timeout: TimeSpan.FromSeconds(15));
 
-                string title = output.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                string title = result.StdOut.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
                                      .FirstOrDefault() ?? "";
 
                 entry.Title = string.IsNullOrWhiteSpace(title) ? entry.Url : title;
@@ -607,101 +596,98 @@ namespace MortysDLP.Views
             string videoQualityTag, string videoFormat,
             CancellationToken token)
         {
-            var args = new System.Text.StringBuilder();
+            var args = new List<string>();
 
             if (audioOnly)
             {
-                args.Append($"-x --audio-format \"{audioFormat}\" ");
-                if (!isHighestAbr) args.Append($"--audio-quality \"{audioBitrate.ToUpperInvariant()}\" ");
+                args.Add("-x");
+                args.Add("--audio-format");
+                args.Add(audioFormat);
+                if (!isHighestAbr)
+                {
+                    args.Add("--audio-quality");
+                    args.Add(audioBitrate.ToUpperInvariant());
+                }
             }
             else if (useX264)
             {
                 string fSelector = videoQualityTag == "best"
                     ? "bestvideo[vcodec^=avc1]+bestaudio[ext=m4a]/bestvideo+bestaudio/best"
                     : $"bestvideo[vcodec^=avc1][height<={videoQualityTag}]+bestaudio[ext=m4a]/bestvideo[height<={videoQualityTag}]+bestaudio/best[height<={videoQualityTag}]";
-                args.Append($"-f \"{fSelector}\" ");
-                args.Append("--merge-output-format mp4 ");
-                args.Append("--postprocessor-args \"Merger:-c copy -movflags +faststart\" ");
+                args.Add("-f");
+                args.Add(fSelector);
+                args.Add("--merge-output-format");
+                args.Add("mp4");
+                args.Add("--postprocessor-args");
+                args.Add("Merger:-c copy -movflags +faststart");
             }
             else
             {
                 string fSelector = videoQualityTag == "best"
                     ? $"bestvideo[ext={videoFormat}]+bestaudio/bestvideo+bestaudio/best"
                     : $"bestvideo[ext={videoFormat}][height<={videoQualityTag}]+bestaudio/bestvideo[height<={videoQualityTag}]+bestaudio/best[height<={videoQualityTag}]";
-                args.Append($"-f \"{fSelector}\" --merge-output-format {videoFormat} ");
+                args.Add("-f");
+                args.Add(fSelector);
+                args.Add("--merge-output-format");
+                args.Add(videoFormat);
             }
 
-            args.Append($"-o \"{downloadPath}\\%(title)s_%(id)s.%(ext)s\" ");
+            args.Add("-o");
+            args.Add($"{downloadPath}\\%(title)s_%(id)s.%(ext)s");
             double bwLimit = Properties.Settings.Default.DownloadBandwidthMBps;
             if (bwLimit > 0)
-                args.Append($"--limit-rate {bwLimit.ToString(System.Globalization.CultureInfo.InvariantCulture)}M ");
-            args.Append("--continue --no-check-certificates --no-mtime --newline --no-playlist ");
-            args.Append($"\"{entry.Url}\"");
+            {
+                args.Add("--limit-rate");
+                args.Add($"{bwLimit.ToString(System.Globalization.CultureInfo.InvariantCulture)}M");
+            }
+            args.Add("--continue");
+            args.Add("--no-check-certificates");
+            args.Add("--no-mtime");
+            args.Add("--newline");
+            args.Add("--no-playlist");
+            args.Add(entry.Url);
 
             AppendDebug($"[START] {entry.Url}");
-            AppendDebug($"ARGS: {args}");
+            AppendDebug($"ARGS: {string.Join(' ', args)}");
 
             string? lastOutputFile = null;
 
-            var process = new Process
+            void OnStdOut(string line)
             {
-                StartInfo = new ProcessStartInfo
-                {
-                    FileName               = ytDlpPath,
-                    Arguments              = args.ToString(),
-                    RedirectStandardOutput = true,
-                    RedirectStandardError  = true,
-                    UseShellExecute        = false,
-                    CreateNoWindow         = true,
-                    StandardOutputEncoding = System.Text.Encoding.UTF8,
-                    StandardErrorEncoding  = System.Text.Encoding.UTF8,
-                }
-            };
-
-            process.OutputDataReceived += (_, e) =>
-            {
-                if (string.IsNullOrEmpty(e.Data)) return;
-                AppendDebug(e.Data);
+                AppendDebug(line);
 
                 // Ausgabedatei tracken
-                if (e.Data.StartsWith("[Merger] Merging formats into \""))
+                if (line.StartsWith("[Merger] Merging formats into \""))
                 {
-                    var m = System.Text.RegularExpressions.Regex.Match(e.Data, @"\[Merger\] Merging formats into ""(.+)""");
+                    var m = System.Text.RegularExpressions.Regex.Match(line, @"\[Merger\] Merging formats into ""(.+)""");
                     if (m.Success) lastOutputFile = m.Groups[1].Value;
                 }
-                else if (e.Data.StartsWith("[download] Destination: "))
-                    lastOutputFile = e.Data["[download] Destination: ".Length..].Trim();
+                else if (line.StartsWith("[download] Destination: "))
+                    lastOutputFile = line["[download] Destination: ".Length..].Trim();
 
                 // Phase erkennen → entry.Status
-                var phase = DetectBatchStage(e.Data);
+                var phase = DetectBatchStage(line);
                 if (phase != null) entry.Status = phase;
 
                 // Fortschritt + Geschwindigkeit
-                var (pct, speed) = ParseBatchProgress(e.Data);
+                var (pct, speed) = ParseBatchProgress(line);
                 if (pct.HasValue)
                 {
                     entry.Progress = pct.Value;
                     UpdateCurrentSpeed(speed);
                 }
-            };
-
-            process.ErrorDataReceived += (_, e) =>
-            {
-                if (!string.IsNullOrEmpty(e.Data)) AppendDebug($"[ERR] {e.Data}");
-            };
+            }
 
             try
             {
-                process.Start();
-                process.BeginOutputReadLine();
-                process.BeginErrorReadLine();
-                _currentBatchYtDlpProcess = process;
-
-                await using var reg = token.Register(() => { try { process.Kill(entireProcessTree: true); } catch { } });
-
-                await process.WaitForExitAsync(CancellationToken.None);
-                process.WaitForExit();
-                _currentBatchYtDlpProcess = null;
+                var result = await ProcessRunner.RunStreamingAsync(
+                    ytDlpPath, args,
+                    onStdOut: OnStdOut,
+                    onStdErr: line => AppendDebug($"[ERR] {line}"),
+                    timeout: null,
+                    idleTimeout: TimeSpan.FromSeconds(120),
+                    onStarted: p => _currentBatchYtDlpProcess = p,
+                    ct: token);
 
                 // Absichtlicher Kill wegen Limit-Änderung → kein Fehler, Neustart nötig
                 if (_batchBandwidthKillPending)
@@ -711,13 +697,12 @@ namespace MortysDLP.Views
                     return true;
                 }
 
-                if (token.IsCancellationRequested) throw new OperationCanceledException(token);
-                if (process.ExitCode != 0) throw new Exception($"yt-dlp exit code {process.ExitCode}");
+                token.ThrowIfCancellationRequested();
+                if (!result.Success) throw new InvalidOperationException($"yt-dlp exit code {result.ExitCode}");
             }
             finally
             {
                 _currentBatchYtDlpProcess = null;
-                process.Dispose();
             }
 
             // x264-Nachbearbeitung mit eigenem Fortschritt
@@ -813,28 +798,15 @@ namespace MortysDLP.Views
             string tempPath = System.IO.Path.Combine(dir,
                 System.IO.Path.GetFileNameWithoutExtension(filePath) + "_h264_tmp" + System.IO.Path.GetExtension(filePath));
 
-            string ffmpegArgs = HwAccelHelper.BuildH264Args(encoder, filePath, tempPath);
-            AppendDebug($"[ffmpeg] {ffmpegPath} {ffmpegArgs}");
+            List<string> ffmpegArgs = HwAccelHelper.BuildH264Args(encoder, filePath, tempPath);
+            AppendDebug($"[ffmpeg] {ffmpegPath} {string.Join(' ', ffmpegArgs)}");
 
-            using var proc = new Process
+            void OnStdErr(string line)
             {
-                StartInfo = new ProcessStartInfo
-                {
-                    FileName              = ffmpegPath,
-                    Arguments             = ffmpegArgs,
-                    RedirectStandardError = true,
-                    UseShellExecute       = false,
-                    CreateNoWindow        = true,
-                }
-            };
-
-            proc.ErrorDataReceived += (_, e) =>
-            {
-                if (string.IsNullOrEmpty(e.Data)) return;
-                AppendDebug($"[ffmpeg] {e.Data}");
+                AppendDebug($"[ffmpeg] {line}");
                 if (totalSec > 0)
                 {
-                    var m = System.Text.RegularExpressions.Regex.Match(e.Data, @"time=(\d{2}:\d{2}:\d{2}\.\d{2})");
+                    var m = System.Text.RegularExpressions.Regex.Match(line, @"time=(\d{2}:\d{2}:\d{2}\.\d{2})");
                     if (m.Success && TimeSpan.TryParse(m.Groups[1].Value, out var cur))
                     {
                         double pct = Math.Max(0, Math.Min(100, cur.TotalSeconds / totalSec * 100.0));
@@ -842,30 +814,23 @@ namespace MortysDLP.Views
                         UpdateOverallBar(pct);
                     }
                 }
-            };
-
-            try
-            {
-                proc.Start();
-                proc.BeginErrorReadLine();
-
-                await using var reg = token.Register(() => { try { proc.Kill(entireProcessTree: true); } catch { } });
-                await proc.WaitForExitAsync(CancellationToken.None);
-                proc.WaitForExit();
-
-                if (token.IsCancellationRequested) throw new OperationCanceledException(token);
-                if (proc.ExitCode != 0) throw new Exception($"ffmpeg exit code {proc.ExitCode}");
-
-                if (System.IO.File.Exists(tempPath))
-                {
-                    System.IO.File.Delete(filePath);
-                    System.IO.File.Move(tempPath, filePath);
-                    AppendDebug($"[SCHNITT] Fertig: {System.IO.Path.GetFileName(filePath)}");
-                }
             }
-            finally
+
+            var result = await ProcessRunner.RunStreamingAsync(
+                ffmpegPath, ffmpegArgs,
+                onStdErr: OnStdErr,
+                timeout: null,
+                idleTimeout: TimeSpan.FromSeconds(120),
+                ct: token);
+
+            token.ThrowIfCancellationRequested();
+            if (!result.Success) throw new InvalidOperationException($"ffmpeg exit code {result.ExitCode}");
+
+            if (System.IO.File.Exists(tempPath))
             {
-                try { proc.CancelErrorRead(); } catch { }
+                System.IO.File.Delete(filePath);
+                System.IO.File.Move(tempPath, filePath);
+                AppendDebug($"[SCHNITT] Fertig: {System.IO.Path.GetFileName(filePath)}");
             }
         }
 
@@ -873,21 +838,12 @@ namespace MortysDLP.Views
         {
             try
             {
-                using var p = new Process
-                {
-                    StartInfo = new ProcessStartInfo
-                    {
-                        FileName               = ffprobePath,
-                        Arguments              = $"-v error -select_streams v:0 -show_entries stream=codec_name,width,height -of csv=p=0 \"{filePath}\"",
-                        RedirectStandardOutput = true,
-                        UseShellExecute        = false,
-                        CreateNoWindow         = true,
-                    }
-                };
-                p.Start();
-                string output = await p.StandardOutput.ReadToEndAsync();
-                await p.WaitForExitAsync();
-                var parts = output.Trim().Split(',');
+                var result = await ProcessRunner.RunAsync(
+                    ffprobePath,
+                    ["-v", "error", "-select_streams", "v:0", "-show_entries", "stream=codec_name,width,height",
+                     "-of", "csv=p=0", filePath],
+                    timeout: TimeSpan.FromSeconds(15));
+                var parts = result.StdOut.Trim().Split(',');
                 string? codec = parts.Length > 0 ? parts[0] : null;
                 int.TryParse(parts.Length > 1 ? parts[1] : "", out int w);
                 int.TryParse(parts.Length > 2 ? parts[2] : "", out int h);
@@ -900,21 +856,11 @@ namespace MortysDLP.Views
         {
             try
             {
-                using var p = new Process
-                {
-                    StartInfo = new ProcessStartInfo
-                    {
-                        FileName               = ffprobePath,
-                        Arguments              = $"-v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 \"{filePath}\"",
-                        RedirectStandardOutput = true,
-                        UseShellExecute        = false,
-                        CreateNoWindow         = true,
-                    }
-                };
-                p.Start();
-                string output = await p.StandardOutput.ReadToEndAsync();
-                await p.WaitForExitAsync();
-                if (double.TryParse(output.Trim(), System.Globalization.NumberStyles.Any,
+                var result = await ProcessRunner.RunAsync(
+                    ffprobePath,
+                    ["-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", filePath],
+                    timeout: TimeSpan.FromSeconds(15));
+                if (double.TryParse(result.StdOut.Trim(), System.Globalization.NumberStyles.Any,
                     System.Globalization.CultureInfo.InvariantCulture, out double d))
                     return d;
             }

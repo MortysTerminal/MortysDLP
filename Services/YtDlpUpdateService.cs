@@ -1,6 +1,6 @@
 ﻿using MortysDLP.Helpers;
-using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
 using System.Windows;
@@ -61,63 +61,8 @@ namespace MortysDLP.Services
 
             try
             {
-                var psi = new ProcessStartInfo
-                {
-                    FileName = toolPath,
-                    Arguments = "--version",
-                    RedirectStandardOutput = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true
-                };
-                using var process = Process.Start(psi);
-                if (process == null)
-                    return null;
-
-                string? output = await process.StandardOutput.ReadLineAsync();
-                using var cts = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(3));
-                try
-                {
-                    await process.WaitForExitAsync(cts.Token);
-                }
-                catch (OperationCanceledException)
-                {
-                    process.Kill();
-                }
-                return output?.Trim();
-            }
-            catch (Exception ex)
-            {
-                Log.Warn("Fehler beim Auslesen der lokalen Version", ex);
-                return null;
-            }
-        }
-
-        public string? GetLocalVersion(string toolPath)
-        {
-            if (!File.Exists(toolPath))
-                return null;
-
-            try
-            {
-                var psi = new ProcessStartInfo
-                {
-                    FileName = toolPath,
-                    Arguments = "--version",
-                    RedirectStandardOutput = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true
-                };
-                using var process = Process.Start(psi);
-                if (process == null)
-                    return null;
-
-                string? output = process.StandardOutput.ReadLine();
-                if (!process.WaitForExit(3000))
-                {
-                    process.Kill();
-                    return null;
-                }
-                return output?.Trim();
+                var result = await ProcessRunner.RunAsync(toolPath, ["--version"], timeout: TimeSpan.FromSeconds(15));
+                return result.StdOut.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).FirstOrDefault();
             }
             catch (Exception ex)
             {

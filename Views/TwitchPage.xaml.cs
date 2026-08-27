@@ -617,23 +617,34 @@ namespace MortysDLP.Views
                 {
                     string ytDlpPath    = AppPaths.YtDlp;
                     string safeTitleForTemplate = safeTitle.Replace("\"", "'");
-                    string outputTemplate = $"\"{outputDir}\\{safeTitleForTemplate}{presetSuffix}_%(id)s.%(ext)s\"";
-                    string mergeArg  = isClip ? "" : "--merge-output-format mp4 ";
+                    string outputTemplate = $"{outputDir}\\{safeTitleForTemplate}{presetSuffix}_%(id)s.%(ext)s";
                     string formatArg = "best[ext=mp4]/bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best";
 
                     // Neustart-Schleife: bei Kill durch ApplyBandwidthChange wird mit neuem Limit + --continue fortgesetzt
                     while (!_cts.Token.IsCancellationRequested)
                     {
                         double bwMbps = _activeRateLimitMBps;
-                        string bwArg  = bwMbps > 0
-                            ? $"--limit-rate {bwMbps.ToString(CultureInfo.InvariantCulture)}M "
-                            : "";
 
-                        string args = $"-f \"{formatArg}\" {mergeArg}{bwArg}" +
-                                      $"--no-check-certificates --no-mtime --newline --no-playlist " +
-                                      $"-o {outputTemplate} \"{rawInput}\"";
+                        var args = new List<string> { "-f", formatArg };
+                        if (!isClip)
+                        {
+                            args.Add("--merge-output-format");
+                            args.Add("mp4");
+                        }
+                        if (bwMbps > 0)
+                        {
+                            args.Add("--limit-rate");
+                            args.Add($"{bwMbps.ToString(CultureInfo.InvariantCulture)}M");
+                        }
+                        args.Add("--no-check-certificates");
+                        args.Add("--no-mtime");
+                        args.Add("--newline");
+                        args.Add("--no-playlist");
+                        args.Add("-o");
+                        args.Add(outputTemplate);
+                        args.Add(rawInput);
 
-                        AppendDebug($"[VIDEO] yt-dlp starten{(bwMbps > 0 ? $" (Limit: {bwMbps} MB/s)" : "")}: {args}");
+                        AppendDebug($"[VIDEO] yt-dlp starten{(bwMbps > 0 ? $" (Limit: {bwMbps} MB/s)" : "")}: {string.Join(' ', args)}");
                         SetStatus(T("TwitchPage.Status.Downloading"), true);
                         bool needsRestart = await RunYtDlpAsync(ytDlpPath, args, _cts.Token, progress);
 
@@ -721,51 +732,30 @@ namespace MortysDLP.Views
         /// Führt yt-dlp aus. Gibt <c>true</c> zurück wenn ein Neustart mit neuem Limit nötig ist
         /// (Limit-Änderung während Download), <c>false</c> bei erfolgreichem Abschluss.
         /// </summary>
-        private async Task<bool> RunYtDlpAsync(string ytDlpPath, string arguments, CancellationToken token,
+        private async Task<bool> RunYtDlpAsync(string ytDlpPath, List<string> arguments, CancellationToken token,
             IProgress<string>? progress = null)
         {
-            string args = arguments.Contains("--continue") ? arguments : "--continue " + arguments;
+            List<string> args = arguments.Contains("--continue") ? arguments : ["--continue", .. arguments];
 
-            var process = new Process
+            void OnStdOut(string line)
             {
-                StartInfo = new ProcessStartInfo
-                {
-                    FileName               = ytDlpPath,
-                    Arguments              = args,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError  = true,
-                    UseShellExecute        = false,
-                    CreateNoWindow         = true,
-                    StandardOutputEncoding = Encoding.UTF8,
-                    StandardErrorEncoding  = Encoding.UTF8,
-                }
-            };
-
-            process.OutputDataReceived += (_, e) =>
+                progress?.Report(line);
+                Dispatcher.BeginInvoke(() => AppendDebug(line));
+            }
+            void OnStdErr(string line)
             {
-                if (string.IsNullOrEmpty(e.Data)) return;
-                progress?.Report(e.Data);
-                Dispatcher.BeginInvoke(() => AppendDebug(e.Data));
-            };
-            process.ErrorDataReceived += (_, e) =>
-            {
-                if (string.IsNullOrEmpty(e.Data)) return;
-                progress?.Report(e.Data);
-                Dispatcher.BeginInvoke(() => AppendDebug($"[STDERR] {e.Data}"));
-            };
+                progress?.Report(line);
+                Dispatcher.BeginInvoke(() => AppendDebug($"[STDERR] {line}"));
+            }
 
-            process.Start();
-            process.BeginOutputReadLine();
-            process.BeginErrorReadLine();
-            _currentYtDlpProcess = process;
-
-            await using var killReg = token.Register(() =>
-            {
-                try { process.Kill(entireProcessTree: true); } catch { }
-            });
-
-            await process.WaitForExitAsync(CancellationToken.None);
-            process.WaitForExit();
+            var result = await ProcessRunner.RunStreamingAsync(
+                ytDlpPath, args,
+                onStdOut: OnStdOut,
+                onStdErr: OnStdErr,
+                timeout: null,
+                idleTimeout: TimeSpan.FromSeconds(120),
+                onStarted: p => _currentYtDlpProcess = p,
+                ct: token);
             _currentYtDlpProcess = null;
 
             // Absichtlicher Kill wegen Limit-Änderung → kein Fehler, Neustart nötig
@@ -778,8 +768,8 @@ namespace MortysDLP.Views
 
             token.ThrowIfCancellationRequested();
 
-            if (process.ExitCode != 0)
-                throw new InvalidOperationException($"yt-dlp beendet mit Exit-Code {process.ExitCode}");
+            if (!result.Success)
+                throw new InvalidOperationException($"yt-dlp beendet mit Exit-Code {result.ExitCode}");
 
             return false;
         }

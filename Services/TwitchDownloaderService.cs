@@ -107,21 +107,8 @@ namespace MortysDLP.Services
                 }
 
                 // Letzter Fallback: CLI-Aufruf
-                var psi = new ProcessStartInfo
-                {
-                    FileName = CliExePath,
-                    Arguments = "--version",
-                    RedirectStandardOutput = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true
-                };
-                using var process = Process.Start(psi);
-                if (process == null) return null;
-
-                string? output = await process.StandardOutput.ReadLineAsync();
-                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-                try { await process.WaitForExitAsync(cts.Token); }
-                catch (OperationCanceledException) { process.Kill(); }
+                var result = await ProcessRunner.RunAsync(CliExePath, ["--version"], timeout: TimeSpan.FromSeconds(15));
+                string? output = result.StdOut.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).FirstOrDefault();
                 return output?.Trim().TrimStart('v', 'V');
             }
             catch (Exception ex)
@@ -226,8 +213,14 @@ namespace MortysDLP.Services
             IProgress<string>? progress = null,
             CancellationToken cancellationToken = default)
         {
-            string bwArg = bandwidthKibs > 0 ? $" --bandwidth {bandwidthKibs}" : "";
-            string args = $"videodownload --id {vodId} --collision Overwrite{bwArg} -o \"{outputPath}\"";
+            List<string> args = ["videodownload", "--id", vodId, "--collision", "Overwrite"];
+            if (bandwidthKibs > 0)
+            {
+                args.Add("--bandwidth");
+                args.Add(bandwidthKibs.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            }
+            args.Add("-o");
+            args.Add(outputPath);
             await RunCliAsync(args, progress, cancellationToken);
         }
 
@@ -242,8 +235,14 @@ namespace MortysDLP.Services
             IProgress<string>? progress = null,
             CancellationToken cancellationToken = default)
         {
-            string bwArg = bandwidthKibs > 0 ? $" --bandwidth {bandwidthKibs}" : "";
-            string args = $"clipdownload --id {clipSlug} --collision Overwrite{bwArg} -o \"{outputPath}\"";
+            List<string> args = ["clipdownload", "--id", clipSlug, "--collision", "Overwrite"];
+            if (bandwidthKibs > 0)
+            {
+                args.Add("--bandwidth");
+                args.Add(bandwidthKibs.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            }
+            args.Add("-o");
+            args.Add(outputPath);
             await RunCliAsync(args, progress, cancellationToken);
         }
 
@@ -294,7 +293,7 @@ namespace MortysDLP.Services
             IProgress<string>? progress = null,
             CancellationToken cancellationToken = default)
         {
-            string args = $"chatdownload --id {contentId} --collision Overwrite -o \"{outputPath}\"";
+            List<string> args = ["chatdownload", "--id", contentId, "--collision", "Overwrite", "-o", outputPath];
             await RunCliAsync(args, progress, cancellationToken);
         }
 
@@ -316,79 +315,40 @@ namespace MortysDLP.Services
                 RenderQualityPreset.Ultra => (700, 1200, 60, 16, true),
                 _                         => (350,  600, 30, 12, false),
             };
-            string outlineArg = outline ? " --outline" : "";
-            string args = $"chatrender -i \"{chatJsonPath}\" -w {w} -h {h} --framerate {fps} --font-size {fontSize}{outlineArg} --collision Overwrite -o \"{outputVideoPath}\"";
+            var ic = System.Globalization.CultureInfo.InvariantCulture;
+            List<string> args =
+            [
+                "chatrender", "-i", chatJsonPath,
+                "-w", w.ToString(ic), "-h", h.ToString(ic),
+                "--framerate", fps.ToString(ic), "--font-size", fontSize.ToString(ic),
+            ];
+            if (outline) args.Add("--outline");
+            args.Add("--collision");
+            args.Add("Overwrite");
+            args.Add("-o");
+            args.Add(outputVideoPath);
             await RunCliAsync(args, progress, cancellationToken);
         }
 
         private static async Task RunCliAsync(
-            string arguments,
+            List<string> arguments,
             IProgress<string>? progress,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var psi = new ProcessStartInfo
-            {
-                FileName = CliExePath,
-                Arguments = arguments,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                CreateNoWindow = true
-            };
-
-            using var process = new Process { StartInfo = psi };
-            process.Start();
-
-            // Sofortiger Kill bei Cancel – wichtig damit ReadLineAsync() deblockt
-            using var killReg = cancellationToken.Register(() =>
-            {
-                try
-                {
-                    if (!process.HasExited)
-                        process.Kill(entireProcessTree: true);
-                }
-                catch { /* Prozess schon beendet */ }
-            });
-
-            var outputTask = Task.Run(async () =>
-            {
-                try
-                {
-                    string? line;
-                    while ((line = await process.StandardOutput.ReadLineAsync(cancellationToken)) != null)
-                        if (!string.IsNullOrWhiteSpace(line))
-                            progress?.Report(line);
-                }
-                catch (OperationCanceledException) { }
-            }, CancellationToken.None);  // eigener Cancel-Scope → Task soll sauber enden
-
-            var errorTask = Task.Run(async () =>
-            {
-                try
-                {
-                    string? line;
-                    while ((line = await process.StandardError.ReadLineAsync(cancellationToken)) != null)
-                        if (!string.IsNullOrWhiteSpace(line))
-                            progress?.Report($"[ERR] {line}");
-                }
-                catch (OperationCanceledException) { }
-            }, CancellationToken.None);
-
-            await Task.WhenAll(outputTask, errorTask);
-
-            // Auf Prozessende warten (nach Kill in der Regel sofort)
-            try
-            {
-                await process.WaitForExitAsync(CancellationToken.None);
-            }
-            catch { /* ignorieren */ }
+            var result = await ProcessRunner.RunStreamingAsync(
+                CliExePath, arguments,
+                onStdOut: line => { if (!string.IsNullOrWhiteSpace(line)) progress?.Report(line); },
+                onStdErr: line => { if (!string.IsNullOrWhiteSpace(line)) progress?.Report($"[ERR] {line}"); },
+                timeout: null,
+                idleTimeout: TimeSpan.FromSeconds(120),
+                ct: cancellationToken);
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (process.ExitCode != 0)
-                throw new Exception($"TwitchDownloaderCLI beendete sich mit Exitcode {process.ExitCode}.");
+            if (!result.Success)
+                throw new InvalidOperationException($"TwitchDownloaderCLI beendete sich mit Exitcode {result.ExitCode}.");
         }
     }
 }

@@ -1,5 +1,4 @@
-using System.Diagnostics;
-using System.Text;
+using MortysDLP.Services;
 
 namespace MortysDLP.Helpers
 {
@@ -78,30 +77,13 @@ namespace MortysDLP.Helpers
         {
             var ids = new List<string>();
 
-            using var process = new Process
-            {
-                StartInfo = new ProcessStartInfo
-                {
-                    FileName = ytDlpPath,
-                    Arguments = $"--no-check-certificates --flat-playlist --print id \"{playlistUrl}\"",
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true,
-                    StandardOutputEncoding = Encoding.UTF8,
-                }
-            };
+            var result = await ProcessRunner.RunAsync(
+                ytDlpPath,
+                ["--no-check-certificates", "--flat-playlist", "--print", "id", playlistUrl],
+                timeout: TimeSpan.FromSeconds(60),
+                ct: token);
 
-            process.Start();
-            await using var reg = token.Register(() => { try { process.Kill(true); } catch { } });
-
-            string output = await process.StandardOutput.ReadToEndAsync();
-            await process.WaitForExitAsync(CancellationToken.None);
-
-            if (token.IsCancellationRequested)
-                throw new OperationCanceledException(token);
-
-            foreach (var line in output.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            foreach (var line in result.StdOut.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
             {
                 if (!string.IsNullOrWhiteSpace(line))
                     ids.Add(line);

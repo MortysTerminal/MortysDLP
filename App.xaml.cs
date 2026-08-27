@@ -216,19 +216,19 @@ namespace MortysDLP
                 int currentPid = Environment.ProcessId;
                 string targetDir = AppDomain.CurrentDomain.BaseDirectory.TrimEnd(
                     Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-                string arguments = $"\"{mainExeName}\" \"{tempZipPath}\" \"{targetDir}\" {currentPid}";
+                List<string> arguments = [mainExeName, tempZipPath, targetDir, currentPid.ToString(System.Globalization.CultureInfo.InvariantCulture)];
 
                 string updaterExePath = Path.Combine(tempUpdaterDir, Settings.Default.MortysDLPUpdateExeFile);
                 Log.Info($"Starte Updater: {updaterExePath}");
-                Log.Info($"Argumente: {arguments}");
+                Log.Info($"Argumente: {string.Join(' ', arguments)}");
 
-                // 6. Updater starten – UseShellExecute = true für unabhängigen Prozess
-                var updaterProcess = Process.Start(new ProcessStartInfo
-                {
-                    FileName = updaterExePath,
-                    Arguments = arguments,
-                    UseShellExecute = true
-                });
+                // 6. Updater starten – UseShellExecute = true für unabhängigen Prozess, der MortysDLP
+                // überlebt. Läuft deshalb bewusst außerhalb von ProcessRunner (das immer
+                // UseShellExecute=false und Streams umleitet) — ArgumentList schließt trotzdem die
+                // Argument-Einschleusung aus, auch wenn diese Werte nicht von außen kommen.
+                var psi = new ProcessStartInfo { FileName = updaterExePath, UseShellExecute = true };
+                foreach (string a in arguments) psi.ArgumentList.Add(a);
+                var updaterProcess = Process.Start(psi);
 
                 if (updaterProcess == null)
                 {

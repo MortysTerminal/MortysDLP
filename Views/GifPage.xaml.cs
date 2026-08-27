@@ -1,5 +1,6 @@
 using Microsoft.Win32;
 using MortysDLP.Helpers;
+using MortysDLP.Services;
 using MortysDLP.UITexte;
 using System.Diagnostics;
 using System.Globalization;
@@ -303,31 +304,45 @@ namespace MortysDLP.Views
                 outputFile = Path.Combine(outputDir, $"{baseName}_gifmaker_{counter++}.gif");
 
             // Build time args
-            string timeArgs = "";
+            var args = new List<string>();
             if (!string.IsNullOrWhiteSpace(startTime))
-                timeArgs += $"-ss {startTime} ";
+            {
+                args.Add("-ss");
+                args.Add(startTime);
+            }
             if (!string.IsNullOrWhiteSpace(endTime) && !string.IsNullOrWhiteSpace(startTime))
             {
                 // Calculate duration from start to end
                 if (TryParseTime(startTime, out var tsStart) && TryParseTime(endTime, out var tsEnd) && tsEnd > tsStart)
                 {
                     double duration = (tsEnd - tsStart).TotalSeconds;
-                    timeArgs += $"-t {duration.ToString(CultureInfo.InvariantCulture)} ";
+                    args.Add("-t");
+                    args.Add(duration.ToString(CultureInfo.InvariantCulture));
                 }
             }
             else if (!string.IsNullOrWhiteSpace(endTime) && string.IsNullOrWhiteSpace(startTime))
             {
                 if (TryParseTime(endTime, out var tsEnd))
-                    timeArgs += $"-t {tsEnd.TotalSeconds.ToString(CultureInfo.InvariantCulture)} ";
+                {
+                    args.Add("-t");
+                    args.Add(tsEnd.TotalSeconds.ToString(CultureInfo.InvariantCulture));
+                }
             }
 
             // Two-pass GIF in a single filter_complex command (palettegen + paletteuse piped)
             string filter = $"fps={fps},scale={width}:-1:flags=lanczos,split[s0][s1];" +
                            $"[s0]palettegen=max_colors=256:stats_mode=diff[p];" +
                            $"[s1][p]paletteuse=dither=bayer:bayer_scale={bayerScale}:diff_mode=rectangle";
-            string args = $"{timeArgs}-i \"{inputFile}\" -vf \"{filter}\" -loop 0 -y \"{outputFile}\"";
+            args.Add("-i");
+            args.Add(inputFile);
+            args.Add("-vf");
+            args.Add(filter);
+            args.Add("-loop");
+            args.Add("0");
+            args.Add("-y");
+            args.Add(outputFile);
 
-            AppendDebug($"[GIF] CMD: {ffmpegPath} {args}");
+            AppendDebug($"[GIF] CMD: {ffmpegPath} {string.Join(' ', args)}");
 
             // Get duration for progress
             double totalSeconds = await GetMediaDurationAsync(ffmpegPath, inputFile, startTime, endTime, token);
@@ -357,19 +372,12 @@ namespace MortysDLP.Views
                 if (string.IsNullOrWhiteSpace(ffprobePath) || !File.Exists(ffprobePath))
                     return 0;
 
-                var psi = new ProcessStartInfo
-                {
-                    FileName  = ffprobePath,
-                    Arguments = $"-v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 \"{inputFile}\"",
-                    RedirectStandardOutput = true,
-                    UseShellExecute = false,
-                    CreateNoWindow  = true
-                };
-                using var proc = Process.Start(psi);
-                if (proc == null) return 0;
-                string output = await proc.StandardOutput.ReadToEndAsync();
-                await proc.WaitForExitAsync(token);
-                if (double.TryParse(output.Trim(), NumberStyles.Any, CultureInfo.InvariantCulture, out double d))
+                var result = await ProcessRunner.RunAsync(
+                    ffprobePath,
+                    ["-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", inputFile],
+                    timeout: TimeSpan.FromSeconds(15),
+                    ct: token);
+                if (double.TryParse(result.StdOut.Trim(), NumberStyles.Any, CultureInfo.InvariantCulture, out double d))
                     return d;
             }
             catch { }
@@ -378,57 +386,38 @@ namespace MortysDLP.Views
 
         private async Task RunFfmpegAsync(
             string ffmpegPath,
-            string arguments,
+            List<string> arguments,
             double totalSeconds,
             CancellationToken token)
         {
-            using var process = new Process
+            void OnStdErr(string line)
             {
-                StartInfo = new ProcessStartInfo
-                {
-                    FileName  = ffmpegPath,
-                    Arguments = arguments,
-                    RedirectStandardError  = true,
-                    RedirectStandardOutput = false,
-                    UseShellExecute = false,
-                    CreateNoWindow  = true
-                }
-            };
-
-            process.ErrorDataReceived += (_, e) =>
-            {
-                if (string.IsNullOrEmpty(e.Data)) return;
-                AppendDebug($"[ffmpeg] {e.Data}");
+                AppendDebug($"[ffmpeg] {line}");
 
                 if (totalSeconds > 0)
                 {
-                    var m = FfmpegTimeRegex.Match(e.Data);
+                    var m = FfmpegTimeRegex.Match(line);
                     if (m.Success && TimeSpan.TryParse(m.Groups[1].Value, out var current))
                     {
                         double pct = Math.Clamp(current.TotalSeconds / totalSeconds * 100.0, 0, 99);
                         Dispatcher.Invoke(() => pbProgress.Value = pct);
                     }
                 }
-            };
+            }
 
-            process.Start();
-            process.BeginErrorReadLine();
+            var result = await ProcessRunner.RunStreamingAsync(
+                ffmpegPath, arguments,
+                onStdErr: OnStdErr,
+                timeout: null,
+                idleTimeout: TimeSpan.FromSeconds(120),
+                ct: token);
 
-            await using var reg = token.Register(() =>
-            {
-                try { process.Kill(entireProcessTree: true); } catch { }
-            });
+            token.ThrowIfCancellationRequested();
 
-            await process.WaitForExitAsync(CancellationToken.None);
-            process.WaitForExit();
+            AppendDebug($"[ffmpeg] Beendet mit Exit-Code: {result.ExitCode}");
 
-            if (token.IsCancellationRequested)
-                throw new OperationCanceledException(token);
-
-            AppendDebug($"[ffmpeg] Beendet mit Exit-Code: {process.ExitCode}");
-
-            if (process.ExitCode != 0)
-                throw new InvalidOperationException($"ffmpeg beendet mit Exit-Code {process.ExitCode}");
+            if (!result.Success)
+                throw new InvalidOperationException($"ffmpeg beendet mit Exit-Code {result.ExitCode}");
         }
 
         // ─── Helpers ───────────────────────────────────────────────────────────────

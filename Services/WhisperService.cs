@@ -90,45 +90,20 @@ namespace MortysDLP.Services
             string tempWav = Path.Combine(Path.GetTempPath(),
                 $"whisper_audio_{Guid.NewGuid():N}.wav");
 
-            string args = $"-y -i \"{inputFile}\" -ar 16000 -ac 1 -c:a pcm_s16le \"{tempWav}\"";
-
             progress?.Report($"[AUDIO] Extrahiere Audio für Whisper...");
 
-            using var process = new Process
-            {
-                StartInfo = new ProcessStartInfo
-                {
-                    FileName = ffmpegPath,
-                    Arguments = args,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true,
-                    StandardErrorEncoding = System.Text.Encoding.UTF8,
-                }
-            };
-
-            process.ErrorDataReceived += (_, e) =>
-            {
-                if (!string.IsNullOrEmpty(e.Data))
-                    progress?.Report($"[ffmpeg] {e.Data}");
-            };
-
-            process.Start();
-            process.BeginErrorReadLine();
-
-            await using var reg = cancellationToken.Register(() =>
-            {
-                try { process.Kill(true); } catch { }
-            });
-
-            await process.WaitForExitAsync(CancellationToken.None);
-            process.WaitForExit();
+            var result = await ProcessRunner.RunStreamingAsync(
+                ffmpegPath,
+                ["-y", "-i", inputFile, "-ar", "16000", "-ac", "1", "-c:a", "pcm_s16le", tempWav],
+                onStdErr: line => progress?.Report($"[ffmpeg] {line}"),
+                timeout: null,
+                idleTimeout: TimeSpan.FromSeconds(120),
+                ct: cancellationToken);
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (process.ExitCode != 0)
-                throw new InvalidOperationException($"ffmpeg beendete mit Exit-Code {process.ExitCode}");
+            if (!result.Success)
+                throw new InvalidOperationException($"ffmpeg beendete mit Exit-Code {result.ExitCode}");
 
             if (!File.Exists(tempWav))
                 throw new FileNotFoundException("Temporäre WAV-Datei wurde nicht erstellt.", tempWav);
@@ -179,88 +154,64 @@ namespace MortysDLP.Services
             try
             {
                 string outputFilePath = Path.Combine(outputDir, outputPrefix);
-                var sb = new System.Text.StringBuilder();
 
-                sb.Append($"-m \"{modelPath}\" ");
-                sb.Append($"-f \"{actualInput}\" ");
+                var args = new List<string> { "-m", modelPath, "-f", actualInput };
 
                 // WICHTIG: Immer explizit -l setzen.
                 // Ohne -l verwenden manche whisper.cpp-Versionen intern "en" als Standard,
                 // was dazu führt, dass nicht-englische Sprachen übersetzt statt transkribiert werden.
                 // Mit "-l auto" wird die Spracherkennung explizit aktiviert.
-                sb.Append($"-l \"{language}\" ");
+                args.Add("-l");
+                args.Add(language);
 
-                if (outputTxt) sb.Append("-otxt ");
-                if (outputSrt) sb.Append("-osrt ");
-                if (outputVtt) sb.Append("-ovtt ");
+                if (outputTxt) args.Add("-otxt");
+                if (outputSrt) args.Add("-osrt");
+                if (outputVtt) args.Add("-ovtt");
 
-                sb.Append($"-of \"{outputFilePath}\" ");
+                args.Add("-of");
+                args.Add(outputFilePath);
 
                 // Threads: Umgebung ermitteln (max. 8, min. 2)
                 int threads = Math.Min(8, Math.Max(2, Environment.ProcessorCount / 2));
-                sb.Append($"-t {threads} ");
+                args.Add("-t");
+                args.Add(threads.ToString(System.Globalization.CultureInfo.InvariantCulture));
 
                 // Fortschrittsausgabe aktivieren
-                sb.Append("--print-progress ");
+                args.Add("--print-progress");
 
                 progress?.Report($"[WHISPER] Starte Transkription: {Path.GetFileName(inputFile)}");
                 progress?.Report($"[WHISPER] Modell: {Path.GetFileName(modelPath)}");
                 progress?.Report($"[WHISPER] Sprache: {language}");
-                progress?.Report($"[WHISPER] Args: {sb}");
+                progress?.Report($"[WHISPER] Args: {string.Join(' ', args)}");
 
-                using var process = new Process
+                void OnStdOut(string line)
                 {
-                    StartInfo = new ProcessStartInfo
-                    {
-                        FileName = whisperExe,
-                        Arguments = sb.ToString(),
-                        RedirectStandardOutput = true,
-                        RedirectStandardError = true,
-                        UseShellExecute = false,
-                        CreateNoWindow = true,
-                        StandardOutputEncoding = System.Text.Encoding.UTF8,
-                        StandardErrorEncoding = System.Text.Encoding.UTF8,
-                    }
-                };
-
-                process.OutputDataReceived += (_, e) =>
-                {
-                    if (string.IsNullOrEmpty(e.Data)) return;
-                    progress?.Report(e.Data);
+                    progress?.Report(line);
 
                     // whisper.cpp --print-progress gibt Zeilen wie:
                     // "whisper_print_progress_callback: progress = 42%"
-                    if (numericProgress != null && e.Data.Contains("progress ="))
+                    if (numericProgress != null && line.Contains("progress ="))
                     {
-                        var match = Regex.Match(e.Data, @"progress\s*=\s*(\d+)");
+                        var match = Regex.Match(line, @"progress\s*=\s*(\d+)");
                         if (match.Success && int.TryParse(match.Groups[1].Value, out int pct))
                             numericProgress.Report(pct);
                     }
-                };
-                process.ErrorDataReceived += (_, e) =>
-                {
-                    if (!string.IsNullOrEmpty(e.Data))
-                        progress?.Report($"[stderr] {e.Data}");
-                };
+                }
 
-                process.Start();
-                process.BeginOutputReadLine();
-                process.BeginErrorReadLine();
-
-                await using var reg = cancellationToken.Register(() =>
-                {
-                    try { process.Kill(true); } catch { }
-                });
-
-                await process.WaitForExitAsync(CancellationToken.None);
-                process.WaitForExit();
+                var result = await ProcessRunner.RunStreamingAsync(
+                    whisperExe, args,
+                    onStdOut: OnStdOut,
+                    onStdErr: line => progress?.Report($"[stderr] {line}"),
+                    timeout: null,
+                    idleTimeout: TimeSpan.FromSeconds(120),
+                    ct: cancellationToken);
 
                 cancellationToken.ThrowIfCancellationRequested();
 
-                progress?.Report($"[WHISPER] Beendet mit Exit-Code: {process.ExitCode}");
+                progress?.Report($"[WHISPER] Beendet mit Exit-Code: {result.ExitCode}");
 
-                if (process.ExitCode != 0)
-                    throw new InvalidOperationException($"whisper beendete mit Exit-Code {process.ExitCode}");
+                if (!result.Success)
+                    throw new InvalidOperationException($"whisper beendete mit Exit-Code {result.ExitCode}");
 
                 return outputFilePath;
             }

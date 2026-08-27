@@ -1,4 +1,4 @@
-using System.Diagnostics;
+using MortysDLP.Services;
 
 namespace MortysDLP.Helpers
 {
@@ -46,17 +46,18 @@ namespace MortysDLP.Helpers
 
         /// <summary>Baut ffmpeg-Argumente für die H.264-Konvertierung mit dem gewählten Encoder.
         /// Audio wird immer zu AAC (48 kHz, Stereo) konvertiert für Schnittsoftware-Kompatibilität.</summary>
-        public static string BuildH264Args(string encoder, string inputPath, string outputPath)
+        public static List<string> BuildH264Args(string encoder, string inputPath, string outputPath)
         {
-            string videoArgs = encoder switch
+            string[] videoArgs = encoder switch
             {
-                "h264_nvenc" => "-c:v h264_nvenc -preset p4 -cq 20 -pix_fmt yuv420p",
-                "h264_qsv"  => "-c:v h264_qsv -preset medium -global_quality 20",
-                "h264_amf"  => "-c:v h264_amf -quality balanced -rc cqp -qp_i 20 -qp_p 20",
-                _           => "-c:v libx264 -preset fast -crf 20 -pix_fmt yuv420p"
+                "h264_nvenc" => ["-c:v", "h264_nvenc", "-preset", "p4", "-cq", "20", "-pix_fmt", "yuv420p"],
+                "h264_qsv" => ["-c:v", "h264_qsv", "-preset", "medium", "-global_quality", "20"],
+                "h264_amf" => ["-c:v", "h264_amf", "-quality", "balanced", "-rc", "cqp", "-qp_i", "20", "-qp_p", "20"],
+                _ => ["-c:v", "libx264", "-preset", "fast", "-crf", "20", "-pix_fmt", "yuv420p"]
             };
 
-            return $"-i \"{inputPath}\" {videoArgs} -c:a aac -ar 48000 -ac 2 -movflags +faststart -y \"{outputPath}\"";
+            List<string> args = ["-i", inputPath, .. videoArgs, "-c:a", "aac", "-ar", "48000", "-ac", "2", "-movflags", "+faststart", "-y", outputPath];
+            return args;
         }
 
         /// <summary>Gibt einen lesbaren Namen für den Encoder zurück.</summary>
@@ -73,19 +74,11 @@ namespace MortysDLP.Helpers
         {
             try
             {
-                var psi = new ProcessStartInfo
-                {
-                    FileName = ffmpegPath,
-                    Arguments = $"-f lavfi -i nullsrc=s=256x256:d=1 -c:v {encoder} -frames:v 1 -f null -",
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true
-                };
-                using var proc = Process.Start(psi);
-                if (proc == null) return false;
-                await proc.WaitForExitAsync();
-                return proc.ExitCode == 0;
+                var result = await ProcessRunner.RunAsync(
+                    ffmpegPath,
+                    ["-f", "lavfi", "-i", "nullsrc=s=256x256:d=1", "-c:v", encoder, "-frames:v", "1", "-f", "null", "-"],
+                    timeout: TimeSpan.FromSeconds(20));
+                return result.Success;
             }
             catch
             {

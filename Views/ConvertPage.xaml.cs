@@ -1,10 +1,12 @@
 ﻿using Microsoft.Win32;
 using MortysDLP.Helpers;
 using MortysDLP.Models;
+using MortysDLP.Services;
 using MortysDLP.UITexte;
 using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -29,7 +31,7 @@ namespace MortysDLP.Views
             new(Math.Clamp(Environment.ProcessorCount / 2, 1, 4));
 
         // Cache für bereits ermittelte Metadaten (gleiche Quelldatei mehrfach)
-        private readonly ConcurrentDictionary<string, (int? sr, int? ch, int? brKbps)> _audioMetaCache = new();
+        private readonly ConcurrentDictionary<string, Task<(int? sr, int? ch, int? brKbps)>> _audioMetaCache = new();
 
         public ConvertPage()
         {
@@ -263,15 +265,15 @@ namespace MortysDLP.Views
             }
 
             // Metadaten nur einmal ermittlen und cachen
-            var meta = _audioMetaCache.GetOrAdd(file.SourcePath, _ =>
+            var meta = await _audioMetaCache.GetOrAdd(file.SourcePath, async _ =>
             {
-                var m = GetAudioStreamInfo(ffprobePath, file.SourcePath);
+                var m = await GetAudioStreamInfoAsync(ffprobePath, file.SourcePath);
                 AppendDebugOutput($"[{file.Name}] Quelle Audio: SR={m.sr?.ToString() ?? "?"}Hz Ch={m.ch?.ToString() ?? "?"} BR={m.brKbps?.ToString() ?? "?"}kbps");
                 return m;
             });
 
             // ffmpeg Args zusammenbauen
-            string args = BuildFfmpegArguments(
+            List<string> args = BuildFfmpegArguments(
                 sourcePath: file.SourcePath,
                 destPath: destPath,
                 isVideoTarget: isVideoTarget,
@@ -303,7 +305,7 @@ namespace MortysDLP.Views
             Dispatcher.Invoke(() => dgFiles.Items.Refresh());
         }
 
-        private string BuildFfmpegArguments(
+        private List<string> BuildFfmpegArguments(
             string sourcePath,
             string destPath,
             bool isVideoTarget,
@@ -314,32 +316,32 @@ namespace MortysDLP.Views
             CancellationToken token)
         {
             // Basis
-            var args = $" -y -i \"{sourcePath}\"";
+            List<string> args = ["-y", "-i", sourcePath];
 
             // VIDEO
             if (isVideoTarget)
             {
-                args += BuildVideoArgs(videoQuality);
+                args.AddRange(BuildVideoArgs(videoQuality));
                 // Audio für Video-Container
-                args += BuildAudioArgsForVideoContainer(meta, audioQuality, extension);
+                args.AddRange(BuildAudioArgsForVideoContainer(meta, audioQuality, extension));
             }
             else
             {
                 // AUDIO
-                args += BuildAudioArgs(meta, extension, audioQuality);
+                args.AddRange(BuildAudioArgs(meta, extension, audioQuality));
             }
 
-            args += $" \"{destPath}\"";
+            args.Add(destPath);
             return args;
         }
 
-        private string BuildVideoArgs(string videoQuality)
+        private static List<string> BuildVideoArgs(string videoQuality)
         {
             if (string.IsNullOrWhiteSpace(videoQuality) ||
                 videoQuality.Contains("Original", StringComparison.OrdinalIgnoreCase))
             {
                 // Copy wenn keine Skalierung gewünscht
-                return " -c:v copy";
+                return ["-c:v", "copy"];
             }
 
             // Erwartetes Format z.B. "1080p"
@@ -347,15 +349,15 @@ namespace MortysDLP.Views
             if (!int.TryParse(h, out _))
             {
                 // Fallback: copy
-                return " -c:v copy";
+                return ["-c:v", "copy"];
             }
 
             // Skalierung + Re-Encode (libx264 Standard)
             // CRF/Preset könnten konfigurierbar gemacht werden
-            return $" -vf scale=-2:{h} -c:v libx264 -preset medium -crf 20";
+            return ["-vf", $"scale=-2:{h}", "-c:v", "libx264", "-preset", "medium", "-crf", "20"];
         }
 
-        private string BuildAudioArgs(
+        private List<string> BuildAudioArgs(
             (int? sr, int? ch, int? brKbps) meta,
             string targetExt,
             string uiQuality)
@@ -372,13 +374,13 @@ namespace MortysDLP.Views
                 // Manche Formate besser neu encodieren (mp3/aac/opus/flac/wav) – hier encoden wir trotzdem,
                 // um konsistente Endcodierung sicherzustellen.
                 if (!(targetExt is "mp3" or "aac" or "m4a" or "opus" or "flac" or "wav"))
-                    return " -c:a copy";
+                    return ["-c:a", "copy"];
             }
 
             return BuildAudioEncodingLine(targetExt, uiQuality, forceStereo, upsample);
         }
 
-        private string BuildAudioArgsForVideoContainer(
+        private List<string> BuildAudioArgsForVideoContainer(
             (int? sr, int? ch, int? brKbps) meta,
             string uiQuality,
             string containerExt)
@@ -391,17 +393,18 @@ namespace MortysDLP.Views
 
             if (isOriginal && !forceStereo && !upsample && meta.sr == 48000)
             {
-                return " -c:a copy";
+                return ["-c:a", "copy"];
             }
 
             // AAC als Standard für mp4/mov/mkv Ausgaben (Kompatibilität)
             string bitrate = ResolveBitrate(uiQuality, "192k");
-            return $" -c:a aac -b:a {bitrate}" +
-                   (upsample ? " -ar 48000" : "") +
-                   (forceStereo ? " -ac 2" : "");
+            List<string> args = ["-c:a", "aac", "-b:a", bitrate];
+            if (upsample) { args.Add("-ar"); args.Add("48000"); }
+            if (forceStereo) { args.Add("-ac"); args.Add("2"); }
+            return args;
         }
 
-        private string BuildAudioEncodingLine(
+        private List<string> BuildAudioEncodingLine(
             string targetExt,
             string uiQuality,
             bool forceStereo,
@@ -409,7 +412,7 @@ namespace MortysDLP.Views
         {
             string codec;
             string bitrate = ResolveBitrate(uiQuality, "192k");
-            string extra = "";
+            List<string> extra = [];
             bool vbrMode = false;
 
             if (uiQuality.StartsWith("vbr", StringComparison.OrdinalIgnoreCase))
@@ -420,25 +423,25 @@ namespace MortysDLP.Views
                 case "mp3":
                     codec = "libmp3lame";
                     if (vbrMode && int.TryParse(uiQuality.Replace("vbr", ""), out int v))
-                        extra = $" -q:a {Math.Clamp(v, 0, 9)}";
+                        extra = ["-q:a", Math.Clamp(v, 0, 9).ToString(CultureInfo.InvariantCulture)];
                     else
-                        extra = $" -b:a {bitrate}";
+                        extra = ["-b:a", bitrate];
                     break;
 
                 case "aac":
                 case "m4a":
                     codec = "aac";
-                    extra = $" -b:a {bitrate}";
+                    extra = ["-b:a", bitrate];
                     break;
 
                 case "opus":
                     codec = "libopus";
-                    extra = $" -b:a {bitrate} -vbr on";
+                    extra = ["-b:a", bitrate, "-vbr", "on"];
                     break;
 
                 case "flac":
                     codec = "flac";
-                    extra = " -compression_level 8";
+                    extra = ["-compression_level", "8"];
                     break;
 
                 case "wav":
@@ -447,14 +450,14 @@ namespace MortysDLP.Views
 
                 default:
                     codec = "aac";
-                    extra = $" -b:a {bitrate}";
+                    extra = ["-b:a", bitrate];
                     break;
             }
 
-            string line = $" -c:a {codec}{extra}";
-            if (forceStereo) line += " -ac 2";
-            if (upsample) line += " -ar 48000";
-            return line;
+            List<string> args = ["-c:a", codec, .. extra];
+            if (forceStereo) { args.Add("-ac"); args.Add("2"); }
+            if (upsample) { args.Add("-ar"); args.Add("48000"); }
+            return args;
         }
 
         private string ResolveBitrate(string uiValue, string fallback)
@@ -477,27 +480,21 @@ namespace MortysDLP.Views
             };
         }
 
-        private (int? sr, int? ch, int? brKbps) GetAudioStreamInfo(string ffprobePath, string filePath)
+        private static async Task<(int? sr, int? ch, int? brKbps)> GetAudioStreamInfoAsync(string ffprobePath, string filePath)
         {
             try
             {
-                var psi = new ProcessStartInfo
-                {
-                    FileName = ffprobePath,
-                    Arguments = $"-v error -select_streams a:0 -show_entries stream=sample_rate,channels,bit_rate -of default=noprint_wrappers=1 \"{filePath}\"",
-                    RedirectStandardOutput = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true
-                };
-                using var proc = Process.Start(psi);
-                string output = proc!.StandardOutput.ReadToEnd();
-                proc.WaitForExit(5000);
+                var result = await ProcessRunner.RunAsync(
+                    ffprobePath,
+                    ["-v", "error", "-select_streams", "a:0", "-show_entries", "stream=sample_rate,channels,bit_rate",
+                     "-of", "default=noprint_wrappers=1", filePath],
+                    timeout: TimeSpan.FromSeconds(15));
 
                 int? sr = null;
                 int? ch = null;
                 int? br = null;
 
-                foreach (var line in output.Split('\n', '\r', StringSplitOptions.RemoveEmptyEntries))
+                foreach (var line in result.StdOut.Split('\n', '\r', StringSplitOptions.RemoveEmptyEntries))
                 {
                     if (line.StartsWith("sample_rate=") &&
                         int.TryParse(line["sample_rate=".Length..].Trim(), out int v1)) sr = v1;
@@ -515,66 +512,40 @@ namespace MortysDLP.Views
             }
         }
 
-        private async Task RunFfmpegForItemAsync(ConvertFileItem file, string ffmpegPath, string arguments, CancellationToken token)
+        private async Task RunFfmpegForItemAsync(ConvertFileItem file, string ffmpegPath, List<string> arguments, CancellationToken token)
         {
             string ffprobePath = AppPaths.Ffprobe;
-            double totalSeconds = GetMediaDurationInSeconds(ffprobePath, file.SourcePath) ?? 0;
+            double totalSeconds = await GetMediaDurationInSecondsAsync(ffprobePath, file.SourcePath) ?? 0;
 
-            using var process = new Process
+            void OnStdErr(string line)
             {
-                StartInfo = new ProcessStartInfo
-                {
-                    FileName = ffmpegPath,
-                    Arguments = arguments,
-                    RedirectStandardError = true,
-                    RedirectStandardOutput = false,
-                    UseShellExecute = false,
-                    CreateNoWindow = true
-                },
-                EnableRaisingEvents = true
-            };
-
-            process.ErrorDataReceived += (s, e) =>
-            {
-                if (string.IsNullOrEmpty(e.Data)) return;
                 Dispatcher.Invoke(() =>
                 {
-                    AppendDebugOutput($"[{file.Name}] {e.Data}");
-                    var percent = ParseFfmpegProgress(e.Data, totalSeconds);
+                    AppendDebugOutput($"[{file.Name}] {line}");
+                    var percent = ParseFfmpegProgress(line, totalSeconds);
                     if (percent.HasValue)
                     {
                         file.Progress = percent.Value;
                         dgFiles.Items.Refresh();
                     }
                 });
-            };
-
-            AppendDebugOutput($"[{file.Name}] CMD: ffmpeg {arguments}");
-
-            try
-            {
-                process.Start();
-                process.BeginErrorReadLine();
-
-                while (!process.HasExited)
-                {
-                    if (token.IsCancellationRequested)
-                    {
-                        try { process.Kill(true); } catch { }
-                        throw new OperationCanceledException(token);
-                    }
-                    await Task.Delay(150, token);
-                }
-
-                if (process.ExitCode != 0 && !token.IsCancellationRequested)
-                {
-                    file.Status = UITextDictionary.Get("ConvertPage.Status.Error");
-                    AppendDebugOutput($"[{file.Name}] ffmpeg ExitCode={process.ExitCode}");
-                }
             }
-            finally
+
+            AppendDebugOutput($"[{file.Name}] CMD: ffmpeg {string.Join(' ', arguments)}");
+
+            var result = await ProcessRunner.RunStreamingAsync(
+                ffmpegPath, arguments,
+                onStdErr: OnStdErr,
+                timeout: null,
+                idleTimeout: TimeSpan.FromSeconds(120),
+                ct: token);
+
+            token.ThrowIfCancellationRequested();
+
+            if (!result.Success)
             {
-                try { process.CancelErrorRead(); } catch { }
+                file.Status = UITextDictionary.Get("ConvertPage.Status.Error");
+                AppendDebugOutput($"[{file.Name}] ffmpeg ExitCode={result.ExitCode}");
             }
         }
 
@@ -591,22 +562,15 @@ namespace MortysDLP.Views
             return null;
         }
 
-        private double? GetMediaDurationInSeconds(string ffprobePath, string filePath)
+        private static async Task<double?> GetMediaDurationInSecondsAsync(string ffprobePath, string filePath)
         {
             try
             {
-                var psi = new ProcessStartInfo
-                {
-                    FileName = ffprobePath,
-                    Arguments = $"-v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 \"{filePath}\"",
-                    RedirectStandardOutput = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true
-                };
-                using var process = Process.Start(psi);
-                string? output = process?.StandardOutput.ReadLine();
-                process?.WaitForExit(5000);
-                if (double.TryParse(output, System.Globalization.NumberStyles.Any,
+                var result = await ProcessRunner.RunAsync(
+                    ffprobePath,
+                    ["-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", filePath],
+                    timeout: TimeSpan.FromSeconds(15));
+                if (double.TryParse(result.StdOut.Trim(), System.Globalization.NumberStyles.Any,
                         System.Globalization.CultureInfo.InvariantCulture, out double seconds))
                     return seconds;
             }

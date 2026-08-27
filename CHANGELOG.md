@@ -25,6 +25,12 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
 
 ## [Unreleased]
 
+### Sicherheit
+- Härtung der Argumentübergabe an externe Werkzeuge (yt-dlp, ffmpeg, ffprobe,
+  TwitchDownloaderCLI, whisper.cpp). Kopierte URLs oder Videotitel mit ungewöhnlichen
+  Sonderzeichen können externen Werkzeugen nicht mehr zusätzliche, nicht beabsichtigte
+  Befehlszeilenargumente unterschieben.
+
 ### Hinzugefügt
 - Unerwartete Fehler beenden MortysDLP nicht mehr wortlos. Sie werden protokolliert
   (`%LOCALAPPDATA%\MortysDLP\logs\`, 14 Tage bzw. 10 MB je Datei) und in einem Dialog mit
@@ -47,6 +53,11 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
   abweichend benannten Ordner. Bereits gespeicherte Einstellungen aus früheren Versionen
   gehen dadurch einmalig verloren und werden beim nächsten Start neu mit den Standardwerten
   angelegt.
+- Alle Aufrufe externer Werkzeuge haben jetzt ein Zeitlimit bzw. einen Leerlauf-Abbruch und
+  verwenden durchgehend UTF-8 — vereinzelte hängende Vorgänge und kaputte Umlaute/CJK-Zeichen
+  in Videotiteln bei bestimmten Abläufen sind damit ausgeschlossen. Beim Abbrechen wird jetzt
+  überall auch der komplette Prozessbaum beendet, sodass ffmpeg nicht mehr im Hintergrund
+  weiterlaufen und die Zieldatei gesperrt halten kann.
 
 ### Intern
 - `CHANGELOG.md` und `docs/FUNKTIONEN.md` eingeführt. Ab jetzt wird jede Änderung
