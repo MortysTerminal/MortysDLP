@@ -22,9 +22,12 @@ namespace MortysDLP.Views
         private double   _activeRateLimitMBps = 0;
         private volatile bool _bandwidthKillPending = false;
 
+        private readonly LogBuffer _log;
+
         public TwitchPage()
         {
             InitializeComponent();
+            _log = new LogBuffer(tbDebugOutput);
             Loaded += TwitchPage_Loaded;
         }
 
@@ -542,7 +545,7 @@ namespace MortysDLP.Views
             bool downloadChat  = cbDownloadChat.IsChecked == true;
             bool renderChat    = downloadChat && rbChatRender.IsChecked == true;
 
-            tbDebugOutput.Clear();
+            _log.Clear();
             SetStatus(T("TwitchPage.Status.Downloading"), true);
             SetUiEnabled(false);
             btnCancel.IsEnabled = true;
@@ -722,11 +725,7 @@ namespace MortysDLP.Views
                 pbDownload.Value = 0;
         }
 
-        private void AppendDebug(string line)
-        {
-            tbDebugOutput.AppendText(line + Environment.NewLine);
-            tbDebugOutput.ScrollToEnd();
-        }
+        private void AppendDebug(string line) => _log.Append(line);
 
         /// <summary>
         /// Führt yt-dlp aus. Gibt <c>true</c> zurück wenn ein Neustart mit neuem Limit nötig ist
@@ -796,9 +795,5 @@ namespace MortysDLP.Views
             }
         }
 
-        private void tbDebugOutput_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            tbDebugOutput.ScrollToEnd();
-        }
     }
 }

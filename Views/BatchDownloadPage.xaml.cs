@@ -68,9 +68,12 @@ namespace MortysDLP.Views
         private Process? _currentBatchYtDlpProcess;
         private volatile bool _batchBandwidthKillPending = false;
 
+        private readonly LogBuffer _log;
+
         public BatchDownloadPage()
         {
             InitializeComponent();
+            _log = new LogBuffer(tbDebugOutput);
             dgUrls.ItemsSource = _entries;
             _entries.CollectionChanged += (_, _) => UpdateActionButtons();
         }
@@ -903,19 +906,7 @@ namespace MortysDLP.Views
             });
         }
 
-        private void AppendDebug(string text)
-        {
-            Dispatcher.Invoke(() =>
-            {
-                tbDebugOutput.AppendText($"{text}{Environment.NewLine}");
-                tbDebugOutput.ScrollToEnd();
-            });
-        }
-
-        private void tbDebugOutput_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            tbDebugOutput.ScrollToEnd();
-        }
+        private void AppendDebug(string text) => _log.Append(text);
 
         /// <summary>Wird von SettingsPage aufgerufen wenn das Bandbreiten-Limit geändert wird.</summary>
         public void ApplyBandwidthChange()

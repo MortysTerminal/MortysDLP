@@ -24,12 +24,14 @@ namespace MortysDLP.Views
         private bool _initialized = false;
         private string? _lastOutputFilePath;
         private volatile bool _bandwidthKillPending = false;
+        private readonly LogBuffer _log;
 
         public enum iaStatusIconType { None, Loading, Success, Error }
 
         public DownloadPage()
         {
             InitializeComponent();
+            _log = new LogBuffer(tbDebugOutput);
             Loaded += DownloadPage_Loaded;
         }
 
@@ -169,14 +171,7 @@ namespace MortysDLP.Views
             });
         }
 
-        private void AppendOutput(string text)
-        {
-            Dispatcher.Invoke(() =>
-            {
-                tbDebugOutput.AppendText($"{text}{Environment.NewLine}");
-                tbDebugOutput.ScrollToEnd();
-            });
-        }
+        private void AppendOutput(string text) => _log.Append(text);
 
         private void AudioOnlyAdjustments()
         {
@@ -255,7 +250,7 @@ namespace MortysDLP.Views
 
         private async void btnDownloadStart_Click(object sender, RoutedEventArgs e)
         {
-            tbDebugOutput.Clear();
+            _log.Clear();
             Dispatcher.Invoke(() =>
             {
                 _lastDownloadPath = cbAudioOnly.IsChecked == true
@@ -1635,7 +1630,6 @@ namespace MortysDLP.Views
             });
         }
 
-        private void tbDebugOutput_TextChanged(object sender, TextChangedEventArgs e) => tbDebugOutput.ScrollToEnd();
         private void tbFirstSecondsSeconds_TextChanged(object sender, TextChangedEventArgs e) => ValidateDownloadButton();
         private void tbTimespanFrom_TextChanged(object sender, TextChangedEventArgs e) => ValidateDownloadButton();
         private void tbTimespanTo_TextChanged(object sender, TextChangedEventArgs e) => ValidateDownloadButton();

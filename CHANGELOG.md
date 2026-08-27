@@ -62,6 +62,10 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
   lässt den Download-Verlauf nicht mehr abstürzen. Er öffnet stattdessen leer, eine defekte
   Datei wird zur Rettung als Sicherung abgelegt statt verworfen, und das Schreiben erfolgt
   jetzt so, dass ein Abbruch mittendrin nie eine bestehende, gültige Datei beschädigt.
+- Die Debug-Ausgabe (Download-, Batch-, Twitch-, GIF- und Konvertieren-Seite) wächst nicht
+  mehr unbegrenzt und bremst die Oberfläche bei langen Vorgängen (z. B. großen Playlists)
+  nicht mehr spürbar aus. Scrollt man während einer laufenden Ausgabe nach oben, um etwas
+  nachzulesen, reißt eine neue Zeile die Ansicht jetzt nicht mehr nach unten.
 
 ### Intern
 - `CHANGELOG.md` und `docs/FUNKTIONEN.md` eingeführt. Ab jetzt wird jede Änderung

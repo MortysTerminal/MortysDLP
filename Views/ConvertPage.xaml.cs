@@ -19,8 +19,7 @@ namespace MortysDLP.Views
     {
         private readonly ObservableCollection<ConvertFileItem> _fileList = new();
         private CancellationTokenSource? _convertCancellationTokenSource;
-
-        private const int MaxDebugLines = 200;
+        private readonly LogBuffer _log;
 
         // Fortschritts-Regex (kompiliert)
         private static readonly Regex FfmpegTimeRegex =
@@ -37,6 +36,7 @@ namespace MortysDLP.Views
         {
             InitializeComponent();
 
+            _log = new LogBuffer(tbDebugOutput);
             dgFiles.ItemsSource = _fileList;
 
             cbTargetFormat.ItemsSource = Enum.GetValues(typeof(VideoFormat))
@@ -136,7 +136,7 @@ namespace MortysDLP.Views
 
         private async void btnConvertStart_Click(object sender, RoutedEventArgs e)
         {
-            tbDebugOutput.Clear();
+            _log.Clear();
             btnConvertStart.IsEnabled = false;
             btnConvertCancel.IsEnabled = true;
 
@@ -605,19 +605,7 @@ namespace MortysDLP.Views
             btnConvertStart.IsEnabled = hasFiles;
         }
 
-        private void AppendDebugOutput(string text)
-        {
-            tbDebugOutput.AppendText(text + Environment.NewLine);
-            tbDebugOutput.ScrollToEnd();
-
-            var lines = tbDebugOutput.Text.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
-            if (lines.Length > MaxDebugLines)
-            {
-                tbDebugOutput.Text = string.Join(Environment.NewLine, lines.Skip(lines.Length - MaxDebugLines));
-                tbDebugOutput.CaretIndex = tbDebugOutput.Text.Length;
-                tbDebugOutput.ScrollToEnd();
-            }
-        }
+        private void AppendDebugOutput(string text) => _log.Append(text);
 
         private void btnBrowseTargetFolder_Click(object sender, RoutedEventArgs e)
         {

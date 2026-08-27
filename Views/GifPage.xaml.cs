@@ -30,9 +30,12 @@ namespace MortysDLP.Views
         private static readonly Regex FfmpegTimeRegex =
             new(@"time=(\d{2}:\d{2}:\d{2}\.\d{2})", RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
+        private readonly LogBuffer _log;
+
         public GifPage()
         {
             InitializeComponent();
+            _log = new LogBuffer(tbDebugOutput);
             Loaded += GifPage_Loaded;
         }
 
@@ -193,7 +196,7 @@ namespace MortysDLP.Views
             pnlRunning.Visibility   = Visibility.Visible;
             pnlResult.Visibility    = Visibility.Collapsed;
             pbProgress.Value        = 0;
-            tbDebugOutput.Clear();
+            _log.Clear();
             txtStatus.Text = T("GifPage.Status.Converting");
 
             _cts = new CancellationTokenSource();
@@ -448,14 +451,7 @@ namespace MortysDLP.Views
             btnUseDownloadPath.IsEnabled = enabled;
         }
 
-        private void AppendDebug(string text)
-        {
-            Dispatcher.Invoke(() =>
-            {
-                tbDebugOutput.AppendText($"{text}{Environment.NewLine}");
-                tbDebugOutput.ScrollToEnd();
-            });
-        }
+        private void AppendDebug(string text) => _log.Append(text);
 
         /// <summary>Öffnet die GIF-Seite mit einer vorausgewählten Datei (z.B. nach dem Download).</summary>
         internal void SetInputFile(string filePath)

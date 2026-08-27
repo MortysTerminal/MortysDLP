@@ -242,7 +242,7 @@
                     <TextBox Name="tbDebugOutput" VerticalScrollBarVisibility="Auto"
                              HorizontalScrollBarVisibility="Auto" IsReadOnly="True" TextWrapping="NoWrap"
                              FontFamily="Consolas" FontSize="12" AcceptsReturn="True" AcceptsTab="True"
-                             MaxHeight="200" TextChanged="tbDebugOutput_TextChanged"/>
+                             MaxHeight="200"/>
                 </Expander>
             </DockPanel>
 
