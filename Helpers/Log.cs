@@ -79,13 +79,18 @@ namespace MortysDLP.Helpers
         }
 
         /// <summary>Schließt die aktuell offene Protokolldatei. Nur für Tests, damit ihr
-        /// Temp-Verzeichnis danach gefahrlos gelöscht werden kann.</summary>
+        /// Temp-Verzeichnis danach gefahrlos gelöscht werden kann. Wartet großzügig auf den
+        /// Schreiber-Thread: die Warteschlange ist FIFO, ein zu kurzes Zeitlimit hier würde
+        /// nicht die Reihenfolge gefährden, sondern nur dazu führen, dass die Methode
+        /// zurückkehrt, bevor wirklich alles geschrieben ist (verfrühtes Lesen, oder der
+        /// nächste Test ändert schon <see cref="LogsDirectory"/>, während hier noch
+        /// Nachzügler-Zeilen anstehen).</summary>
         internal static void CloseForTests()
         {
             using var done = new ManualResetEventSlim(false);
             try { _queue.Add(() => { CloseWriter(); done.Set(); }); }
             catch { return; }
-            try { done.Wait(TimeSpan.FromSeconds(5)); } catch { /* Best-Effort */ }
+            try { done.Wait(TimeSpan.FromSeconds(30)); } catch { /* Best-Effort */ }
         }
 
         private static void Enqueue(LogLevel level, string message, Exception? ex, string? member, string? file)

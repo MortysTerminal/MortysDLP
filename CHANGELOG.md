@@ -81,6 +81,7 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
 - Testabdeckung für die Grundbausteine (Pfad-/Dateinamensbehandlung, Protokollierung,
   Debug-Puffer, Installationsort-Erkennung, Prozessausführung) erweitert und gegen die
   wichtigsten Randfälle abgesichert.
+- Einen gelegentlich fehlschlagenden Test in der Protokollierung stabilisiert.
 - `CHANGELOG.md` und `docs/FUNKTIONEN.md` eingeführt. Ab jetzt wird jede Änderung
   fortlaufend dokumentiert, und `docs/FUNKTIONEN.md` beschreibt jederzeit den tatsächlichen
   Funktionsumfang der Anwendung.
