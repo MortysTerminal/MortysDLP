@@ -120,6 +120,10 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
   Jetzt erscheint sie genau einmal, stderr-Zeilen weiterhin erkennbar markiert.
 
 ### Intern
+- Der neue Installations-Updater prüft das heruntergeladene Update-Paket jetzt vollständig,
+  bevor auch nur eine Datei entpackt wird: kein Eintrag kann das Zielverzeichnis verlassen
+  (Schutz vor präparierten Archiven), keine absoluten Pfade, und eine Obergrenze für
+  Eintragsanzahl, Gesamtgröße und Kompressionsverhältnis schützt vor einer „Zip-Bombe".
 - Der neue Installations-Updater wartet jetzt geordnet darauf, dass sich MortysDLP selbst
   beendet, bevor Dateien getauscht werden — und bricht kontrolliert ab, statt die Anwendung
   jemals zwangsweise zu beenden, falls sie nicht rechtzeitig reagiert. Vorher wird außerdem
