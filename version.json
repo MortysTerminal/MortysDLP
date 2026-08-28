@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "stable": {
+    "version": "2026.06.01",
+    "url": "https://github.com/MortysTerminal/MortysDLP/releases/download/2026.06.01/MortysDLP.zip",
+    "sha256": "db1a7003543650836fd5f54bc55c0d04209fc5ce618fb791b5d1e4a045e9bdd6",
+    "size": 381505,
+    "requiresDotnet": "10.0"
+  }
+}

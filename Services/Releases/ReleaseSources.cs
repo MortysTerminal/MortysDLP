@@ -6,9 +6,12 @@ namespace MortysDLP.Services.Releases
     /// Feste Quellenketten je Werkzeug — <see cref="CreateAppChain"/> ist bisher die einzige.
     /// Reihenfolge „reichste Information zuerst": Die beiden API-Quellen liefern Changelog,
     /// Asset-Namen und Größen; der Atom-Feed liefert Text, aber keine Assets; die Weiterleitung
-    /// liefert nur die Versionsnummer. Wer die Reihenfolge umdreht, verliert Informationen, ohne
-    /// robuster zu werden. Noch nicht in den Startpfad eingebaut (→ W2-T06); Welle 4 ergänzt
-    /// hier <c>CreateYtDlpChain()</c> und die übrigen Werkzeuge.
+    /// liefert nur die Versionsnummer. <c>version.json</c> steht bewusst am Ende: Sie wird von
+    /// Hand gepflegt und kann als einzige Quelle dauerhaft falsch sein, wenn diese Pflege
+    /// vergessen wird — der Rettungsanker, wenn alle GitHub-Endpunkte schweigen, nicht die
+    /// erste Anlaufstelle. Wer die Reihenfolge umdreht, verliert Informationen, ohne robuster zu
+    /// werden. Noch nicht in den Startpfad eingebaut (→ W2-T06); Welle 4 ergänzt hier
+    /// <c>CreateYtDlpChain()</c> und die übrigen Werkzeuge.
     /// </summary>
     internal static class ReleaseSources
     {
@@ -18,6 +21,7 @@ namespace MortysDLP.Services.Releases
             new GitHubApiListSource(),
             new GitHubAtomFeedSource(),
             new GitHubRedirectSource(),
+            new VersionJsonReleaseSource(),
         ];
     }
 }

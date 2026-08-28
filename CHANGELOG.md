@@ -103,11 +103,12 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
   angesprochen wird, weist die Startprotokollzeile zum Installationsort dies jetzt als
   `Network` aus. Bisher fehlte diese Angabe ausgerechnet beim Installationsort, der am
   häufigsten Probleme macht.
-- Vier voneinander unabhängige Wege, mit denen sich die neueste verfügbare Version ermitteln
-  lässt (u. a. über die GitHub-Veröffentlichungsseite und einen Nachrichten-Feed), sind jetzt
-  zu einer Ausweichkette verbunden: Fällt ein Weg aus oder ist erschöpft, übernimmt automatisch
-  der nächste, und eine Quelle, die erkennbar veraltete Angaben liefert (z. B. über einen
-  Zwischenspeicher-Dienst), kann ein tatsächlich vorhandenes Update nicht verdecken. Dazu eine
+- Fünf voneinander unabhängige Wege, mit denen sich die neueste verfügbare Version ermitteln
+  lässt (u. a. über die GitHub-Veröffentlichungsseite, einen Nachrichten-Feed und eine kleine,
+  von Hand gepflegte Datei im Projekt-Repository), sind jetzt zu einer Ausweichkette verbunden:
+  Fällt ein Weg aus oder ist erschöpft, übernimmt automatisch der nächste, und eine Quelle, die
+  erkennbar veraltete Angaben liefert (z. B. über einen Zwischenspeicher-Dienst oder eine
+  vergessene Pflege), kann ein tatsächlich vorhandenes Update nicht verdecken. Dazu eine
   Zielprüfung für Netzwerkanfragen, die nur bekannte, verschlüsselte Adressen zulässt. Noch
   nicht in die Update-Prüfung eingebaut. Mit umfangreicher Testabdeckung, ohne echten
   Netzzugriff.

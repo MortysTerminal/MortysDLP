@@ -201,15 +201,16 @@ public class ResilientReleaseResolverTests : IDisposable
     }
 
     [Fact]
-    public void CreateAppChain_LiefertVierQuellenInDerRichtigenReihenfolge()
+    public void CreateAppChain_LiefertQuellenInDerRichtigenReihenfolge()
     {
         var chain = ReleaseSources.CreateAppChain();
 
-        Assert.Equal(4, chain.Count);
+        Assert.Equal(5, chain.Count);
         Assert.IsType<GitHubApiLatestSource>(chain[0]);
         Assert.IsType<GitHubApiListSource>(chain[1]);
         Assert.IsType<GitHubAtomFeedSource>(chain[2]);
         Assert.IsType<GitHubRedirectSource>(chain[3]);
+        Assert.IsType<VersionJsonReleaseSource>(chain[4]);
     }
 
     private static HttpResponseHeaders MakeExhaustedRateLimitHeaders()
