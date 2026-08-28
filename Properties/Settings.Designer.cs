@@ -229,7 +229,7 @@ namespace MortysDLP.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("latest")]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
         public string VersionSkip {
             get {
                 return ((string)(this["VersionSkip"]));

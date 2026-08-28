@@ -1,4 +1,5 @@
 ﻿using MortysDLP.Helpers;
+using MortysDLP.Models;
 using MortysDLP.Properties;
 using MortysDLP.Services;
 using MortysDLP.Services.Releases;
@@ -68,6 +69,7 @@ namespace MortysDLP
 
                 // 1. Status: Nach Software-Update suchen — höchstens alle 6 Stunden, sonst aus
                 // dem Zwischenspeicher (W2-T06). Kein direkter GitHub-Zugriff mehr bei jedem Start.
+                ResetVersionSkipIfObsolete();
                 await SetStatusTextAndWaitAsync(splash, UITexte.UITexte.Splash_SearchingForUpdate, DebugSleepTimer);
 
                 var updateCheckService = new UpdateCheckService(
@@ -226,14 +228,56 @@ namespace MortysDLP
 
         /// <summary>Trifft die ENTSCHEIDUNG, ob das Update angeboten wird — der Sachverhalt
         /// ("es gibt etwas Neueres") kommt bereits fertig aus <see cref="UpdateCheckService"/>.
-        /// Zusätzlich zu <c>VersionSkip</c> gehört hierher auch die Prüfung auf eine
-        /// tatsächlich nutzbare Download-Adresse, da <see cref="UpdateCheckService"/> reine
-        /// Versionsermittlung ist. Ab W2-T09 übernimmt <c>UpdateDecision.ShouldOffer</c> diese
-        /// Zuständigkeit vollständig.</summary>
-        private static bool ShouldOfferUpdate(UpdateCheckResult result) =>
-            result.UpdateAvailable
-            && result.Info?.DownloadUrl != null
-            && !string.Equals(Settings.Default.VersionSkip, AppInfo.Current, StringComparison.Ordinal);
+        /// Die eigentliche Regel (inkl. <c>VersionSkip</c>) steckt in
+        /// <see cref="UpdateDecision.ShouldOffer"/>; hier kommt nur noch die Prüfung auf eine
+        /// tatsächlich nutzbare Download-Adresse dazu, da <see cref="UpdateCheckService"/>
+        /// reine Versionsermittlung ist. Protokolliert immer, wenn ein vorhandenes Update wegen
+        /// <c>VersionSkip</c> nicht angeboten wird — ohne diese Zeile ist später nicht
+        /// erklärbar, warum kein Hinweis erscheint.</summary>
+        private static bool ShouldOfferUpdate(UpdateCheckResult result)
+        {
+            if (result.Info?.DownloadUrl is null || AppInfo.CurrentVersion is not { } current)
+                return false;
+
+            bool offer = UpdateDecision.ShouldOffer(current, result.Info.Version, Settings.Default.VersionSkip);
+
+            if (!offer && result.Info.Version > current)
+                Log.Info($"Update {result.Info.Version} verfügbar, aber vom Nutzer übersprungen.");
+
+            return offer;
+        }
+
+        /// <summary>Setzt <c>VersionSkip</c> zurück, sobald der Wert bedeutungslos geworden
+        /// ist: Die übersprungene Version ist inzwischen installiert oder überholt. Ohne dieses
+        /// Aufräumen bliebe ein alter Wert stehen, der nichts mehr über die Absicht des Nutzers
+        /// aussagt. Best-Effort — ein Fehlschlag hier darf den Start nicht verhindern.</summary>
+        private static void ResetVersionSkipIfObsolete()
+        {
+            try
+            {
+                string? skipped = Settings.Default.VersionSkip;
+                if (string.IsNullOrWhiteSpace(skipped))
+                    return;
+
+                if (AppInfo.CurrentVersion is not { } current)
+                    return;
+
+                if (!AppVersion.TryParse(skipped, out var skippedVersion))
+                    return;
+
+                if (current >= skippedVersion)
+                {
+                    Settings.Default.VersionSkip = string.Empty;
+                    Settings.Default.Save();
+                    Log.Info($"VersionSkip zurückgesetzt (übersprungene Version {skippedVersion} " +
+                        "ist installiert oder überholt).");
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Warn("VersionSkip konnte nicht zurückgesetzt werden.", ex);
+            }
+        }
 
         /// <summary>Namensmuster für das App-Update-Paket. Platzhalterfrei ergibt es
         /// <c>"MortysDLP.zip"</c> — genau der Name, den <see cref="AssetSelector"/> bei
@@ -424,7 +468,21 @@ namespace MortysDLP
 
                 Log.Info($"Updater gestartet (PID: {updaterProcess.Id}). Beende Hauptanwendung...");
 
-                // 7. App sicher beenden – Shutdown + Environment.Exit als Fallback
+                // 7. VersionSkip zurücksetzen - nach diesem Neustart ist ein übersprungener
+                // Wert ohnehin überholt (siehe auch ResetVersionSkipIfObsolete für den
+                // umgekehrten Fall: eine übersprungene Version, die inzwischen ohne dieses
+                // Update installiert wurde, z. B. durch eine andere Quelle).
+                try
+                {
+                    Settings.Default.VersionSkip = string.Empty;
+                    Settings.Default.Save();
+                }
+                catch (Exception ex)
+                {
+                    Log.Warn("VersionSkip konnte nicht zurückgesetzt werden.", ex);
+                }
+
+                // 8. App sicher beenden – Shutdown + Environment.Exit als Fallback
                 Shutdown();
                 // Kurze Verzögerung, damit Shutdown-Events verarbeitet werden
                 await Task.Delay(500);

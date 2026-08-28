@@ -54,7 +54,7 @@
       <Value Profile="(Default)">Updater</Value>
     </Setting>
     <Setting Name="VersionSkip" Type="System.String" Scope="User">
-      <Value Profile="(Default)">latest</Value>
+      <Value Profile="(Default)"></Value>
     </Setting>
     <Setting Name="ForceEnglishLanguage" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>

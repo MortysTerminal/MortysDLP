@@ -37,6 +37,10 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
   Befehlszeilenargumente unterschieben.
 
 ### Hinzugefügt
+- Der Update-Hinweis lässt sich jetzt im Dialog dauerhaft für eine bestimmte Version
+  überspringen („Diese Version überspringen") — der Banner erscheint erst wieder, wenn eine
+  **neuere** Version veröffentlicht wird. „Später" und das „X" am Banner blenden den Hinweis
+  weiterhin nur für die laufende Sitzung aus.
 - Anwendungs-Updates zeigen jetzt einen Fortschrittsbalken mit Prozentangabe und lassen sich
   jederzeit abbrechen — bisher wirkte die Anwendung beim Herunterladen eines größeren Pakets
   über eine langsame Leitung wie eingefroren. Ein Abbruch räumt sauber auf: keine

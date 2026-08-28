@@ -257,12 +257,14 @@ namespace MortysDLP.UITexte
             // Update Banner & Dialog
             ["UpdateBanner.Text"]                    = "Neue Version {0} verfügbar",
             ["UpdateBanner.SubText"]                 = "Klicken für Details & Update",
-            ["UpdateBanner.Dismiss"]                 = "Schließen",
+            ["UpdateBanner.Dismiss"]                 = "Für diesen Start ausblenden",
             ["UpdateBannerDialog.Title"]             = "Update verfügbar",
             ["UpdateBannerDialog.Subtitle"]          = "Version {0} steht bereit",
             ["UpdateBannerDialog.ChangelogLabel"]    = "Was ist neu:",
             ["UpdateBannerDialog.Button.UpdateNow"]  = "Jetzt aktualisieren",
             ["UpdateBannerDialog.Button.Later"]      = "Später",
+            ["UpdateBannerDialog.Button.Skip"]         = "Diese Version überspringen",
+            ["UpdateBannerDialog.Button.Skip.Tooltip"] = "Kein Hinweis mehr zu dieser Version — erst bei einer neueren Version wieder.",
             ["UpdateBannerDialog.NoChangelog"]       = "Keine Änderungsnotizen vorhanden.",
 
             // Main Window Navigation
@@ -837,12 +839,14 @@ namespace MortysDLP.UITexte
             // Update Banner & Dialog
             ["UpdateBanner.Text"]                    = "New version {0} available",
             ["UpdateBanner.SubText"]                 = "Click for details & update",
-            ["UpdateBanner.Dismiss"]                 = "Dismiss",
+            ["UpdateBanner.Dismiss"]                 = "Hide for this session",
             ["UpdateBannerDialog.Title"]             = "Update Available",
             ["UpdateBannerDialog.Subtitle"]          = "Version {0} is ready",
             ["UpdateBannerDialog.ChangelogLabel"]    = "What's new:",
             ["UpdateBannerDialog.Button.UpdateNow"]  = "Update now",
             ["UpdateBannerDialog.Button.Later"]      = "Not now",
+            ["UpdateBannerDialog.Button.Skip"]         = "Skip this version",
+            ["UpdateBannerDialog.Button.Skip.Tooltip"] = "No more reminders for this version — you'll be asked again only for a newer one.",
             ["UpdateBannerDialog.NoChangelog"]       = "No release notes available.",
 
             // Main Window Navigation

@@ -329,8 +329,14 @@ Wandelt Videos in animierte GIFs.
    Ausweiche) und die neueste Version mit der eigenen verglichen; dazwischen zählt der
    Zwischenspeicher.
 2. Bei einer neueren Version erscheint im Hauptfenster ein Banner.
-3. Ein Klick öffnet ein Fenster mit den Release-Notizen; dort „Jetzt aktualisieren" oder
-   „Später".
+3. Ein Klick öffnet ein Fenster mit den Release-Notizen und drei Möglichkeiten:
+   - **Jetzt aktualisieren** — startet den Download (siehe unten).
+   - **Später** — der Hinweis bleibt nur für den laufenden Programmlauf weg; beim nächsten
+     Start erscheint er erneut. Dasselbe gilt für das „X" direkt am Banner.
+   - **Diese Version überspringen** — der Hinweis bleibt dauerhaft weg, bis eine **neuere**
+     Version als die gerade angebotene erscheint. Es gibt aktuell keinen Weg, eine
+     übersprungene Version nachträglich wieder angezeigt zu bekommen — nur eine neuere fragt
+     erneut.
 4. Enthält das Release mehrere Anhänge (z. B. zusätzlich eine Prüfsummenliste), wählt
    MortysDLP gezielt das richtige Update-Paket aus — nicht einfach den ersten Eintrag. Sind
    mehrere Pakete gleichermaßen passend und keines eindeutig das richtige, bricht die

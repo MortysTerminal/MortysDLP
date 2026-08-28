@@ -1,4 +1,5 @@
 using MortysDLP.Helpers;
+using MortysDLP.Properties;
 using MortysDLP.UITexte;
 using MortysDLP.Views;
 using System.Windows;
@@ -60,11 +61,44 @@ namespace MortysDLP
             {
                 Owner = this
             };
+            dialog.ShowDialog();
 
-            if (dialog.ShowDialog() == true && dialog.UpdateConfirmed)
+            switch (dialog.Choice)
             {
-                UpdateBanner.Visibility = Visibility.Collapsed;
-                await ((App)Application.Current).StartUpdate();
+                case UpdateChoice.Update:
+                    UpdateBanner.Visibility = Visibility.Collapsed;
+                    await ((App)Application.Current).StartUpdate();
+                    break;
+
+                case UpdateChoice.Skip:
+                    TrySkipVersion(_pendingUpdateVersion);
+                    UpdateBanner.Visibility = Visibility.Collapsed;
+                    break;
+
+                case UpdateChoice.Later:
+                    UpdateBanner.Visibility = Visibility.Collapsed;
+                    break;
+            }
+        }
+
+        /// <summary>Schreibt <c>VersionSkip</c> — der Dialog selbst speichert keine
+        /// Einstellungen, das übernimmt der Aufrufer (siehe <c>werkstatt/tasks/W2-T09.md</c>).
+        /// Best-Effort: Ein Fehlschlag hier soll den Nutzer nicht mit einer Fehlermeldung
+        /// stören, nur beim nächsten Start erneut fragen.</summary>
+        private static void TrySkipVersion(string? version)
+        {
+            if (string.IsNullOrEmpty(version))
+                return;
+
+            try
+            {
+                Settings.Default.VersionSkip = version;
+                Settings.Default.Save();
+                Log.Info($"Version {version} wird übersprungen (VersionSkip gesetzt).");
+            }
+            catch (Exception ex)
+            {
+                Log.Warn("VersionSkip konnte nicht gespeichert werden.", ex);
             }
         }
 
