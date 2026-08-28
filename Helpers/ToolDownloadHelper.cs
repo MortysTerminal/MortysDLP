@@ -7,6 +7,9 @@ namespace MortysDLP.Services
     {
         private const int BufferSize = 81920;
 
+        /// <param name="progress">Fortschritt als Anteil (0.0–1.0) — siehe
+        /// <c>werkstatt/02-BEST-PRACTICES.md</c>, Abschnitt 8. Bleibt unbenutzt, solange
+        /// <c>Content-Length</c> fehlt (Gesamtgröße unbekannt).</param>
         public static async Task DownloadAssetAsync(HttpClient client, string url, string targetPath, IProgress<double>? progress = null, CancellationToken cancellationToken = default)
         {
             using var response = await client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
@@ -26,7 +29,9 @@ namespace MortysDLP.Services
                 await fileStream.WriteAsync(buffer.AsMemory(0, read), cancellationToken);
                 totalRead += read;
                 if (canReportProgress)
-                    progress!.Report((double)totalRead / total);
+                    // Math.Clamp: eine unzuverlässige Content-Length darf den Balken nie über
+                    // 100 % treiben.
+                    progress!.Report(Math.Clamp((double)totalRead / total, 0.0, 1.0));
             }
         }
     }

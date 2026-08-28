@@ -117,6 +117,8 @@ namespace MortysDLP.Services
         /// Führt die Whisper-Transkription durch.
         /// Gibt den Pfad-Präfix zurück, unter dem whisper.cpp seine Ausgaben erzeugt hat.
         /// </summary>
+        /// <param name="numericProgress">Fortschritt als Anteil (0.0–1.0) — siehe
+        /// <c>werkstatt/02-BEST-PRACTICES.md</c>, Abschnitt 8.</param>
         public static async Task<string> RunTranscriptionAsync(
             string whisperExe,
             string ffmpegPath,
@@ -194,7 +196,7 @@ namespace MortysDLP.Services
                     {
                         var match = Regex.Match(line, @"progress\s*=\s*(\d+)");
                         if (match.Success && int.TryParse(match.Groups[1].Value, out int pct))
-                            numericProgress.Report(pct);
+                            numericProgress.Report(Math.Clamp(pct / 100.0, 0.0, 1.0));
                     }
                 }
 

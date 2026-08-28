@@ -37,6 +37,10 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
   Befehlszeilenargumente unterschieben.
 
 ### Hinzugefügt
+- Anwendungs-Updates zeigen jetzt einen Fortschrittsbalken mit Prozentangabe und lassen sich
+  jederzeit abbrechen — bisher wirkte die Anwendung beim Herunterladen eines größeren Pakets
+  über eine langsame Leitung wie eingefroren. Ein Abbruch räumt sauber auf: keine
+  Reste im Temp-Ordner, die vorhandene Installation bleibt unangetastet.
 - MortysDLP erkennt beim Start, wenn es direkt aus der ZIP-Vorschau des Explorers gestartet
   wurde (also aus einem temporären Ordner, der beim Schließen verschwindet) und zeigt dann
   einen Hinweis mit der Möglichkeit, den Ordner zu öffnen oder trotzdem fortzufahren. So bleibt

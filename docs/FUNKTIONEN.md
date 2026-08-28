@@ -317,6 +317,7 @@ Wandelt Videos in animierte GIFs.
 | **Whisper-Modelle** | Engine- und Modellverwaltung |
 | **Sammel-URLs** | Mehrere URLs auf einmal einfügen |
 | **Update-Changelog** | Zeigt die Release-Notizen als formatierten Text (eigener Markdown-Renderer) |
+| **Download-Fortschritt** | Balken mit Prozentanzeige und Abbrechen-Knopf; bei Werkzeug- **und** App-Updates verwendet |
 | **Credits** | Übersicht der verwendeten Open-Source-Werkzeuge mit Lizenz und Link |
 | **FluentMessageBox** | Einheitlicher Ersatz für Windows-Meldungsfenster, mit frei belegbaren Knöpfen |
 
@@ -339,7 +340,9 @@ Wandelt Videos in animierte GIFs.
    geprüft — bevor es seinen endgültigen Namen erhält. Stimmt etwas nicht, wird die
    heruntergeladene Datei verworfen und das Update abgebrochen; die vorhandene Installation
    bleibt unangetastet. Ist ausnahmsweise keine Prüfsumme bekannt, bleibt das Update möglich
-   und nur die Größe wird geprüft.
+   und nur die Größe wird geprüft. Während des Herunterladens erscheint ein Fenster mit
+   Fortschrittsbalken und Prozentanzeige; „Abbrechen" beendet den Download sofort — ohne
+   Reste im Temp-Ordner und ohne die bestehende Installation anzufassen.
 6. Zusätzlich wird geprüft, dass das Paket lesbar ist und tatsächlich die Hauptanwendung
    enthält.
 7. Der Updater wird nach Temp kopiert und mit
@@ -347,9 +350,8 @@ Wandelt Videos in animierte GIFs.
 8. Die App beendet sich; der Updater wartet auf das Prozessende, entpackt und startet die
    App neu.
 
-> **Bekannte Einschränkungen:** Beim Herunterladen des Updates gibt es keine Fortschrittsanzeige
-> und keine Möglichkeit, ein fehlgeschlagenes Update zurückzunehmen. Eine überarbeitete
-> Update-Mechanik ist in Vorbereitung.
+> **Bekannte Einschränkung:** Es gibt noch keine Möglichkeit, ein fehlgeschlagenes Update
+> zurückzunehmen (kein Rollback). Eine überarbeitete Update-Mechanik ist in Vorbereitung.
 
 ---
 

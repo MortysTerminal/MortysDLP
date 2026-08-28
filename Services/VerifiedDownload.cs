@@ -43,6 +43,9 @@ namespace MortysDLP.Services
         /// <see cref="Http.Shared"/>), damit sich die Prüfung ohne echten Netzzugriff über
         /// einen gefälschten Handler testen lässt.
         /// </summary>
+        /// <param name="progress">Fortschritt als Anteil (0.0–1.0) — siehe
+        /// <c>werkstatt/02-BEST-PRACTICES.md</c>, Abschnitt 8. Bleibt unbenutzt, solange
+        /// <c>Content-Length</c> fehlt (Gesamtgröße unbekannt).</param>
         public static async Task<DownloadVerification> ToFileAsync(
             string url, string targetPath,
             string? expectedSha256, long? expectedSize,
@@ -80,7 +83,9 @@ namespace MortysDLP.Services
                         bytesRead += read;
 
                         if (totalBytes > 0)
-                            progress?.Report((double)bytesRead / totalBytes);
+                            // Math.Clamp: eine unzuverlässige Content-Length darf den Balken
+                            // nie über 100 % treiben.
+                            progress?.Report(Math.Clamp((double)bytesRead / totalBytes, 0.0, 1.0));
                     }
                 }
 

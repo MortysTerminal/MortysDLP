@@ -331,24 +331,41 @@ namespace MortysDLP
                 string tempDir = UpdateService.GetSafeTempDirectory();
                 string tempZipPath = Path.Combine(tempDir, Settings.Default.MortysDLPUpdateZipFile);
 
-                // 2. Download mit Retry, streamender Prüfsumme und Größenabgleich (W2-T07) -
-                // erst nach bestandener Prüfung trägt die Datei ihren endgültigen Namen.
-                try
+                // 2. Download mit Fortschrittsdialog, Retry, streamender Prüfsumme und
+                // Größenabgleich (W2-T07/T08) - erst nach bestandener Prüfung trägt die Datei
+                // ihren endgültigen Namen. using: der Dialog wird in jedem Fall geschlossen,
+                // auch bei Erfolg (K-08 - nicht-modal - bleibt bewusst unangetastet).
+                using (var dialog = new DownloadProgressDialog(UITexte.UITextDictionary.Get("Update.Download.InProgress")))
                 {
-                    var verification = await VerifiedDownload.ToFileAsync(
-                        assetUrl, tempZipPath, expectedSha256, expectedSize, progress: null, CancellationToken.None);
+                    dialog.Owner = MainWindow;
+                    dialog.Show();
+                    var progress = new Progress<double>(dialog.SetProgress);
 
-                    if (!verification.ChecksumChecked)
-                        Log.Warn(UITexte.UITextDictionary.Get("Update.Warning.NoChecksum"));
-                }
-                catch (ChecksumMismatchException ex)
-                {
-                    Log.Error($"Update-Prüfsumme stimmt nicht überein. Erwartet: {ex.Expected}, " +
-                        $"tatsächlich: {ex.Actual}");
-                    MessageBox.Show(
-                        UITexte.UITextDictionary.Get("Update.Error.ChecksumMismatch"),
-                        UITexte.UITexte.Error, MessageBoxButton.OK, MessageBoxImage.Error);
-                    return;
+                    try
+                    {
+                        var verification = await VerifiedDownload.ToFileAsync(
+                            assetUrl, tempZipPath, expectedSha256, expectedSize, progress, dialog.CancellationToken);
+
+                        if (!verification.ChecksumChecked)
+                            Log.Warn(UITexte.UITextDictionary.Get("Update.Warning.NoChecksum"));
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        // Vom Nutzer über den Dialog abgebrochen - kein Fehler. Ein liegen
+                        // gebliebenes .part hat VerifiedDownload bereits selbst entfernt; die
+                        // Installation wurde an keiner Stelle berührt.
+                        Log.Info("Update-Download vom Nutzer abgebrochen.");
+                        return;
+                    }
+                    catch (ChecksumMismatchException ex)
+                    {
+                        Log.Error($"Update-Prüfsumme stimmt nicht überein. Erwartet: {ex.Expected}, " +
+                            $"tatsächlich: {ex.Actual}");
+                        MessageBox.Show(
+                            UITexte.UITextDictionary.Get("Update.Error.ChecksumMismatch"),
+                            UITexte.UITexte.Error, MessageBoxButton.OK, MessageBoxImage.Error);
+                        return;
+                    }
                 }
 
                 // 3. ZIP-Grundprüfung: enthält den erwarteten Haupteintrag, nicht nur

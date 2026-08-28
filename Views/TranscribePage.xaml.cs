@@ -359,11 +359,13 @@ namespace MortysDLP.Views
                     AppendLog(line);
                 }));
 
-                var numericProgress = new Progress<double>(pct => Dispatcher.Invoke(() =>
+                // numericProgress meldet einen Anteil (0.0–1.0, siehe 02-BEST-PRACTICES.md);
+                // die ProgressBar hier arbeitet mit Prozent (0–100).
+                var numericProgress = new Progress<double>(fraction => Dispatcher.Invoke(() =>
                 {
                     pbProgress.IsIndeterminate = false;
-                    pbProgress.Value = pct;
-                    txtProgressPercent.Text = $"{pct:F0} %";
+                    pbProgress.Value = fraction * 100;
+                    txtProgressPercent.Text = $"{fraction * 100:F0} %";
                 }));
 
                 Dispatcher.Invoke(() =>

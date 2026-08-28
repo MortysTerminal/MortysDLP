@@ -28,17 +28,34 @@ namespace MortysDLP
         {
             /* Sprache wurde bereits in App.xaml.cs gesetzt */
             InitializeComponent();
+
+            var T = UITexte.UITextDictionary.Get;
+            Title = T("DownloadProgressDialog.Title");
+            CancelButton.Content = T("DownloadProgressDialog.Button.Cancel");
+
             InfoText.Text = info;
+            // Unbestimmt, bis der erste Fortschrittswert eintrifft - fehlt die Gesamtgröße
+            // (kein Content-Length), bleibt der Balken sonst dauerhaft bei 0 stehen.
+            ProgressBar.IsIndeterminate = true;
             ProgressBar.Value = 0;
         }
 
+        /// <param name="value">Fortschritt als Anteil (0.0–1.0).</param>
         public void SetProgress(double value)
         {
-            ProgressBar.Value = value * 100;
+            double clamped = Math.Clamp(value, 0.0, 1.0);
+            ProgressBar.IsIndeterminate = false;
+            ProgressBar.Value = clamped * 100;
+            PercentText.Text = $"{clamped * 100:F0} %";
         }
 
         private void CancelButton_Click(object sender, RoutedEventArgs e)
         {
+            // Explizit auslösen statt sich nur auf OnClosing zu verlassen, und den Knopf
+            // sofort deaktivieren - ein zweiter Klick während des Schließens darf nicht zu
+            // einem zweiten Abbruchversuch führen.
+            CancelButton.IsEnabled = false;
+            _cts.Cancel();
             Close();
         }
 
