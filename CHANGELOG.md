@@ -43,6 +43,10 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
   läuft die Anwendung danach normal weiter.
 
 ### Geändert
+- Die Suche nach einer neuen MortysDLP-Version läuft nicht mehr bei jedem Start online: Das
+  Ergebnis wird zwischengespeichert und höchstens alle 6 Stunden erneuert. Ist gar keine
+  Internetverbindung da, verwendet MortysDLP einfach den zuletzt bekannten Stand, statt zu
+  hängen oder „kein Update" zu melden.
 - Netzabfragen (Update-Prüfung, Werkzeug-Versionsprüfung, Downloads) melden Störungen jetzt
   verständlich statt lautlos zu scheitern: Vorübergehende Fehler werden automatisch mit
   steigender Wartezeit wiederholt, dauerhafte Fehler (z. B. „nicht gefunden") sofort gemeldet
@@ -103,15 +107,17 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
   angesprochen wird, weist die Startprotokollzeile zum Installationsort dies jetzt als
   `Network` aus. Bisher fehlte diese Angabe ausgerechnet beim Installationsort, der am
   häufigsten Probleme macht.
-- Fünf voneinander unabhängige Wege, mit denen sich die neueste verfügbare Version ermitteln
-  lässt (u. a. über die GitHub-Veröffentlichungsseite, einen Nachrichten-Feed und eine kleine,
-  von Hand gepflegte Datei im Projekt-Repository), sind jetzt zu einer Ausweichkette verbunden:
-  Fällt ein Weg aus oder ist erschöpft, übernimmt automatisch der nächste, und eine Quelle, die
-  erkennbar veraltete Angaben liefert (z. B. über einen Zwischenspeicher-Dienst oder eine
-  vergessene Pflege), kann ein tatsächlich vorhandenes Update nicht verdecken. Dazu eine
-  Zielprüfung für Netzwerkanfragen, die nur bekannte, verschlüsselte Adressen zulässt. Noch
-  nicht in die Update-Prüfung eingebaut. Mit umfangreicher Testabdeckung, ohne echten
-  Netzzugriff.
+- Die Update-Prüfung nutzt jetzt fünf voneinander unabhängige Wege, mit denen sich die neueste
+  verfügbare Version ermitteln lässt (u. a. über die GitHub-Veröffentlichungsseite, einen
+  Nachrichten-Feed und eine kleine, von Hand gepflegte Datei im Projekt-Repository), zu einer
+  Ausweichkette verbunden: Fällt ein Weg aus oder ist erschöpft, übernimmt automatisch der
+  nächste, und eine Quelle, die erkennbar veraltete Angaben liefert (z. B. über einen
+  Zwischenspeicher-Dienst oder eine vergessene Pflege), kann ein tatsächlich vorhandenes
+  Update nicht verdecken. Dazu eine Zielprüfung für Netzwerkanfragen, die nur bekannte,
+  verschlüsselte Adressen zulässt. Mit umfangreicher Testabdeckung, ohne echten Netzzugriff.
+- Toten, nie verwendeten Code eines älteren Zwischenspeicher-Ansatzes für die Startprüfungen
+  entfernt; eine dabei zurückbleibende, bedeutungslose Datei wird beim nächsten Start
+  automatisch aufgeräumt.
 - Testabdeckung für die Grundbausteine (Pfad-/Dateinamensbehandlung, Protokollierung,
   Debug-Puffer, Installationsort-Erkennung, Prozessausführung) erweitert und gegen die
   wichtigsten Randfälle abgesichert.

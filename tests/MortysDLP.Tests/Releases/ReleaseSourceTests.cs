@@ -113,6 +113,35 @@ public class ReleaseSourceTests
         Assert.Null(info);
     }
 
+    [Fact]
+    public async Task GitHubApiLatestSource_304_LiefertNotModifiedMitEcho()
+    {
+        var handler = new FakeHttpMessageHandler().When(@"releases/latest$", status: HttpStatusCode.NotModified);
+        using var client = new HttpClient(handler);
+        var source = new GitHubApiLatestSource(client);
+
+        var info = await source.TryGetLatestAsync(Query with { ETag = "\"abc123\"" }, CancellationToken.None);
+
+        Assert.NotNull(info);
+        Assert.True(info!.NotModified);
+        Assert.Equal("\"abc123\"", info.ETag);
+    }
+
+    [Fact]
+    public async Task GitHubApiLatestSource_ErfolgreicheAntwort_UebernimmtETagAusKopfzeile()
+    {
+        var headers = new Dictionary<string, string> { ["ETag"] = "\"neu456\"" };
+        var handler = new FakeHttpMessageHandler().When(@"releases/latest$", content: LatestJson, headers: headers);
+        using var client = new HttpClient(handler);
+        var source = new GitHubApiLatestSource(client);
+
+        var info = await source.TryGetLatestAsync(Query, CancellationToken.None);
+
+        Assert.NotNull(info);
+        Assert.False(info!.NotModified);
+        Assert.Equal("\"neu456\"", info.ETag);
+    }
+
     // --- GitHubApiListSource -----------------------------------------------------------------
 
     [Fact]
@@ -153,6 +182,35 @@ public class ReleaseSourceTests
         var info = await source.TryGetLatestAsync(Query, CancellationToken.None);
 
         Assert.Null(info);
+    }
+
+    [Fact]
+    public async Task GitHubApiListSource_304_LiefertNotModifiedMitEcho()
+    {
+        var handler = new FakeHttpMessageHandler().When(@"releases\?per_page=10$", status: HttpStatusCode.NotModified);
+        using var client = new HttpClient(handler);
+        var source = new GitHubApiListSource(client);
+
+        var info = await source.TryGetLatestAsync(Query with { ETag = "\"abc123\"" }, CancellationToken.None);
+
+        Assert.NotNull(info);
+        Assert.True(info!.NotModified);
+        Assert.Equal("\"abc123\"", info.ETag);
+    }
+
+    [Fact]
+    public async Task GitHubApiListSource_ErfolgreicheAntwort_UebernimmtETagAusKopfzeile()
+    {
+        var headers = new Dictionary<string, string> { ["ETag"] = "\"neu456\"" };
+        var handler = new FakeHttpMessageHandler().When(@"releases\?per_page=10$", content: ListJson, headers: headers);
+        using var client = new HttpClient(handler);
+        var source = new GitHubApiListSource(client);
+
+        var info = await source.TryGetLatestAsync(Query, CancellationToken.None);
+
+        Assert.NotNull(info);
+        Assert.False(info!.NotModified);
+        Assert.Equal("\"neu456\"", info.ETag);
     }
 
     // --- GitHubAtomFeedSource ----------------------------------------------------------------

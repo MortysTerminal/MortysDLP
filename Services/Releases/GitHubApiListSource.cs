@@ -1,5 +1,6 @@
 using MortysDLP.Helpers;
 using System;
+using System.Net;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
@@ -13,7 +14,8 @@ namespace MortysDLP.Services.Releases
     /// Entwürfe und (ohne <see cref="ReleaseQuery.AllowPrerelease"/>) Vorabversionen heraus und
     /// wählt unter den verbleibenden Einträgen die höchste <see cref="Models.AppVersion"/> —
     /// nicht den zuerst gelisteten Eintrag, denn GitHub sortiert nach Veröffentlichungsdatum,
-    /// nicht nach Versionsnummer.
+    /// nicht nach Versionsnummer. Ist <see cref="ReleaseQuery.ETag"/> gesetzt, wird es als
+    /// <c>If-None-Match</c> mitgeschickt (W2-T06).
     /// </summary>
     internal sealed class GitHubApiListSource(HttpClient? client = null) : IReleaseSource
     {
@@ -33,9 +35,12 @@ namespace MortysDLP.Services.Releases
             try
             {
                 using var response = await Http.SendWithRetryAsync(
-                    _client, () => Http.CreateGitHubApiRequest(url), ct: ct);
+                    _client, () => CreateRequest(url, query.ETag), ct: ct);
 
                 GitHubRateLimit.Observe(response.Headers, DateTimeOffset.UtcNow);
+
+                if (response.StatusCode == HttpStatusCode.NotModified)
+                    return new ReleaseInfo(default, null, null, null, null, Name, [], query.ETag, NotModified: true);
 
                 if (!response.IsSuccessStatusCode)
                     return null;
@@ -47,7 +52,7 @@ namespace MortysDLP.Services.Releases
                 }
 
                 string json = await response.Content.ReadAsStringAsync(ct);
-                return ParseHighestRelease(json, query);
+                return ParseHighestRelease(json, query, response.Headers.ETag?.Tag);
             }
             catch (OperationCanceledException)
             {
@@ -60,7 +65,7 @@ namespace MortysDLP.Services.Releases
             }
         }
 
-        internal ReleaseInfo? ParseHighestRelease(string json, ReleaseQuery query)
+        internal ReleaseInfo? ParseHighestRelease(string json, ReleaseQuery query, string? etag = null)
         {
             try
             {
@@ -75,7 +80,7 @@ namespace MortysDLP.Services.Releases
                     if (!GitHubApiReleaseJson.IsEligible(release, query))
                         continue;
 
-                    var candidate = GitHubApiReleaseJson.TryParse(release, Name);
+                    var candidate = GitHubApiReleaseJson.TryParse(release, Name, etag);
                     if (candidate is null)
                         continue;
 
@@ -89,6 +94,14 @@ namespace MortysDLP.Services.Releases
             {
                 return null;
             }
+        }
+
+        private static HttpRequestMessage CreateRequest(string url, string? etag)
+        {
+            var request = Http.CreateGitHubApiRequest(url);
+            if (!string.IsNullOrEmpty(etag))
+                request.Headers.TryAddWithoutValidation("If-None-Match", etag);
+            return request;
         }
     }
 }

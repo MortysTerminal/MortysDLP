@@ -1,11 +1,12 @@
 ﻿using MortysDLP.Helpers;
-using MortysDLP.Models;
 using MortysDLP.Properties;
 using MortysDLP.Services;
+using MortysDLP.Services.Releases;
 using System.Configuration;
 using System.Diagnostics;
 using System.IO;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 
@@ -57,23 +58,25 @@ namespace MortysDLP
                 // splash.SetLogo("Assets/dein_logo.png");
                 // splash.SetTitle("Dein Produktname");
 
-                // 1. Status: Nach Software-Update suchen
+                // 1. Status: Nach Software-Update suchen — höchstens alle 6 Stunden, sonst aus
+                // dem Zwischenspeicher (W2-T06). Kein direkter GitHub-Zugriff mehr bei jedem Start.
                 await SetStatusTextAndWaitAsync(splash, UITexte.UITexte.Splash_SearchingForUpdate, DebugSleepTimer);
 
-                var updateService = new UpdateService();
-                var (latestVersion, assetUrl, changelog) = await updateService.GetLatestReleaseInfoAsync();
+                var updateCheckService = new UpdateCheckService(
+                    new ResilientReleaseResolver(ReleaseSources.CreateAppChain()),
+                    new UpdateCache(),
+                    () => DateTimeOffset.UtcNow);
 
-                bool updateAvailable = EvaluateUpdateAvailability(latestVersion) && assetUrl != null;
+                var checkResult = await updateCheckService.CheckAppAsync(force: false, CancellationToken.None);
 
-                if (updateAvailable)
+                if (ShouldOfferUpdate(checkResult))
                 {
-                    PendingUpdateInfo = (latestVersion!, assetUrl!, changelog ?? string.Empty);
-                    await SetStatusTextAndWaitAsync(splash, UITexte.UITexte.Splash_NoUpdate, DebugSleepTimer);
+                    var info = checkResult.Info!;
+                    PendingUpdateInfo = (info.Version.ToString(), info.DownloadUrl!, info.Changelog ?? string.Empty);
                 }
-                else
-                {
-                    await SetStatusTextAndWaitAsync(splash, UITexte.UITexte.Splash_NoUpdate, DebugSleepTimer);
-                }
+
+                await SetStatusTextAndWaitAsync(splash, UITexte.UITexte.Splash_NoUpdate, DebugSleepTimer);
+
                 // 2. Status: Voraussetzungen prüfen (nur Info, Download im MainWindow)
                 await SetStatusTextAndWaitAsync(splash, UITexte.UITexte.Splash_CheckingTools, DebugSleepTimer);
 
@@ -212,32 +215,16 @@ namespace MortysDLP
             }
         }
 
-        /// <summary>Prüft, ob ein Update angeboten werden soll, und protokolliert dabei immer
-        /// beide Versionen - auch im Normalfall. Diese Zeile wird bei jeder künftigen
-        /// Nutzermeldung als Erstes gebraucht.</summary>
-        private static bool EvaluateUpdateAvailability(string? latestVersion)
-        {
-            if (AppInfo.CurrentVersion is not { } current)
-            {
-                Log.Error("Eigene Version nicht ermittelbar - Update-Prüfung übersprungen.");
-                return false;
-            }
-
-            if (latestVersion == null)
-                return false;
-
-            if (!AppVersion.TryParse(latestVersion, out var latest))
-            {
-                Log.Warn($"Release-Tag nicht lesbar: '{latestVersion}'");
-                return false;
-            }
-
-            bool isNewer = latest > current;
-            Log.Info($"Versionsvergleich: laufend={AppInfo.Current}, neueste={latestVersion} " +
-                $"(Quelle GitHub) -> {(isNewer ? "Update verfügbar" : "kein Update")}");
-
-            return isNewer && !string.Equals(Settings.Default.VersionSkip, AppInfo.Current, StringComparison.Ordinal);
-        }
+        /// <summary>Trifft die ENTSCHEIDUNG, ob das Update angeboten wird — der Sachverhalt
+        /// ("es gibt etwas Neueres") kommt bereits fertig aus <see cref="UpdateCheckService"/>.
+        /// Zusätzlich zu <c>VersionSkip</c> gehört hierher auch die Prüfung auf eine
+        /// tatsächlich nutzbare Download-Adresse, da <see cref="UpdateCheckService"/> reine
+        /// Versionsermittlung ist. Ab W2-T09 übernimmt <c>UpdateDecision.ShouldOffer</c> diese
+        /// Zuständigkeit vollständig.</summary>
+        private static bool ShouldOfferUpdate(UpdateCheckResult result) =>
+            result.UpdateAvailable
+            && result.Info?.DownloadUrl != null
+            && !string.Equals(Settings.Default.VersionSkip, AppInfo.Current, StringComparison.Ordinal);
 
         public async Task StartUpdate()
         {

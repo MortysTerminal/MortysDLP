@@ -32,8 +32,9 @@ namespace MortysDLP.Services.Releases
         /// fehlt oder von <see cref="AppVersion.TryParse"/> nicht gelesen werden kann. Setzt
         /// <c>DownloadUrl</c>, <c>ExpectedSize</c> und <c>Sha256</c> bewusst nicht — welches
         /// Asset gemeint ist, entscheidet erst die Auswahl in W2-T07; hier wird nur die
-        /// vollständige Asset-Liste befüllt.</summary>
-        public static ReleaseInfo? TryParse(JsonElement release, string sourceName)
+        /// vollständige Asset-Liste befüllt. <paramref name="etag"/> ist die Kopfzeile der
+        /// GESAMTEN Antwort (W2-T06), nicht des einzelnen Release-Objekts.</summary>
+        public static ReleaseInfo? TryParse(JsonElement release, string sourceName, string? etag = null)
         {
             if (!release.TryGetProperty("tag_name", out var tagProp))
                 return null;
@@ -45,7 +46,7 @@ namespace MortysDLP.Services.Releases
                 ? bodyProp.GetString()
                 : null;
 
-            return new ReleaseInfo(version, null, changelog, null, null, sourceName, ExtractAssets(release));
+            return new ReleaseInfo(version, null, changelog, null, null, sourceName, ExtractAssets(release), etag);
         }
 
         private static IReadOnlyList<ReleaseAsset> ExtractAssets(JsonElement release)

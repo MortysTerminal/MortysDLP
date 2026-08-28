@@ -44,6 +44,12 @@ namespace MortysDLP.Helpers
 
         public static string HistoryFile => Path.Combine(DataDir, "download_history.json");
 
+        /// <summary>Zwischenspeicher der Update-Prüfung (W2-T06). Bewusst unter
+        /// <see cref="CacheDir"/> statt direkt unter <see cref="DataDir"/>, wie es der Entwurf
+        /// in <c>04-UPDATE-ARCHITEKTUR.md</c> noch vorsieht — alle Zwischenspeicher sollen an
+        /// einer Stelle liegen.</summary>
+        public static string UpdateCacheFile => Path.Combine(CacheDir, "update-cache.json");
+
         /// <summary>Legt die Nutzerverzeichnisse an und übernimmt einen vorhandenen
         /// Verlauf vom alten Speicherort. Beim Start einmal aufrufen.</summary>
         public static void EnsureDataDirs()
@@ -53,6 +59,21 @@ namespace MortysDLP.Helpers
             try { Directory.CreateDirectory(CacheDir); } catch { /* Best-Effort */ }
 
             MigrateHistoryFileIfNeeded();
+            RemoveObsoleteStartupCacheIfPresent();
+        }
+
+        /// <summary>Der nie instanziierte <c>StartupHealthCheckService</c> ist mit W2-T06
+        /// entfernt worden - eine vorhandene Datei aus früheren Installationen ist ab jetzt
+        /// bedeutungslos und würde bei der Fehlersuche nur verwirren.</summary>
+        private static void RemoveObsoleteStartupCacheIfPresent()
+        {
+            try
+            {
+                string path = Path.Combine(DataDir, "startup_cache.json");
+                if (File.Exists(path))
+                    File.Delete(path);
+            }
+            catch { /* Best-Effort */ }
         }
 
         private static void MigrateHistoryFileIfNeeded()

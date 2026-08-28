@@ -1,5 +1,6 @@
 using MortysDLP.Helpers;
 using System;
+using System.Net;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
@@ -10,7 +11,9 @@ namespace MortysDLP.Services.Releases
     /// <summary>
     /// Quelle 1: <c>GET /repos/{owner}/{repo}/releases/latest</c>. Die reichhaltigste Quelle
     /// (Version, Assets, Changelog) — aber mit GitHub-Kontingent (60/h/IP) und <c>404</c>, wenn
-    /// ein Repository nur Vorabversionen enthält.
+    /// ein Repository nur Vorabversionen enthält. Ist <see cref="ReleaseQuery.ETag"/> gesetzt,
+    /// wird es als <c>If-None-Match</c> mitgeschickt (W2-T06) — ein <c>304</c> kostet kein
+    /// Kontingent und wird als <see cref="ReleaseInfo.NotModified"/> gemeldet.
     /// </summary>
     internal sealed class GitHubApiLatestSource(HttpClient? client = null) : IReleaseSource
     {
@@ -30,9 +33,12 @@ namespace MortysDLP.Services.Releases
             try
             {
                 using var response = await Http.SendWithRetryAsync(
-                    _client, () => Http.CreateGitHubApiRequest(url), ct: ct);
+                    _client, () => CreateRequest(url, query.ETag), ct: ct);
 
                 GitHubRateLimit.Observe(response.Headers, DateTimeOffset.UtcNow);
+
+                if (response.StatusCode == HttpStatusCode.NotModified)
+                    return new ReleaseInfo(default, null, null, null, null, Name, [], query.ETag, NotModified: true);
 
                 if (!response.IsSuccessStatusCode)
                     return null;
@@ -44,7 +50,7 @@ namespace MortysDLP.Services.Releases
                 }
 
                 string json = await response.Content.ReadAsStringAsync(ct);
-                return ParseRelease(json);
+                return ParseRelease(json, response.Headers.ETag?.Tag);
             }
             catch (OperationCanceledException)
             {
@@ -57,17 +63,25 @@ namespace MortysDLP.Services.Releases
             }
         }
 
-        internal ReleaseInfo? ParseRelease(string json)
+        internal ReleaseInfo? ParseRelease(string json, string? etag = null)
         {
             try
             {
                 using var doc = JsonDocument.Parse(json);
-                return GitHubApiReleaseJson.TryParse(doc.RootElement, Name);
+                return GitHubApiReleaseJson.TryParse(doc.RootElement, Name, etag);
             }
             catch (JsonException)
             {
                 return null;
             }
+        }
+
+        private static HttpRequestMessage CreateRequest(string url, string? etag)
+        {
+            var request = Http.CreateGitHubApiRequest(url);
+            if (!string.IsNullOrEmpty(etag))
+                request.Headers.TryAddWithoutValidation("If-None-Match", etag);
+            return request;
         }
     }
 }

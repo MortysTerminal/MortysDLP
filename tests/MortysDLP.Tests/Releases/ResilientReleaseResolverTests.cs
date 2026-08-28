@@ -148,6 +148,26 @@ public class ResilientReleaseResolverTests : IDisposable
     }
 
     [Fact]
+    public async Task ResolveAsync_QuelleMeldetUnveraendert_BeendetKetteSofortUnabhaengigVonStaleness()
+    {
+        // Nicht-primär und mit einer (bedeutungslosen) Version <= current - würde nach der
+        // normalen Regel zurückgehalten. NotModified muss das übersteuern: die Kette darf
+        // nicht weiterfragen, sondern muss die 304-Bestätigung sofort durchreichen.
+        var current = AppVersion.Parse("2026.06.01");
+        var notModified = new FakeReleaseSource(
+            "quelle", isAuthoritative: false, result: MakeInfo("2026.01.01") with { NotModified = true });
+        var never = new FakeReleaseSource("never", result: MakeInfo("2026.09.01"));
+        var resolver = new ResilientReleaseResolver([notModified, never]);
+
+        var info = await resolver.ResolveAsync(Query, current, CancellationToken.None);
+
+        Assert.NotNull(info);
+        Assert.True(info!.NotModified);
+        Assert.Equal(1, notModified.CallCount);
+        Assert.Equal(0, never.CallCount);
+    }
+
+    [Fact]
     public async Task ResolveAsync_CurrentIstNull_ErsteAntwortGewinntUnabhaengigVonAuthoritative()
     {
         var s1 = new FakeReleaseSource("s1", isAuthoritative: false, result: MakeInfo("2026.01.01"));

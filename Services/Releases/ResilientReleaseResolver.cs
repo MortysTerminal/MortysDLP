@@ -24,6 +24,12 @@ namespace MortysDLP.Services.Releases
     /// nicht <c>null</c>. Eine primäre Quelle beendet die Kette dagegen immer sofort, auch mit
     /// „gleich oder älter" — der Normalfall (API antwortet, kein Update) darf keine
     /// zusätzliche Anfrage kosten. Ist <c>current</c> <c>null</c>, greift die Regel nicht.
+    ///
+    /// Meldet eine Quelle <see cref="ReleaseInfo.NotModified"/> (W2-T06, <c>304</c> auf ein
+    /// mitgeschicktes <c>ETag</c>), wird das unabhängig von allem anderen sofort
+    /// zurückgegeben — der Rückgabewert trägt dann keinen brauchbaren Versionswert, sondern
+    /// ist ausschließlich die Bestätigung „unverändert" für den Aufrufer, der den
+    /// zugehörigen Zwischenspeicher-Eintrag kennt.
     /// </summary>
     internal sealed class ResilientReleaseResolver(
         IReadOnlyList<IReleaseSource> sources,
@@ -80,6 +86,17 @@ namespace MortysDLP.Services.Releases
                 {
                     Log.Warn($"Quelle '{source.Name}' lieferte kein Ergebnis.");
                     continue;
+                }
+
+                if (info.NotModified)
+                {
+                    // 304 (W2-T06): bestätigt nur, dass sich seit dem mitgeschickten ETag
+                    // nichts geändert hat - kein echter Versionswert, also nie über die
+                    // Regel gegen veraltete Antworten laufen lassen. Der Aufrufer
+                    // (UpdateCheckService) kennt den zugehörigen Zwischenspeicher-Eintrag und
+                    // bestätigt ihn selbst.
+                    Log.Info($"Quelle '{source.Name}' meldet: unverändert (304).");
+                    return info;
                 }
 
                 if (!source.IsAuthoritative && current is { } currentVersion && info.Version <= currentVersion)

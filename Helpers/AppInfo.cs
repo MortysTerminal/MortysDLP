@@ -18,8 +18,16 @@ namespace MortysDLP.Helpers
         /// <summary>Dieselbe Version als vergleichbarer Typ. <c>null</c> bedeutet: unbekannt —
         /// dann darf KEIN Update angeboten werden. Kein Rückfall auf "0.0.0": Das würde die
         /// Anwendung für älter als jedes Release halten und ihr ein Update anbieten, das
-        /// nichts ändert.</summary>
-        public static AppVersion? CurrentVersion { get; } = ParseCurrent();
+        /// nichts ändert. Settable nur, damit Tests den Fall "eigene Version unbekannt"
+        /// simulieren können, ohne den Build zu manipulieren — <see cref="ResetForTests"/>
+        /// stellt danach den echten, einmalig ermittelten Wert wieder her.</summary>
+        public static AppVersion? CurrentVersion { get; internal set; } = ParseCurrent();
+
+        private static readonly AppVersion? ComputedCurrentVersion = CurrentVersion;
+
+        /// <summary>Nur für Tests: setzt <see cref="CurrentVersion"/> auf den tatsächlich aus
+        /// der Assembly ermittelten Wert zurück, nachdem ein Test ihn überschrieben hat.</summary>
+        internal static void ResetForTests() => CurrentVersion = ComputedCurrentVersion;
 
         private static string? ReadInformationalVersion()
         {

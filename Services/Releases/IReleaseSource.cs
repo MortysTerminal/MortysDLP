@@ -33,17 +33,28 @@ namespace MortysDLP.Services.Releases
     /// Namensmuster, URL-Vorlage) kommt ausschließlich hierüber herein — keine Quelle darf
     /// eigene Annahmen über ein bestimmtes Repository treffen, sonst lässt sie sich in
     /// Welle 4 nicht für die anderen Werkzeuge wiederverwenden.</summary>
+    /// <param name="ETag">Zuletzt bekannter <c>ETag</c> dieser Abfrage (W2-T06). Gesetzt, senden
+    /// die beiden GitHub-API-Quellen <c>If-None-Match</c> — eine Bestätigung per <c>304</c>
+    /// kostet kein Kontingent.</param>
     internal sealed record ReleaseQuery(
         string Owner,
         string Repo,
         string? AssetPattern = null,
         string? DownloadUrlTemplate = null,
-        bool AllowPrerelease = false);
+        bool AllowPrerelease = false,
+        string? ETag = null);
 
     /// <summary>Ergebnis einer Quelle. Führt bewusst nur die geparste <see cref="AppVersion"/>,
     /// keine Roh-Zeichenkette des Tags (Befund U-15) — jede Quelle schreibt den Tag anders,
     /// die Anzeige darf sich nicht danach richten, welche Quelle geantwortet hat. Wer anzeigt,
     /// protokolliert oder speichert, nimmt <c>Version.ToString()</c>.</summary>
+    /// <param name="ETag"><c>ETag</c> der Antwort, zum Zwischenspeichern (W2-T06). <c>null</c>,
+    /// wenn die Quelle keine Kopfzeile mitschickt.</param>
+    /// <param name="NotModified">true nur, wenn diese Antwort aus einem <c>304 Not Modified</c>
+    /// stammt — dann sind alle anderen Felder außer <see cref="ETag"/> und
+    /// <see cref="SourceName"/> bedeutungslos. Der Aufrufer (<c>UpdateCheckService</c>)
+    /// bestätigt in diesem Fall den vorhandenen Zwischenspeicher-Eintrag, statt ihn zu
+    /// ersetzen.</param>
     internal sealed record ReleaseInfo(
         AppVersion Version,
         string? DownloadUrl,
@@ -51,7 +62,9 @@ namespace MortysDLP.Services.Releases
         long? ExpectedSize,
         string? Sha256,
         string SourceName,
-        IReadOnlyList<ReleaseAsset> Assets);
+        IReadOnlyList<ReleaseAsset> Assets,
+        string? ETag = null,
+        bool NotModified = false);
 
     /// <summary>Ein Release-Anhang, wie eine Quelle mit Asset-Information ihn kennt. Auswahl
     /// nach Namensmuster und Prüfsumme sind nicht Teil dieser Aufgabe (→ W2-T07) — hier wird

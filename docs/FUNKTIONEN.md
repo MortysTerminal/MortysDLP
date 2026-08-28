@@ -47,7 +47,10 @@ Ablauf beim Start (`App.OnStartup`):
 1. **Sprache setzen** — aus der Einstellung `SelectedLanguage` (`auto`/`de`/`en`); bei `auto`
    aus der Windows-Anzeigesprache.
 2. **Startbildschirm** mit rotierendem Ladesymbol und Statustext erscheint.
-3. **Suche nach App-Update** — GitHub-Release-API wird abgefragt. Ist eine neuere Version
+3. **Suche nach App-Update** — höchstens alle 6 Stunden wird tatsächlich online geprüft;
+   dazwischen kommt das Ergebnis aus einem Zwischenspeicher, ganz ohne Netzzugriff. Mehrere
+   unabhängige Quellen werden der Reihe nach befragt, falls die erste ausfällt oder überlastet
+   ist; ohne Internet gilt der zuletzt bekannte Stand weiter. Ist eine neuere Version
    verfügbar, wird sie gemerkt (der Banner erscheint später im Hauptfenster).
 4. **Installationsort prüfen** — läuft MortysDLP erkennbar direkt aus der ZIP-Vorschau des
    Explorers (also aus einem temporären Ordner, der beim Schließen verschwindet), erscheint
@@ -63,8 +66,10 @@ Ablauf beim Start (`App.OnStartup`):
 7. Im Hintergrund werden alte Temp-Dateien früherer Downloads aufgeräumt
    (`ffmpeg_download_*.zip`, `extract_*`).
 
-> **Bekannte Einschränkung:** Alle Prüfungen laufen nacheinander und bei jedem Start neu; die
-> yt-dlp-Release-API wird dabei zweimal abgefragt.
+> **Bekannte Einschränkung:** Alle Prüfungen laufen nacheinander; die yt-dlp-Release-API wird
+> dabei zweimal abgefragt. Die App-Update-Prüfung selbst ist seit Kurzem zwischengespeichert
+> (siehe oben) und dadurch beim wiederholten Starten meist ein reiner Zwischenspeicher-Treffer
+> ohne Netzzugriff.
 
 **Fehlerbehandlung:** Ein unerwarteter Fehler beendet MortysDLP nicht mehr wortlos. Er wird in
 einer Protokolldatei festgehalten (siehe Abschnitt 13) und in einem Dialog mit verständlichem
@@ -319,8 +324,9 @@ Wandelt Videos in animierte GIFs.
 
 ## 12. Selbst-Update
 
-1. Beim Start wird die GitHub-Release-API abgefragt und die neueste Version mit der eigenen
-   verglichen.
+1. Beim Start wird höchstens alle 6 Stunden online geprüft (mehrere unabhängige Quellen als
+   Ausweiche) und die neueste Version mit der eigenen verglichen; dazwischen zählt der
+   Zwischenspeicher.
 2. Bei einer neueren Version erscheint im Hauptfenster ein Banner.
 3. Ein Klick öffnet ein Fenster mit den Release-Notizen; dort „Jetzt aktualisieren" oder
    „Später".
@@ -347,5 +353,5 @@ Wandelt Videos in animierte GIFs.
 | Download-Verlauf | `%LOCALAPPDATA%\MortysDLP\download_history.json` |
 | Einstellungen | `%LOCALAPPDATA%\MortysDLP\MortysDLP.exe_*\<Version>\user.config` |
 | Protokolle | `%LOCALAPPDATA%\MortysDLP\logs\mortysdlp-JJJJ-MM-TT.log` (14 Tage bzw. 10 MB je Datei) |
-| Startcache | `%LOCALAPPDATA%\MortysDLP\startup_cache.json` (angelegt, aber ungenutzt) |
+| Update-Zwischenspeicher | `%LOCALAPPDATA%\MortysDLP\cache\update-cache.json` |
 | Temporäres | `%TEMP%` (`ffmpeg_download_*.zip`, `extract_*`, `whisper_audio_*.wav`) |
