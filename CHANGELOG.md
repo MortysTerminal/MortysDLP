@@ -117,6 +117,10 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
   Jetzt erscheint sie genau einmal, stderr-Zeilen weiterhin erkennbar markiert.
 
 ### Intern
+- Der Installations-Updater bekommt einen eigenen, vollständigen Quellcode (bislang ein
+  Binary ohne Quellcode) und läuft künftig auf derselben .NET-Version wie die Hauptanwendung.
+  Bislang nur das Grundgerüst (Kommandozeilenargumente, eigenes Protokoll) — der eigentliche
+  Update-Ablauf wird ausgeliefert, sobald er vollständig ist.
 - Alle Netzabfragen laufen jetzt über eine gemeinsame Verbindungsverwaltung statt über fünf
   getrennte, jeweils eigene Verbindungen aufbauende Instanzen. Mit umfangreicher
   Testabdeckung für die Wiederholstrategie und die GitHub-Kontingent-Auswertung.
