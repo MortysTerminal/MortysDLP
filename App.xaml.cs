@@ -5,6 +5,7 @@ using MortysDLP.Services.Releases;
 using System.Configuration;
 using System.Diagnostics;
 using System.IO;
+using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,9 +20,16 @@ namespace MortysDLP
     {
         /// <summary>
         /// Wenn beim Start ein Update gefunden wurde, wird hier die Info hinterlegt.
-        /// Das MainWindow liest dies und zeigt den Update-Banner an.
+        /// Das MainWindow liest <c>Version</c>/<c>Changelog</c> für den Update-Banner.
+        /// <c>Assets</c>/<c>Sha256</c>/<c>ExpectedSize</c> sind seit W2-T07 dabei, damit
+        /// <see cref="StartUpdateCore"/> das richtige Asset wählen und den Download
+        /// verifizieren kann, ohne die Update-Prüfung zu wiederholen. <c>AssetUrl</c> bleibt
+        /// der Rückfallwert, wenn <c>Assets</c> leer ist (Atom-Feed, Weiterleitung,
+        /// <c>version.json</c> kennen keine Asset-Liste).
         /// </summary>
-        public (string Version, string AssetUrl, string Changelog)? PendingUpdateInfo { get; private set; }
+        internal (string Version, string AssetUrl, string Changelog,
+            IReadOnlyList<ReleaseAsset> Assets, string? Sha256, long? ExpectedSize)? PendingUpdateInfo
+        { get; private set; }
 
         /* 
          * DEBUG
@@ -72,7 +80,8 @@ namespace MortysDLP
                 if (ShouldOfferUpdate(checkResult))
                 {
                     var info = checkResult.Info!;
-                    PendingUpdateInfo = (info.Version.ToString(), info.DownloadUrl!, info.Changelog ?? string.Empty);
+                    PendingUpdateInfo = (info.Version.ToString(), info.DownloadUrl!, info.Changelog ?? string.Empty,
+                        info.Assets, info.Sha256, info.ExpectedSize);
                 }
 
                 await SetStatusTextAndWaitAsync(splash, UITexte.UITexte.Splash_NoUpdate, DebugSleepTimer);
@@ -226,16 +235,26 @@ namespace MortysDLP
             && result.Info?.DownloadUrl != null
             && !string.Equals(Settings.Default.VersionSkip, AppInfo.Current, StringComparison.Ordinal);
 
+        /// <summary>Namensmuster für das App-Update-Paket. Platzhalterfrei ergibt es
+        /// <c>"MortysDLP.zip"</c> — genau der Name, den <see cref="AssetSelector"/> bei
+        /// mehreren Treffern bevorzugt (siehe dort).</summary>
+        private const string MainAssetPattern = "MortysDLP*.zip";
+
         public async Task StartUpdate()
         {
-            // PendingUpdateInfo nutzen statt erneut die API aufzurufen
+            // PendingUpdateInfo nutzen statt die Update-Prüfung zu wiederholen.
             if (PendingUpdateInfo is not { } info || string.IsNullOrEmpty(info.AssetUrl))
             {
-                // Fallback: Wenn kein PendingUpdateInfo vorhanden, nochmal prüfen
-                var updateService = new UpdateService();
-                var (_, assetUrl, _) = await updateService.GetLatestReleaseInfoAsync();
+                // Fallback: kein PendingUpdateInfo vorhanden (z. B. MainWindow ohne
+                // vorangegangenen Startpfad) - erneut über dieselbe Ausweichkette prüfen,
+                // erzwungen statt aus dem Zwischenspeicher.
+                var updateCheckService = new UpdateCheckService(
+                    new ResilientReleaseResolver(ReleaseSources.CreateAppChain()),
+                    new UpdateCache(),
+                    () => DateTimeOffset.UtcNow);
+                var result = await updateCheckService.CheckAppAsync(force: true, CancellationToken.None);
 
-                if (assetUrl is null)
+                if (result.Info?.DownloadUrl is not { } assetUrl)
                 {
                     MessageBox.Show(
                         UITexte.UITexte.Error_UpdateNotAvailable,
@@ -244,26 +263,97 @@ namespace MortysDLP
                     return;
                 }
 
-                await StartUpdateCore(assetUrl);
+                await StartUpdateCore(assetUrl, result.Info.Assets, result.Info.Sha256, result.Info.ExpectedSize);
                 return;
             }
 
-            await StartUpdateCore(info.AssetUrl);
+            await StartUpdateCore(info.AssetUrl, info.Assets, info.Sha256, info.ExpectedSize);
         }
 
-        private async Task StartUpdateCore(string assetUrl)
+        /// <summary>Sucht das gemeinte Anhang in <paramref name="assets"/> (leer bei Quellen
+        /// ohne Asset-Information — dann bleibt <paramref name="fallbackAssetUrl"/> gültig),
+        /// beschafft dazu wenn möglich die Prüfsumme aus <c>checksums.txt</c> im Release und
+        /// lädt erst danach herunter. <paramref name="knownSha256"/>/<paramref name="knownSize"/>
+        /// kommen von <c>version.json</c>, falls diese Quelle geantwortet hat, und haben
+        /// Vorrang vor <c>checksums.txt</c> nur, wenn beide vorhanden wären — praktisch
+        /// schließen sie sich aus, da nur eine Quelle je Prüfung antwortet.</summary>
+        private async Task StartUpdateCore(
+            string fallbackAssetUrl, IReadOnlyList<ReleaseAsset> assets, string? knownSha256, long? knownSize)
         {
             try
             {
+                string assetUrl = fallbackAssetUrl;
+                string? expectedSha256 = knownSha256;
+                long? expectedSize = knownSize;
+
+                if (assets.Count > 0)
+                {
+                    ReleaseAsset? selected;
+                    try
+                    {
+                        selected = AssetSelector.Select(assets, MainAssetPattern);
+                    }
+                    catch (AssetAmbiguousException ex)
+                    {
+                        string candidateNames = string.Join(", ", ex.CandidateNames);
+                        Log.Error($"Mehrere passende Update-Pakete gefunden: {candidateNames}");
+                        MessageBox.Show(
+                            UITexte.UITextDictionary.Get("Update.Error.AssetAmbiguous")
+                                .Replace("{0}", candidateNames, StringComparison.Ordinal),
+                            UITexte.UITexte.Error, MessageBoxButton.OK, MessageBoxImage.Error);
+                        return;
+                    }
+
+                    if (selected is null)
+                    {
+                        MessageBox.Show(
+                            UITexte.UITextDictionary.Get("Update.Error.AssetNotFound"),
+                            UITexte.UITexte.Error, MessageBoxButton.OK, MessageBoxImage.Warning);
+                        return;
+                    }
+
+                    assetUrl = selected.Url;
+                    if (expectedSize is null && selected.Size > 0)
+                        expectedSize = selected.Size;
+                    if (string.IsNullOrEmpty(expectedSha256))
+                        expectedSha256 = await TryFetchChecksumFromAssetsAsync(assets, selected.Name, CancellationToken.None);
+                }
+
+                if (string.IsNullOrEmpty(assetUrl))
+                {
+                    MessageBox.Show(
+                        UITexte.UITexte.Error_UpdateNotAvailable,
+                        UITexte.UITexte.Error, MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
                 // 1. Sicheren Temp-Pfad ermitteln (mit Fallback-Verzeichnissen)
                 string tempDir = UpdateService.GetSafeTempDirectory();
                 string tempZipPath = Path.Combine(tempDir, Settings.Default.MortysDLPUpdateZipFile);
 
-                // 2. Download mit Retry
-                await UpdateService.DownloadAssetAsync(assetUrl, tempZipPath);
+                // 2. Download mit Retry, streamender Prüfsumme und Größenabgleich (W2-T07) -
+                // erst nach bestandener Prüfung trägt die Datei ihren endgültigen Namen.
+                try
+                {
+                    var verification = await VerifiedDownload.ToFileAsync(
+                        assetUrl, tempZipPath, expectedSha256, expectedSize, progress: null, CancellationToken.None);
 
-                // 3. ZIP-Integrität prüfen
-                if (!UpdateService.ValidateZipIntegrity(tempZipPath))
+                    if (!verification.ChecksumChecked)
+                        Log.Warn(UITexte.UITextDictionary.Get("Update.Warning.NoChecksum"));
+                }
+                catch (ChecksumMismatchException ex)
+                {
+                    Log.Error($"Update-Prüfsumme stimmt nicht überein. Erwartet: {ex.Expected}, " +
+                        $"tatsächlich: {ex.Actual}");
+                    MessageBox.Show(
+                        UITexte.UITextDictionary.Get("Update.Error.ChecksumMismatch"),
+                        UITexte.UITexte.Error, MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                // 3. ZIP-Grundprüfung: enthält den erwarteten Haupteintrag, nicht nur
+                // "irgendeine .exe" (Befund K-05)
+                if (!UpdateService.ValidateZipContainsMainExe(tempZipPath, Settings.Default.MortysDLPExeFile))
                 {
                     try { if (File.Exists(tempZipPath)) File.Delete(tempZipPath); } catch { }
                     MessageBox.Show(
@@ -330,6 +420,38 @@ namespace MortysDLP
                     string.Format(UITexte.UITexte.Error_UpdateFailed, ex.Message),
                     UITexte.UITexte.Error,
                     MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        /// <summary>Sucht ein Asset namens <c>checksums.txt</c> im selben Release und liefert
+        /// die darin für <paramref name="fileName"/> hinterlegte Prüfsumme — oder <c>null</c>,
+        /// wenn es keine solche Datei gibt, sie nicht lesbar ist oder keinen Eintrag für die
+        /// Datei enthält. Wirft nie: Ein Netzwerkfehler beim Lesen der Prüfsummendatei darf
+        /// das Update nicht verhindern, nur die Prüfsumme unbekannt lassen.</summary>
+        private static async Task<string?> TryFetchChecksumFromAssetsAsync(
+            IReadOnlyList<ReleaseAsset> assets, string fileName, CancellationToken ct)
+        {
+            var checksumsAsset = assets.FirstOrDefault(a =>
+                string.Equals(a.Name, "checksums.txt", StringComparison.OrdinalIgnoreCase));
+            if (checksumsAsset is null)
+                return null;
+
+            try
+            {
+                UrlSafety.EnsureAllowed(new Uri(checksumsAsset.Url));
+
+                using var response = await Http.SendWithRetryAsync(
+                    Http.Shared, () => new HttpRequestMessage(HttpMethod.Get, checksumsAsset.Url), ct: ct);
+                if (!response.IsSuccessStatusCode)
+                    return null;
+
+                string content = await response.Content.ReadAsStringAsync(ct);
+                return ChecksumFile.Find(content, fileName);
+            }
+            catch (Exception ex)
+            {
+                Log.Warn("checksums.txt konnte nicht gelesen werden.", ex);
+                return null;
             }
         }
 

@@ -26,6 +26,11 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
 ## [Unreleased]
 
 ### Sicherheit
+- Heruntergeladene Update-Pakete werden jetzt vor der Installation gegen eine Prüfsumme und
+  die erwartete Größe geprüft — die Prüfung läuft mit, während die Datei geschrieben wird,
+  nicht erst hinterher. Stimmt etwas nicht, bricht das Update ab, die vorhandene Installation
+  bleibt unangetastet. Ist für ein Release ausnahmsweise keine Prüfsumme hinterlegt, bleibt
+  das Update möglich (nur die Größe wird geprüft) — mit einer deutlichen Zeile im Protokoll.
 - Härtung der Argumentübergabe an externe Werkzeuge (yt-dlp, ffmpeg, ffprobe,
   TwitchDownloaderCLI, whisper.cpp). Kopierte URLs oder Videotitel mit ungewöhnlichen
   Sonderzeichen können externen Werkzeugen nicht mehr zusätzliche, nicht beabsichtigte
@@ -55,6 +60,10 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
   verfügbar" zu melden.
 
 ### Behoben
+- Enthält ein Release mehr als eine Datei (z. B. zusätzlich eine Prüfsummenliste), lädt
+  MortysDLP jetzt zuverlässig das richtige Update-Paket — unabhängig davon, in welcher
+  Reihenfolge GitHub die Anhänge nennt. Sind mehrere Pakete gleichermaßen passend und keines
+  eindeutig das richtige, bricht MortysDLP mit einer verständlichen Meldung ab, statt zu raten.
 - Nach der Installation eines Updates zeigt MortysDLP jetzt die neue Versionsnummer an, und
   der Update-Hinweis erscheint nicht mehr wiederholt, obwohl das Update längst installiert
   ist. Gespeicherte Einstellungen (Download-Pfad, Sprache, Bandbreitenlimit usw.) bleiben

@@ -1,107 +1,18 @@
-﻿using MortysDLP.Helpers;
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Net.Http;
-using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Reflection;
 
 namespace MortysDLP.Services
 {
+    /// <summary>
+    /// Hilfsfunktionen rund um das App-Update, die nichts mit der Versionsermittlung zu tun
+    /// haben (die läuft seit W2-T04a–T06 über <c>Services/Releases/*</c> und
+    /// <see cref="UpdateCheckService"/>). Download und Prüfung übernimmt seit W2-T07
+    /// <see cref="VerifiedDownload"/>.
+    /// </summary>
     internal class UpdateService
     {
-        private string GitHubApiUrl = Properties.Settings.Default.MortysDLPGitHubAPIURL;
-
-        private const int DownloadBufferSize = 81920;
-
-        public async Task<(string? version, string? assetUrl, string? changelog)> GetLatestReleaseInfoAsync()
-        {
-            if (GitHubRateLimit.IsExhausted(DateTimeOffset.UtcNow))
-                return (null, null, null);
-
-            try
-            {
-                using var response = await Http.SendWithRetryAsync(
-                    Http.Shared, () => Http.CreateGitHubApiRequest(GitHubApiUrl));
-                GitHubRateLimit.Observe(response.Headers, DateTimeOffset.UtcNow);
-
-                if (!response.IsSuccessStatusCode)
-                    return (null, null, null);
-
-                var json = await response.Content.ReadAsStringAsync();
-                using var doc = JsonDocument.Parse(json);
-
-                string? version = doc.RootElement.GetProperty("tag_name").GetString();
-                string? assetUrl = null;
-                string? changelog = null;
-
-                if (doc.RootElement.TryGetProperty("assets", out var assets) && assets.GetArrayLength() > 0)
-                {
-                    assetUrl = assets[0].GetProperty("browser_download_url").GetString();
-                }
-
-                if (doc.RootElement.TryGetProperty("body", out var body))
-                {
-                    changelog = body.GetString();
-                }
-
-                return (version, assetUrl, changelog);
-            }
-            catch
-            {
-                return (null, null, null);
-            }
-        }
-
-        public Version GetCurrentVersion()
-        {
-            return Assembly.GetExecutingAssembly().GetName().Version ?? new Version(0, 0, 0, 0);
-        }
-
-        public bool IsNewerVersion(string latestVersion)
-        {
-            if (Version.TryParse(latestVersion.TrimStart('v', 'V'), out var latest))
-            {
-                return latest > GetCurrentVersion();
-            }
-            return false;
-        }
-
-        /// <summary>
-        /// Lädt ein Asset mit Fortschrittsanzeige herunter. Wiederholversuche laufen über
-        /// <see cref="Http.SendWithRetryAsync"/> — nur für den Verbindungsaufbau/die
-        /// Kopfzeilen, nicht mehr blind für jeden Fehler wie zuvor (ein 404 wurde früher
-        /// dreimal wiederholt, ohne je zu einem anderen Ergebnis zu führen).
-        /// </summary>
-        public static async Task DownloadAssetAsync(string url, string targetPath, IProgress<double>? progress = null, CancellationToken ct = default)
-        {
-            using var response = await Http.SendWithRetryAsync(
-                Http.Shared, () => new HttpRequestMessage(HttpMethod.Get, url), ct: ct);
-            response.EnsureSuccessStatusCode();
-
-            long totalBytes = response.Content.Headers.ContentLength ?? -1;
-            long bytesRead = 0;
-
-            await using var contentStream = await response.Content.ReadAsStreamAsync(ct);
-            await using var fileStream = new FileStream(targetPath, FileMode.Create, FileAccess.Write, FileShare.None, DownloadBufferSize, useAsync: true);
-
-            var buffer = new byte[DownloadBufferSize];
-            int read;
-
-            while ((read = await contentStream.ReadAsync(buffer, ct)) > 0)
-            {
-                await fileStream.WriteAsync(buffer.AsMemory(0, read), ct);
-                bytesRead += read;
-
-                if (totalBytes > 0)
-                    progress?.Report((double)bytesRead / totalBytes * 100);
-            }
-        }
-
         /// <summary>
         /// Ermittelt ein sicheres, beschreibbares temporäres Verzeichnis mit Fallback-Kandidaten.
         /// </summary>
@@ -142,15 +53,20 @@ namespace MortysDLP.Services
         }
 
         /// <summary>
-        /// Prüft ob die heruntergeladene ZIP-Datei gültig ist und mindestens eine EXE enthält.
+        /// Prüft, ob die heruntergeladene ZIP-Datei lesbar ist und den erwarteten Haupteintrag
+        /// enthält. Ersetzt die frühere "irgendeine .exe"-Prüfung (Befund K-05): Ein zweites
+        /// Asset im Release (Screenshot, portable Variante) ließ diese bisher fälschlich
+        /// bestehen. Weitergehende Sicherheitsprüfungen (Zip-Slip, Eintragsanzahl,
+        /// Gesamtgröße) macht der Updater beim Entpacken (W3-T03) — hier geht es nur darum,
+        /// ein offensichtlich unbrauchbares Paket vor dem Neustart zu erkennen.
         /// </summary>
-        public static bool ValidateZipIntegrity(string zipPath)
+        public static bool ValidateZipContainsMainExe(string zipPath, string mainExeName)
         {
             try
             {
                 using var archive = ZipFile.OpenRead(zipPath);
                 return archive.Entries.Any(e =>
-                    e.FullName.EndsWith(".exe", StringComparison.OrdinalIgnoreCase));
+                    string.Equals(e.Name, mainExeName, StringComparison.OrdinalIgnoreCase));
             }
             catch
             {

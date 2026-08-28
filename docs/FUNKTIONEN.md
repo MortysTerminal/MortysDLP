@@ -330,11 +330,21 @@ Wandelt Videos in animierte GIFs.
 2. Bei einer neueren Version erscheint im Hauptfenster ein Banner.
 3. Ein Klick öffnet ein Fenster mit den Release-Notizen; dort „Jetzt aktualisieren" oder
    „Später".
-4. Das ZIP wird in einen beschreibbaren Temp-Ordner geladen (mit Wiederholversuchen und
-   exponentiellem Backoff) und geprüft, ob es eine EXE enthält.
-5. Der Updater wird nach Temp kopiert und mit
+4. Enthält das Release mehrere Anhänge (z. B. zusätzlich eine Prüfsummenliste), wählt
+   MortysDLP gezielt das richtige Update-Paket aus — nicht einfach den ersten Eintrag. Sind
+   mehrere Pakete gleichermaßen passend und keines eindeutig das richtige, bricht die
+   Anwendung mit einer verständlichen Meldung ab, statt zu raten.
+5. Das Paket wird in einen beschreibbaren Temp-Ordner geladen (mit Wiederholversuchen und
+   exponentiellem Backoff) und dabei laufend gegen eine Prüfsumme und die erwartete Größe
+   geprüft — bevor es seinen endgültigen Namen erhält. Stimmt etwas nicht, wird die
+   heruntergeladene Datei verworfen und das Update abgebrochen; die vorhandene Installation
+   bleibt unangetastet. Ist ausnahmsweise keine Prüfsumme bekannt, bleibt das Update möglich
+   und nur die Größe wird geprüft.
+6. Zusätzlich wird geprüft, dass das Paket lesbar ist und tatsächlich die Hauptanwendung
+   enthält.
+7. Der Updater wird nach Temp kopiert und mit
    `<ExeName> <ZipPfad> <Zielordner> <ProzessId>` gestartet.
-6. Die App beendet sich; der Updater wartet auf das Prozessende, entpackt und startet die
+8. Die App beendet sich; der Updater wartet auf das Prozessende, entpackt und startet die
    App neu.
 
 > **Bekannte Einschränkungen:** Beim Herunterladen des Updates gibt es keine Fortschrittsanzeige

@@ -552,6 +552,12 @@ namespace MortysDLP.UITexte
 
             // Main Window Navigation
             ["MainWindow.Nav.TwitchDownload"]         = "Twitch Video + Chat",
+
+            // Update-Verifikation (W2-T07)
+            ["Update.Error.AssetNotFound"]     = "Für dieses Release wurde kein passendes Update-Paket gefunden.",
+            ["Update.Error.AssetAmbiguous"]    = "Es gibt mehrere passende Update-Pakete ({0}) — keine eindeutige Auswahl möglich. Bitte das Paket manuell von GitHub herunterladen.",
+            ["Update.Error.ChecksumMismatch"]  = "Die heruntergeladene Datei stimmt nicht mit der erwarteten Prüfsumme überein. Das Update wurde abgebrochen, die vorhandene Installation ist unverändert.",
+            ["Update.Warning.NoChecksum"]      = "Für dieses Update ist keine Prüfsumme verfügbar — nur die Dateigröße wird geprüft.",
         };
 
         // English
@@ -1082,6 +1088,12 @@ namespace MortysDLP.UITexte
 
             // Main Window Navigation
             ["MainWindow.Nav.TwitchDownload"]         = "Twitch Vid+Chat",
+
+            // Update verification (W2-T07)
+            ["Update.Error.AssetNotFound"]     = "No matching update package was found for this release.",
+            ["Update.Error.AssetAmbiguous"]    = "Several matching update packages were found ({0}) — no unambiguous choice possible. Please download the package manually from GitHub.",
+            ["Update.Error.ChecksumMismatch"]  = "The downloaded file does not match the expected checksum. The update was cancelled, the existing installation is unchanged.",
+            ["Update.Warning.NoChecksum"]      = "No checksum is available for this update — only the file size is checked.",
         };
 
         public static void SetLanguage(string language)
