@@ -103,6 +103,11 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
   angesprochen wird, weist die Startprotokollzeile zum Installationsort dies jetzt als
   `Network` aus. Bisher fehlte diese Angabe ausgerechnet beim Installationsort, der am
   häufigsten Probleme macht.
+- Vier voneinander unabhängige Wege sind vorbereitet, mit denen sich die neueste
+  verfügbare Version ermitteln lässt (u. a. über die GitHub-Veröffentlichungsseite und einen
+  Nachrichten-Feed) — noch nicht in die Update-Prüfung eingebaut. Dazu eine Zielprüfung für
+  Netzwerkanfragen, die nur bekannte, verschlüsselte Adressen zulässt. Mit umfangreicher
+  Testabdeckung, ohne echten Netzzugriff.
 - Testabdeckung für die Grundbausteine (Pfad-/Dateinamensbehandlung, Protokollierung,
   Debug-Puffer, Installationsort-Erkennung, Prozessausführung) erweitert und gegen die
   wichtigsten Randfälle abgesichert.

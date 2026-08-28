@@ -31,6 +31,9 @@ mono_crash.*
 [Dd]ebugPublic/
 [Rr]elease/
 [Rr]eleases/
+# Kein Build-Ordner: eigener Quellcode-Namensraum für Update-Release-Quellen (W2-T04a)
+!Services/Releases/
+!tests/MortysDLP.Tests/Releases/
 x64/
 x86/
 [Ww][Ii][Nn]32/

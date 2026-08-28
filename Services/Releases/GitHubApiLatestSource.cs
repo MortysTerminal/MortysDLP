@@ -1,0 +1,73 @@
+using MortysDLP.Helpers;
+using System;
+using System.Net.Http;
+using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace MortysDLP.Services.Releases
+{
+    /// <summary>
+    /// Quelle 1: <c>GET /repos/{owner}/{repo}/releases/latest</c>. Die reichhaltigste Quelle
+    /// (Version, Assets, Changelog) — aber mit GitHub-Kontingent (60/h/IP) und <c>404</c>, wenn
+    /// ein Repository nur Vorabversionen enthält.
+    /// </summary>
+    internal sealed class GitHubApiLatestSource(HttpClient? client = null) : IReleaseSource
+    {
+        private readonly HttpClient _client = client ?? Http.Shared;
+
+        public string Name => "github-api-latest";
+
+        public bool IsAuthoritative => true;
+
+        public async Task<ReleaseInfo?> TryGetLatestAsync(ReleaseQuery query, CancellationToken ct)
+        {
+            if (GitHubRateLimit.IsExhausted(DateTimeOffset.UtcNow))
+                return null;
+
+            string url = $"https://api.github.com/repos/{query.Owner}/{query.Repo}/releases/latest";
+
+            try
+            {
+                using var response = await Http.SendWithRetryAsync(
+                    _client, () => Http.CreateGitHubApiRequest(url), ct: ct);
+
+                GitHubRateLimit.Observe(response.Headers, DateTimeOffset.UtcNow);
+
+                if (!response.IsSuccessStatusCode)
+                    return null;
+
+                if (ReleaseResponseGuard.ExceedsLimit(response))
+                {
+                    Log.Warn($"{Name}: Antwort überschreitet das Größenlimit, verworfen.");
+                    return null;
+                }
+
+                string json = await response.Content.ReadAsStringAsync(ct);
+                return ParseRelease(json);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                Log.Warn($"{Name}: Anfrage fehlgeschlagen.", ex);
+                return null;
+            }
+        }
+
+        internal ReleaseInfo? ParseRelease(string json)
+        {
+            try
+            {
+                using var doc = JsonDocument.Parse(json);
+                return GitHubApiReleaseJson.TryParse(doc.RootElement, Name);
+            }
+            catch (JsonException)
+            {
+                return null;
+            }
+        }
+    }
+}
