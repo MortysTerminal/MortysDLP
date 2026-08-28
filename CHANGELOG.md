@@ -117,6 +117,11 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
   Jetzt erscheint sie genau einmal, stderr-Zeilen weiterhin erkennbar markiert.
 
 ### Intern
+- Der neue Installations-Updater wartet jetzt geordnet darauf, dass sich MortysDLP selbst
+  beendet, bevor Dateien getauscht werden — und bricht kontrolliert ab, statt die Anwendung
+  jemals zwangsweise zu beenden, falls sie nicht rechtzeitig reagiert. Vorher wird außerdem
+  geprüft, ob der Installationsordner beschreibbar ist und genug freier Speicherplatz zur
+  Verfügung steht.
 - Der Installations-Updater bekommt einen eigenen, vollständigen Quellcode (bislang ein
   Binary ohne Quellcode) und läuft künftig auf derselben .NET-Version wie die Hauptanwendung.
   Bislang nur das Grundgerüst (Kommandozeilenargumente, eigenes Protokoll) — der eigentliche
