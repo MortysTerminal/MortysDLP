@@ -120,6 +120,11 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
   Jetzt erscheint sie genau einmal, stderr-Zeilen weiterhin erkennbar markiert.
 
 ### Intern
+- Der neue Installations-Updater sichert jetzt jede zu ersetzende Datei, bevor er sie
+  austauscht, und ersetzt sie atomar. Scheitert das Update mittendrin (z. B. weil eine Datei
+  gesperrt ist), werden alle bereits ersetzten Dateien automatisch aus der Sicherung
+  zurückgespielt — die vorhandene Installation bleibt in jedem Fall lauffähig. Sicherungen
+  älterer, erfolgreicher Updates werden nach 7 Tagen automatisch entfernt.
 - Der neue Installations-Updater prüft das heruntergeladene Update-Paket jetzt vollständig,
   bevor auch nur eine Datei entpackt wird: kein Eintrag kann das Zielverzeichnis verlassen
   (Schutz vor präparierten Archiven), keine absoluten Pfade, und eine Obergrenze für
