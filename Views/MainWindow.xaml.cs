@@ -1,5 +1,6 @@
 using MortysDLP.Helpers;
 using MortysDLP.Properties;
+using MortysDLP.Services;
 using MortysDLP.UITexte;
 using MortysDLP.Views;
 using System.Windows;
@@ -37,12 +38,62 @@ namespace MortysDLP
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            if (Application.Current is App app && app.PendingUpdateInfo.HasValue)
+            if (Application.Current is not App app)
+                return;
+
+            // Erst die Rückmeldung zu einem zuvor angestoßenen Update (W2-T10), dann erst ein
+            // ggf. neues Angebot - beides kann in derselben Sitzung zutreffen (Update Y hat
+            // nicht gewirkt, Version Z ist inzwischen erschienen).
+            if (app.PendingUpdateOutcome is { } outcome)
+                ShowUpdateOutcomeNotice(outcome.Outcome, outcome.ToVersion, outcome.Attempts);
+
+            if (app.PendingUpdateInfo.HasValue)
             {
                 var info = app.PendingUpdateInfo.Value;
                 _pendingUpdateVersion  = info.Version;
                 _pendingUpdateChangelog = info.Changelog;
                 ShowUpdateBanner(info.Version);
+            }
+        }
+
+        /// <summary>Zeigt die Rückmeldung zu einem beim letzten Lauf angestoßenen Update. Bei
+        /// einem Fehlschlag mit „Trotzdem erneut versuchen" — das löscht nur den
+        /// Schleifenschutz-Zustand, ein neuer Versuch geschieht erst über das nächste
+        /// automatische oder manuelle Angebot.</summary>
+        private void ShowUpdateOutcomeNotice(UpdateOutcome outcome, string? version, int attempts)
+        {
+            var T = UITextDictionary.Get;
+            string versionText = version ?? string.Empty;
+
+            if (outcome == UpdateOutcome.Succeeded)
+            {
+                FluentMessageBox.Show(
+                    T("Update.Result.Success").Replace("{0}", versionText, StringComparison.Ordinal),
+                    icon: MessageBoxImage.Information,
+                    owner: this);
+                return;
+            }
+
+            if (outcome != UpdateOutcome.Failed)
+                return;
+
+            string message =
+                T("Update.Result.Failed").Replace("{0}", versionText, StringComparison.Ordinal) + "\n\n" +
+                T("Update.Result.Failed.Hint").Replace("{0}", Log.CurrentLogFile, StringComparison.Ordinal);
+
+            if (attempts >= UpdateState.MaxAttemptsBeforeBlocking)
+                message += "\n\n" +
+                    T("Update.Blocked.TooManyAttempts").Replace("{0}", versionText, StringComparison.Ordinal);
+
+            var result = FluentMessageBox.Show(
+                message, "", MessageBoxImage.Warning, this,
+                (T("Update.Result.Retry"), MessageBoxResult.Retry, true),
+                (T("Common.Button.OK"), MessageBoxResult.OK, false));
+
+            if (result == MessageBoxResult.Retry)
+            {
+                _ = UpdateState.DeleteAsync();
+                Log.Info("Schleifenschutz für die Zielversion zurückgesetzt (Trotzdem erneut versuchen).");
             }
         }
 

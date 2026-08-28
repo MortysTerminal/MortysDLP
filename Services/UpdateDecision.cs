@@ -6,10 +6,10 @@ namespace MortysDLP.Services
     /// <summary>
     /// Entscheidet, ob ein Update angeboten wird — reine Logik, ohne Oberfläche und ohne
     /// direkten Settings-Zugriff. Der Sachverhalt ("es gibt etwas Neueres") kommt bereits
-    /// fertig aus <see cref="UpdateCheckService"/>; hier kommt nur noch <c>VersionSkip</c>
-    /// dazu. Genau diese Trennung fehlte beim ersten Anlauf: Die Prüfung stand im Startpfad,
-    /// das Schreiben von <c>VersionSkip</c> nirgends (Befund K-07). Siehe
-    /// <c>werkstatt/tasks/W2-T09.md</c>.
+    /// fertig aus <see cref="UpdateCheckService"/>; hier kommen <c>VersionSkip</c> (W2-T09)
+    /// und der Schleifenschutz (W2-T10) dazu. Genau diese Trennung fehlte beim ersten Anlauf:
+    /// Die Prüfung stand im Startpfad, das Schreiben von <c>VersionSkip</c> nirgends (Befund
+    /// K-07). Siehe <c>werkstatt/tasks/W2-T09.md</c> und <c>W2-T10.md</c>.
     /// </summary>
     internal static class UpdateDecision
     {
@@ -19,10 +19,24 @@ namespace MortysDLP.Services
         /// <param name="skipped">Rohwert aus <c>VersionSkip</c>; leer oder unlesbar bedeutet
         /// „nichts übersprungen" und wird nicht als Fehler behandelt — nur ein tatsächlich
         /// vorhandener, aber unlesbarer Wert wird protokolliert.</param>
-        public static bool ShouldOffer(AppVersion current, AppVersion latest, string? skipped)
+        /// <param name="state">Zustand eines zuvor angestoßenen, erfolglosen Updates
+        /// (<c>null</c>, wenn keiner vorliegt oder er bereits ausgewertet und gelöscht wurde).
+        /// Betrifft er dieselbe <paramref name="latest"/>-Version und liegen mindestens
+        /// <see cref="UpdateState.MaxAttemptsBeforeBlocking"/> Versuche vor, wird das Update
+        /// nicht mehr automatisch angeboten (W2-T10) — eine tatsächlich neuere Version ist
+        /// davon nicht betroffen.</param>
+        public static bool ShouldOffer(
+            AppVersion current, AppVersion latest, string? skipped, UpdateStateData? state = null)
         {
             if (latest <= current)
                 return false;
+
+            if (UpdateState.IsBlocked(state, latest))
+            {
+                Log.Warn($"Update {latest} wird nicht mehr automatisch angeboten " +
+                    $"({UpdateState.MaxAttemptsBeforeBlocking} Versuche ohne Wirkung).");
+                return false;
+            }
 
             if (string.IsNullOrWhiteSpace(skipped))
                 return true;

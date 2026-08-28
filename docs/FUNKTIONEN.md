@@ -355,6 +355,14 @@ Wandelt Videos in animierte GIFs.
    `<ExeName> <ZipPfad> <Zielordner> <ProzessId>` gestartet.
 8. Die App beendet sich; der Updater wartet auf das Prozessende, entpackt und startet die
    App neu.
+9. **Beim nächsten Start prüft MortysDLP, ob das Update tatsächlich gewirkt hat:**
+   - Läuft danach die neue Version, erscheint eine kurze Bestätigung, und der
+     Zwischenspeicher der Update-Prüfung sowie eine übersprungene Version werden geleert.
+   - Läuft weiterhin die alte Version, erscheint ein Hinweis mit dem Pfad zum Protokoll — das
+     Update hat offenbar nicht funktioniert (z. B. weil der Updater unterbrochen wurde).
+   - Bleibt **dasselbe** Update zweimal hintereinander ohne Wirkung, bietet MortysDLP es
+     danach nicht mehr von selbst an. Ein Knopf „Trotzdem erneut versuchen" in der Meldung
+     hebt das wieder auf.
 
 > **Bekannte Einschränkung:** Es gibt noch keine Möglichkeit, ein fehlgeschlagenes Update
 > zurückzunehmen (kein Rollback). Eine überarbeitete Update-Mechanik ist in Vorbereitung.
@@ -372,4 +380,5 @@ Wandelt Videos in animierte GIFs.
 | Einstellungen | `%LOCALAPPDATA%\MortysDLP\MortysDLP.exe_*\<Version>\user.config` |
 | Protokolle | `%LOCALAPPDATA%\MortysDLP\logs\mortysdlp-JJJJ-MM-TT.log` (14 Tage bzw. 10 MB je Datei) |
 | Update-Zwischenspeicher | `%LOCALAPPDATA%\MortysDLP\cache\update-cache.json` |
+| Update-Zustand (Erfolgskontrolle) | `%LOCALAPPDATA%\MortysDLP\update-state.json` (existiert nur zwischen einem angestoßenen Update und dessen Auswertung) |
 | Temporäres | `%TEMP%` (`ffmpeg_download_*.zip`, `extract_*`, `whisper_audio_*.wav`) |

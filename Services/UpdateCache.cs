@@ -39,6 +39,24 @@ namespace MortysDLP.Services
             await SaveAsync(data, ct);
         }
 
+        /// <summary>Leert den gesamten Zwischenspeicher (alle Schlüssel). Für den Fall, dass
+        /// ein Wert sofort überholt ist, statt erst nach Ablauf seiner Laufzeit — z. B. direkt
+        /// nach einem tatsächlich durchgeführten Update (W2-T10).</summary>
+        public Task ClearAsync(CancellationToken ct)
+        {
+            try
+            {
+                if (File.Exists(_filePath))
+                    File.Delete(_filePath);
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                Log.Warn("Update-Zwischenspeicher konnte nicht geleert werden.", ex);
+            }
+
+            return Task.CompletedTask;
+        }
+
         private async Task<UpdateCacheData?> LoadAsync(CancellationToken ct)
         {
             try

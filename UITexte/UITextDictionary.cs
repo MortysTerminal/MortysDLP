@@ -267,6 +267,13 @@ namespace MortysDLP.UITexte
             ["UpdateBannerDialog.Button.Skip.Tooltip"] = "Kein Hinweis mehr zu dieser Version — erst bei einer neueren Version wieder.",
             ["UpdateBannerDialog.NoChangelog"]       = "Keine Änderungsnotizen vorhanden.",
 
+            // Update-Rückmeldung nach dem Neustart (W2-T10)
+            ["Update.Result.Success"]           = "MortysDLP wurde erfolgreich auf Version {0} aktualisiert.",
+            ["Update.Result.Failed"]            = "Das Update auf Version {0} hat offenbar nicht funktioniert — MortysDLP läuft weiterhin mit der vorherigen Version.",
+            ["Update.Result.Failed.Hint"]       = "Details dazu stehen im Protokoll: {0}",
+            ["Update.Result.Retry"]             = "Trotzdem erneut versuchen",
+            ["Update.Blocked.TooManyAttempts"]  = "Version {0} wird deshalb nicht mehr automatisch angeboten.",
+
             // Main Window Navigation
             ["MainWindow.Nav.Transcribe"] = "Transkribieren",
             ["MainWindow.Nav.GifMaker"] = "GIF-Maker",
@@ -848,6 +855,13 @@ namespace MortysDLP.UITexte
             ["UpdateBannerDialog.Button.Skip"]         = "Skip this version",
             ["UpdateBannerDialog.Button.Skip.Tooltip"] = "No more reminders for this version — you'll be asked again only for a newer one.",
             ["UpdateBannerDialog.NoChangelog"]       = "No release notes available.",
+
+            // Update result after restart (W2-T10)
+            ["Update.Result.Success"]           = "MortysDLP was successfully updated to version {0}.",
+            ["Update.Result.Failed"]            = "The update to version {0} doesn't seem to have worked — MortysDLP is still running the previous version.",
+            ["Update.Result.Failed.Hint"]       = "Details are in the log file: {0}",
+            ["Update.Result.Retry"]             = "Try again anyway",
+            ["Update.Blocked.TooManyAttempts"]  = "Version {0} will therefore no longer be offered automatically.",
 
             // Main Window Navigation
             ["MainWindow.Nav.Transcribe"] = "Transcribe",

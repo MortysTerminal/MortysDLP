@@ -37,6 +37,11 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
   Befehlszeilenargumente unterschieben.
 
 ### Hinzugefügt
+- MortysDLP prüft nach einem Update beim nächsten Start, ob es tatsächlich gewirkt hat, und
+  meldet das Ergebnis: eine kurze Bestätigung bei Erfolg, oder ein verständlicher Hinweis mit
+  Protokollpfad, wenn die neue Version nicht läuft. Ein Update, das zweimal hintereinander
+  ohne Wirkung blieb, wird danach nicht mehr automatisch angeboten — ein Knopf „Trotzdem
+  erneut versuchen" bleibt verfügbar, falls doch gewünscht.
 - Der Update-Hinweis lässt sich jetzt im Dialog dauerhaft für eine bestimmte Version
   überspringen („Diese Version überspringen") — der Banner erscheint erst wieder, wenn eine
   **neuere** Version veröffentlicht wird. „Später" und das „X" am Banner blenden den Hinweis

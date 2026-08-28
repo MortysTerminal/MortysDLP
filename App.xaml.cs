@@ -32,7 +32,17 @@ namespace MortysDLP
             IReadOnlyList<ReleaseAsset> Assets, string? Sha256, long? ExpectedSize)? PendingUpdateInfo
         { get; private set; }
 
-        /* 
+        /// <summary>Ergebnis der Auswertung eines beim letzten Lauf angestoßenen Updates
+        /// (W2-T10) — <c>null</c>, wenn keine Zustandsdatei vorlag oder sie unklar/veraltet
+        /// war. Das MainWindow zeigt dazu einmalig eine Erfolgs- bzw. Fehlermeldung.
+        /// <c>Attempts</c> sagt der Meldung, ob der Schleifenschutz bereits greift (dann bietet
+        /// sie „Trotzdem erneut versuchen" an). Dieselbe Stelle ist der vorgesehene Auslöser für
+        /// den einmaligen „Was ist neu"-Hinweis aus W3-T06 — <c>ToVersion</c> ist dafür bereits
+        /// die richtige Angabe.</summary>
+        internal (UpdateOutcome Outcome, string? ToVersion, int Attempts)? PendingUpdateOutcome
+        { get; private set; }
+
+        /*
          * DEBUG
          * */
         private int DebugSleepTimer = 0; // 1000 = 1 Sekunde
@@ -69,6 +79,11 @@ namespace MortysDLP
 
                 // 1. Status: Nach Software-Update suchen — höchstens alle 6 Stunden, sonst aus
                 // dem Zwischenspeicher (W2-T06). Kein direkter GitHub-Zugriff mehr bei jedem Start.
+                // Zuerst: Hat ein beim letzten Lauf angestoßenes Update tatsächlich gewirkt?
+                // Ohne diese Prüfung ist ein fehlgeschlagenes Update von einem erfolgreichen
+                // nicht zu unterscheiden (W2-T10, Befund U-10).
+                var previousUpdateState = await EvaluateAndHandlePreviousUpdateAsync();
+
                 ResetVersionSkipIfObsolete();
                 await SetStatusTextAndWaitAsync(splash, UITexte.UITexte.Splash_SearchingForUpdate, DebugSleepTimer);
 
@@ -79,7 +94,7 @@ namespace MortysDLP
 
                 var checkResult = await updateCheckService.CheckAppAsync(force: false, CancellationToken.None);
 
-                if (ShouldOfferUpdate(checkResult))
+                if (ShouldOfferUpdate(checkResult, previousUpdateState))
                 {
                     var info = checkResult.Info!;
                     PendingUpdateInfo = (info.Version.ToString(), info.DownloadUrl!, info.Changelog ?? string.Empty,
@@ -228,29 +243,90 @@ namespace MortysDLP
 
         /// <summary>Trifft die ENTSCHEIDUNG, ob das Update angeboten wird — der Sachverhalt
         /// ("es gibt etwas Neueres") kommt bereits fertig aus <see cref="UpdateCheckService"/>.
-        /// Die eigentliche Regel (inkl. <c>VersionSkip</c>) steckt in
+        /// Die eigentliche Regel (inkl. <c>VersionSkip</c> und Schleifenschutz) steckt in
         /// <see cref="UpdateDecision.ShouldOffer"/>; hier kommt nur noch die Prüfung auf eine
         /// tatsächlich nutzbare Download-Adresse dazu, da <see cref="UpdateCheckService"/>
-        /// reine Versionsermittlung ist. Protokolliert immer, wenn ein vorhandenes Update wegen
-        /// <c>VersionSkip</c> nicht angeboten wird — ohne diese Zeile ist später nicht
-        /// erklärbar, warum kein Hinweis erscheint.</summary>
-        private static bool ShouldOfferUpdate(UpdateCheckResult result)
+        /// reine Versionsermittlung ist. Protokolliert immer, wenn ein vorhandenes Update nicht
+        /// angeboten wird — ohne diese Zeile ist später nicht erklärbar, warum kein Hinweis
+        /// erscheint.</summary>
+        private static bool ShouldOfferUpdate(UpdateCheckResult result, UpdateStateData? previousUpdateState)
         {
             if (result.Info?.DownloadUrl is null || AppInfo.CurrentVersion is not { } current)
                 return false;
 
-            bool offer = UpdateDecision.ShouldOffer(current, result.Info.Version, Settings.Default.VersionSkip);
+            bool offer = UpdateDecision.ShouldOffer(
+                current, result.Info.Version, Settings.Default.VersionSkip, previousUpdateState);
 
             if (!offer && result.Info.Version > current)
-                Log.Info($"Update {result.Info.Version} verfügbar, aber vom Nutzer übersprungen.");
+                Log.Info($"Update {result.Info.Version} verfügbar, aber vom Nutzer übersprungen " +
+                    "oder durch den Schleifenschutz blockiert.");
 
             return offer;
+        }
+
+        /// <summary>Wertet eine beim letzten Lauf hinterlassene Update-Zustandsdatei aus
+        /// (W2-T10) und reagiert entsprechend. Liefert den Zustand nur im Fall
+        /// <see cref="UpdateOutcome.Failed"/> zurück — genau den braucht
+        /// <see cref="UpdateDecision.ShouldOffer"/> für den Schleifenschutz; in jedem anderen
+        /// Fall ist die Datei bereits gelöscht und <c>null</c> die richtige Antwort.</summary>
+        private async Task<UpdateStateData?> EvaluateAndHandlePreviousUpdateAsync()
+        {
+            var state = await UpdateState.ReadAsync();
+            var outcome = UpdateState.Evaluate(state, AppInfo.CurrentVersion, DateTimeOffset.UtcNow);
+
+            switch (outcome)
+            {
+                case UpdateOutcome.None:
+                    return null;
+
+                case UpdateOutcome.Succeeded:
+                    Log.Info($"Update erfolgreich: {state!.FromVersion} -> {state.ToVersion}.");
+                    PendingUpdateOutcome = (UpdateOutcome.Succeeded, state.ToVersion, state.Attempts);
+                    await new UpdateCache().ClearAsync(CancellationToken.None);
+                    ClearVersionSkip();
+                    await UpdateState.DeleteAsync();
+                    return null;
+
+                case UpdateOutcome.Failed:
+                    Log.Warn($"Update von {state!.FromVersion} nach {state.ToVersion} hat nicht " +
+                        $"gewirkt (Versuch {state.Attempts}).");
+                    PendingUpdateOutcome = (UpdateOutcome.Failed, state.ToVersion, state.Attempts);
+                    return state;
+
+                case UpdateOutcome.Stale:
+                    Log.Warn($"Update-Zustand ist älter als 7 Tage oder liegt in der Zukunft " +
+                        $"({state!.StartedUtc:u}) - wird verworfen.");
+                    await UpdateState.DeleteAsync();
+                    return null;
+
+                case UpdateOutcome.Unclear:
+                default:
+                    Log.Warn("Update-Zustand unklar (weder Ziel- noch Ausgangsversion aktiv, " +
+                        "oder die eigene Version ist unbekannt) - wird verworfen.");
+                    await UpdateState.DeleteAsync();
+                    return null;
+            }
+        }
+
+        /// <summary>Leert <c>VersionSkip</c>. Best-Effort — ein Fehlschlag hier darf nirgends
+        /// etwas verhindern.</summary>
+        private static void ClearVersionSkip()
+        {
+            try
+            {
+                Settings.Default.VersionSkip = string.Empty;
+                Settings.Default.Save();
+            }
+            catch (Exception ex)
+            {
+                Log.Warn("VersionSkip konnte nicht zurückgesetzt werden.", ex);
+            }
         }
 
         /// <summary>Setzt <c>VersionSkip</c> zurück, sobald der Wert bedeutungslos geworden
         /// ist: Die übersprungene Version ist inzwischen installiert oder überholt. Ohne dieses
         /// Aufräumen bliebe ein alter Wert stehen, der nichts mehr über die Absicht des Nutzers
-        /// aussagt. Best-Effort — ein Fehlschlag hier darf den Start nicht verhindern.</summary>
+        /// aussagt.</summary>
         private static void ResetVersionSkipIfObsolete()
         {
             try
@@ -267,8 +343,7 @@ namespace MortysDLP
 
                 if (current >= skippedVersion)
                 {
-                    Settings.Default.VersionSkip = string.Empty;
-                    Settings.Default.Save();
+                    ClearVersionSkip();
                     Log.Info($"VersionSkip zurückgesetzt (übersprungene Version {skippedVersion} " +
                         "ist installiert oder überholt).");
                 }
@@ -307,11 +382,12 @@ namespace MortysDLP
                     return;
                 }
 
-                await StartUpdateCore(assetUrl, result.Info.Assets, result.Info.Sha256, result.Info.ExpectedSize);
+                await StartUpdateCore(result.Info.Version.ToString(), assetUrl, result.Info.Assets,
+                    result.Info.Sha256, result.Info.ExpectedSize);
                 return;
             }
 
-            await StartUpdateCore(info.AssetUrl, info.Assets, info.Sha256, info.ExpectedSize);
+            await StartUpdateCore(info.Version, info.AssetUrl, info.Assets, info.Sha256, info.ExpectedSize);
         }
 
         /// <summary>Sucht das gemeinte Anhang in <paramref name="assets"/> (leer bei Quellen
@@ -320,8 +396,10 @@ namespace MortysDLP
         /// lädt erst danach herunter. <paramref name="knownSha256"/>/<paramref name="knownSize"/>
         /// kommen von <c>version.json</c>, falls diese Quelle geantwortet hat, und haben
         /// Vorrang vor <c>checksums.txt</c> nur, wenn beide vorhanden wären — praktisch
-        /// schließen sie sich aus, da nur eine Quelle je Prüfung antwortet.</summary>
-        private async Task StartUpdateCore(
+        /// schließen sie sich aus, da nur eine Quelle je Prüfung antwortet.
+        /// <paramref name="toVersion"/> wird für den Update-Zustand (W2-T10) gebraucht, nicht
+        /// für die Auswahl selbst.</summary>
+        private async Task StartUpdateCore(string toVersion,
             string fallbackAssetUrl, IReadOnlyList<ReleaseAsset> assets, string? knownSha256, long? knownSize)
         {
             try
@@ -449,6 +527,13 @@ namespace MortysDLP
                 Log.Info($"Starte Updater: {updaterExePath}");
                 Log.Info($"Argumente: {string.Join(' ', arguments)}");
 
+                // 5b. Update-Zustand aufzeichnen (W2-T10) - unmittelbar vor dem Start des
+                // Updaters, nach bestandener Prüfsumme/ZIP-Prüfung. Das ist der einzige Beleg,
+                // den der nächste Start hat, um ein gewirktes von einem wirkungslosen Update zu
+                // unterscheiden - der Exit-Code des heutigen Updaters ist dafür nicht nutzbar.
+                if (AppInfo.Current is { } fromVersion)
+                    await UpdateState.RecordAttemptAsync(fromVersion, toVersion, DateTimeOffset.UtcNow);
+
                 // 6. Updater starten – UseShellExecute = true für unabhängigen Prozess, der MortysDLP
                 // überlebt. Läuft deshalb bewusst außerhalb von ProcessRunner (das immer
                 // UseShellExecute=false und Streams umleitet) — ArgumentList schließt trotzdem die
@@ -472,15 +557,7 @@ namespace MortysDLP
                 // Wert ohnehin überholt (siehe auch ResetVersionSkipIfObsolete für den
                 // umgekehrten Fall: eine übersprungene Version, die inzwischen ohne dieses
                 // Update installiert wurde, z. B. durch eine andere Quelle).
-                try
-                {
-                    Settings.Default.VersionSkip = string.Empty;
-                    Settings.Default.Save();
-                }
-                catch (Exception ex)
-                {
-                    Log.Warn("VersionSkip konnte nicht zurückgesetzt werden.", ex);
-                }
+                ClearVersionSkip();
 
                 // 8. App sicher beenden – Shutdown + Environment.Exit als Fallback
                 Shutdown();

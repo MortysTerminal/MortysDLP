@@ -50,6 +50,13 @@ namespace MortysDLP.Helpers
         /// einer Stelle liegen.</summary>
         public static string UpdateCacheFile => Path.Combine(CacheDir, "update-cache.json");
 
+        /// <summary>Beleg dafür, dass ein Update tatsächlich angestoßen wurde (W2-T10).
+        /// Bewusst direkt unter <see cref="DataDir"/>, **nicht** unter <see cref="CacheDir"/>:
+        /// Anders als ein Zwischenspeicher darf diese Datei nicht mit dem Cache gemeinsam
+        /// weggeräumt werden — sie ist der einzige Weg, ein fehlgeschlagenes von einem
+        /// erfolgreichen Update zu unterscheiden.</summary>
+        public static string UpdateStateFile => Path.Combine(DataDir, "update-state.json");
+
         /// <summary>Legt die Nutzerverzeichnisse an und übernimmt einen vorhandenen
         /// Verlauf vom alten Speicherort. Beim Start einmal aufrufen.</summary>
         public static void EnsureDataDirs()
