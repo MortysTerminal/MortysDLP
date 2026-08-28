@@ -37,6 +37,9 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
   Befehlszeilenargumente unterschieben.
 
 ### Hinzugefügt
+- MortysDLP fragt jetzt nach, bevor ein Update gestartet wird, während im Hintergrund noch
+  ein Download, eine Konvertierung oder eine Transkription läuft — bisher wurde ein solcher
+  Vorgang beim Update kommentarlos abgebrochen.
 - MortysDLP prüft nach einem Update beim nächsten Start, ob es tatsächlich gewirkt hat, und
   meldet das Ergebnis: eine kurze Bestätigung bei Erfolg, oder ein verständlicher Hinweis mit
   Protokollpfad, wenn die neue Version nicht läuft. Ein Update, das zweimal hintereinander

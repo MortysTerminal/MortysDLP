@@ -10,8 +10,12 @@ using System.Windows.Controls;
 
 namespace MortysDLP.Views
 {
-    public partial class TranscribePage : Page
+    public partial class TranscribePage : Page, ICancellableWork
     {
+        bool ICancellableWork.IsBusy => btnCancel.IsEnabled;
+        string ICancellableWork.BusyLabel => UITextDictionary.Get("ActiveWork.Label.Transcribe");
+        void ICancellableWork.RequestCancel() => btnCancel_Click(this, new RoutedEventArgs());
+
         private CancellationTokenSource? _cts;
         private bool _initialized = false;
 

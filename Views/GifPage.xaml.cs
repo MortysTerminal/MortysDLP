@@ -11,8 +11,12 @@ using System.Windows.Controls;
 
 namespace MortysDLP.Views
 {
-    public partial class GifPage : Page
+    public partial class GifPage : Page, ICancellableWork
     {
+        bool ICancellableWork.IsBusy => btnCancel.IsEnabled;
+        string ICancellableWork.BusyLabel => UITextDictionary.Get("ActiveWork.Label.Gif");
+        void ICancellableWork.RequestCancel() => btnCancel_Click(this, new RoutedEventArgs());
+
         private CancellationTokenSource? _cts;
         private bool _initialized = false;
         private string _lastOutputDir = string.Empty;

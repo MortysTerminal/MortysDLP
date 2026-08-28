@@ -13,8 +13,12 @@ using System.Windows.Forms;
 
 namespace MortysDLP.Views
 {
-    public partial class TwitchPage : Page
+    public partial class TwitchPage : Page, ICancellableWork
     {
+        bool ICancellableWork.IsBusy => btnCancel.IsEnabled;
+        string ICancellableWork.BusyLabel => UITextDictionary.Get("ActiveWork.Label.Twitch");
+        void ICancellableWork.RequestCancel() => btnCancel_Click(this, new RoutedEventArgs());
+
         private CancellationTokenSource? _cts;
         private bool _initialized = false;
         private readonly TwitchDownloaderService _service = new();

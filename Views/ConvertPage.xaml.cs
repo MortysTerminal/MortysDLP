@@ -15,8 +15,12 @@ using System.Windows.Controls;
 
 namespace MortysDLP.Views
 {
-    public partial class ConvertPage : Page
+    public partial class ConvertPage : Page, ICancellableWork
     {
+        bool ICancellableWork.IsBusy => btnConvertCancel.IsEnabled;
+        string ICancellableWork.BusyLabel => UITextDictionary.Get("ActiveWork.Label.Convert");
+        void ICancellableWork.RequestCancel() => btnConvertCancel_Click(this, new RoutedEventArgs());
+
         private readonly ObservableCollection<ConvertFileItem> _fileList = new();
         private CancellationTokenSource? _convertCancellationTokenSource;
         private readonly LogBuffer _log;

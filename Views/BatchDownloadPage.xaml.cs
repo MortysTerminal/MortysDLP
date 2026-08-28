@@ -58,8 +58,12 @@ namespace MortysDLP.Views
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
 
-    public partial class BatchDownloadPage : Page
+    public partial class BatchDownloadPage : Page, ICancellableWork
     {
+        bool ICancellableWork.IsBusy => btnCancelAll.IsEnabled;
+        string ICancellableWork.BusyLabel => UITextDictionary.Get("ActiveWork.Label.BatchDownload");
+        void ICancellableWork.RequestCancel() => btnCancelAll_Click(this, new RoutedEventArgs());
+
         private readonly ObservableCollection<BatchDownloadEntry> _entries = new();
         private CancellationTokenSource? _cts;
         private bool _initialized = false;

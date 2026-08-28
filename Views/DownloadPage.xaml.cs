@@ -14,8 +14,12 @@ using System.Windows.Navigation;
 
 namespace MortysDLP.Views
 {
-    public partial class DownloadPage : Page
+    public partial class DownloadPage : Page, ICancellableWork
     {
+        bool ICancellableWork.IsBusy => btnDownloadCancel.IsEnabled;
+        string ICancellableWork.BusyLabel => UITextDictionary.Get("ActiveWork.Label.Download");
+        void ICancellableWork.RequestCancel() => btnDownloadCancel_Click(this, new RoutedEventArgs());
+
         private CancellationTokenSource? _downloadCancellationTokenSource;
         private Task? _downloadTask;
         private string _lastDownloadPath = "";

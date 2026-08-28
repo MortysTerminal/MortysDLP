@@ -274,6 +274,16 @@ namespace MortysDLP.UITexte
             ["Update.Result.Retry"]             = "Trotzdem erneut versuchen",
             ["Update.Blocked.TooManyAttempts"]  = "Version {0} wird deshalb nicht mehr automatisch angeboten.",
 
+            // Update-Vorprüfung laufender Vorgänge (W3-T02b)
+            ["Update.Confirm.ActiveWork.Title"] = "Laufende Vorgänge",
+            ["Update.Confirm.ActiveWork"]       = "Es läuft noch: {0}. Update jetzt starten und laufende Vorgänge abbrechen?",
+            ["ActiveWork.Label.Download"]       = "Download",
+            ["ActiveWork.Label.BatchDownload"]  = "Stapel-Download",
+            ["ActiveWork.Label.Convert"]        = "Konvertierung",
+            ["ActiveWork.Label.Gif"]            = "GIF-Erstellung",
+            ["ActiveWork.Label.Transcribe"]     = "Transkription",
+            ["ActiveWork.Label.Twitch"]         = "Twitch-Download",
+
             // Main Window Navigation
             ["MainWindow.Nav.Transcribe"] = "Transkribieren",
             ["MainWindow.Nav.GifMaker"] = "GIF-Maker",
@@ -862,6 +872,16 @@ namespace MortysDLP.UITexte
             ["Update.Result.Failed.Hint"]       = "Details are in the log file: {0}",
             ["Update.Result.Retry"]             = "Try again anyway",
             ["Update.Blocked.TooManyAttempts"]  = "Version {0} will therefore no longer be offered automatically.",
+
+            // Update preflight check for running work (W3-T02b)
+            ["Update.Confirm.ActiveWork.Title"] = "Work in progress",
+            ["Update.Confirm.ActiveWork"]       = "Still running: {0}. Start the update now and cancel this work?",
+            ["ActiveWork.Label.Download"]       = "Download",
+            ["ActiveWork.Label.BatchDownload"]  = "Batch download",
+            ["ActiveWork.Label.Convert"]        = "Conversion",
+            ["ActiveWork.Label.Gif"]            = "GIF creation",
+            ["ActiveWork.Label.Transcribe"]     = "Transcription",
+            ["ActiveWork.Label.Twitch"]         = "Twitch download",
 
             // Main Window Navigation
             ["MainWindow.Nav.Transcribe"] = "Transcribe",

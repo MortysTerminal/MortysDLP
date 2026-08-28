@@ -3,6 +3,7 @@ using MortysDLP.Properties;
 using MortysDLP.Services;
 using MortysDLP.UITexte;
 using MortysDLP.Views;
+using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -26,6 +27,13 @@ namespace MortysDLP
         internal TranscribePage TranscribePage => _transcribePage;
         internal TwitchPage TwitchPage => _twitchPage;
         internal BatchDownloadPage BatchDownloadPage => _batchDownloadPage;
+        internal GifPage GifPage => _gifPage;
+
+        /// <summary>Alle Seiten mit einem abbrechbaren Hintergrundvorgang — Grundlage der
+        /// Update-Vorprüfung aus W3-T02b. Seiten laufen als Singletons im Hintergrund weiter,
+        /// auch wenn gerade eine andere Seite angezeigt wird (siehe Navigate-Aufrufe unten).</summary>
+        internal IReadOnlyList<ICancellableWork> ActiveWorkSources =>
+            new ICancellableWork[] { _downloadPage, _batchDownloadPage, _convertPage, _gifPage, _transcribePage, _twitchPage };
 
         public MainWindow()
         {

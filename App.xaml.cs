@@ -3,6 +3,8 @@ using MortysDLP.Models;
 using MortysDLP.Properties;
 using MortysDLP.Services;
 using MortysDLP.Services.Releases;
+using MortysDLP.UITexte;
+using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics;
 using System.IO;
@@ -361,6 +363,9 @@ namespace MortysDLP
 
         public async Task StartUpdate()
         {
+            if (!ConfirmActiveWorkOrCancel())
+                return;
+
             // PendingUpdateInfo nutzen statt die Update-Prüfung zu wiederholen.
             if (PendingUpdateInfo is not { } info || string.IsNullOrEmpty(info.AssetUrl))
             {
@@ -388,6 +393,47 @@ namespace MortysDLP
             }
 
             await StartUpdateCore(info.Version, info.AssetUrl, info.Assets, info.Sha256, info.ExpectedSize);
+        }
+
+        /// <summary>Fragt nach, wenn gerade ein Download, eine Konvertierung oder eine
+        /// Transkription läuft (W3-T02b) — der Updater fährt die Anwendung sonst mitten in
+        /// laufender Arbeit herunter, ohne Vorwarnung. Liefert <c>false</c>, wenn der Nutzer
+        /// das Update daraufhin abbricht; in diesem Fall bleibt alles unverändert.</summary>
+        private bool ConfirmActiveWorkOrCancel()
+        {
+            if (MainWindow is not MainWindow mainWindow)
+                return true;
+
+            var busy = ActiveWorkHelper.FindBusy(mainWindow.ActiveWorkSources);
+            if (busy.Count == 0)
+                return true;
+
+            var labelList = new List<string>(busy.Count);
+            foreach (var work in busy)
+                labelList.Add(work.BusyLabel);
+
+            var T = UITextDictionary.Get;
+            string labels = string.Join(", ", labelList);
+            string message = T("Update.Confirm.ActiveWork").Replace("{0}", labels, StringComparison.Ordinal);
+
+            var result = FluentMessageBox.Show(
+                message,
+                T("Update.Confirm.ActiveWork.Title"),
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question,
+                owner: mainWindow);
+
+            if (result != MessageBoxResult.Yes)
+            {
+                Log.Info($"Update abgebrochen: Nutzer wollte laufende Vorgänge nicht beenden ({labels}).");
+                return false;
+            }
+
+            foreach (var work in busy)
+                work.RequestCancel();
+
+            Log.Info($"Update fortgesetzt, laufende Vorgänge abgebrochen: {labels}.");
+            return true;
         }
 
         /// <summary>Sucht das gemeinte Anhang in <paramref name="assets"/> (leer bei Quellen

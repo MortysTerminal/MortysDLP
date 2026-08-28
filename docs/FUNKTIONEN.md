@@ -337,11 +337,15 @@ Wandelt Videos in animierte GIFs.
      Version als die gerade angebotene erscheint. Es gibt aktuell keinen Weg, eine
      übersprungene Version nachträglich wieder angezeigt zu bekommen — nur eine neuere fragt
      erneut.
-4. Enthält das Release mehrere Anhänge (z. B. zusätzlich eine Prüfsummenliste), wählt
+4. Läuft gerade ein Download, eine Konvertierung oder eine Transkription, fragt MortysDLP an
+   dieser Stelle nach, ob das Update jetzt trotzdem gestartet und die laufenden Vorgänge
+   abgebrochen werden dürfen. „Ja" bricht sie ab und macht danach mit dem Update weiter,
+   „Nein" bricht das Update vollständig ab, ohne irgendetwas zu verändern.
+5. Enthält das Release mehrere Anhänge (z. B. zusätzlich eine Prüfsummenliste), wählt
    MortysDLP gezielt das richtige Update-Paket aus — nicht einfach den ersten Eintrag. Sind
    mehrere Pakete gleichermaßen passend und keines eindeutig das richtige, bricht die
    Anwendung mit einer verständlichen Meldung ab, statt zu raten.
-5. Das Paket wird in einen beschreibbaren Temp-Ordner geladen (mit Wiederholversuchen und
+6. Das Paket wird in einen beschreibbaren Temp-Ordner geladen (mit Wiederholversuchen und
    exponentiellem Backoff) und dabei laufend gegen eine Prüfsumme und die erwartete Größe
    geprüft — bevor es seinen endgültigen Namen erhält. Stimmt etwas nicht, wird die
    heruntergeladene Datei verworfen und das Update abgebrochen; die vorhandene Installation
@@ -349,13 +353,13 @@ Wandelt Videos in animierte GIFs.
    und nur die Größe wird geprüft. Während des Herunterladens erscheint ein Fenster mit
    Fortschrittsbalken und Prozentanzeige; „Abbrechen" beendet den Download sofort — ohne
    Reste im Temp-Ordner und ohne die bestehende Installation anzufassen.
-6. Zusätzlich wird geprüft, dass das Paket lesbar ist und tatsächlich die Hauptanwendung
+7. Zusätzlich wird geprüft, dass das Paket lesbar ist und tatsächlich die Hauptanwendung
    enthält.
-7. Der Updater wird nach Temp kopiert und mit
+8. Der Updater wird nach Temp kopiert und mit
    `<ExeName> <ZipPfad> <Zielordner> <ProzessId>` gestartet.
-8. Die App beendet sich; der Updater wartet auf das Prozessende, entpackt und startet die
+9. Die App beendet sich; der Updater wartet auf das Prozessende, entpackt und startet die
    App neu.
-9. **Beim nächsten Start prüft MortysDLP, ob das Update tatsächlich gewirkt hat:**
+10. **Beim nächsten Start prüft MortysDLP, ob das Update tatsächlich gewirkt hat:**
    - Läuft danach die neue Version, erscheint eine kurze Bestätigung, und der
      Zwischenspeicher der Update-Prüfung sowie eine übersprungene Version werden geleert.
    - Läuft weiterhin die alte Version, erscheint ein Hinweis mit dem Pfad zum Protokoll — das
