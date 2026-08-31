@@ -120,6 +120,10 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
   Jetzt erscheint sie genau einmal, stderr-Zeilen weiterhin erkennbar markiert.
 
 ### Intern
+- Der neue Installations-Updater lässt eigene Werkzeuge (`Tools\`) und den Download-Verlauf
+  jetzt grundsätzlich unangetastet, selbst wenn ein Release-Paket zufällig Dateien an
+  denselben Pfaden enthält — die Programm-Konfigurationsdatei (`MortysDLP.dll.config`) wird
+  davon ausdrücklich ausgenommen und weiterhin bei jedem Update ersetzt.
 - Der neue Installations-Updater sichert jetzt jede zu ersetzende Datei, bevor er sie
   austauscht, und ersetzt sie atomar. Scheitert das Update mittendrin (z. B. weil eine Datei
   gesperrt ist), werden alle bereits ersetzten Dateien automatisch aus der Sicherung
