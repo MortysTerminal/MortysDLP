@@ -72,6 +72,9 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
   läuft die Anwendung danach normal weiter.
 
 ### Geändert
+- Der Installations-Updater, der ein Update im Hintergrund einspielt, ist jetzt vollständig
+  quelloffen und wird bei jedem Release neu gebaut — bisher wurde eine ältere, nicht mehr
+  nachvollziehbare Programmdatei ausgeliefert.
 - Die Suche nach einer neuen MortysDLP-Version läuft nicht mehr bei jedem Start online: Das
   Ergebnis wird zwischengespeichert und höchstens alle 6 Stunden erneuert. Ist gar keine
   Internetverbindung da, verwendet MortysDLP einfach den zuletzt bekannten Stand, statt zu

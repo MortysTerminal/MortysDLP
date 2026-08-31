@@ -5,6 +5,11 @@ TWITCH_FEATURE_PROGRESS.md
 Tools/*
 !Tools/.gitkeep
 
+# Updater-EXE entsteht beim Release-Bauen frisch aus dem separaten Repo
+# MortysDLP-Updater (Befund U-02, W3-T07) - nie wieder ein Binary hier einchecken.
+Updater/*
+!Updater/.gitkeep
+
 # Vom Nutzer erzeugt
 download_history.json
 
