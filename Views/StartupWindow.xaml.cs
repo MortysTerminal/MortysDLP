@@ -1,6 +1,11 @@
 ﻿using MortysDLP.Helpers;
+using MortysDLP.Models;
 using MortysDLP.Services;
-using System.IO.Compression;
+using MortysDLP.Services.Releases;
+using MortysDLP.Services.Tools;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Threading;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
@@ -12,7 +17,8 @@ namespace MortysDLP
     /// </summary>
     public partial class StartupWindow : Window
     {
-        private readonly string FfmpegDownloadUrl = Properties.Resources.URL_FFMPEG;
+        // Die ffmpeg-Paketadresse steht nicht mehr hier: Sie gehört zum Werkzeug, nicht zum
+        // Startbildschirm (siehe FfmpegTool).
         private readonly string YtDlpDocUrl = Properties.Resources.URL_YTDLP;
 
         public StartupWindow()
@@ -29,6 +35,12 @@ namespace MortysDLP
             var T = UITexte.UITextDictionary.Get;
             TitleText.Text = T("StartupWindow.Title");
         }
+
+        /// <summary>Textbausteine für den Nutzer werden in der eingestellten Kultur
+        /// zusammengesetzt — hier ausdrücklich statt beiläufig, damit die Absicht im Code steht und
+        /// nicht vom Standardverhalten abhängt.</summary>
+        private static string Fmt(string format, params object?[] args) =>
+            string.Format(CultureInfo.CurrentCulture, format, args);
 
         private void StartLoadingAnimation()
         {
@@ -122,69 +134,55 @@ namespace MortysDLP
                     string.Join(", ", result.FailedFiles));
         }
 
+        /// <summary>
+        /// Prüft alle verwalteten Werkzeuge über <see cref="ToolCatalog"/> und liefert
+        /// <c>false</c>, wenn danach ein für den Betrieb erforderliches Werkzeug fehlt. Für jedes
+        /// Werkzeug denselben Weg: vorhanden? → sonst anbieten und installieren; vorhanden, aber
+        /// etwas Neueres da? → anbieten. Zwei getrennte Wege für yt-dlp und ffmpeg gab es hier
+        /// früher, mit jeweils eigener Download-, Ersetzungs- und Fehlerbehandlung — und beide
+        /// ersetzten Dateien ohne zu prüfen, ob das Werkzeug danach überhaupt noch antwortet.
+        ///
+        /// <para>Die Prüfungen laufen bewusst weiterhin nacheinander und vor dem Hauptfenster.
+        /// Das Nebenläufigmachen und Verlegen in den Hintergrund ist eine eigene Aufgabe — sie
+        /// setzt voraus, dass alle Werkzeuge über diese Abstraktion laufen, und wird sonst zweimal
+        /// gemacht.</para>
+        /// </summary>
         public async Task<bool> ToolUpdaterAsync(IProgress<string>? progress = null)
         {
+            var T = UITexte.UITextDictionary.Get;
+
             try
             {
-                var T = UITexte.UITextDictionary.Get;
-
                 WarnIfRunningFromArchive(T);
 
-                var ytDlpService = new YtDlpUpdateService();
-                var ffmpegService = new FfmpegUpdateService();
+                var catalog = new ToolCatalog();
+                var summary = new List<string>();
+                bool allRequiredPresent = true;
 
-                string ytDlpPath = AppPaths.YtDlp;
-                string ffmpegPath = AppPaths.Ffmpeg;
-                string ffprobePath = AppPaths.Ffprobe;
-
-                // yt-dlp: Existenz prüfen
-                SetStatus(T("StartupWindow.Status.CheckingYtDlp"));
-                bool ytDlpExists = ytDlpService.ToolExists(ytDlpPath);
-
-                // yt-dlp: Download nur wenn nicht vorhanden
-                if (!ytDlpExists)
+                foreach (var tool in ToolCatalog.CreateAll())
                 {
-                    SetStatus(T("StartupWindow.Status.YtDlpNotFound"));
-                    bool downloadSuccess = await CheckAndDownloadYtDlpAsync(ytDlpService, ytDlpPath, "yt-dlp", "yt-dlp.exe");
-                    if (!downloadSuccess)
-                        return false;
-                    ytDlpExists = true;
+                    var (present, version) = await HandleToolAsync(catalog, tool, T);
+
+                    summary.Add($"{tool.Id}={(present ? version.HasValue ? version.Raw : "vorhanden" : "fehlt")}");
+
+                    if (present || !tool.RequiredForOperation)
+                        continue;
+
+                    // Ohne ein erforderliches Werkzeug abbrechen, statt die restlichen Dialoge
+                    // noch abzufragen: Der Nutzer hat entweder abgelehnt (dann wurde die
+                    // Anwendung schon beendet) oder die Installation ist gescheitert.
+                    allRequiredPresent = false;
+                    break;
                 }
 
-                // Version prüfen und ggf. Update anbieten (nur wenn nicht gerade installiert)
-                if (ytDlpExists)
-                {
-                    SetStatus(T("StartupWindow.Status.CheckingYtDlpVersion"));
-                    await CheckAndUpdateYtDlpVersionAsync(ytDlpService, ytDlpPath);
-                }
-
-                // ffmpeg/ffprobe: Existenz prüfen
-                SetStatus(T("StartupWindow.Status.CheckingFfmpeg"));
-                bool ffmpegExists = ffmpegService.FfmpegExists(ffmpegPath);
-                bool ffprobeExists = ffmpegService.FfprobeExists(ffprobePath);
-
-                if (!ffmpegExists || !ffprobeExists)
-                {
-                    SetStatus(T("StartupWindow.Status.FfmpegNotFound"));
-                    await CheckAndDownloadFfmpegAndFfprobeAsync(ffmpegService, ffmpegPath, ffprobePath);
-                }
-
-                // Existenz nach Download prüfen
-                ffmpegExists = ffmpegService.FfmpegExists(ffmpegPath);
-                ffprobeExists = ffmpegService.FfprobeExists(ffprobePath);
-
-                string? ytDlpVersion = ytDlpExists ? await ytDlpService.GetLocalVersionAsync(ytDlpPath) : null;
-                Log.Info($"Werkzeuge: yt-dlp={(ytDlpExists ? ytDlpVersion ?? "gefunden" : "fehlt")}, " +
-                    $"ffmpeg={(ffmpegExists ? "gefunden" : "fehlt")}, ffprobe={(ffprobeExists ? "gefunden" : "fehlt")}");
-
-                return ytDlpExists && ffmpegExists && ffprobeExists;
+                Log.Info($"Werkzeuge: {string.Join(", ", summary)}");
+                return allRequiredPresent;
             }
             catch (Exception ex)
             {
-                var T = UITexte.UITextDictionary.Get;
                 Log.Error("Werkzeug-Prüfung beim Start fehlgeschlagen", ex);
                 Dispatcher.Invoke(() => FluentMessageBox.Show(
-                    string.Format(T("StartupWindow.Error.ToolUpdate"), ex.Message),
+                    Fmt(T("StartupWindow.Error.ToolUpdate"), ex.Message),
                     T("StartupWindow.Title.Error"),
                     MessageBoxButton.OK,
                     MessageBoxImage.Error));
@@ -216,297 +214,256 @@ namespace MortysDLP
             }
         }
 
-        private async Task<bool> DownloadToolWithProgressAsync(IDownloadableToolService service, string assetUrl, string toolPath, string infoText)
+        /// <summary>Ein Werkzeug vollständig behandeln: prüfen, ggf. installieren, ggf. Update
+        /// anbieten. Liefert, ob es danach einsatzbereit ist, und die dann bekannte Version — der
+        /// Rückgabewert erspart der Zusammenfassung im Protokoll einen zweiten Prozessstart nur
+        /// zum Nachfragen.</summary>
+        private async Task<(bool Present, ToolVersion Version)> HandleToolAsync(
+            ToolCatalog catalog, IManagedTool tool, Func<string, string> T)
         {
-            var T = UITexte.UITextDictionary.Get;
-            string tempPath = toolPath + ".download";
-            using var dialog = new DownloadProgressDialog(infoText);
-            dialog.Owner = this;
-            dialog.Show();
-            var progressCallback = new Progress<double>(value => dialog.SetProgress(value));
-            try
-            {
-                await service.DownloadAssetAsync(assetUrl, tempPath, progressCallback, dialog.CancellationToken);
-                if (System.IO.File.Exists(toolPath))
-                    System.IO.File.Delete(toolPath);
-                System.IO.File.Move(tempPath, toolPath);
-                return true;
-            }
-            catch (OperationCanceledException)
-            {
-                SetStatus(T("StartupWindow.Status.DownloadCanceled"));
-                return false;
-            }
-            catch (Exception)
-            {
-                SetStatus(T("StartupWindow.Status.DownloadFailed"));
-                return false;
-            }
-            finally
-            {
-                try { if (System.IO.File.Exists(tempPath)) System.IO.File.Delete(tempPath); } catch { }
-            }
+            SetStatus(StatusChecking(tool, T));
+
+            // Die reine Dateiprüfung kostet nichts und entscheidet, welche Statuszeile vor der
+            // Netzabfrage sinnvoll ist.
+            var initialStatus = tool.GetStatus();
+            SetStatus(initialStatus.Installed
+                ? StatusCheckingVersion(tool, T)
+                : StatusNotFound(tool, T));
+
+            var outcome = await catalog.CheckAsync(tool, force: false, CancellationToken.None);
+
+            if (!outcome.Status.Installed)
+                return await InstallMissingToolAsync(tool, outcome, T);
+
+            if (!outcome.Verdict.Offer)
+                return (true, outcome.LocalVersion);
+
+            return await OfferToolUpdateAsync(tool, outcome, T);
         }
 
-        private async Task<bool> CheckAndDownloadYtDlpAsync(YtDlpUpdateService service, string toolPath, string toolDisplayName, string toolFileName)
+        /// <summary>Fragt nach und installiert. Lehnt der Nutzer ein für den Betrieb
+        /// erforderliches Werkzeug ab, erklärt der Dialog, wie es von Hand nachgeholt werden kann,
+        /// und die Anwendung beendet sich geordnet — unverändertes Verhalten.</summary>
+        private async Task<(bool Present, ToolVersion Version)> InstallMissingToolAsync(
+            IManagedTool tool, ToolCheckOutcome outcome, Func<string, string> T)
         {
-            var T = UITexte.UITextDictionary.Get;
-            var releaseInfo = await service.GetLatestReleaseInfoAsync();
-            string? assetUrl = releaseInfo.Item2;
+            string title = Fmt(T("StartupWindow.Tool.MissingTitle"), tool.DisplayName);
 
-            string message = string.Format(T("StartupWindow.YtDlp.Message"), YtDlpDocUrl);
-
-            var result = FluentMessageBox.Show(
-                message + T("StartupWindow.YtDlp.Question"),
-                string.Format(T("StartupWindow.YtDlp.Title"), toolDisplayName),
+            var answer = FluentMessageBox.Show(
+                BuildIntroMessage(tool, T),
+                title,
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Warning,
                 this);
 
-            if (result == MessageBoxResult.Yes && assetUrl != null)
+            if (answer != MessageBoxResult.Yes)
             {
-                SetStatus(string.Format(T("StartupWindow.Status.Downloading"), toolDisplayName));
-                bool downloadSuccess = await DownloadToolWithProgressAsync(service, assetUrl, toolPath, string.Format(T("StartupWindow.Status.Downloading"), toolDisplayName));
-                if (!downloadSuccess)
-                    return false;
+                Log.Warn($"[{tool.Id}] Installation vom Nutzer abgelehnt.");
+
                 FluentMessageBox.Show(
-                    string.Format(T("StartupWindow.YtDlp.Success"), toolDisplayName),
-                    T("StartupWindow.Title.DownloadComplete"),
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information,
-                    this);
-                return service.ToolExists(toolPath);
-            }
-            else
-            {
-                FluentMessageBox.Show(
-                    string.Format(T("StartupWindow.YtDlp.Required"), toolDisplayName, Properties.Settings.Default.MortysDLPGitHubURL),
-                    string.Format(T("StartupWindow.YtDlp.Title"), toolDisplayName),
+                    BuildRequiredMessage(tool, T),
+                    title,
                     MessageBoxButton.OK,
                     MessageBoxImage.Error,
                     this);
 
-                Application.Current.Shutdown();
-                return false;
-            }
-        }
-
-        private async Task CheckAndDownloadFfmpegAndFfprobeAsync(FfmpegUpdateService service, string ffmpegPath, string ffprobePath)
-        {
-            var T = UITexte.UITextDictionary.Get;
-            bool ffmpegExists = service.FfmpegExists(ffmpegPath);
-            bool ffprobeExists = service.FfprobeExists(ffprobePath);
-
-            if (!ffmpegExists || !ffprobeExists)
-            {
-                string message = T("StartupWindow.Ffmpeg.Message");
-
-                var result = FluentMessageBox.Show(
-                    message + T("StartupWindow.Ffmpeg.Question"),
-                    string.Format(T("StartupWindow.YtDlp.Title"), "ffmpeg / ffprobe"),
-                    MessageBoxButton.YesNo,
-                    MessageBoxImage.Warning,
-                    this);
-
-                if (result == MessageBoxResult.Yes)
-                {
-                    string tempZip = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "ffmpeg_download_" + System.Guid.NewGuid() + ".zip");
-                    try
-                    {
-                        using var dialog = new DownloadProgressDialog(T("StartupWindow.Ffmpeg.Downloading"));
-                        dialog.Owner = this;
-                        dialog.Show();
-                        var progress = new Progress<double>(value => dialog.SetProgress(value));
-
-                        SetStatus(T("StartupWindow.Ffmpeg.Downloading"));
-                        await service.DownloadAssetAsync(FfmpegDownloadUrl, tempZip, progress, dialog.CancellationToken);
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        SetStatus(T("StartupWindow.Status.DownloadCanceled"));
-                        return;
-                    }
-
-                    SetStatus(T("StartupWindow.Ffmpeg.Extracting"));
-                    var (allSuccessful, failedFiles) = await TryExtractMultipleExeFromZipAsync(tempZip,
-                        ("ffmpeg.exe", ffmpegPath),
-                        ("ffprobe.exe", ffprobePath));
-
-                    if (allSuccessful)
-                    {
-                        FluentMessageBox.Show(
-                            T("StartupWindow.Ffmpeg.Success"),
-                            T("StartupWindow.Title.DownloadComplete"),
-                            MessageBoxButton.OK,
-                            MessageBoxImage.Information,
-                            this);
-                    }
-                    else
-                    {
-                        FluentMessageBox.Show(
-                            T("StartupWindow.Ffmpeg.Failed"),
-                            T("StartupWindow.Title.Error"),
-                            MessageBoxButton.OK,
-                            MessageBoxImage.Error,
-                            this);
-                    }
-                }
-                else
-                {
-                    FluentMessageBox.Show(
-                        string.Format(T("StartupWindow.Ffmpeg.Required"), "https://github.com/MortysTerminal/MortysDLP"),
-                        string.Format(T("StartupWindow.YtDlp.Title"), "ffmpeg / ffprobe"),
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Error,
-                        this);
-
+                if (tool.RequiredForOperation)
                     Application.Current.Shutdown();
-                }
+
+                return (false, ToolVersion.Unknown);
             }
 
-        }
+            var install = await RunInstallAsync(tool, outcome.Release, T);
 
-        private async Task CheckAndUpdateYtDlpVersionAsync(YtDlpUpdateService ytDlpService, string ytDlpPath)
-        {
-            var T = UITexte.UITextDictionary.Get;
-            SetStatus(T("StartupWindow.Status.CheckingYtDlpVersion"));
-            var releaseInfo = await ytDlpService.GetLatestReleaseInfoAsync();
-            string? latestVersion = releaseInfo.Item1;
-            string? assetUrl = releaseInfo.Item2;
-
-            string? localVersion = await ytDlpService.GetLocalVersionAsync(ytDlpPath);
-
-            if (ytDlpService.IsUpdateRequired(localVersion, latestVersion))
+            if (install.Success)
             {
-                string message = string.Format(T("StartupWindow.YtDlpUpdate.NewVersion"), latestVersion, localVersion ?? "?");
-
-                var result = FluentMessageBox.Show(
-                    message + T("StartupWindow.YtDlpUpdate.Question"),
-                    T("StartupWindow.YtDlpUpdate.Title"),
-                    MessageBoxButton.YesNo,
+                FluentMessageBox.Show(
+                    Fmt(T("StartupWindow.Tool.InstallSuccess"), tool.DisplayName),
+                    T("StartupWindow.Title.DownloadComplete"),
+                    MessageBoxButton.OK,
                     MessageBoxImage.Information,
                     this);
 
-                if (result == MessageBoxResult.Yes && assetUrl != null)
-                {
-                    SetStatus(string.Format(T("StartupWindow.Status.Downloading"), "yt-dlp"));
-                    bool updateSuccess = await DownloadToolWithProgressAsync(ytDlpService, assetUrl, ytDlpPath, string.Format(T("StartupWindow.Status.Downloading"), "yt-dlp"));
-                    if (updateSuccess)
-                        FluentMessageBox.Show(
-                            T("StartupWindow.YtDlpUpdate.Success"),
-                            T("StartupWindow.Title.DownloadComplete"),
-                            MessageBoxButton.OK,
-                            MessageBoxImage.Information,
-                            this);
-                    else
-                        FluentMessageBox.Show(
-                            T("StartupWindow.YtDlpUpdate.Failed"),
-                            T("StartupWindow.Title.Error"),
-                            MessageBoxButton.OK,
-                            MessageBoxImage.Warning,
-                            this);
-                }
+                return (true, install.NewVersion);
+            }
+
+            if (install.Status != ToolInstallStatus.Canceled)
+            {
+                FluentMessageBox.Show(
+                    Fmt(T("StartupWindow.Tool.InstallFailed"), tool.DisplayName),
+                    T("StartupWindow.Title.Error"),
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error,
+                    this);
+            }
+
+            return (tool.GetStatus().Installed, ToolVersion.Unknown);
+        }
+
+        /// <summary>Bietet ein Update an — und führt es nie ohne Zustimmung durch. Schlägt es fehl,
+        /// bleibt das Werkzeug in der vorherigen Fassung einsatzbereit; der Start läuft weiter.</summary>
+        private async Task<(bool Present, ToolVersion Version)> OfferToolUpdateAsync(
+            IManagedTool tool, ToolCheckOutcome outcome, Func<string, string> T)
+        {
+            string message = Fmt(T("StartupWindow.ToolUpdate.NewVersion"),
+                tool.DisplayName, outcome.RemoteVersion, outcome.LocalVersion);
+
+            var answer = FluentMessageBox.Show(
+                message + T("StartupWindow.ToolUpdate.Question"),
+                Fmt(T("StartupWindow.ToolUpdate.Title"), tool.DisplayName),
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Information,
+                this);
+
+            if (answer != MessageBoxResult.Yes)
+            {
+                Log.Info($"[{tool.Id}] Update auf {outcome.RemoteVersion} vom Nutzer abgelehnt - " +
+                    $"{outcome.LocalVersion} bleibt installiert.");
+                return (true, outcome.LocalVersion);
+            }
+
+            var install = await RunInstallAsync(tool, outcome.Release, T);
+
+            if (install.Success)
+            {
+                FluentMessageBox.Show(
+                    Fmt(T("StartupWindow.ToolUpdate.Success"), tool.DisplayName),
+                    T("StartupWindow.Title.DownloadComplete"),
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information,
+                    this);
+
+                return (true, install.NewVersion);
+            }
+
+            // Der zurückgenommene Fall bekommt eine eigene Meldung: „fehlgeschlagen" allein würde
+            // offenlassen, ob das Werkzeug jetzt noch benutzbar ist - und genau das ist die
+            // einzige Frage, die den Nutzer hier interessiert.
+            if (install.Status == ToolInstallStatus.RolledBack)
+            {
+                FluentMessageBox.Show(
+                    Fmt(T("StartupWindow.ToolUpdate.RolledBack"), tool.DisplayName),
+                    T("StartupWindow.Title.Error"),
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning,
+                    this);
+            }
+            else if (install.Status != ToolInstallStatus.Canceled)
+            {
+                FluentMessageBox.Show(
+                    Fmt(T("StartupWindow.ToolUpdate.Failed"), tool.DisplayName),
+                    T("StartupWindow.Title.Error"),
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning,
+                    this);
+            }
+
+            return (tool.GetStatus().Installed, outcome.LocalVersion);
+        }
+
+        /// <summary>Führt die Installation mit Fortschrittsdialog und Statuszeile aus. Die
+        /// Abschnittsmeldungen kommen als Aufzählungswert aus der Werkzeugschicht und werden erst
+        /// hier zu Text — <c>Progress&lt;T&gt;</c> wird im UI-Thread erzeugt und meldet deshalb
+        /// auch dorthin zurück.</summary>
+        private async Task<ToolInstallOutcome> RunInstallAsync(
+            IManagedTool tool, ReleaseInfo? release, Func<string, string> T)
+        {
+            string downloadText = Fmt(T("StartupWindow.Status.Downloading"), tool.DisplayName);
+
+            using var dialog = new DownloadProgressDialog(downloadText);
+            dialog.Owner = this;
+            dialog.Show();
+
+            var progress = new Progress<double>(dialog.SetProgress);
+            var stage = new Progress<ToolInstallStage>(s => SetStatus(StageText(s, tool.DisplayName, T)));
+
+            SetStatus(downloadText);
+
+            var outcome = await tool.InstallAsync(release, progress, stage, dialog.CancellationToken);
+
+            if (outcome.Status == ToolInstallStatus.Canceled)
+                SetStatus(T("StartupWindow.Status.DownloadCanceled"));
+            else if (!outcome.Success)
+                SetStatus(T("StartupWindow.Status.DownloadFailed"));
+
+            return outcome;
+        }
+
+        private static string StageText(ToolInstallStage stage, string displayName, Func<string, string> T) =>
+            stage switch
+            {
+                ToolInstallStage.Downloading => Fmt(T("StartupWindow.Status.Downloading"), displayName),
+                ToolInstallStage.Extracting => Fmt(T("StartupWindow.Status.Extracting"), displayName),
+                ToolInstallStage.Replacing => Fmt(T("StartupWindow.Status.Replacing"), displayName),
+                _ => Fmt(T("StartupWindow.Status.Verifying"), displayName),
+            };
+
+        // Zuordnung Werkzeug -> Textschlüssel. Sie steht bewusst hier in der Oberfläche und nicht
+        // in IManagedTool: Ein Dienst, der seine eigenen Dialogtexte kennt, ist kein Dienst mehr.
+        // Ein Werkzeug ohne Eintrag bekommt keine erfundenen Texte, sondern eine Protokollwarnung
+        // und die allgemeine Fassung - so fällt beim Ergänzen weiterer Werkzeuge auf, was fehlt,
+        // statt dass yt-dlp-Texte für etwas anderes erscheinen.
+
+        private static string StatusChecking(IManagedTool tool, Func<string, string> T) => tool.Id switch
+        {
+            "yt-dlp" => T("StartupWindow.Status.CheckingYtDlp"),
+            "ffmpeg" => T("StartupWindow.Status.CheckingFfmpeg"),
+            _ => Fmt(T("StartupWindow.Status.CheckingTool"), tool.DisplayName),
+        };
+
+        private static string StatusCheckingVersion(IManagedTool tool, Func<string, string> T) => tool.Id switch
+        {
+            "yt-dlp" => T("StartupWindow.Status.CheckingYtDlpVersion"),
+            "ffmpeg" => T("StartupWindow.Status.CheckingFfmpegVersion"),
+            _ => Fmt(T("StartupWindow.Status.CheckingToolVersion"), tool.DisplayName),
+        };
+
+        private static string StatusNotFound(IManagedTool tool, Func<string, string> T) => tool.Id switch
+        {
+            "yt-dlp" => T("StartupWindow.Status.YtDlpNotFound"),
+            "ffmpeg" => T("StartupWindow.Status.FfmpegNotFound"),
+            _ => Fmt(T("StartupWindow.Status.ToolNotFound"), tool.DisplayName),
+        };
+
+        private string BuildIntroMessage(IManagedTool tool, Func<string, string> T)
+        {
+            switch (tool.Id)
+            {
+                case "yt-dlp":
+                    return Fmt(T("StartupWindow.YtDlp.Message"), YtDlpDocUrl) +
+                        T("StartupWindow.YtDlp.Question");
+
+                case "ffmpeg":
+                    return T("StartupWindow.Ffmpeg.Message") + T("StartupWindow.Ffmpeg.Question");
+
+                default:
+                    Log.Warn($"[{tool.Id}] Für dieses Werkzeug gibt es noch keinen Einführungstext - " +
+                        "es wird die allgemeine Fassung angezeigt.");
+                    return Fmt(T("StartupWindow.Tool.MissingTitle"), tool.DisplayName);
             }
         }
+
+        private string BuildRequiredMessage(IManagedTool tool, Func<string, string> T)
+        {
+            switch (tool.Id)
+            {
+                case "yt-dlp":
+                    return Fmt(T("StartupWindow.YtDlp.Required"),
+                        tool.DisplayName, Properties.Settings.Default.MortysDLPGitHubURL);
+
+                case "ffmpeg":
+                    return Fmt(T("StartupWindow.Ffmpeg.Required"),
+                        Properties.Settings.Default.MortysDLPGitHubURL);
+
+                default:
+                    Log.Warn($"[{tool.Id}] Für dieses Werkzeug gibt es noch keinen Hinweistext zur " +
+                        "manuellen Installation - es wird die allgemeine Fassung angezeigt.");
+                    return Fmt(T("StartupWindow.Tool.InstallFailed"), tool.DisplayName);
+            }
+        }
+
         private void ShowError(string message) =>
             FluentMessageBox.Show(message, icon: MessageBoxImage.Error, owner: this);
 
-        private Task<bool> TryExtractExeFromZipAsync(string zipPath, string exeName, string targetPath)
-        {
-            return Task.Run(() => TryExtractExeFromZip(zipPath, exeName, targetPath));
-        }
-
-        private Task<(bool AllSuccessful, List<string> FailedFiles)> TryExtractMultipleExeFromZipAsync(string zipPath, params (string ExeName, string TargetPath)[] files)
-        {
-            return Task.Run(() => TryExtractMultipleExeFromZip(zipPath, files));
-        }
-
-        private bool TryExtractExeFromZip(string zipPath, string exeName, string targetPath)
-        {
-            string tempExtractDir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "extract_" + Guid.NewGuid());
-            System.IO.Directory.CreateDirectory(tempExtractDir);
-            try
-            {
-                ZipFile.ExtractToDirectory(zipPath, tempExtractDir);
-                string? foundExe = System.IO.Directory.GetFiles(tempExtractDir, exeName, System.IO.SearchOption.AllDirectories).FirstOrDefault();
-                if (foundExe != null)
-                {
-                    if (System.IO.File.Exists(targetPath))
-                        System.IO.File.Delete(targetPath);
-                    System.IO.File.Copy(foundExe, targetPath, true);
-                    return true;
-                }
-                return false;
-            }
-            catch {
-                return false;
-            }
-            finally
-            {
-                try 
-                { 
-                    if (System.IO.Directory.Exists(tempExtractDir))
-                        System.IO.Directory.Delete(tempExtractDir, true); 
-                } 
-                catch { }
-            }
-        }
-
-        private (bool AllSuccessful, List<string> FailedFiles) TryExtractMultipleExeFromZip(string zipPath, params (string ExeName, string TargetPath)[] files)
-        {
-            string tempExtractDir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "extract_" + Guid.NewGuid());
-            var failedFiles = new List<string>();
-            
-            try
-            {
-                System.IO.Directory.CreateDirectory(tempExtractDir);
-                ZipFile.ExtractToDirectory(zipPath, tempExtractDir);
-
-                foreach (var (exeName, targetPath) in files)
-                {
-                    string? foundExe = System.IO.Directory.GetFiles(tempExtractDir, exeName, System.IO.SearchOption.AllDirectories).FirstOrDefault();
-                    if (foundExe != null)
-                    {
-                        try
-                        {
-                            if (System.IO.File.Exists(targetPath))
-                                System.IO.File.Delete(targetPath);
-                            System.IO.File.Copy(foundExe, targetPath, true);
-                        }
-                        catch
-                        {
-                            failedFiles.Add(exeName);
-                        }
-                    }
-                    else
-                    {
-                        failedFiles.Add(exeName);
-                    }
-                }
-
-                return (failedFiles.Count == 0, failedFiles);
-            }
-            catch
-            {
-                failedFiles.AddRange(files.Select(f => f.ExeName));
-                return (false, failedFiles);
-            }
-            finally
-            {
-                try 
-                { 
-                    if (System.IO.File.Exists(zipPath))
-                        System.IO.File.Delete(zipPath); 
-                } 
-                catch { }
-                
-                try 
-                { 
-                    if (System.IO.Directory.Exists(tempExtractDir))
-                        System.IO.Directory.Delete(tempExtractDir, true); 
-                } 
-                catch { }
-            }
-        }
     }
 }

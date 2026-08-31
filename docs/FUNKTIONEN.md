@@ -51,12 +51,14 @@ Ablauf beim Start (`App.OnStartup`):
    Explorers (also aus einem temporären Ordner, der beim Schließen verschwindet), erscheint
    ein Hinweis mit den Optionen „Ordner öffnen" und „Trotzdem fortfahren". Der Hinweis blockt
    nicht — die Erkennung ist eine Heuristik, kein sicherer Nachweis.
-4. **Werkzeuge prüfen**
-   - yt-dlp vorhanden? Wenn nicht: Nachfrage, dann Download mit Fortschrittsdialog.
-     Lehnt der Nutzer ab, beendet sich die App.
-   - yt-dlp-Version gegen GitHub prüfen; bei Abweichung Update anbieten.
-   - ffmpeg und ffprobe vorhanden? Wenn nicht: Nachfrage, dann ZIP-Download und Entpacken.
-     Lehnt der Nutzer ab, beendet sich die App.
+4. **Werkzeuge prüfen** — für jedes verwaltete Werkzeug derselbe Ablauf (siehe Abschnitt 3):
+   - Sind alle zugehörigen Dateien vorhanden und nicht leer? Wenn nicht: Nachfrage, dann
+     Download mit Fortschrittsdialog. Lehnt der Nutzer ein für den Betrieb erforderliches
+     Werkzeug ab, erklärt ein Dialog, wie es von Hand nachgeholt werden kann, und die
+     Anwendung beendet sich.
+   - Sonst: installierte Version auslesen und mit der Version der Bezugsquelle vergleichen.
+     Gibt es etwas Neueres, wird ein Update **angeboten** — durchgeführt wird es nie ohne
+     Zustimmung.
 5. **Hauptfenster öffnen**, Startbildschirm schließen.
 6. **Suche nach App-Update, jetzt im Hintergrund** — läuft erst an, nachdem das Hauptfenster
    bereits offen ist, und hält es an keiner Stelle auf. Höchstens alle 6 Stunden wird
@@ -69,9 +71,10 @@ Ablauf beim Start (`App.OnStartup`):
    (`ffmpeg_download_*.zip`, `extract_*`).
 
 > **Bekannte Einschränkung:** Die Werkzeugprüfung (Schritt 4) läuft weiterhin vor dem
-> Hauptfenster und fragt bei jedem Start erneut die yt-dlp-Release-API ab, ohne
-> Zwischenspeicher — das ist der größte verbleibende Anteil an der Startzeit und noch nicht
-> überarbeitet.
+> Hauptfenster und ein Werkzeug nach dem anderen — das ist der größte verbleibende Anteil an
+> der Startzeit. Die Versionsabfragen gehen jetzt höchstens alle zwölf Stunden über das Netz;
+> das Auslesen der installierten Version startet aber bei jedem Start je Werkzeug einen
+> kurzen Prozess. Das Nebenläufigmachen und Verlegen in den Hintergrund ist noch offen.
 
 **Fehlerbehandlung:** Ein unerwarteter Fehler beendet MortysDLP nicht mehr wortlos. Er wird in
 einer Protokolldatei festgehalten (siehe Abschnitt 13) und in einem Dialog mit verständlichem
@@ -95,6 +98,44 @@ selbst, bleibt nur „Beenden".
 
 yt-dlp und ffmpeg/ffprobe werden beim Start verwaltet. Whisper und TwitchDownloaderCLI
 werden auf ihren jeweiligen Seiten installiert, aktualisiert und deinstalliert.
+
+### Wie ein Werkzeug-Update abläuft
+
+Für yt-dlp und ffmpeg/ffprobe gilt derselbe Ablauf:
+
+1. **Version bestimmen.** Die installierte Version kommt aus dem Werkzeug selbst
+   (`yt-dlp --version`, `ffmpeg -version`). Antwortet es nicht, überschreitet es das Zeitlimit
+   von 15 Sekunden oder gibt es nichts Lesbares aus, gilt die Version als *unbekannt* — und
+   dann wird **kein** Update angeboten, sondern das Nicht-Antworten protokolliert.
+2. **Bezugsquelle fragen.** yt-dlp wird über mehrere unabhängige Quellen der Reihe nach
+   abgefragt (GitHub-Release-API, Python-Paketindex, GitHub-Nachrichtenfeed, GitHub-Weiterleitung);
+   für ffmpeg liefert ein eigener Versionsendpunkt des Anbieters die Nummer des Pakets, das
+   MortysDLP auch herunterlädt. Das Ergebnis wird zwischengespeichert und höchstens alle zwölf
+   Stunden erneuert.
+3. **Vergleichen.** Bei yt-dlp ist die Version eine ordnende Zahlenfolge — ein Update wird nur
+   angeboten, wenn die veröffentlichte Fassung nachweislich **neuer** ist. Bei ffmpeg ist die
+   Version *keine* ordnende Zahl (sie trägt die Build-Bezeichnung des Anbieters mit), deshalb
+   lautet die Frage dort nur „dieselbe Ausgabe oder eine andere?". Lässt sich „neuer als" nicht
+   beantworten, führt das nie zu einem automatischen Update, höchstens zu einem Angebot.
+4. **Herunterladen und prüfen.** Der Download läuft über eine Prüfsumme (soweit die Quelle eine
+   nennt) und einen Größenabgleich, in eine Zwischendatei — erst nach bestandener Prüfung wird
+   sie weiterverwendet. Fehlt eine Prüfsumme, steht das im Protokoll.
+5. **Ersetzen mit Rückfallebene.** Die vorhandene Datei wird **umbenannt, nicht gelöscht**
+   (`<name>.old`), dann die neue eingesetzt. Bei ffmpeg passiert das für beide Dateien
+   gemeinsam.
+6. **Erfolgskontrolle.** Das Werkzeug wird einmal aufgerufen und muss eine lesbare Version
+   melden — bei ffmpeg beide Dateien, und beide dieselbe. Besteht es, wird die Sicherung
+   gelöscht. Besteht es nicht, wird die vorherige Fassung zurückgeholt, der Vorgang gilt als
+   fehlgeschlagen, und das Werkzeug ist unverändert einsatzbereit. Nach einem erfolgreichen
+   Update bleibt keine `.old`- und keine unfertige Datei liegen.
+
+Jeder dieser Schritte steht mit einer eigenen Zeile im Protokoll — auch die Erfolgsfälle,
+nicht nur die Fehlschläge.
+
+**Warum ffmpeg nie erzwungen wird:** ffmpeg ist die Komponente, bei der ein unnötiges Update am
+meisten kaputtmachen kann, und die Versionsangabe der ausgelieferten Ausgabe erlaubt keine
+verlässliche Aussage darüber, welche von zwei Fassungen neuer ist. Ein Update wird deshalb
+angeboten, wenn es eine andere Ausgabe gibt — und nur dann.
 
 Die Werkzeuge liegen bewusst **nicht** im Programmordner, sondern im Nutzerprofil: Wer
 MortysDLP nach `C:\Program Files` entpackt, kann seine Werkzeuge trotzdem aktualisieren, weil

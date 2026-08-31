@@ -26,6 +26,12 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
 ## [Unreleased]
 
 ### Sicherheit
+- Der Download von yt-dlp wird jetzt gegen die Prüfsummenliste des jeweiligen Releases
+  geprüft, soweit sie vorliegt; fehlt sie, steht das ausdrücklich im Protokoll statt
+  unbemerkt zu bleiben. Beim ffmpeg-Paket werden vor dem Entpacken Anzahl der Einträge,
+  entpackte Größe und Kompressionsverhältnis gegen plausible Grenzen geprüft, und es werden
+  ausschließlich die beiden benötigten Programmdateien herausgeholt — Einträge, die aus dem
+  Zielordner ausbrechen wollen, können deshalb nichts ausrichten.
 - Heruntergeladene Update-Pakete werden jetzt vor der Installation gegen eine Prüfsumme und
   die erwartete Größe geprüft — die Prüfung läuft mit, während die Datei geschrieben wird,
   nicht erst hinterher. Stimmt etwas nicht, bricht das Update ab, die vorhandene Installation
@@ -74,6 +80,26 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
   läuft die Anwendung danach normal weiter.
 
 ### Geändert
+- Werkzeug-Updates (yt-dlp, ffmpeg, ffprobe) sichern die vorhandene Fassung jetzt, bevor sie
+  ersetzt wird, und rufen das Werkzeug danach einmal auf. Antwortet es nicht mehr brauchbar,
+  wird die vorherige Fassung automatisch wiederhergestellt und der Vorgang als fehlgeschlagen
+  gemeldet — das Werkzeug ist danach unverändert einsatzbereit. Bisher war ein Update, das die
+  Datei ersetzte, aber ein unbrauchbares Werkzeug hinterließ, von einem erfolgreichen nicht zu
+  unterscheiden. Jeder Schritt steht einzeln im Protokoll: gesichert, eingesetzt, geprüft,
+  Sicherung entfernt — nicht nur die Fehlschläge.
+- ffmpeg und ffprobe werden jetzt gemeinsam behandelt: Sie kommen aus demselben Paket und
+  werden gemeinsam ersetzt oder gemeinsam zurückgeholt. Ein neues ffmpeg neben einem alten
+  ffprobe kann dadurch nicht mehr entstehen. Ein ffmpeg-Update wird ausschließlich angeboten,
+  nie ohne Zutun eingespielt.
+- Die Versionsprüfung für yt-dlp nutzt jetzt mehrere voneinander unabhängige Quellen (unter
+  anderem den Python-Paketindex, der ohne GitHub auskommt) und wird höchstens alle zwölf
+  Stunden über das Netz erneuert. Ist GitHub nicht erreichbar oder das stündliche
+  Anfragekontingent erschöpft, liefert eine der Ausweichquellen die Versionsnummer, statt dass
+  die Prüfung ergebnislos bleibt.
+- Aus dem ffmpeg-Paket werden jetzt nur noch `ffmpeg.exe` und `ffprobe.exe` herausgeholt,
+  statt das gesamte Archiv in ein temporäres Verzeichnis zu entpacken. Das temporäre Paket
+  wird nach dem Vorgang in jedem Fall gelöscht, und das Entpacken blockiert die Oberfläche
+  nicht mehr.
 - Die Suche nach einer neuen MortysDLP-Version hält den Start nicht mehr auf: Sie läuft jetzt
   im Hintergrund, nachdem das Hauptfenster bereits offen ist, und meldet ein gefundenes Update
   nachträglich über den gewohnten Banner. War diese Prüfung bisher langsam oder nicht erreichbar,
@@ -103,6 +129,15 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
   verfügbar" zu melden.
 
 ### Behoben
+- Für yt-dlp wird kein Update mehr angeboten, wenn die installierte Fassung **neuer** ist als
+  die veröffentlichte — etwa nach einem Zwischenbuild. Bisher genügte es, dass sich die beiden
+  Versionsangaben unterschieden, und das Angebot war dann ein Rückschritt. Ebenso erscheint
+  kein Angebot mehr, wenn yt-dlp auf die Versionsfrage überhaupt nicht geantwortet hat; das
+  Nicht-Antworten steht stattdessen im Protokoll.
+- Für ffmpeg kann kein dauerhaftes Update-Angebot mehr entstehen. Die installierte Fassung
+  nennt ihre Version anders geschrieben als die Bezugsquelle sie meldet (mit angehängter
+  Build-Bezeichnung gegenüber der reinen Nummer). Beides wird jetzt als dieselbe Ausgabe
+  erkannt, sodass ein Angebot nur noch bei einer tatsächlich anderen Ausgabe erscheint.
 - Schlägt ein Update fehl, nennt die Meldung jetzt das Protokoll des Installations-Updaters —
   dort steht der Grund. Bisher verwies sie auf das Protokoll der Anwendung, das genau an der
   Stelle endet, an der das Update beginnt.
