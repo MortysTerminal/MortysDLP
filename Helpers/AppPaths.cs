@@ -1,4 +1,5 @@
 using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace MortysDLP.Helpers
@@ -26,10 +27,15 @@ namespace MortysDLP.Helpers
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "MortysDLP");
 
-        // Werkzeuge liegen bewusst noch im Programmverzeichnis, damit bestehende
-        // Installationen weiterlaufen. ToolsDir ist die einzige Stelle, die für die
-        // Verlagerung nach %LOCALAPPDATA% (Welle 4) geändert werden muss.
-        public static string ToolsDir => Path.Combine(AppDir, "Tools");
+        /// <summary>Werkzeuge liegen unter dem Nutzerprofil, nicht im Programmverzeichnis —
+        /// sonst scheitert jedes Werkzeug-Update, sobald jemand nach
+        /// <c>C:\Program Files</c> entpackt (siehe <see cref="EnsureToolsDirAndMigrate"/>).</summary>
+        public static string ToolsDir => Path.Combine(DataDir, "Tools");
+
+        /// <summary>Alter Ablageort vor Welle 4. Nur noch als Quelle für die einmalige
+        /// Übernahme vorhandener Werkzeuge relevant, siehe <see cref="EnsureToolsDirAndMigrate"/>.</summary>
+        public static string LegacyToolsDir => Path.Combine(AppDir, "Tools");
+
         public static string LogsDir => Path.Combine(DataDir, "logs");
         public static string CacheDir => Path.Combine(DataDir, "cache");
 
@@ -67,6 +73,32 @@ namespace MortysDLP.Helpers
 
             MigrateHistoryFileIfNeeded();
             RemoveObsoleteStartupCacheIfPresent();
+        }
+
+        /// <summary>Legt <see cref="ToolsDir"/> an und übernimmt vorhandene Werkzeuge aus
+        /// <see cref="LegacyToolsDir"/>, falls dort noch welche liegen. Bewusst **nicht**
+        /// Teil von <see cref="EnsureDataDirs"/>: Diese läuft, bevor der Startbildschirm
+        /// existiert, hier soll der Aufrufer aber bei einer spürbar langen Übernahme (große
+        /// Whisper-Modelle über Laufwerksgrenzen hinweg) eine Statuszeile zeigen können,
+        /// bevor er blockiert — siehe <c>StartupWindow.MigrateToolsAsync</c>.</summary>
+        public static ToolsMigration.MigrationResult EnsureToolsDirAndMigrate()
+        {
+            try { Directory.CreateDirectory(ToolsDir); } catch { /* Best-Effort */ }
+            return ToolsMigration.Migrate(LegacyToolsDir, ToolsDir);
+        }
+
+        /// <summary>Reine Pfadauswertung, kein Dateisystemzugriff — für den Aufrufer, der vor
+        /// einer möglicherweise langen Übernahme entscheiden muss, ob überhaupt eine
+        /// Statuszeile nötig ist.</summary>
+        public static bool LegacyToolsDirHasContent()
+        {
+            try
+            {
+                return Directory.Exists(LegacyToolsDir) &&
+                    Directory.EnumerateFiles(LegacyToolsDir, "*", SearchOption.AllDirectories)
+                        .Any(f => !Path.GetFileName(f).StartsWith('.'));
+            }
+            catch { return false; }
         }
 
         /// <summary>Der nie instanziierte <c>StartupHealthCheckService</c> ist

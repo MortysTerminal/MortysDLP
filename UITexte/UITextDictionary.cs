@@ -167,6 +167,7 @@ namespace MortysDLP.UITexte
 
             // Startup Window
             ["StartupWindow.Title"] = "MortysDLP wird vorbereitet...",
+            ["StartupWindow.Status.MigratingTools"] = "Übernehme vorhandene Werkzeuge...",
             ["StartupWindow.Status.CheckingYtDlp"] = "Prüfe yt-dlp...",
             ["StartupWindow.Status.YtDlpNotFound"] = "yt-dlp nicht gefunden – starte Download...",
             ["StartupWindow.Status.CheckingYtDlpVersion"] = "Prüfe yt-dlp-Version...",
@@ -778,6 +779,7 @@ namespace MortysDLP.UITexte
 
             // Startup Window
             ["StartupWindow.Title"] = "Preparing MortysDLP...",
+            ["StartupWindow.Status.MigratingTools"] = "Taking over existing tools...",
             ["StartupWindow.Status.CheckingYtDlp"] = "Checking yt-dlp...",
             ["StartupWindow.Status.YtDlpNotFound"] = "yt-dlp not found – starting download...",
             ["StartupWindow.Status.CheckingYtDlpVersion"] = "Checking yt-dlp version...",

@@ -141,6 +141,10 @@ namespace MortysDLP
 
                 await SetStatusTextAndWaitAsync(splash, UITexte.UITexte.Splash_NoUpdate, DebugSleepTimer);
 
+                // 1b. Werkzeuge aus einem alten Installationsort (vor Welle 4) einmalig
+                // übernehmen - muss vor jedem Zugriff auf AppPaths.ToolsDir passiert sein.
+                await splash.MigrateToolsAsync();
+
                 // 2. Status: Voraussetzungen prüfen (nur Info, Download im MainWindow)
                 await SetStatusTextAndWaitAsync(splash, UITexte.UITexte.Splash_CheckingTools, DebugSleepTimer);
 

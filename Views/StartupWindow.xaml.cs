@@ -60,6 +60,68 @@ namespace MortysDLP
             LogoImage.Source = new System.Windows.Media.Imaging.BitmapImage(new System.Uri(imagePath, System.UriKind.RelativeOrAbsolute));
         }
 
+        /// <summary>Übernimmt einmalig Werkzeuge aus dem alten Installationsort
+        /// (<see cref="AppPaths.LegacyToolsDir"/>) nach <see cref="AppPaths.ToolsDir"/>, falls
+        /// dort noch welche liegen. Muss laufen, bevor <see cref="ToolUpdaterAsync"/>
+        /// irgendetwas nach <see cref="AppPaths.ToolsDir"/> schreibt. Die Statuszeile
+        /// erscheint bewusst nur, wenn es tatsächlich etwas zu übernehmen gibt — sonst bleibt
+        /// der ganz überwiegende Fall (kein alter Ordner, oder bereits übernommen) unsichtbar
+        /// und ohne spürbaren Zeitverlust.</summary>
+        public async Task MigrateToolsAsync()
+        {
+            try
+            {
+                ToolsMigration.MigrationResult result;
+
+                if (AppPaths.LegacyToolsDirHasContent())
+                {
+                    var T = UITexte.UITextDictionary.Get;
+                    SetStatus(T("StartupWindow.Status.MigratingTools"));
+                    // Kann bei Whisper-Modellen mehrere GB umfassen und, wenn Programm- und
+                    // Nutzerordner auf verschiedenen Laufwerken liegen, spürbar dauern -
+                    // deshalb wie ZipFile.ExtractToDirectory in Task.Run, sonst friert die
+                    // Oberfläche samt Ladeanimation ein.
+                    result = await Task.Run(AppPaths.EnsureToolsDirAndMigrate);
+                }
+                else
+                {
+                    result = AppPaths.EnsureToolsDirAndMigrate();
+                }
+
+                LogMigrationResult(result);
+            }
+            catch (Exception ex)
+            {
+                // Best-Effort: Eine fehlgeschlagene Übernahme darf den Start nicht verhindern -
+                // die Werkzeuge werden dann regulär neu heruntergeladen.
+                Log.Warn("Übernahme vorhandener Werkzeuge aus dem alten Installationsort fehlgeschlagen", ex);
+            }
+        }
+
+        private static void LogMigrationResult(ToolsMigration.MigrationResult result)
+        {
+            if (result.MigratedFiles.Count == 0 && result.DuplicatedFiles.Count == 0 && result.FailedFiles.Count == 0)
+            {
+                Log.Info("Werkzeug-Übernahme: Im alten Installationsordner gab es nichts zu übernehmen.");
+                return;
+            }
+
+            foreach (string file in result.MigratedFiles)
+                Log.Info($"Werkzeug aus dem alten Installationsort übernommen: {file}");
+
+            foreach (string file in result.DuplicatedFiles)
+                Log.Warn($"Werkzeug '{file}' konnte nicht verschoben werden und wurde stattdessen " +
+                    "kopiert - die alte Datei bleibt liegen, es existieren jetzt zwei Kopien.");
+
+            Log.Info($"Werkzeug-Übernahme abgeschlossen: {result.MigratedFiles.Count} Datei(en) übernommen.");
+
+            if (result.OldDirRemoved)
+                Log.Info("Alter Werkzeugordner wurde entfernt.");
+            else if (result.FailedFiles.Count > 0)
+                Log.Warn("Alter Werkzeugordner bleibt bestehen, folgende Datei(en) blieben zurück: " +
+                    string.Join(", ", result.FailedFiles));
+        }
+
         public async Task<bool> ToolUpdaterAsync(IProgress<string>? progress = null)
         {
             try

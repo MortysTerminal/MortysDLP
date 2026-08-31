@@ -23,11 +23,14 @@
     <InformationalVersion>$(ReleaseVersion)</InformationalVersion>
   </PropertyGroup>
 
-  <ItemGroup>
-    <Content Include="Tools\**\*.*">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
+  <!--
+    Werkzeuge liegen seit Welle 4 unter %LOCALAPPDATA%\MortysDLP\Tools, nicht mehr im
+    Programmverzeichnis - ein "Tools"-Ordner im Build-Ausgabeverzeichnis wird dafür nicht mehr
+    gebraucht. Das Repo-Verzeichnis Tools\ (nur .gitkeep, per .gitignore) bleibt als
+    Platzhalter für den alten Ablageort stehen, wird aber bewusst nicht mehr in die Ausgabe
+    kopiert - sonst entstünde bei jedem Neubau erneut ein leerer "Tools"-Ordner neben der EXE,
+    den es unter dem neuen Schema nicht mehr braucht.
+  -->
 
   <ItemGroup>
     <Content Include="Updater\**\*.*">

@@ -74,6 +74,14 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
   läuft die Anwendung danach normal weiter.
 
 ### Geändert
+- Externe Werkzeuge (yt-dlp, ffmpeg, ffprobe, whisper.cpp, TwitchDownloaderCLI, Whisper-Modelle)
+  liegen jetzt im Nutzerprofil statt im Programmordner. Wer MortysDLP nach
+  `C:\Program Files` entpackt, kann seine Werkzeuge dadurch trotzdem aktualisieren — bisher
+  scheiterte das, weil der Programmordner dort schreibgeschützt ist. Vorhandene Werkzeuge
+  einer älteren Installation werden beim ersten Start automatisch in den neuen Ordner
+  übernommen; das Protokoll hält jede übernommene Datei fest. Wer MortysDLP von einem
+  USB-Stick betreibt, muss die Werkzeuge dadurch pro Rechner einmalig neu laden — sie liegen
+  nicht mehr auf dem Stick.
 - Der Installations-Updater, der ein Update im Hintergrund einspielt, ist jetzt vollständig
   quelloffen und wird bei jedem Release neu gebaut — bisher wurde eine ältere, nicht mehr
   nachvollziehbare Programmdatei ausgeliefert.

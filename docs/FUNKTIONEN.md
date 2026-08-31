@@ -84,15 +84,22 @@ selbst, bleibt nur „Beenden".
 
 | Werkzeug | Wofür | Ablageort | Pflicht |
 |---|---|---|---|
-| **yt-dlp** | Alle Downloads von Videoplattformen | `Tools\yt-dlp.exe` | ja |
-| **ffmpeg** | Zusammenführen, Konvertieren, GIF, Audio-Extraktion | `Tools\ffmpeg.exe` | ja |
-| **ffprobe** | Metadaten lesen (Codec, Auflösung, Dauer, Samplerate) | `Tools\ffprobe.exe` | ja |
-| **whisper.cpp** | Offline-Transkription | `Tools\Whisper\whisper.exe` | nein |
-| **Whisper-Modelle** | Sprachmodelle für die Transkription | `Tools\Whisper\models\ggml-*.bin` | nein |
-| **TwitchDownloaderCLI** | Twitch-Chat laden und rendern | `Tools\TwitchDownloaderCLI.exe` | nein |
+| **yt-dlp** | Alle Downloads von Videoplattformen | `%LOCALAPPDATA%\MortysDLP\Tools\yt-dlp.exe` | ja |
+| **ffmpeg** | Zusammenführen, Konvertieren, GIF, Audio-Extraktion | `%LOCALAPPDATA%\MortysDLP\Tools\ffmpeg.exe` | ja |
+| **ffprobe** | Metadaten lesen (Codec, Auflösung, Dauer, Samplerate) | `%LOCALAPPDATA%\MortysDLP\Tools\ffprobe.exe` | ja |
+| **whisper.cpp** | Offline-Transkription | `%LOCALAPPDATA%\MortysDLP\Tools\Whisper\whisper.exe` | nein |
+| **Whisper-Modelle** | Sprachmodelle für die Transkription | `%LOCALAPPDATA%\MortysDLP\Tools\Whisper\models\ggml-*.bin` | nein |
+| **TwitchDownloaderCLI** | Twitch-Chat laden und rendern | `%LOCALAPPDATA%\MortysDLP\Tools\TwitchDownloaderCLI.exe` | nein |
 
 yt-dlp und ffmpeg/ffprobe werden beim Start verwaltet. Whisper und TwitchDownloaderCLI
 werden auf ihren jeweiligen Seiten installiert, aktualisiert und deinstalliert.
+
+Die Werkzeuge liegen bewusst **nicht** im Programmordner, sondern im Nutzerprofil: Wer
+MortysDLP nach `C:\Program Files` entpackt, kann seine Werkzeuge trotzdem aktualisieren, weil
+der Programmordner dafür schreibgeschützt sein darf. Der Nachteil: Ein USB-Stick mit MortysDLP
+lädt die Werkzeuge auf jedem Rechner, an dem er verwendet wird, einmalig neu — sie werden nicht
+mehr auf dem Stick mitgeführt. Werkzeuge aus einer Installation vor dieser Umstellung werden
+beim ersten Start einmalig automatisch in den neuen Ordner übernommen.
 
 ---
 
@@ -371,8 +378,8 @@ Wandelt Videos in animierte GIFs.
    durchaus auf einem anderen Laufwerk sein kann. Dann sichert er jede Datei, die er ersetzt,
    bevor er sie austauscht; scheitert das Update mittendrin (z. B. eine gesperrte Datei),
    spielt er alle bereits ersetzten Dateien automatisch aus der Sicherung zurück — die
-   vorhandene Installation bleibt in jedem Fall lauffähig. Eigene Werkzeuge (`Tools\`) und der
-   Download-Verlauf werden dabei nie überschrieben.
+   vorhandene Installation bleibt in jedem Fall lauffähig. Werkzeuge und Download-Verlauf
+   liegen ohnehin außerhalb des Programmordners und werden von einem App-Update nie berührt.
 9. Die App beendet sich; der Updater wartet auf das Prozessende, entpackt und startet die
    App neu.
 10. **Beim nächsten Start prüft MortysDLP, ob das Update tatsächlich gewirkt hat:**
@@ -394,8 +401,8 @@ Wandelt Videos in animierte GIFs.
 | Inhalt | Ort (Stand heute) |
 |---|---|
 | Programmdateien | Entpackungsordner |
-| Externe Werkzeuge | `<Entpackungsordner>\Tools\` |
-| Whisper-Modelle | `<Entpackungsordner>\Tools\Whisper\models\` |
+| Externe Werkzeuge | `%LOCALAPPDATA%\MortysDLP\Tools\` (aus einer älteren Installation vorhandene Werkzeuge werden beim ersten Start einmalig aus dem Entpackungsordner übernommen) |
+| Whisper-Modelle | `%LOCALAPPDATA%\MortysDLP\Tools\Whisper\models\` |
 | Download-Verlauf | `%LOCALAPPDATA%\MortysDLP\download_history.json` |
 | Einstellungen | `%LOCALAPPDATA%\MortysDLP\MortysDLP.exe_*\<Version>\user.config` |
 | Protokolle | `%LOCALAPPDATA%\MortysDLP\logs\mortysdlp-JJJJ-MM-TT.log` (14 Tage bzw. 10 MB je Datei) |

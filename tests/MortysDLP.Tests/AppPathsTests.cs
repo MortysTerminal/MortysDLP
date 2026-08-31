@@ -7,6 +7,24 @@ public class AppPathsTests
 {
     private static readonly string[] ReservedNames = ["CON", "PRN", "AUX", "NUL"];
 
+    [Fact]
+    public void ToolsDir_LiegtUnterDataDirNichtImProgrammverzeichnis()
+    {
+        // Werkzeuge müssen unter dem beschreibbaren Nutzerprofil liegen (Welle 4) - liegen sie
+        // weiterhin unter AppDir, scheitert jedes Werkzeug-Update in C:\Program Files.
+        Assert.StartsWith(AppPaths.DataDir + Path.DirectorySeparatorChar, AppPaths.ToolsDir);
+        Assert.False(
+            AppPaths.ToolsDir.StartsWith(AppPaths.AppDir + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase),
+            "ToolsDir darf nicht mehr unter dem Programmverzeichnis liegen.");
+    }
+
+    [Fact]
+    public void LegacyToolsDir_LiegtWeiterhinImProgrammverzeichnis()
+    {
+        // Ist die Quelle der einmaligen Übernahme - muss der alte, dokumentierte Ort bleiben.
+        Assert.StartsWith(AppPaths.AppDir + Path.DirectorySeparatorChar, AppPaths.LegacyToolsDir + Path.DirectorySeparatorChar);
+    }
+
     [Theory]
     [InlineData("NUL")]
     [InlineData("nul")]
