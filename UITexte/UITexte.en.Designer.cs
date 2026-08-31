@@ -97,24 +97,6 @@ namespace MortysDLP.Properties {
         }
         
         /// <summary>
-        ///   Sucht eine lokalisierte Zeichenfolge, die Keine Updates verfügbar. ähnelt.
-        /// </summary>
-        internal static string Splash_NoUpdate {
-            get {
-                return ResourceManager.GetString("Splash_NoUpdate", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Sucht eine lokalisierte Zeichenfolge, die Suche nach neuer Version... ähnelt.
-        /// </summary>
-        internal static string Splash_SearchingForUpdate {
-            get {
-                return ResourceManager.GetString("Splash_SearchingForUpdate", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Sucht eine lokalisierte Zeichenfolge, die Starte Anwendung... ähnelt.
         /// </summary>
         internal static string Splash_StartingApp_ {

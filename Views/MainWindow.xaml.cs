@@ -54,13 +54,21 @@ namespace MortysDLP
             if (Application.Current is not App app)
                 return;
 
-            // Erst die Rückmeldung zu einem zuvor angestoßenen Update, dann erst ein
-            // ggf. neues Angebot - beides kann in derselben Sitzung zutreffen (Update Y hat
-            // nicht gewirkt, Version Z ist inzwischen erschienen).
+            // Die Rückmeldung zu einem zuvor angestoßenen Update liegt bereits vor - sie kommt
+            // aus einer kleinen lokalen Datei, die vor diesem Fenster ausgewertet wurde. Ein
+            // ggf. neues Update-Angebot dagegen läuft erst jetzt im Hintergrund an und trifft
+            // über ApplyPendingUpdateOffer nach, sobald es fertig ist.
             if (app.PendingUpdateOutcome is { } outcome)
                 ShowUpdateOutcomeNotice(outcome.Outcome, outcome.ToVersion, outcome.Attempts,
                     outcome.Changelog, outcome.UpdaterLogPath);
+        }
 
+        /// <summary>Zeigt Update-Banner oder Blockiert-Hinweis, sobald die im Hintergrund erst
+        /// nach dem Anzeigen dieses Fensters gestartete Prüfung (siehe
+        /// <see cref="App.OnStartup"/>) ein Ergebnis hat. Wird über den Dispatcher aufgerufen,
+        /// weil das Ergebnis auf einem Hintergrundthread ankommt.</summary>
+        internal void ApplyPendingUpdateOffer(App app)
+        {
             if (app.PendingUpdateInfo.HasValue)
             {
                 var info = app.PendingUpdateInfo.Value;

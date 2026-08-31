@@ -71,6 +71,10 @@ namespace MortysDLP
 
         protected override async void OnStartup(StartupEventArgs e)
         {
+            // Misst die Zeit bis zum sichtbaren Hauptfenster - die Zeile bleibt dauerhaft im
+            // Protokoll, sonst ist eine künftige Regression unsichtbar.
+            var startupStopwatch = Stopwatch.StartNew();
+
             RegisterGlobalExceptionHandlers();
 
             // Ganz früh, vor dem ersten Lesen einer Einstellung: Seit die AssemblyVersion pro
@@ -105,41 +109,7 @@ namespace MortysDLP
                 // Ohne diese Prüfung ist ein fehlgeschlagenes Update von einem erfolgreichen
                 // nicht zu unterscheiden.
                 var previousUpdateState = await EvaluateAndHandlePreviousUpdateAsync();
-
                 ResetVersionSkipIfObsolete();
-                await SetStatusTextAndWaitAsync(splash, UITexte.UITexte.Splash_SearchingForUpdate, DebugSleepTimer);
-
-                var updateCheckService = new UpdateCheckService(
-                    new ResilientReleaseResolver(ReleaseSources.CreateAppChain()),
-                    new UpdateCache(),
-                    () => DateTimeOffset.UtcNow);
-
-                var checkResult = await updateCheckService.CheckAppAsync(force: false, CancellationToken.None);
-
-                if (ShouldOfferUpdate(checkResult, previousUpdateState))
-                {
-                    var info = checkResult.Info!;
-
-                    // Vor dem Anbieten prüfen, ob am aktuellen Installationsort überhaupt
-                    // aktualisiert werden kann (§8) — nicht erst beim Klick auf "Aktualisieren",
-                    // sonst lädt der Nutzer ein Paket herunter, das er nie installieren kann.
-                    var installInfo = InstallLocation.Analyze();
-
-                    if (ShouldSuppressUpdateOffer(installInfo.Kind))
-                    {
-                        Log.Info($"Update {info.Version} verfügbar, aber am aktuellen " +
-                            $"Installationsort nicht anbietbar ({installInfo.Kind}).");
-                        BlockedUpdateInfo = (info.Version.ToString(), installInfo.Kind, installInfo.ReasonKey);
-                    }
-                    else
-                    {
-                        PendingUpdateInfo = (info.Version.ToString(), info.DownloadUrl!, info.Changelog ?? string.Empty,
-                            info.Assets, info.Sha256, info.ExpectedSize);
-                        PendingUpdateInstallKind = installInfo.Kind;
-                    }
-                }
-
-                await SetStatusTextAndWaitAsync(splash, UITexte.UITexte.Splash_NoUpdate, DebugSleepTimer);
 
                 // 1b. Werkzeuge aus einem alten Installationsort (vor Welle 4) einmalig
                 // übernehmen - muss vor jedem Zugriff auf AppPaths.ToolsDir passiert sein.
@@ -168,8 +138,26 @@ namespace MortysDLP
 
                 var mainWindow = new MainWindow();
                 MainWindow = mainWindow;
+                mainWindow.ContentRendered += LogWindowVisibleOnce;
                 mainWindow.Show();
                 mainWindow.Activate();
+
+                void LogWindowVisibleOnce(object? sender, EventArgs e)
+                {
+                    mainWindow.ContentRendered -= LogWindowVisibleOnce;
+                    Log.Info($"Hauptfenster sichtbar nach {startupStopwatch.ElapsedMilliseconds} ms.");
+                }
+
+                // 4. Update-Prüfung erst JETZT anstoßen, ohne sie zu erwarten — sie berührt
+                // das Netz und darf das Fenster nicht länger aufhalten. Task.Run statt
+                // eines einfachen Fire-and-Forget: Ohne ConfigureAwait(false) würden die
+                // Fortsetzungen sonst über den UI-Dispatcher laufen (die Methode startet auf dem
+                // UI-Thread) und mit dessen eigener Render-/Ereigniswarteschlange konkurrieren -
+                // Task.Run schiebt die gesamte Prüfung auf den Threadpool. Eigenes try/catch
+                // statt async void: Ein Fehlschlag (z. B. kein Internet) darf den Start nicht
+                // stören und bleibt sonst eine unbeobachtete Task-Ausnahme. Sichtbar wird
+                // höchstens eine Protokollzeile, nie ein Dialog.
+                _ = Task.Run(() => RunBackgroundUpdateCheckAsync(mainWindow, previousUpdateState));
 
                 // Aufräumen der temporären ffmpeg-/Entpack-Artefakte (nicht blockierend, Best-Effort)
                 _ = CleanupTempArtifactsAsync();
@@ -314,6 +302,61 @@ namespace MortysDLP
         /// Downloads (siehe <see cref="MainWindow"/>).</summary>
         internal static bool ShouldSuppressUpdateOffer(InstallKind kind) =>
             kind is InstallKind.ReadOnly or InstallKind.RunningFromArchive;
+
+        /// <summary>Prüft im Hintergrund auf eine neue MortysDLP-Version, nachdem das
+        /// Hauptfenster bereits sichtbar ist — vorher lief das hier synchron im Startpfad und
+        /// hielt das Fenster auf. Läuft bewusst als eigene <c>Task</c> mit eigenem <c>try/catch</c> statt
+        /// <c>async void</c>: Ein Fehlschlag (kein Internet, Zeitlimit) darf weder eine
+        /// unbeobachtete Task-Ausnahme auslösen noch den Start beeinträchtigen — er erzeugt
+        /// höchstens eine Protokollzeile. Das Ergebnis landet über den Dispatcher im Fenster,
+        /// weil es auf einem Threadpool-Thread ankommt (<c>Progress&lt;T&gt;</c>-Regel,
+        /// <c>02-BEST-PRACTICES.md</c> Abschnitt 8 gilt sinngemäß auch hier).</summary>
+        private async Task RunBackgroundUpdateCheckAsync(MainWindow mainWindow, UpdateStateData? previousUpdateState)
+        {
+            try
+            {
+                var updateCheckService = new UpdateCheckService(
+                    new ResilientReleaseResolver(ReleaseSources.CreateAppChain()),
+                    new UpdateCache(),
+                    () => DateTimeOffset.UtcNow);
+
+                var checkResult = await updateCheckService.CheckAppAsync(force: false, CancellationToken.None);
+
+                if (!ShouldOfferUpdate(checkResult, previousUpdateState))
+                {
+                    Log.Info("Update-Prüfung im Hintergrund abgeschlossen: kein Angebot.");
+                    return;
+                }
+
+                var info = checkResult.Info!;
+
+                // Vor dem Anbieten prüfen, ob am aktuellen Installationsort überhaupt
+                // aktualisiert werden kann (§8) — nicht erst beim Klick auf "Aktualisieren",
+                // sonst lädt der Nutzer ein Paket herunter, das er nie installieren kann.
+                var installInfo = InstallLocation.Analyze();
+
+                if (ShouldSuppressUpdateOffer(installInfo.Kind))
+                {
+                    Log.Info($"Update {info.Version} verfügbar, aber am aktuellen " +
+                        $"Installationsort nicht anbietbar ({installInfo.Kind}).");
+                    BlockedUpdateInfo = (info.Version.ToString(), installInfo.Kind, installInfo.ReasonKey);
+                }
+                else
+                {
+                    PendingUpdateInfo = (info.Version.ToString(), info.DownloadUrl!, info.Changelog ?? string.Empty,
+                        info.Assets, info.Sha256, info.ExpectedSize);
+                    PendingUpdateInstallKind = installInfo.Kind;
+                }
+
+                // BeginInvoke liefert eine (awaitbare) DispatcherOperation zurück - bewusst
+                // verworfen, das Ergebnis wird hier nicht gebraucht.
+                _ = mainWindow.Dispatcher.BeginInvoke(() => mainWindow.ApplyPendingUpdateOffer(this));
+            }
+            catch (Exception ex)
+            {
+                Log.Warn("Update-Prüfung im Hintergrund fehlgeschlagen", ex);
+            }
+        }
 
         /// <summary>Wertet eine beim letzten Lauf hinterlassene Update-Zustandsdatei aus
         /// und reagiert entsprechend. Liefert den Zustand nur im Fall

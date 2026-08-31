@@ -47,29 +47,31 @@ Ablauf beim Start (`App.OnStartup`):
 1. **Sprache setzen** — aus der Einstellung `SelectedLanguage` (`auto`/`de`/`en`); bei `auto`
    aus der Windows-Anzeigesprache.
 2. **Startbildschirm** mit rotierendem Ladesymbol und Statustext erscheint.
-3. **Suche nach App-Update** — höchstens alle 6 Stunden wird tatsächlich online geprüft;
-   dazwischen kommt das Ergebnis aus einem Zwischenspeicher, ganz ohne Netzzugriff. Mehrere
-   unabhängige Quellen werden der Reihe nach befragt, falls die erste ausfällt oder überlastet
-   ist; ohne Internet gilt der zuletzt bekannte Stand weiter. Ist eine neuere Version
-   verfügbar, wird sie gemerkt (der Banner erscheint später im Hauptfenster).
-4. **Installationsort prüfen** — läuft MortysDLP erkennbar direkt aus der ZIP-Vorschau des
+3. **Installationsort prüfen** — läuft MortysDLP erkennbar direkt aus der ZIP-Vorschau des
    Explorers (also aus einem temporären Ordner, der beim Schließen verschwindet), erscheint
    ein Hinweis mit den Optionen „Ordner öffnen" und „Trotzdem fortfahren". Der Hinweis blockt
    nicht — die Erkennung ist eine Heuristik, kein sicherer Nachweis.
-5. **Werkzeuge prüfen**
+4. **Werkzeuge prüfen**
    - yt-dlp vorhanden? Wenn nicht: Nachfrage, dann Download mit Fortschrittsdialog.
      Lehnt der Nutzer ab, beendet sich die App.
    - yt-dlp-Version gegen GitHub prüfen; bei Abweichung Update anbieten.
    - ffmpeg und ffprobe vorhanden? Wenn nicht: Nachfrage, dann ZIP-Download und Entpacken.
      Lehnt der Nutzer ab, beendet sich die App.
-6. **Hauptfenster öffnen**, Startbildschirm schließen.
-7. Im Hintergrund werden alte Temp-Dateien früherer Downloads aufgeräumt
+5. **Hauptfenster öffnen**, Startbildschirm schließen.
+6. **Suche nach App-Update, jetzt im Hintergrund** — läuft erst an, nachdem das Hauptfenster
+   bereits offen ist, und hält es an keiner Stelle auf. Höchstens alle 6 Stunden wird
+   tatsächlich online geprüft; dazwischen kommt das Ergebnis aus einem Zwischenspeicher, ganz
+   ohne Netzzugriff. Mehrere unabhängige Quellen werden der Reihe nach befragt, falls die erste
+   ausfällt oder überlastet ist; ohne Internet gilt der zuletzt bekannte Stand weiter, ganz
+   ohne Verzögerung oder Fehlermeldung. Ist eine neuere Version verfügbar, blendet sich der
+   Update-Banner im Hauptfenster nachträglich ein, sobald das Ergebnis vorliegt.
+7. Ebenfalls im Hintergrund werden alte Temp-Dateien früherer Downloads aufgeräumt
    (`ffmpeg_download_*.zip`, `extract_*`).
 
-> **Bekannte Einschränkung:** Alle Prüfungen laufen nacheinander; die yt-dlp-Release-API wird
-> dabei zweimal abgefragt. Die App-Update-Prüfung selbst ist seit Kurzem zwischengespeichert
-> (siehe oben) und dadurch beim wiederholten Starten meist ein reiner Zwischenspeicher-Treffer
-> ohne Netzzugriff.
+> **Bekannte Einschränkung:** Die Werkzeugprüfung (Schritt 4) läuft weiterhin vor dem
+> Hauptfenster und fragt bei jedem Start erneut die yt-dlp-Release-API ab, ohne
+> Zwischenspeicher — das ist der größte verbleibende Anteil an der Startzeit und noch nicht
+> überarbeitet.
 
 **Fehlerbehandlung:** Ein unerwarteter Fehler beendet MortysDLP nicht mehr wortlos. Er wird in
 einer Protokolldatei festgehalten (siehe Abschnitt 13) und in einem Dialog mit verständlichem

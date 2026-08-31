@@ -74,6 +74,12 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
   läuft die Anwendung danach normal weiter.
 
 ### Geändert
+- Die Suche nach einer neuen MortysDLP-Version hält den Start nicht mehr auf: Sie läuft jetzt
+  im Hintergrund, nachdem das Hauptfenster bereits offen ist, und meldet ein gefundenes Update
+  nachträglich über den gewohnten Banner. War diese Prüfung bisher langsam oder nicht erreichbar,
+  ließ das den Start spürbar länger warten oder sogar hängen — beides kann jetzt nicht mehr
+  passieren. Die Prüfung der externen Werkzeuge (yt-dlp, ffmpeg, ffprobe) bleibt vorerst vor dem
+  Fenster und ist auf den meisten Rechnern weiterhin der größte Anteil der Startzeit.
 - Externe Werkzeuge (yt-dlp, ffmpeg, ffprobe, whisper.cpp, TwitchDownloaderCLI, Whisper-Modelle)
   liegen jetzt im Nutzerprofil statt im Programmordner. Wer MortysDLP nach
   `C:\Program Files` entpackt, kann seine Werkzeuge dadurch trotzdem aktualisieren — bisher

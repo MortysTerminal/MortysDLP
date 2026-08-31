@@ -129,9 +129,6 @@
   <data name="Splash_UpdateError" xml:space="preserve">
     <value>Fehler beim Überprüfen auf Updates. Starte Anwendung ohne Update.</value>
   </data>
-  <data name="Splash_NoUpdate" xml:space="preserve">
-    <value>Keine Updates verfügbar.</value>
-  </data>
   <data name="Splash_AllToolsOk" xml:space="preserve">
     <value>Alle Tools sind aktuell.</value>
   </data>
@@ -143,9 +140,6 @@
   </data>
   <data name="Error_DirectoryNotFound" xml:space="preserve">
     <value>Quellverzeichnis nicht gefunden: {0}</value>
-  </data>
-  <data name="Splash_SearchingForUpdate" xml:space="preserve">
-    <value>Suche nach neuer Version...</value>
   </data>
   <data name="DownloadPathDialog_NoDownloadFolder_Message" xml:space="preserve">
     <value>Es wurde kein Download-Ordner gewählt.\n</value>

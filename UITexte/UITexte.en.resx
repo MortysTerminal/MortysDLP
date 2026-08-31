@@ -129,9 +129,6 @@
   <data name="Splash_UpdateError" xml:space="preserve">
     <value>Error while checking for updates. Starting app without update.</value>
   </data>
-  <data name="Splash_NoUpdate" xml:space="preserve">
-    <value>No updates available.</value>
-  </data>
   <data name="Splash_AllToolsOk" xml:space="preserve">
     <value>All tools are up to date. </value>
   </data>
@@ -143,9 +140,6 @@
   </data>
   <data name="Error_DirectoryNotFound" xml:space="preserve">
     <value>Source directory not found: {0}</value>
-  </data>
-  <data name="Splash_SearchingForUpdate" xml:space="preserve">
-    <value>Searching for new version...</value>
   </data>
   <data name="DownloadPathDialog_NoDownloadFolder_Message" xml:space="preserve">
     <value>- Default download path No download folder has been selected. \n</value>
