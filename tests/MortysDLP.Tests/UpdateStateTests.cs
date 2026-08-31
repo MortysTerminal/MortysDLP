@@ -138,6 +138,27 @@ public class UpdateStateTests : IDisposable
     }
 
     [Fact]
+    public async Task RecordAttemptAsync_MitChangelog_WirdMitgespeichert()
+    {
+        await UpdateState.RecordAttemptAsync(
+            "2026.06.01", "2026.09.01", Now, _filePath, changelog: "### Neu\n- Beispiel");
+
+        var read = await UpdateState.ReadAsync(_filePath);
+
+        Assert.Equal("### Neu\n- Beispiel", read!.Changelog);
+    }
+
+    [Fact]
+    public async Task RecordAttemptAsync_OhneChangelog_BleibtNull()
+    {
+        await UpdateState.RecordAttemptAsync("2026.06.01", "2026.09.01", Now, _filePath);
+
+        var read = await UpdateState.ReadAsync(_filePath);
+
+        Assert.Null(read!.Changelog);
+    }
+
+    [Fact]
     public async Task RecordAttemptAsync_AndereZielversion_BeginntNeuBei1()
     {
         await UpdateState.RecordAttemptAsync("2026.06.01", "2026.09.01", Now, _filePath);

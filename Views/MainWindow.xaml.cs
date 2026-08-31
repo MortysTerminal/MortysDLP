@@ -53,32 +53,51 @@ namespace MortysDLP
             // ggf. neues Angebot - beides kann in derselben Sitzung zutreffen (Update Y hat
             // nicht gewirkt, Version Z ist inzwischen erschienen).
             if (app.PendingUpdateOutcome is { } outcome)
-                ShowUpdateOutcomeNotice(outcome.Outcome, outcome.ToVersion, outcome.Attempts);
+                ShowUpdateOutcomeNotice(outcome.Outcome, outcome.ToVersion, outcome.Attempts, outcome.Changelog);
 
             if (app.PendingUpdateInfo.HasValue)
             {
                 var info = app.PendingUpdateInfo.Value;
                 _pendingUpdateVersion  = info.Version;
                 _pendingUpdateChangelog = info.Changelog;
-                ShowUpdateBanner(info.Version);
+                ShowUpdateBanner(info.Version, app.PendingUpdateInstallKind);
             }
         }
 
         /// <summary>Zeigt die Rückmeldung zu einem beim letzten Lauf angestoßenen Update. Bei
         /// einem Fehlschlag mit „Trotzdem erneut versuchen" — das löscht nur den
         /// Schleifenschutz-Zustand, ein neuer Versuch geschieht erst über das nächste
-        /// automatische oder manuelle Angebot.</summary>
-        private void ShowUpdateOutcomeNotice(UpdateOutcome outcome, string? version, int attempts)
+        /// automatische oder manuelle Angebot. Bei Erfolg mit vorliegendem Changelog-Text
+        /// (W3-T06) zusätzlich „Änderungen ansehen" — der einmalige „Was ist neu"-Hinweis, der
+        /// dank Löschung von <c>update-state.json</c> danach nicht erneut erscheint.</summary>
+        private void ShowUpdateOutcomeNotice(UpdateOutcome outcome, string? version, int attempts, string? changelog)
         {
             var T = UITextDictionary.Get;
             string versionText = version ?? string.Empty;
 
             if (outcome == UpdateOutcome.Succeeded)
             {
-                FluentMessageBox.Show(
-                    T("Update.Result.Success").Replace("{0}", versionText, StringComparison.Ordinal),
-                    icon: MessageBoxImage.Information,
-                    owner: this);
+                string successMessage = T("Update.Result.Success").Replace("{0}", versionText, StringComparison.Ordinal);
+
+                if (string.IsNullOrWhiteSpace(changelog))
+                {
+                    FluentMessageBox.Show(successMessage, icon: MessageBoxImage.Information, owner: this);
+                    return;
+                }
+
+                var choice = FluentMessageBox.Show(
+                    successMessage, "", MessageBoxImage.Information, this,
+                    (T("Update.Result.ViewChanges"), MessageBoxResult.Yes, true),
+                    (T("Common.Button.OK"), MessageBoxResult.OK, false));
+
+                if (choice == MessageBoxResult.Yes)
+                {
+                    var whatsNewDialog = new UpdateChangelogDialog(versionText, changelog, isWhatsNewOnly: true)
+                    {
+                        Owner = this
+                    };
+                    whatsNewDialog.ShowDialog();
+                }
                 return;
             }
 
@@ -105,11 +124,17 @@ namespace MortysDLP
             }
         }
 
-        private void ShowUpdateBanner(string version)
+        /// <summary><paramref name="installKind"/> ändert nur den Unterhinweis im Banner
+        /// (der Klick öffnet weiterhin denselben Änderungsdialog) — die eigentliche Sperre für
+        /// <c>NeedsElevation</c> greift erst bei „Jetzt aktualisieren" in
+        /// <see cref="btnUpdateBanner_Click"/>, wo mehr Platz für die volle Erklärung ist.</summary>
+        private void ShowUpdateBanner(string version, InstallKind? installKind)
         {
             var T = UITextDictionary.Get;
             txtUpdateBannerMain.Text = string.Format(T("UpdateBanner.Text"), version);
-            txtUpdateBannerSub.Text  = T("UpdateBanner.SubText");
+            txtUpdateBannerSub.Text  = installKind == InstallKind.NeedsElevation
+                ? T("UpdateBanner.SubText.NeedsElevation")
+                : T("UpdateBanner.SubText");
             btnDismissBanner.ToolTip = T("UpdateBanner.Dismiss");
             UpdateBanner.Visibility  = Visibility.Visible;
         }
@@ -125,6 +150,18 @@ namespace MortysDLP
             switch (dialog.Choice)
             {
                 case UpdateChoice.Update:
+                    if (Application.Current is App appForElevationCheck &&
+                        appForElevationCheck.PendingUpdateInstallKind == InstallKind.NeedsElevation)
+                    {
+                        // Banner bleibt bewusst sichtbar - der Nutzer kann die Installation
+                        // verschieben und es danach erneut versuchen, ohne das Angebot zu
+                        // verlieren (§8, "Achtung beim Fall NeedsElevation").
+                        FluentMessageBox.Show(
+                            UITextDictionary.Get("Update.Elevation.Warning"),
+                            "", MessageBoxImage.Warning, this);
+                        break;
+                    }
+
                     UpdateBanner.Visibility = Visibility.Collapsed;
                     await ((App)Application.Current).StartUpdate();
                     break;

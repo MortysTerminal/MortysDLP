@@ -257,6 +257,7 @@ namespace MortysDLP.UITexte
             // Update Banner & Dialog
             ["UpdateBanner.Text"]                    = "Neue Version {0} verfügbar",
             ["UpdateBanner.SubText"]                 = "Klicken für Details & Update",
+            ["UpdateBanner.SubText.NeedsElevation"]  = "Administratorrechte erforderlich — für Details klicken",
             ["UpdateBanner.Dismiss"]                 = "Für diesen Start ausblenden",
             ["UpdateBannerDialog.Title"]             = "Update verfügbar",
             ["UpdateBannerDialog.Subtitle"]          = "Version {0} steht bereit",
@@ -272,7 +273,15 @@ namespace MortysDLP.UITexte
             ["Update.Result.Failed"]            = "Das Update auf Version {0} hat offenbar nicht funktioniert — MortysDLP läuft weiterhin mit der vorherigen Version.",
             ["Update.Result.Failed.Hint"]       = "Details dazu stehen im Protokoll: {0}",
             ["Update.Result.Retry"]             = "Trotzdem erneut versuchen",
+            ["Update.Result.ViewChanges"]       = "Änderungen ansehen",
             ["Update.Blocked.TooManyAttempts"]  = "Version {0} wird deshalb nicht mehr automatisch angeboten.",
+
+            // "Was ist neu" nach einem erfolgreichen Update (W3-T06)
+            ["WhatsNew.Title"]    = "Was ist neu",
+            ["WhatsNew.Subtitle"] = "Version {0}",
+
+            // Vorprüfung des Installationsorts vor dem Update (W3-T06)
+            ["Update.Elevation.Warning"] = "MortysDLP liegt in einem geschützten Systemordner und kann sich dort nicht selbst aktualisieren.\n\nVerschiebe die Installation an einen Ort, an dem MortysDLP schreiben darf (z. B. deine Dokumente oder einen eigenen Ordner).\n\nAchtung: Beim Verschieben gehen alle gespeicherten Einstellungen (Downloadpfad, Sprache, Bandbreitenlimit usw.) verloren, da sie an den aktuellen Installationsort gebunden sind.",
 
             // Update-Vorprüfung laufender Vorgänge (W3-T02b)
             ["Update.Confirm.ActiveWork.Title"] = "Laufende Vorgänge",
@@ -856,6 +865,7 @@ namespace MortysDLP.UITexte
             // Update Banner & Dialog
             ["UpdateBanner.Text"]                    = "New version {0} available",
             ["UpdateBanner.SubText"]                 = "Click for details & update",
+            ["UpdateBanner.SubText.NeedsElevation"]  = "Administrator rights required — click for details",
             ["UpdateBanner.Dismiss"]                 = "Hide for this session",
             ["UpdateBannerDialog.Title"]             = "Update Available",
             ["UpdateBannerDialog.Subtitle"]          = "Version {0} is ready",
@@ -871,7 +881,15 @@ namespace MortysDLP.UITexte
             ["Update.Result.Failed"]            = "The update to version {0} doesn't seem to have worked — MortysDLP is still running the previous version.",
             ["Update.Result.Failed.Hint"]       = "Details are in the log file: {0}",
             ["Update.Result.Retry"]             = "Try again anyway",
+            ["Update.Result.ViewChanges"]       = "View changes",
             ["Update.Blocked.TooManyAttempts"]  = "Version {0} will therefore no longer be offered automatically.",
+
+            // "What's new" after a successful update (W3-T06)
+            ["WhatsNew.Title"]    = "What's new",
+            ["WhatsNew.Subtitle"] = "Version {0}",
+
+            // Install-location preflight check before an update (W3-T06)
+            ["Update.Elevation.Warning"] = "MortysDLP is located in a protected system folder and can't update itself there.\n\nMove the installation to a location where MortysDLP can write (e.g. your Documents folder or a folder of your own).\n\nWarning: Moving it will lose all saved settings (download path, language, bandwidth limit, etc.), since they're tied to the current installation location.",
 
             // Update preflight check for running work (W3-T02b)
             ["Update.Confirm.ActiveWork.Title"] = "Work in progress",

@@ -38,11 +38,18 @@ namespace MortysDLP
         /// (W2-T10) — <c>null</c>, wenn keine Zustandsdatei vorlag oder sie unklar/veraltet
         /// war. Das MainWindow zeigt dazu einmalig eine Erfolgs- bzw. Fehlermeldung.
         /// <c>Attempts</c> sagt der Meldung, ob der Schleifenschutz bereits greift (dann bietet
-        /// sie „Trotzdem erneut versuchen" an). Dieselbe Stelle ist der vorgesehene Auslöser für
-        /// den einmaligen „Was ist neu"-Hinweis aus W3-T06 — <c>ToVersion</c> ist dafür bereits
-        /// die richtige Angabe.</summary>
-        internal (UpdateOutcome Outcome, string? ToVersion, int Attempts)? PendingUpdateOutcome
+        /// sie „Trotzdem erneut versuchen" an). <c>Changelog</c> ist der Auslöser für den
+        /// einmaligen „Was ist neu"-Hinweis (W3-T06) — <c>null</c>, wenn er nicht vorliegt
+        /// (z. B. beim Rückfall über <c>--updated-from</c> ohne Zustandsdatei).</summary>
+        internal (UpdateOutcome Outcome, string? ToVersion, int Attempts, string? Changelog)? PendingUpdateOutcome
         { get; private set; }
+
+        /// <summary>Installationsort-Klassifizierung zum Zeitpunkt des letzten Update-Angebots
+        /// (W3-T06) — <c>null</c>, solange kein Update angeboten wird. <c>NeedsElevation</c>
+        /// lässt den Banner weiterhin erscheinen, aber mit einem Warnhinweis statt eines
+        /// direkten Downloads; <c>ReadOnly</c>/<c>RunningFromArchive</c> unterdrücken das
+        /// Angebot bereits hier vollständig (siehe <see cref="OnStartup"/>).</summary>
+        internal InstallKind? PendingUpdateInstallKind { get; private set; }
 
         /*
          * DEBUG
@@ -99,8 +106,23 @@ namespace MortysDLP
                 if (ShouldOfferUpdate(checkResult, previousUpdateState))
                 {
                     var info = checkResult.Info!;
-                    PendingUpdateInfo = (info.Version.ToString(), info.DownloadUrl!, info.Changelog ?? string.Empty,
-                        info.Assets, info.Sha256, info.ExpectedSize);
+
+                    // Vor dem Anbieten prüfen, ob am aktuellen Installationsort überhaupt
+                    // aktualisiert werden kann (§8) — nicht erst beim Klick auf "Aktualisieren",
+                    // sonst lädt der Nutzer ein Paket herunter, das er nie installieren kann.
+                    var installInfo = InstallLocation.Analyze();
+
+                    if (ShouldSuppressUpdateOffer(installInfo.Kind))
+                    {
+                        Log.Info($"Update {info.Version} verfügbar, aber am aktuellen " +
+                            $"Installationsort nicht anbietbar ({installInfo.Kind}).");
+                    }
+                    else
+                    {
+                        PendingUpdateInfo = (info.Version.ToString(), info.DownloadUrl!, info.Changelog ?? string.Empty,
+                            info.Assets, info.Sha256, info.ExpectedSize);
+                        PendingUpdateInstallKind = installInfo.Kind;
+                    }
                 }
 
                 await SetStatusTextAndWaitAsync(splash, UITexte.UITexte.Splash_NoUpdate, DebugSleepTimer);
@@ -266,24 +288,50 @@ namespace MortysDLP
             return offer;
         }
 
+        /// <summary>Ob ein sonst angebotenes Update am aktuellen Installationsort komplett
+        /// unterdrückt werden muss (W3-T06, §8). <c>ReadOnly</c> kann nicht schreiben,
+        /// <c>RunningFromArchive</c> verliert das Ergebnis beim Schließen — beides macht das
+        /// Herunterladen sinnlos. <c>NeedsElevation</c> bleibt bewusst außen vor: Dort wird das
+        /// Update weiterhin angeboten, nur mit einem Warnhinweis statt eines direkten
+        /// Downloads (siehe <see cref="MainWindow"/>).</summary>
+        internal static bool ShouldSuppressUpdateOffer(InstallKind kind) =>
+            kind is InstallKind.ReadOnly or InstallKind.RunningFromArchive;
+
         /// <summary>Wertet eine beim letzten Lauf hinterlassene Update-Zustandsdatei aus
         /// (W2-T10) und reagiert entsprechend. Liefert den Zustand nur im Fall
         /// <see cref="UpdateOutcome.Failed"/> zurück — genau den braucht
         /// <see cref="UpdateDecision.ShouldOffer"/> für den Schleifenschutz; in jedem anderen
-        /// Fall ist die Datei bereits gelöscht und <c>null</c> die richtige Antwort.</summary>
+        /// Fall ist die Datei bereits gelöscht und <c>null</c> die richtige Antwort.
+        /// <c>update-state.json</c> bleibt dabei die Grundlage — <c>--updated-from</c>
+        /// (W3-T06) ist nur die Ergänzung für den Fall, dass die Zustandsdatei selbst fehlt
+        /// (04-UPDATE-ARCHITEKTUR.md §9).</summary>
         private async Task<UpdateStateData?> EvaluateAndHandlePreviousUpdateAsync()
         {
+            string? updatedFrom = TryGetUpdatedFromArgument(Environment.GetCommandLineArgs());
+
             var state = await UpdateState.ReadAsync();
             var outcome = UpdateState.Evaluate(state, AppInfo.CurrentVersion, DateTimeOffset.UtcNow);
 
             switch (outcome)
             {
                 case UpdateOutcome.None:
+                    if (!string.IsNullOrEmpty(updatedFrom))
+                    {
+                        // Keine Zustandsdatei (z. B. Schreibfehler), aber der Neustart kam
+                        // nachweislich vom Updater - ohne diesen Rückfall bliebe der Nutzer
+                        // ganz ohne Rückmeldung, obwohl das Update tatsächlich gewirkt hat.
+                        Log.Info($"Update erfolgreich (bestätigt über --updated-from={updatedFrom}, " +
+                            "keine Zustandsdatei vorhanden).");
+                        PendingUpdateOutcome = (UpdateOutcome.Succeeded, AppInfo.Current, 0, null);
+                        await new UpdateCache().ClearAsync(CancellationToken.None);
+                        ClearVersionSkip();
+                    }
                     return null;
 
                 case UpdateOutcome.Succeeded:
-                    Log.Info($"Update erfolgreich: {state!.FromVersion} -> {state.ToVersion}.");
-                    PendingUpdateOutcome = (UpdateOutcome.Succeeded, state.ToVersion, state.Attempts);
+                    Log.Info($"Update erfolgreich: {state!.FromVersion} -> {state.ToVersion}." +
+                        (updatedFrom != null ? " (bestätigt über --updated-from)" : ""));
+                    PendingUpdateOutcome = (UpdateOutcome.Succeeded, state.ToVersion, state.Attempts, state.Changelog);
                     await new UpdateCache().ClearAsync(CancellationToken.None);
                     ClearVersionSkip();
                     await UpdateState.DeleteAsync();
@@ -292,7 +340,7 @@ namespace MortysDLP
                 case UpdateOutcome.Failed:
                     Log.Warn($"Update von {state!.FromVersion} nach {state.ToVersion} hat nicht " +
                         $"gewirkt (Versuch {state.Attempts}).");
-                    PendingUpdateOutcome = (UpdateOutcome.Failed, state.ToVersion, state.Attempts);
+                    PendingUpdateOutcome = (UpdateOutcome.Failed, state.ToVersion, state.Attempts, null);
                     return state;
 
                 case UpdateOutcome.Stale:
@@ -308,6 +356,19 @@ namespace MortysDLP
                     await UpdateState.DeleteAsync();
                     return null;
             }
+        }
+
+        /// <summary>Sucht <c>--updated-from &lt;version&gt;</c> in den Kommandozeilenargumenten
+        /// der App selbst — nicht zu verwechseln mit den Argumenten, die die App dem Updater
+        /// übergibt. Reine Zeichenkettenauswertung, ohne Zugriff auf den Prozessstart.</summary>
+        internal static string? TryGetUpdatedFromArgument(string[] args)
+        {
+            for (int i = 0; i < args.Length - 1; i++)
+            {
+                if (string.Equals(args[i], "--updated-from", StringComparison.Ordinal))
+                    return args[i + 1];
+            }
+            return null;
         }
 
         /// <summary>Leert <c>VersionSkip</c>. Best-Effort — ein Fehlschlag hier darf nirgends
@@ -388,11 +449,11 @@ namespace MortysDLP
                 }
 
                 await StartUpdateCore(result.Info.Version.ToString(), assetUrl, result.Info.Assets,
-                    result.Info.Sha256, result.Info.ExpectedSize);
+                    result.Info.Sha256, result.Info.ExpectedSize, result.Info.Changelog ?? string.Empty);
                 return;
             }
 
-            await StartUpdateCore(info.Version, info.AssetUrl, info.Assets, info.Sha256, info.ExpectedSize);
+            await StartUpdateCore(info.Version, info.AssetUrl, info.Assets, info.Sha256, info.ExpectedSize, info.Changelog);
         }
 
         /// <summary>Fragt nach, wenn gerade ein Download, eine Konvertierung oder eine
@@ -446,7 +507,8 @@ namespace MortysDLP
         /// <paramref name="toVersion"/> wird für den Update-Zustand (W2-T10) gebraucht, nicht
         /// für die Auswahl selbst.</summary>
         private async Task StartUpdateCore(string toVersion,
-            string fallbackAssetUrl, IReadOnlyList<ReleaseAsset> assets, string? knownSha256, long? knownSize)
+            string fallbackAssetUrl, IReadOnlyList<ReleaseAsset> assets, string? knownSha256, long? knownSize,
+            string changelog)
         {
             try
             {
@@ -562,30 +624,47 @@ namespace MortysDLP
                 string tempUpdaterDir = Path.Combine(tempDir, Settings.Default.MortysDLPUpdaterFolderName);
                 CopyDirectory(sourceUpdaterDir, tempUpdaterDir);
 
-                // 5. Argumente: <MainExeName> <ZipPath> <TargetDir> <ProcessId>
+                // 5. Benannte Argumente statt Position (04-UPDATE-ARCHITEKTUR.md §7) - der neue
+                // Updater (ab W3-T01) versteht ausschließlich --zip/--target/--exe/--pid/
+                // --version/--log und lehnt alles andere mit Exit-Code 2 ab.
                 string mainExeName = Settings.Default.MortysDLPExeFile;
                 int currentPid = Environment.ProcessId;
                 string targetDir = AppDomain.CurrentDomain.BaseDirectory.TrimEnd(
                     Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-                List<string> arguments = [mainExeName, tempZipPath, targetDir, currentPid.ToString(System.Globalization.CultureInfo.InvariantCulture)];
+                string updaterLogPath = Path.Combine(
+                    AppPaths.LogsDir, $"updater-{DateTimeOffset.UtcNow:yyyyMMdd-HHmmss}.log");
 
                 string updaterExePath = Path.Combine(tempUpdaterDir, Settings.Default.MortysDLPUpdateExeFile);
                 Log.Info($"Starte Updater: {updaterExePath}");
-                Log.Info($"Argumente: {string.Join(' ', arguments)}");
+                Log.Info($"Ziel={targetDir}, Version={toVersion}, Pid={currentPid}, " +
+                    $"Updater-Protokoll={updaterLogPath}");
 
                 // 5b. Update-Zustand aufzeichnen (W2-T10) - unmittelbar vor dem Start des
                 // Updaters, nach bestandener Prüfsumme/ZIP-Prüfung. Das ist der einzige Beleg,
                 // den der nächste Start hat, um ein gewirktes von einem wirkungslosen Update zu
                 // unterscheiden - der Exit-Code des heutigen Updaters ist dafür nicht nutzbar.
+                // Der Changelog-Text wandert mit, damit der "Was ist neu"-Hinweis (W3-T06) nach
+                // dem Neustart keinen zweiten Netzabruf braucht.
                 if (AppInfo.Current is { } fromVersion)
-                    await UpdateState.RecordAttemptAsync(fromVersion, toVersion, DateTimeOffset.UtcNow);
+                    await UpdateState.RecordAttemptAsync(fromVersion, toVersion, DateTimeOffset.UtcNow, changelog: changelog);
 
                 // 6. Updater starten – UseShellExecute = true für unabhängigen Prozess, der MortysDLP
                 // überlebt. Läuft deshalb bewusst außerhalb von ProcessRunner (das immer
                 // UseShellExecute=false und Streams umleitet) — ArgumentList schließt trotzdem die
                 // Argument-Einschleusung aus, auch wenn diese Werte nicht von außen kommen.
                 var psi = new ProcessStartInfo { FileName = updaterExePath, UseShellExecute = true };
-                foreach (string a in arguments) psi.ArgumentList.Add(a);
+                psi.ArgumentList.Add("--zip");
+                psi.ArgumentList.Add(tempZipPath);
+                psi.ArgumentList.Add("--target");
+                psi.ArgumentList.Add(targetDir);
+                psi.ArgumentList.Add("--exe");
+                psi.ArgumentList.Add(mainExeName);
+                psi.ArgumentList.Add("--pid");
+                psi.ArgumentList.Add(currentPid.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                psi.ArgumentList.Add("--version");
+                psi.ArgumentList.Add(toVersion);
+                psi.ArgumentList.Add("--log");
+                psi.ArgumentList.Add(updaterLogPath);
                 var updaterProcess = Process.Start(psi);
 
                 if (updaterProcess == null)

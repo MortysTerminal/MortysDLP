@@ -328,7 +328,13 @@ Wandelt Videos in animierte GIFs.
 1. Beim Start wird höchstens alle 6 Stunden online geprüft (mehrere unabhängige Quellen als
    Ausweiche) und die neueste Version mit der eigenen verglichen; dazwischen zählt der
    Zwischenspeicher.
-2. Bei einer neueren Version erscheint im Hauptfenster ein Banner.
+2. Bei einer neueren Version prüft MortysDLP zuerst, ob am aktuellen Installationsort
+   überhaupt aktualisiert werden kann. Liegt er in einem geschützten Systemordner, erscheint
+   ein Banner mit einem Warnhinweis; ein Klick darauf erklärt, dass die Installation an einen
+   beschreibbaren Ort verschoben werden muss und dass dabei alle gespeicherten Einstellungen
+   verloren gehen. Ist der Ordner schreibgeschützt oder läuft MortysDLP direkt aus einer
+   ZIP-Vorschau des Explorers, erscheint gar kein Update-Banner — ein Herunterladen wäre dort
+   ohnehin sinnlos. In jedem anderen Fall erscheint das gewohnte Banner.
 3. Ein Klick öffnet ein Fenster mit den Release-Notizen und drei Möglichkeiten:
    - **Jetzt aktualisieren** — startet den Download (siehe unten).
    - **Später** — der Hinweis bleibt nur für den laufenden Programmlauf weg; beim nächsten
@@ -355,21 +361,23 @@ Wandelt Videos in animierte GIFs.
    Reste im Temp-Ordner und ohne die bestehende Installation anzufassen.
 7. Zusätzlich wird geprüft, dass das Paket lesbar ist und tatsächlich die Hauptanwendung
    enthält.
-8. Der Updater wird nach Temp kopiert und mit
-   `<ExeName> <ZipPfad> <Zielordner> <ProzessId>` gestartet.
+8. Der Updater wird nach Temp kopiert und mit benannten Kommandozeilenargumenten gestartet.
+   Er sichert jede Datei, die er ersetzt, bevor er sie austauscht; scheitert das Update
+   mittendrin (z. B. eine gesperrte Datei), spielt er alle bereits ersetzten Dateien
+   automatisch aus der Sicherung zurück — die vorhandene Installation bleibt in jedem Fall
+   lauffähig. Eigene Werkzeuge (`Tools\`) und der Download-Verlauf werden dabei nie
+   überschrieben.
 9. Die App beendet sich; der Updater wartet auf das Prozessende, entpackt und startet die
    App neu.
 10. **Beim nächsten Start prüft MortysDLP, ob das Update tatsächlich gewirkt hat:**
-   - Läuft danach die neue Version, erscheint eine kurze Bestätigung, und der
+   - Läuft danach die neue Version, erscheint sofort eine Bestätigung mit der Möglichkeit,
+     die Änderungen der neuen Version anzusehen — einmalig, danach nicht erneut. Der
      Zwischenspeicher der Update-Prüfung sowie eine übersprungene Version werden geleert.
    - Läuft weiterhin die alte Version, erscheint ein Hinweis mit dem Pfad zum Protokoll — das
      Update hat offenbar nicht funktioniert (z. B. weil der Updater unterbrochen wurde).
    - Bleibt **dasselbe** Update zweimal hintereinander ohne Wirkung, bietet MortysDLP es
      danach nicht mehr von selbst an. Ein Knopf „Trotzdem erneut versuchen" in der Meldung
      hebt das wieder auf.
-
-> **Bekannte Einschränkung:** Es gibt noch keine Möglichkeit, ein fehlgeschlagenes Update
-> zurückzunehmen (kein Rollback). Eine überarbeitete Update-Mechanik ist in Vorbereitung.
 
 ---
 

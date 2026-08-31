@@ -44,6 +44,12 @@ namespace MortysDLP.Services
 
         [JsonPropertyName("attempts")]
         public int Attempts { get; set; }
+
+        /// <summary>Changelog-Text der Zielversion, mitgeschrieben beim Update-Start (W3-T06) —
+        /// erspart nach einem erfolgreichen Neustart einen zweiten Netzabruf für den
+        /// „Was ist neu"-Hinweis.</summary>
+        [JsonPropertyName("changelog")]
+        public string? Changelog { get; set; }
     }
 
     /// <summary>
@@ -93,7 +99,7 @@ namespace MortysDLP.Services
         /// angelegt; für eine andere Zielversion beginnt die Zählung wieder bei 1.</summary>
         public static async Task RecordAttemptAsync(
             string fromVersion, string toVersion, DateTimeOffset now,
-            string? filePath = null, CancellationToken ct = default)
+            string? filePath = null, string? changelog = null, CancellationToken ct = default)
         {
             string path = filePath ?? AppPaths.UpdateStateFile;
 
@@ -111,6 +117,7 @@ namespace MortysDLP.Services
                     ToVersion = toVersion,
                     StartedUtc = now,
                     Attempts = attempts,
+                    Changelog = changelog,
                 };
 
                 await WriteAsync(data, path, ct);

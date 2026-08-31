@@ -24,19 +24,37 @@ namespace MortysDLP.Views
     {
         public UpdateChoice Choice { get; private set; } = UpdateChoice.Later;
 
-        public UpdateChangelogDialog(string version, string changelog)
+        /// <param name="isWhatsNewOnly">Zeigt nur den Changelog mit einem einzelnen
+        /// Schließen-Knopf — für den einmaligen „Was ist neu"-Hinweis nach einem bereits
+        /// erfolgreich abgeschlossenen Update (W3-T06). „Jetzt aktualisieren"/„Überspringen"
+        /// ergäben dort keinen Sinn mehr.</param>
+        public UpdateChangelogDialog(string version, string changelog, bool isWhatsNewOnly = false)
         {
             InitializeComponent();
 
             var T = UITextDictionary.Get;
 
-            txtTitle.Text          = T("UpdateBannerDialog.Title");
-            txtSubtitle.Text       = string.Format(T("UpdateBannerDialog.Subtitle"), version);
+            string subtitleTemplate;
+            if (isWhatsNewOnly)
+            {
+                txtTitle.Text            = T("WhatsNew.Title");
+                subtitleTemplate         = T("WhatsNew.Subtitle");
+                btnUpdateNow.Visibility  = Visibility.Collapsed;
+                btnSkip.Visibility       = Visibility.Collapsed;
+                btnLater.Content         = T("Common.Button.Close");
+            }
+            else
+            {
+                txtTitle.Text          = T("UpdateBannerDialog.Title");
+                subtitleTemplate       = T("UpdateBannerDialog.Subtitle");
+                btnUpdateNow.Content   = T("UpdateBannerDialog.Button.UpdateNow");
+                btnLater.Content       = T("UpdateBannerDialog.Button.Later");
+                btnSkip.Content        = T("UpdateBannerDialog.Button.Skip");
+                btnSkip.ToolTip        = T("UpdateBannerDialog.Button.Skip.Tooltip");
+            }
+            txtSubtitle.Text = string.Format(subtitleTemplate, version);
+
             txtChangelogLabel.Text = T("UpdateBannerDialog.ChangelogLabel");
-            btnUpdateNow.Content   = T("UpdateBannerDialog.Button.UpdateNow");
-            btnLater.Content       = T("UpdateBannerDialog.Button.Later");
-            btnSkip.Content        = T("UpdateBannerDialog.Button.Skip");
-            btnSkip.ToolTip        = T("UpdateBannerDialog.Button.Skip.Tooltip");
 
             var markdownText = string.IsNullOrWhiteSpace(changelog)
                 ? T("UpdateBannerDialog.NoChangelog")

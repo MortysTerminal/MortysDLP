@@ -37,6 +37,14 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
   Befehlszeilenargumente unterschieben.
 
 ### Hinzugefügt
+- MortysDLP prüft jetzt vor jedem Update-Angebot, ob der Installationsordner ein Update
+  überhaupt zulässt: Liegt er in einem geschützten Systemordner, erscheint ein Hinweis mit der
+  Empfehlung, die Installation zu verschieben (inklusive des Hinweises, dass dabei alle
+  Einstellungen verloren gehen). Ist der Ordner schreibgeschützt oder läuft MortysDLP direkt
+  aus einer ZIP-Vorschau, wird das Update gar nicht erst angeboten.
+- Nach einem erfolgreichen Update erscheint jetzt sofort nach dem Neustart eine Bestätigung
+  mit der Möglichkeit, die Änderungen der neuen Version anzusehen — einmalig, danach nicht
+  erneut.
 - MortysDLP fragt jetzt nach, bevor ein Update gestartet wird, während im Hintergrund noch
   ein Download, eine Konvertierung oder eine Transkription läuft — bisher wurde ein solcher
   Vorgang beim Update kommentarlos abgebrochen.
