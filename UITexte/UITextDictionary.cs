@@ -195,6 +195,9 @@ namespace MortysDLP.UITexte
             // denselben Weg, deshalb tragen diese Texte den Werkzeugnamen als {0} statt ihn im
             // Schlüssel zu führen.
             ["StartupWindow.Tool.MissingTitle"] = "{0} fehlt",
+            ["StartupWindow.Tool.BrokenTitle"] = "{0} ist nicht einsatzbereit",
+            ["StartupWindow.Tool.BrokenMessage"] = "Die Datei für {0} ist vorhanden, meldet aber nicht das, was {0} melden würde. Entweder ist die Datei beschädigt, oder es liegt ein anderes Programm unter diesem Namen.\n\nMortysDLP kann damit nicht arbeiten und behandelt {0} deshalb wie nicht installiert. Näheres steht im Protokoll.",
+            ["StartupWindow.Tool.BrokenQuestion"] = "\n\nMöchtest du {0} jetzt neu herunterladen?",
             ["StartupWindow.Tool.InstallSuccess"] = "{0} wurde erfolgreich heruntergeladen.",
             ["StartupWindow.Tool.InstallFailed"] = "{0} konnte nicht installiert werden. Näheres steht im Protokoll.",
             ["StartupWindow.ToolUpdate.NewVersion"] = "Neue Version von {0} verfügbar: {1} (installiert: {2})",
@@ -816,6 +819,9 @@ namespace MortysDLP.UITexte
             // Shared across tools: startup handles every managed tool the same way, so the tool
             // name travels as {0} instead of living in the key.
             ["StartupWindow.Tool.MissingTitle"] = "{0} missing",
+            ["StartupWindow.Tool.BrokenTitle"] = "{0} is not ready to use",
+            ["StartupWindow.Tool.BrokenMessage"] = "The file for {0} is present, but it does not report what {0} would report. Either the file is damaged, or a different program is sitting under that name.\n\nMortysDLP cannot work with it and therefore treats {0} as not installed. See the log for details.",
+            ["StartupWindow.Tool.BrokenQuestion"] = "\n\nWould you like to download {0} again now?",
             ["StartupWindow.Tool.InstallSuccess"] = "{0} was successfully downloaded.",
             ["StartupWindow.Tool.InstallFailed"] = "{0} could not be installed. See the log for details.",
             ["StartupWindow.ToolUpdate.NewVersion"] = "New version of {0} available: {1} (installed: {2})",

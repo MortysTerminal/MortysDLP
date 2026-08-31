@@ -232,25 +232,38 @@ namespace MortysDLP
 
             var outcome = await catalog.CheckAsync(tool, force: false, CancellationToken.None);
 
-            if (!outcome.Status.Installed)
-                return await InstallMissingToolAsync(tool, outcome, T);
+            // Nicht `Status.Installed`, sondern `Usable`: Eine Datei mit dem richtigen Namen ist
+            // kein Werkzeug. Liegt dort etwas anderes oder etwas Kaputtes, ist das für den Start
+            // dasselbe wie "fehlt" — nur der erklärende Text unterscheidet sich.
+            if (!outcome.Usable)
+                return await InstallMissingToolAsync(catalog, tool, outcome, T);
 
             if (!outcome.Verdict.Offer)
                 return (true, outcome.LocalVersion);
 
-            return await OfferToolUpdateAsync(tool, outcome, T);
+            return await OfferToolUpdateAsync(catalog, tool, outcome, T);
         }
 
-        /// <summary>Fragt nach und installiert. Lehnt der Nutzer ein für den Betrieb
+        /// <summary>Fragt nach und installiert — sowohl für ein fehlendes als auch für ein
+        /// vorhandenes, aber unbrauchbares Werkzeug. Lehnt der Nutzer ein für den Betrieb
         /// erforderliches Werkzeug ab, erklärt der Dialog, wie es von Hand nachgeholt werden kann,
-        /// und die Anwendung beendet sich geordnet — unverändertes Verhalten.</summary>
+        /// und die Anwendung beendet sich geordnet.</summary>
         private async Task<(bool Present, ToolVersion Version)> InstallMissingToolAsync(
-            IManagedTool tool, ToolCheckOutcome outcome, Func<string, string> T)
+            ToolCatalog catalog, IManagedTool tool, ToolCheckOutcome outcome, Func<string, string> T)
         {
-            string title = Fmt(T("StartupWindow.Tool.MissingTitle"), tool.DisplayName);
+            bool broken = outcome.Probe.Health is ToolHealth.NoAnswer or ToolHealth.Foreign;
+
+            string title = broken
+                ? Fmt(T("StartupWindow.Tool.BrokenTitle"), tool.DisplayName)
+                : Fmt(T("StartupWindow.Tool.MissingTitle"), tool.DisplayName);
+
+            string message = broken
+                ? Fmt(T("StartupWindow.Tool.BrokenMessage"), tool.DisplayName) +
+                    Fmt(T("StartupWindow.Tool.BrokenQuestion"), tool.DisplayName)
+                : BuildIntroMessage(tool, T);
 
             var answer = FluentMessageBox.Show(
-                BuildIntroMessage(tool, T),
+                message,
                 title,
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Warning,
@@ -258,7 +271,8 @@ namespace MortysDLP
 
             if (answer != MessageBoxResult.Yes)
             {
-                Log.Warn($"[{tool.Id}] Installation vom Nutzer abgelehnt.");
+                Log.Warn($"[{tool.Id}] Installation vom Nutzer abgelehnt " +
+                    $"({ManagedToolBase.DescribeProbe(outcome.Probe)}).");
 
                 FluentMessageBox.Show(
                     BuildRequiredMessage(tool, T),
@@ -273,7 +287,7 @@ namespace MortysDLP
                 return (false, ToolVersion.Unknown);
             }
 
-            var install = await RunInstallAsync(tool, outcome.Release, T);
+            var install = await RunInstallAsync(catalog, tool, outcome, T);
 
             if (install.Success)
             {
@@ -297,13 +311,15 @@ namespace MortysDLP
                     this);
             }
 
-            return (tool.GetStatus().Installed, ToolVersion.Unknown);
+            // Nach einem Fehlschlag noch einmal nachfragen statt zu raten: Der Start darf nur
+            // weiterlaufen, wenn dort jetzt wirklich das Werkzeug liegt.
+            return await ConfirmUsableAsync(tool);
         }
 
         /// <summary>Bietet ein Update an — und führt es nie ohne Zustimmung durch. Schlägt es fehl,
         /// bleibt das Werkzeug in der vorherigen Fassung einsatzbereit; der Start läuft weiter.</summary>
         private async Task<(bool Present, ToolVersion Version)> OfferToolUpdateAsync(
-            IManagedTool tool, ToolCheckOutcome outcome, Func<string, string> T)
+            ToolCatalog catalog, IManagedTool tool, ToolCheckOutcome outcome, Func<string, string> T)
         {
             string message = Fmt(T("StartupWindow.ToolUpdate.NewVersion"),
                 tool.DisplayName, outcome.RemoteVersion, outcome.LocalVersion);
@@ -322,7 +338,7 @@ namespace MortysDLP
                 return (true, outcome.LocalVersion);
             }
 
-            var install = await RunInstallAsync(tool, outcome.Release, T);
+            var install = await RunInstallAsync(catalog, tool, outcome, T);
 
             if (install.Success)
             {
@@ -358,16 +374,34 @@ namespace MortysDLP
                     this);
             }
 
-            return (tool.GetStatus().Installed, outcome.LocalVersion);
+            // Ein fehlgeschlagenes Update lässt das Werkzeug unverändert - aber "unverändert"
+            // heißt hier "wie vorher brauchbar", und das war es vor diesem Zweig bereits.
+            return (true, outcome.LocalVersion);
+        }
+
+        /// <summary>Fragt das Werkzeug erneut, ob es jetzt brauchbar ist — nach einem
+        /// fehlgeschlagenen oder abgebrochenen Installationsversuch. Kostet einen Prozessstart und
+        /// ist genau dann richtig: Der Start darf nur weiterlaufen, wenn dort tatsächlich das
+        /// Werkzeug liegt, nicht nur eine Datei mit dem passenden Namen.</summary>
+        private static async Task<(bool Present, ToolVersion Version)> ConfirmUsableAsync(IManagedTool tool)
+        {
+            var probe = await tool.ProbeAsync(CancellationToken.None);
+            return (probe.Usable, probe.Version);
         }
 
         /// <summary>Führt die Installation mit Fortschrittsdialog und Statuszeile aus. Die
         /// Abschnittsmeldungen kommen als Aufzählungswert aus der Werkzeugschicht und werden erst
         /// hier zu Text — <c>Progress&lt;T&gt;</c> wird im UI-Thread erzeugt und meldet deshalb
-        /// auch dorthin zurück.</summary>
+        /// auch dorthin zurück.
+        ///
+        /// <para>Die Release-Antwort wird hier und nicht beim Aufrufer beschafft: Ein aus dem
+        /// Zwischenspeicher gelesener Stand kennt keine Anhänge und damit keine Prüfsumme —
+        /// <see cref="ToolCatalog.ResolveForInstallAsync"/> holt dafür einmal frisch.</para></summary>
         private async Task<ToolInstallOutcome> RunInstallAsync(
-            IManagedTool tool, ReleaseInfo? release, Func<string, string> T)
+            ToolCatalog catalog, IManagedTool tool, ToolCheckOutcome outcome, Func<string, string> T)
         {
+            var release = await catalog.ResolveForInstallAsync(outcome, CancellationToken.None);
+
             string downloadText = Fmt(T("StartupWindow.Status.Downloading"), tool.DisplayName);
 
             using var dialog = new DownloadProgressDialog(downloadText);
@@ -379,14 +413,14 @@ namespace MortysDLP
 
             SetStatus(downloadText);
 
-            var outcome = await tool.InstallAsync(release, progress, stage, dialog.CancellationToken);
+            var installOutcome = await tool.InstallAsync(release, progress, stage, dialog.CancellationToken);
 
-            if (outcome.Status == ToolInstallStatus.Canceled)
+            if (installOutcome.Status == ToolInstallStatus.Canceled)
                 SetStatus(T("StartupWindow.Status.DownloadCanceled"));
-            else if (!outcome.Success)
+            else if (!installOutcome.Success)
                 SetStatus(T("StartupWindow.Status.DownloadFailed"));
 
-            return outcome;
+            return installOutcome;
         }
 
         private static string StageText(ToolInstallStage stage, string displayName, Func<string, string> T) =>

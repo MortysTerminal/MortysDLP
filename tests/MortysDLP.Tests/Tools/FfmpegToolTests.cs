@@ -79,22 +79,51 @@ public class FfmpegToolTests : IDisposable
     }
 
     [Theory]
-    [InlineData(RealFfmpegOutput, "7.1-essentials_build-www.gyan.dev")]
-    [InlineData(RealFfprobeOutput, "7.1-essentials_build-www.gyan.dev")]
-    [InlineData("ffmpeg version 6.0 Copyright (c) 2000-2023", "6.0")]
-    [InlineData("ffmpeg version n7.1-11-g123abc Copyright", "n7.1-11-g123abc")]
-    public void Versionszeile_WirdAusDerEchtenAusgabeGelesen(string output, string expected)
+    [InlineData(RealFfmpegOutput, "ffmpeg", "7.1-essentials_build-www.gyan.dev")]
+    [InlineData(RealFfprobeOutput, "ffprobe", "7.1-essentials_build-www.gyan.dev")]
+    [InlineData("ffmpeg version 6.0 Copyright (c) 2000-2023", "ffmpeg", "6.0")]
+    [InlineData("ffmpeg version n7.1-11-g123abc Copyright", "ffmpeg", "n7.1-11-g123abc")]
+    public void Versionszeile_WirdAusDerEchtenAusgabeGelesen(string output, string program, string expected)
     {
-        Assert.Equal(expected, FfmpegTool.ExtractVersionToken(output));
+        Assert.Equal(expected, FfmpegTool.ExtractVersionToken(output, program));
     }
 
     [Theory]
-    [InlineData("")]
-    [InlineData("ffmpeg ohne das Wort dahinter")]
-    [InlineData("version ")]
-    public void UnbrauchbareAusgabe_LiefertKeineVersion(string output)
+    [InlineData("", "ffmpeg")]
+    [InlineData("ffmpeg ohne das Wort dahinter", "ffmpeg")]
+    [InlineData("version ", "ffmpeg")]
+    public void UnbrauchbareAusgabe_LiefertKeineVersion(string output, string program)
     {
-        Assert.Null(FfmpegTool.ExtractVersionToken(output));
+        Assert.Null(FfmpegTool.ExtractVersionToken(output, program));
+    }
+
+    /// <summary>
+    /// Der Identitätsnachweis: Die Zeile muss mit <c>&lt;programm&gt; version</c> <b>beginnen</b>.
+    /// Die beiden letzten Fälle sind der Grund dafür — beide Werkzeuge der ffmpeg-Familie
+    /// schließen dieselbe Zeile mit <c>the FFmpeg developers</c> ab. Ein Enthalten-Test auf
+    /// „ffmpeg" hätte die ffprobe-Ausgabe deshalb als ffmpeg-Ausgabe akzeptiert; genau das ist
+    /// beim Schreiben dieses Tests aufgefallen.
+    /// </summary>
+    [Theory]
+    [InlineData("git version 2.47.1.windows.1", "ffmpeg")]
+    [InlineData("curl 8.9.1 (x86_64) libcurl/8.9.1 version blah", "ffmpeg")]
+    [InlineData("Das hier ist die ffmpeg version 1.0 von irgendwem", "ffmpeg")]
+    [InlineData(RealFfprobeOutput, "ffmpeg")]
+    [InlineData(RealFfmpegOutput, "ffprobe")]
+    public void FremdeAusgabe_WirdAbgelehnt(string output, string program)
+    {
+        Assert.Null(FfmpegTool.ExtractVersionToken(output, program));
+    }
+
+    /// <summary>Eine vorangestellte Warnzeile darf ein echtes ffmpeg nicht zum fremden Programm
+    /// machen — die Versionszeile wird in den ersten Zeilen gesucht, nicht nur in der ersten.</summary>
+    [Fact]
+    public void VorangestellteWarnzeile_VerhindertDieErkennungNicht()
+    {
+        string output = "WARNING: irgendeine Meldung der Laufzeitumgebung\n" + RealFfmpegOutput;
+
+        Assert.Equal("7.1-essentials_build-www.gyan.dev",
+            FfmpegTool.ExtractVersionToken(output, "ffmpeg"));
     }
 
     /// <summary>Der Weg von der echten Werkzeugausgabe bis zur Entscheidung, in einem Test:
@@ -103,7 +132,7 @@ public class FfmpegToolTests : IDisposable
     [Fact]
     public void EchteAusgabeGegenVersionsendpunkt_LoestKeinUpdateAus()
     {
-        var local = ToolVersion.Parse(FfmpegTool.ExtractVersionToken(RealFfmpegOutput));
+        var local = ToolVersion.Parse(FfmpegTool.ExtractVersionToken(RealFfmpegOutput, "ffmpeg"));
         var remote = ToolVersion.Parse("7.1");
 
         var verdict = ToolUpdateDecision.Evaluate(local, remote, _tool.UpdatePolicy);

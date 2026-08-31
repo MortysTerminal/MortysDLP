@@ -8,8 +8,8 @@ using System.Threading.Tasks;
 
 namespace MortysDLP.Services.Tools
 {
-    /// <param name="LocalVersion">Installierte Version. <see cref="ToolVersion.Unknown"/>, wenn
-    /// das Werkzeug fehlt oder nicht geantwortet hat.</param>
+    /// <param name="Probe">Ergebnis der Befragung des Werkzeugs — enthält auch, <b>warum</b> es
+    /// gegebenenfalls nicht brauchbar ist (fehlt, schweigt, oder dort liegt ein fremdes Programm).</param>
     /// <param name="Release">Antwort der Quellenkette, oder <c>null</c>, wenn keine Quelle etwas
     /// hatte. Wird für die Installation gebraucht (Adresse, Größe, Prüfsumme).</param>
     /// <param name="RemoteVersion">Dieselbe Version wie in <paramref name="Release"/>, aber als
@@ -18,11 +18,19 @@ namespace MortysDLP.Services.Tools
     internal sealed record ToolCheckOutcome(
         IManagedTool Tool,
         ToolStatus Status,
-        ToolVersion LocalVersion,
+        ToolProbe Probe,
         ReleaseInfo? Release,
         ToolVersion RemoteVersion,
         bool FromCache,
-        ToolUpdateVerdict Verdict);
+        ToolUpdateVerdict Verdict)
+    {
+        /// <summary>Installierte Version, soweit sie verlässlich ist.</summary>
+        public ToolVersion LocalVersion => Probe.Version;
+
+        /// <summary>true nur, wenn dort tatsächlich dieses Werkzeug liegt und antwortet. Ein
+        /// vorhandener Dateiname genügt ausdrücklich nicht.</summary>
+        public bool Usable => Probe.Usable;
+    }
 
     /// <summary>
     /// Die Liste der verwalteten Werkzeuge an einer Stelle — und die eine Stelle, an der die
@@ -77,27 +85,55 @@ namespace MortysDLP.Services.Tools
                     string.Join(", ", status.MissingPaths));
             }
 
-            var local = status.Installed ? await tool.GetLocalVersionAsync(ct) : ToolVersion.Unknown;
+            // Befragen statt nur nachsehen: Erst hier kommt heraus, ob unter dem erwarteten
+            // Dateinamen auch das erwartete Programm liegt.
+            var probe = status.Installed ? await tool.ProbeAsync(ct) : ToolProbe.NotInstalled;
 
             var service = new ToolCheckService(
                 new ResilientReleaseResolver(tool.CreateSources()), _cache, _now);
 
             var result = await service.CheckAsync(
-                tool.Id, tool.CreateQuery(), ToAppVersionIfOrdering(local),
+                tool.Id, tool.CreateQuery(), ToAppVersionIfOrdering(probe.Version),
                 ToolCheckService.ToolCacheLifetime, force, ct);
 
             var remote = ToolVersion.Parse(result.Info?.Version.ToString());
 
-            var verdict = status.Installed
-                ? ToolUpdateDecision.Evaluate(local, remote, tool.UpdatePolicy)
+            var verdict = probe.Usable
+                ? ToolUpdateDecision.Evaluate(probe.Version, remote, tool.UpdatePolicy)
                 : new ToolUpdateVerdict(false,
-                    "nicht installiert - zuständig ist die Installation, nicht der Versionsvergleich");
+                    $"{ManagedToolBase.DescribeProbe(probe)} - zuständig ist die Installation, " +
+                    "nicht der Versionsvergleich");
 
             Log.Info($"[{tool.Id}] {verdict.Reason}" +
                 (result.Info is not null ? $" [Quelle {result.Info.SourceName}" +
                     $"{(result.FromCache ? ", aus Cache" : "")}]" : ""));
 
-            return new ToolCheckOutcome(tool, status, local, result.Info, remote, result.FromCache, verdict);
+            return new ToolCheckOutcome(tool, status, probe, result.Info, remote, result.FromCache, verdict);
+        }
+
+        /// <summary>
+        /// Beschafft eine Release-Antwort, die zum <b>Installieren</b> taugt — nicht nur zum
+        /// Vergleichen. Ein zwischengespeicherter Stand führt keine Anhangsliste
+        /// (<c>UpdateCacheEntry</c> speichert sie nicht), und ohne Anhangsliste gibt es weder die
+        /// erwartete Größe noch die Prüfsumme: Der Download eines ausführbaren Programms liefe dann
+        /// ungeprüft. Deshalb wird für eine Installation einmal frisch gefragt, wenn der
+        /// vorliegende Stand aus dem Zwischenspeicher kommt.
+        ///
+        /// <para>Das kostet genau eine Netzabfrage, und nur dann, wenn der Nutzer eine
+        /// Installation tatsächlich bestätigt hat — nicht bei jedem Start. Der umgekehrte Weg
+        /// (Anhänge mitspeichern) wäre eine Schemaänderung am gemeinsamen Zwischenspeicher der
+        /// Anwendung und gehört nicht hierher.</para>
+        /// </summary>
+        public async Task<ReleaseInfo?> ResolveForInstallAsync(ToolCheckOutcome outcome, CancellationToken ct)
+        {
+            if (outcome.Release is { Assets.Count: > 0 } || !outcome.FromCache)
+                return outcome.Release;
+
+            Log.Info($"[{outcome.Tool.Id}] Der zwischengespeicherte Stand führt keine Anhangsliste - " +
+                "für die Installation wird einmal frisch geprüft, sonst fehlt die Prüfsumme.");
+
+            var fresh = await CheckAsync(outcome.Tool, force: true, ct);
+            return fresh.Release ?? outcome.Release;
         }
 
         /// <summary>

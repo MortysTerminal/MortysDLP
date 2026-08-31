@@ -6,15 +6,21 @@
         xmlns:local="clr-namespace:MortysDLP"
         Icon="/Resources/Icons/mw_globe_32px.ico"
         mc:Ignorable="d"
-        Title="Download läuft..." 
-        Height="175" 
-        Width="400" 
-        WindowStartupLocation="CenterOwner" 
+        Title="Download läuft..."
+        Width="420"
+        MinHeight="170"
+        SizeToContent="Height"
+        WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"
         WindowStyle="ToolWindow">
+    <!-- SizeToContent="Height" statt einer festen Höhe: Bei 125 % und 150 % Skalierung wuchsen
+         Titelleiste und Text über die 175 DIP hinaus, und der Abbrechen-Knopf lag außerhalb des
+         Fensters - bei ResizeMode="NoResize" ohne jede Möglichkeit, ihn zu erreichen. Dasselbe
+         passierte, sobald der Infotext (Werkzeugname) auf zwei Zeilen umbrach. -->
     <Grid Margin="20">
         <StackPanel>
-            <TextBlock x:Name="InfoText" Text="Download läuft..." Margin="0,0,0,10" FontWeight="Bold"/>
+            <TextBlock x:Name="InfoText" Text="Download läuft..." Margin="0,0,0,10" FontWeight="Bold"
+                       TextWrapping="Wrap"/>
             <ProgressBar x:Name="ProgressBar" Height="25" Minimum="0" Maximum="100" IsIndeterminate="True"/>
             <TextBlock x:Name="PercentText" Text="" Margin="0,6,0,0" HorizontalAlignment="Center"/>
             <Button x:Name="CancelButton" Content="Abbrechen" Margin="0,12,0,0"

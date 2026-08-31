@@ -15,8 +15,18 @@ namespace MortysDLP.Helpers
         [
             "github.com",
             "api.github.com",
-            "objects.githubusercontent.com",
-            "raw.githubusercontent.com",
+
+            // Bewusst die Domäne, nicht einzelne Rechnernamen: GitHub liefert Release-Anhänge
+            // über wechselnde Unterdomänen aus und hat sie mehrfach umbenannt
+            // (objects. → github-releases. → release-assets.). Jeder dieser Namen ist
+            // GitHub-eigene Infrastruktur, erreicht wird sie ausschließlich über eine
+            // Weiterleitung von github.com bzw. api.github.com. Einzelne Namen zu pflegen hat
+            // sich als Fehlerquelle erwiesen: Am 2026-08-31 scheiterte jeder Anhang-Download an
+            // "Ziel nicht erlaubt", weil GitHub auf release-assets.githubusercontent.com
+            // umgestellt hatte — das betraf nicht nur Werkzeuge, sondern auch das Selbst-Update
+            // der Anwendung. raw.githubusercontent.com (version.json) ist damit mit abgedeckt.
+            "githubusercontent.com",
+
             "huggingface.co",
             "hf-mirror.com",
             "pypi.org",

@@ -66,6 +66,12 @@ namespace MortysDLP.Models
         /// Nur dann ist „neuer als" beantwortbar.</summary>
         public bool IsOrdering => Core.Length > 0 && _tag is null;
 
+        /// <summary>Erstes Segment des Zahlenkerns, <c>null</c> ohne Zahlenkern. Wird gebraucht,
+        /// um ein Versionsschema zu erkennen — yt-dlp zählt nach Datum (<c>2026.08.19</c>), und
+        /// „erstes Segment ist eine Jahreszahl" ist der billigste Nachweis, dass eine Antwort
+        /// überhaupt von yt-dlp stammen kann.</summary>
+        public int? FirstSegment => Core.Length > 0 ? Core[0] : null;
+
         private int[] Core => _core ?? [];
 
         /// <summary>

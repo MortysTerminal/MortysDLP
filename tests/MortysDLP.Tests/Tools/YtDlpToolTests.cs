@@ -1,3 +1,4 @@
+using MortysDLP.Models;
 using MortysDLP.Services.Releases;
 using MortysDLP.Services.Tools;
 using System.Linq;
@@ -54,6 +55,50 @@ public class YtDlpToolTests
         Assert.Equal("yt-dlp.exe", query.AssetPattern);
         Assert.NotNull(query.DownloadUrlTemplate);
         Assert.False(query.AllowPrerelease);
+    }
+
+    /// <summary>
+    /// Der Identitätsnachweis. Ein Dateiname beweist nicht, welches Programm dort liegt: Wird eine
+    /// beliebige EXE auf <c>yt-dlp.exe</c> umbenannt, sieht die reine Dateiprüfung nichts. Erst
+    /// die Antwort verrät sie — <c>yt-dlp --version</c> schreibt nichts als die Version, ohne
+    /// Leerzeichen.
+    /// </summary>
+    [Theory]
+    [InlineData("git version 2.47.1.windows.1")]
+    [InlineData("curl 8.9.1 (x86_64-pc-windows-msvc) libcurl/8.9.1")]
+    [InlineData("ffmpeg version 7.1-essentials_build-www.gyan.dev Copyright (c) 2000-2024")]
+    [InlineData("Python 3.12.4")]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void FremdeAusgabe_WirdNichtAlsVersionGelesen(string output)
+    {
+        string? line = YtDlpTool.ExtractVersionLine(output);
+        Assert.False(line is not null && YtDlpTool.IsYtDlpVersion(ToolVersion.Parse(line)));
+    }
+
+    [Theory]
+    [InlineData("2026.08.19")]
+    [InlineData("2026.08.19.232303")]
+    [InlineData("2021.12.27\n")]
+    public void EchteYtDlpAusgabe_WirdAkzeptiert(string output)
+    {
+        string? line = YtDlpTool.ExtractVersionLine(output);
+
+        Assert.NotNull(line);
+        Assert.True(YtDlpTool.IsYtDlpVersion(ToolVersion.Parse(line)));
+    }
+
+    /// <summary>Eine Angabe ohne Jahreszahl am Anfang ist keine yt-dlp-Version, auch wenn sie
+    /// syntaktisch eine ordnende Version ist — sonst käme jedes Programm mit einer schlichten
+    /// Nummer durch.</summary>
+    [Theory]
+    [InlineData("2.47.1")]
+    [InlineData("1999.12.31")]
+    [InlineData("3000.01.01")]
+    [InlineData("7.1-essentials_build")]
+    public void VersionOhneJahreszahl_GiltNichtAlsYtDlpVersion(string version)
+    {
+        Assert.False(YtDlpTool.IsYtDlpVersion(ToolVersion.Parse(version)));
     }
 
     /// <summary>Die Adressvorlage muss sich mit dem Rohtag eines Releases zu einer nutzbaren

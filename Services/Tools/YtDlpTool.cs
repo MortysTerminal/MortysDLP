@@ -49,6 +49,13 @@ namespace MortysDLP.Services.Tools
         /// deutlich mehr Luft als ein Versionsabruf.</summary>
         private static readonly TimeSpan SelfUpdateTimeout = TimeSpan.FromMinutes(3);
 
+        // Grenzen des Datums-Versionsschemas von yt-dlp. Absichtlich weit gefasst - hier soll
+        // kein Werkzeug ausgesperrt werden, das seit Jahren nicht aktualisiert wurde, und kein
+        // Rechner mit falsch gestellter Uhr. Die Grenze trennt "Jahreszahl" von "Hauptversion",
+        // nicht "alt" von "neu".
+        private const int MinPlausibleYear = 2000;
+        private const int MaxPlausibleYear = 2999;
+
         private readonly string[] _targetPaths = [AppPaths.YtDlp];
 
         public override string Id => "yt-dlp";
@@ -69,10 +76,43 @@ namespace MortysDLP.Services.Tools
             DownloadUrlTemplate: DownloadUrlTemplate,
             PackageName: "yt-dlp");
 
-        /// <summary><c>yt-dlp.exe --version</c> gibt genau eine Zeile aus, z. B.
-        /// <c>2026.08.19</c>.</summary>
-        public override Task<ToolVersion> GetLocalVersionAsync(CancellationToken ct) =>
-            ReadVersionAsync(AppPaths.YtDlp, ["--version"], FirstNonEmptyLine, ct);
+        protected override string VersionExecutable => AppPaths.YtDlp;
+
+        protected override IReadOnlyList<string> VersionArguments => ["--version"];
+
+        protected override string? ExtractVersion(string output) => ExtractVersionLine(output);
+
+        protected override bool IsOwnVersion(ToolVersion version) => IsYtDlpVersion(version);
+
+        /// <summary>
+        /// <c>yt-dlp.exe --version</c> gibt <b>genau eine Zeile mit nichts als der Version</b>
+        /// aus, z. B. <c>2026.08.19</c>. Genau diese Enge ist hier der Nachweis: Ein fremdes
+        /// Programm schreibt bereitwillig etwas wie <c>git version 2.47.1.windows.1</c> — mit
+        /// Leerzeichen, und damit erkennbar nicht yt-dlp.
+        /// </summary>
+        internal static string? ExtractVersionLine(string output)
+        {
+            string? line = FirstNonEmptyLine(output);
+            if (line is null)
+                return null;
+
+            foreach (char c in line)
+            {
+                if (char.IsWhiteSpace(c))
+                    return null;
+            }
+
+            return line;
+        }
+
+        /// <summary>
+        /// yt-dlp zählt nach Datum: Das erste Segment ist das Jahr, und die Angabe besteht
+        /// ausschließlich aus Zahlen (auch bei Nightlies: <c>2026.08.19.232303</c>). Ein
+        /// Programm, das <c>2.47.1</c> ausgibt, ist damit ebenso aussortiert wie eines, das
+        /// gar keine Zahl liefert.
+        /// </summary>
+        internal static bool IsYtDlpVersion(ToolVersion version) =>
+            version.IsOrdering && version.FirstSegment is >= MinPlausibleYear and <= MaxPlausibleYear;
 
         public override async Task<ToolInstallOutcome> InstallAsync(
             ReleaseInfo? release,
@@ -126,12 +166,12 @@ namespace MortysDLP.Services.Tools
                         replaceResult.Detail);
                 }
 
-                var newVersion = await GetLocalVersionAsync(ct);
-                Log.Info($"[{Id}] {(hadPrevious ? "aktualisiert" : "installiert")} auf {newVersion}.");
+                var probe = await ProbeAsync(ct);
+                Log.Info($"[{Id}] {(hadPrevious ? "aktualisiert" : "installiert")} auf {probe.Version}.");
 
                 return new ToolInstallOutcome(
                     hadPrevious ? ToolInstallStatus.Replaced : ToolInstallStatus.Installed,
-                    newVersion, replaceResult.Detail);
+                    probe.Version, replaceResult.Detail);
             }
             catch (OperationCanceledException)
             {
@@ -179,7 +219,7 @@ namespace MortysDLP.Services.Tools
                 return ToolVersion.Unknown;
             }
 
-            var before = await GetLocalVersionAsync(ct);
+            var before = (await ProbeAsync(ct)).Version;
 
             Log.Warn($"[{Id}] Notausgang: {ExeName} -U wird ausgeführt. yt-dlp lädt dabei selbst " +
                 "aus dem Netz - MortysDLP sieht dabei keine Prüfsumme und kann den Download nicht " +
@@ -206,12 +246,14 @@ namespace MortysDLP.Services.Tools
                 return ToolVersion.Unknown;
             }
 
-            var after = await GetLocalVersionAsync(ct);
+            var afterProbe = await ProbeAsync(ct);
+            var after = afterProbe.Version;
 
-            if (!after.HasValue)
+            if (!afterProbe.Usable)
             {
-                Log.Error($"[{Id}] Nach dem Selbst-Update antwortet {ExeName} nicht mehr brauchbar. " +
-                    "Eine Rückfallebene gibt es hier nicht - das Werkzeug muss neu installiert werden.");
+                Log.Error($"[{Id}] Nach dem Selbst-Update ist {ExeName} nicht brauchbar " +
+                    $"({DescribeProbe(afterProbe)}). Eine Rückfallebene gibt es hier nicht - das " +
+                    "Werkzeug muss neu installiert werden.");
                 return ToolVersion.Unknown;
             }
 

@@ -28,7 +28,10 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
 ### Sicherheit
 - Der Download von yt-dlp wird jetzt gegen die Prüfsummenliste des jeweiligen Releases
   geprüft, soweit sie vorliegt; fehlt sie, steht das ausdrücklich im Protokoll statt
-  unbemerkt zu bleiben. Beim ffmpeg-Paket werden vor dem Entpacken Anzahl der Einträge,
+  unbemerkt zu bleiben. Damit dabei überhaupt eine Prüfsumme vorliegt, fragt MortysDLP vor
+  einer bestätigten Installation einmal frisch nach — der zwischengespeicherte Stand einer
+  Versionsprüfung führt die Dateiliste eines Releases nicht mit und hätte den Download eines
+  ausführbaren Programms ungeprüft gelassen. Beim ffmpeg-Paket werden vor dem Entpacken Anzahl der Einträge,
   entpackte Größe und Kompressionsverhältnis gegen plausible Grenzen geprüft, und es werden
   ausschließlich die beiden benötigten Programmdateien herausgeholt — Einträge, die aus dem
   Zielordner ausbrechen wollen, können deshalb nichts ausrichten.
@@ -129,6 +132,25 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
   verfügbar" zu melden.
 
 ### Behoben
+- **Downloads von GitHub schlugen vollständig fehl.** Jeder Versuch, eine Datei aus einem
+  GitHub-Release zu laden, endete mit „Ziel nicht erlaubt" — betroffen waren sowohl die
+  externen Werkzeuge als auch das Selbst-Update von MortysDLP. Ursache: GitHub liefert
+  Release-Dateien inzwischen über einen anderen Server aus als früher, und dieser Server stand
+  nicht auf der Liste der zugelassenen Ziele. Die Liste gilt jetzt für die gesamte Domäne, über
+  die GitHub seine Release-Dateien ausliefert, statt für einzelne Servernamen — ein weiterer
+  Namenswechsel bricht damit nichts mehr.
+- **Ein fremdes oder beschädigtes Programm unter dem Namen eines Werkzeugs wird jetzt
+  erkannt.** Bisher genügte eine Datei mit dem richtigen Namen: Wer eine beliebige EXE in
+  `yt-dlp.exe` umbenannte, konnte MortysDLP damit starten — und jeder Download wäre danach
+  fehlgeschlagen, ohne erkennbaren Grund. MortysDLP fragt jetzt jedes Werkzeug beim Start, ob
+  es das ist, was es zu sein vorgibt: yt-dlp muss eine Datumsversion melden, ffmpeg und
+  ffprobe müssen sich jeweils mit ihrem eigenen Namen melden. Passt die Antwort nicht, gilt das
+  Werkzeug als nicht einsatzbereit — mit einem Dialog, der den Unterschied zu „fehlt" benennt
+  und das erneute Herunterladen anbietet. Dasselbe gilt für eine vorhandene, aber nicht mehr
+  startfähige Datei.
+- Im Fortschrittsfenster eines Downloads lag der Knopf „Abbrechen" bei größerer
+  Anzeigeskalierung außerhalb des Fensters und war damit nicht erreichbar. Das Fenster richtet
+  seine Höhe jetzt nach dem Inhalt, und ein langer Text bricht um statt zu verdrängen.
 - Für yt-dlp wird kein Update mehr angeboten, wenn die installierte Fassung **neuer** ist als
   die veröffentlichte — etwa nach einem Zwischenbuild. Bisher genügte es, dass sich die beiden
   Versionsangaben unterschieden, und das Angebot war dann ein Rückschritt. Ebenso erscheint

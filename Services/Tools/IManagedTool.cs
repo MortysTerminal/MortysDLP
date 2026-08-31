@@ -26,17 +26,48 @@ namespace MortysDLP.Services.Tools
         WhenDifferent,
     }
 
-    /// <summary>Zustand eines Werkzeugs, <b>ohne Netzzugriff</b> ermittelt: Sind alle Dateien da
-    /// und plausibel? <see cref="LocalVersion"/> bleibt hier bewusst
-    /// <see cref="ToolVersion.Unknown"/> — die Version kostet einen Prozessstart und wird
-    /// getrennt über <see cref="IManagedTool.GetLocalVersionAsync"/> geholt.</summary>
+    /// <summary>Zustand eines Werkzeugs, <b>ohne Netzzugriff und ohne Prozessstart</b> ermittelt:
+    /// Sind alle Dateien da und größer als 0 Byte? Das beantwortet ausdrücklich <b>nicht</b>, ob
+    /// dort auch das richtige Programm liegt — dafür muss es gefragt werden
+    /// (<see cref="IManagedTool.ProbeAsync"/>).</summary>
     /// <param name="MissingPaths">Zieldateien, die fehlen oder 0 Byte groß sind. Leer, wenn
     /// <see cref="Installed"/> gilt.</param>
     internal sealed record ToolStatus(
         string ToolId,
         bool Installed,
-        ToolVersion LocalVersion,
         IReadOnlyList<string> MissingPaths);
+
+    /// <summary>Wie brauchbar ein Werkzeug tatsächlich ist — beantwortbar erst, nachdem es
+    /// gefragt wurde.</summary>
+    internal enum ToolHealth
+    {
+        /// <summary>Vorhanden, antwortet, und die Antwort passt zu diesem Werkzeug.</summary>
+        Ok,
+
+        /// <summary>Mindestens eine Zieldatei fehlt oder ist leer.</summary>
+        NotInstalled,
+
+        /// <summary>Die Datei ist da, ließ sich aber nicht befragen: Prozess nicht startbar,
+        /// Zeitlimit überschritten, Exit-Code ungleich 0.</summary>
+        NoAnswer,
+
+        /// <summary>Die Datei ist da und hat geantwortet — aber nicht so, wie dieses Werkzeug
+        /// antwortet. Der Fall, der zählt: Eine beliebige umbenannte EXE liegt unter dem Namen
+        /// des Werkzeugs. Ein Dateiname ist kein Nachweis.</summary>
+        Foreign,
+    }
+
+    /// <param name="Version">Gelesene Version. Nur bei <see cref="ToolHealth.Ok"/> verlässlich.</param>
+    /// <param name="Answer">Die tatsächliche Antwort des Programms, gekürzt — gehört ins
+    /// Protokoll, damit ein „passt nicht" nachvollziehbar ist und nicht geraten werden muss.
+    /// <c>null</c>, wenn es nichts geantwortet hat.</param>
+    internal sealed record ToolProbe(ToolHealth Health, ToolVersion Version, string? Answer)
+    {
+        public bool Usable => Health == ToolHealth.Ok;
+
+        public static ToolProbe NotInstalled { get; } =
+            new(ToolHealth.NotInstalled, ToolVersion.Unknown, null);
+    }
 
     /// <summary>Abschnitte einer Installation, für die Statuszeile des Aufrufers. Bewusst ein
     /// Aufzählungstyp und kein fertiger Text: Die Übersetzung gehört in die Oberfläche, nicht in
@@ -134,14 +165,22 @@ namespace MortysDLP.Services.Tools
         /// <summary>Die Anfrage, die zu <see cref="CreateSources"/> passt.</summary>
         ReleaseQuery CreateQuery();
 
-        /// <summary>Ohne Netz, ohne Prozessstart: reine Dateiprüfung.</summary>
+        /// <summary>Ohne Netz, ohne Prozessstart: reine Dateiprüfung. Sagt nur, ob etwas
+        /// <i>da</i> ist — nicht, ob es das Richtige ist.</summary>
         ToolStatus GetStatus();
 
-        /// <summary>Fragt das Werkzeug selbst nach seiner Version (<c>--version</c> bzw.
-        /// <c>-version</c>). <see cref="ToolVersion.Unknown"/>, wenn es nicht antwortet, das
-        /// Zeitlimit überschreitet oder etwas Unbrauchbares ausgibt — das Nicht-Antworten wird
-        /// protokolliert und darf nie als „Update nötig" gelesen werden.</summary>
-        Task<ToolVersion> GetLocalVersionAsync(CancellationToken ct);
+        /// <summary>
+        /// Fragt das Werkzeug selbst (<c>--version</c> bzw. <c>-version</c>) und beurteilt die
+        /// Antwort: fehlt es, schweigt es, oder antwortet dort etwas, das gar nicht dieses
+        /// Werkzeug ist? Jeder dieser Fälle wird unterschieden und protokolliert, weil sie
+        /// verschiedene Ursachen haben — und weil ein „schweigt" nie als „Update nötig" gelesen
+        /// werden darf.
+        ///
+        /// <para>Der Fall <see cref="ToolHealth.Foreign"/> ist der wichtigste: Eine beliebige EXE,
+        /// die auf <c>yt-dlp.exe</c> umbenannt wurde, liegt für <see cref="GetStatus"/>
+        /// vollkommen richtig da. Erst die Antwort verrät sie.</para>
+        /// </summary>
+        Task<ToolProbe> ProbeAsync(CancellationToken ct);
 
         /// <summary>
         /// Lädt das Paket, ersetzt die Zieldateien über die <c>.old</c>-Rückfallebene und prüft

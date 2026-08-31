@@ -36,6 +36,11 @@ namespace MortysDLP.Services.Tools
         // Grenzen gegen ZIP-Bomben (02-BEST-PRACTICES.md, Abschnitt 9). Zip-Slip ist hier kein
         // Thema, weil nicht das Archiv in ein Verzeichnis entpackt wird, sondern genau zwei
         // namentlich gesuchte Einträge in einen von MortysDLP bestimmten Zielpfad.
+        /// <summary>So viele nicht leere Zeilen werden nach der Versionszeile durchsucht. Genug
+        /// für einen Build, der eine Warnung voranstellt — zu wenig, um in der langen
+        /// Konfigurationsausgabe von ffmpeg zufällig etwas Passendes zu finden.</summary>
+        private const int MaxScannedLines = 5;
+
         private const int MaxZipEntries = 10_000;
         private const long MaxExtractedBytes = 500L * 1024 * 1024;
         private const long MaxCompressionRatio = 100;
@@ -75,36 +80,51 @@ namespace MortysDLP.Services.Tools
         /// </summary>
         private static string PackageUrl => Properties.Resources.URL_FFMPEG;
 
-        /// <summary><c>ffmpeg -version</c> (ein Bindestrich, nicht zwei) gibt als erste Zeile
-        /// <c>ffmpeg version 7.1-essentials_build-www.gyan.dev Copyright …</c> aus.</summary>
-        public override Task<ToolVersion> GetLocalVersionAsync(CancellationToken ct) =>
-            ReadVersionAsync(AppPaths.Ffmpeg, ["-version"], ExtractVersionToken, ct);
+        protected override string VersionExecutable => AppPaths.Ffmpeg;
+
+        /// <summary>Ein Bindestrich, nicht zwei — ffmpeg kennt <c>--version</c> nicht.</summary>
+        protected override IReadOnlyList<string> VersionArguments => ["-version"];
+
+        protected override string? ExtractVersion(string output) =>
+            ExtractVersionToken(output, "ffmpeg");
+
+        /// <summary>Die Version trägt die Build-Bezeichnung des Anbieters mit und ist deshalb
+        /// nicht ordnend — verlangt wird nur ein Zahlenkern. Den Identitätsnachweis leistet hier
+        /// <see cref="ExtractVersionToken"/>: Es muss <c>ffmpeg version …</c> in der ersten Zeile
+        /// stehen.</summary>
+        protected override bool IsOwnVersion(ToolVersion version) => version.HasNumericCore;
 
         /// <summary>Erfolgskontrolle über <b>beide</b> Dateien. Ein Update, nach dem nur ffmpeg
         /// antwortet, ist kein halber Erfolg, sondern ein Fehlschlag: Die Anwendung braucht
-        /// ffprobe für jede Analyse.</summary>
+        /// ffprobe für jede Analyse. Zusätzlich müssen beide dieselbe Ausgabe melden — sonst
+        /// stammen sie aus verschiedenen Paketen.</summary>
         public override async Task<bool> VerifyAsync(CancellationToken ct)
         {
-            var ffmpegVersion = await GetLocalVersionAsync(ct);
-            if (!ffmpegVersion.HasNumericCore)
+            var ffmpegProbe = await ProbeAsync(ct);
+            if (!ffmpegProbe.Usable)
             {
-                Log.Warn($"[{Id}] Erfolgskontrolle: {FfmpegExeName} meldet keine lesbare Version.");
+                Log.Warn($"[{Id}] Erfolgskontrolle: {FfmpegExeName} {DescribeProbe(ffmpegProbe)}.");
                 return false;
             }
 
-            var ffprobeVersion = await ReadVersionAsync(
-                AppPaths.Ffprobe, ["-version"], ExtractVersionToken, ct);
+            var ffprobeProbe = await ProbeAsync(
+                AppPaths.Ffprobe,
+                VersionArguments,
+                output => ExtractVersionToken(output, "ffprobe"),
+                IsOwnVersion,
+                ct);
 
-            if (!ffprobeVersion.HasNumericCore)
+            if (!ffprobeProbe.Usable)
             {
-                Log.Warn($"[{Id}] Erfolgskontrolle: {FfprobeExeName} meldet keine lesbare Version.");
+                Log.Warn($"[{Id}] Erfolgskontrolle: {FfprobeExeName} {DescribeProbe(ffprobeProbe)}.");
                 return false;
             }
 
-            if (!ffmpegVersion.IsSameRelease(ffprobeVersion))
+            if (!ffmpegProbe.Version.IsSameRelease(ffprobeProbe.Version))
             {
-                Log.Warn($"[{Id}] Erfolgskontrolle: {FfmpegExeName} meldet {ffmpegVersion}, " +
-                    $"{FfprobeExeName} aber {ffprobeVersion} - die beiden Dateien gehören nicht zusammen.");
+                Log.Warn($"[{Id}] Erfolgskontrolle: {FfmpegExeName} meldet {ffmpegProbe.Version}, " +
+                    $"{FfprobeExeName} aber {ffprobeProbe.Version} - die beiden Dateien gehören " +
+                    "nicht zusammen.");
                 return false;
             }
 
@@ -191,12 +211,12 @@ namespace MortysDLP.Services.Tools
                         replaceResult.Detail);
                 }
 
-                var newVersion = await GetLocalVersionAsync(ct);
-                Log.Info($"[{Id}] {(hadPrevious ? "aktualisiert" : "installiert")} auf {newVersion}.");
+                var probe = await ProbeAsync(ct);
+                Log.Info($"[{Id}] {(hadPrevious ? "aktualisiert" : "installiert")} auf {probe.Version}.");
 
                 return new ToolInstallOutcome(
                     hadPrevious ? ToolInstallStatus.Replaced : ToolInstallStatus.Installed,
-                    newVersion, replaceResult.Detail);
+                    probe.Version, replaceResult.Detail);
             }
             catch (OperationCanceledException)
             {
@@ -299,27 +319,44 @@ namespace MortysDLP.Services.Tools
 
         /// <summary>
         /// Zieht aus <c>ffmpeg version 7.1-essentials_build-www.gyan.dev Copyright …</c> das
-        /// <c>7.1-essentials_build-www.gyan.dev</c> heraus. Bewusst am Wort <c>version</c>
-        /// ausgerichtet und nicht an einer festen Position: Die Zeile beginnt bei ffmpeg mit
-        /// <c>ffmpeg</c>, bei ffprobe mit <c>ffprobe</c>, und manche Builds schieben davor noch
-        /// etwas ein.
+        /// <c>7.1-essentials_build-www.gyan.dev</c> heraus.
+        ///
+        /// <para><paramref name="expectedProgram"/> ist gleichzeitig der Identitätsnachweis: Die
+        /// Zeile muss <b>mit</b> <c>&lt;programm&gt; version </c> beginnen. Ein bloßes Vorkommen
+        /// des Namens irgendwo in der Zeile genügt ausdrücklich nicht — jedes Werkzeug der
+        /// ffmpeg-Familie schließt dieselbe Zeile mit <c>the FFmpeg developers</c> ab, auch
+        /// ffprobe. Mit einem Enthalten-Test hätte ffprobe als ffmpeg durchgehen können.</para>
+        ///
+        /// <para>Gesucht wird in den ersten <see cref="MaxScannedLines"/> Zeilen, nicht nur in der
+        /// ersten: Ein Build, der eine Warnung voranstellt, soll nicht als fremdes Programm
+        /// gelten. Die Verwechslungsgefahr bleibt dabei aus, weil die Zeile mit dem Namen
+        /// <i>beginnen</i> muss.</para>
         /// </summary>
-        internal static string? ExtractVersionToken(string output)
+        internal static string? ExtractVersionToken(string output, string expectedProgram)
         {
-            string? line = FirstNonEmptyLine(output);
-            if (line is null)
-                return null;
+            string prefix = expectedProgram + " version ";
+            int scanned = 0;
 
-            const string marker = "version ";
-            int index = line.IndexOf(marker, StringComparison.OrdinalIgnoreCase);
-            if (index < 0)
-                return null;
+            foreach (string rawLine in output.Split('\n'))
+            {
+                string line = rawLine.Trim();
+                if (line.Length == 0)
+                    continue;
 
-            string rest = line[(index + marker.Length)..].TrimStart();
-            int end = rest.IndexOf(' ');
-            string token = end < 0 ? rest : rest[..end];
+                if (++scanned > MaxScannedLines)
+                    return null;
 
-            return token.Length == 0 ? null : token;
+                if (!line.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                string rest = line[prefix.Length..].TrimStart();
+                int end = rest.IndexOf(' ');
+                string token = end < 0 ? rest : rest[..end];
+
+                return token.Length == 0 ? null : token;
+            }
+
+            return null;
         }
     }
 }

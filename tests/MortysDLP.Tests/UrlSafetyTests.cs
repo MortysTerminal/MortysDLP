@@ -25,6 +25,33 @@ public class UrlSafetyTests
         Assert.True(UrlSafety.IsAllowed(new Uri(url)));
     }
 
+    /// <summary>
+    /// GitHub liefert Release-Anhänge über wechselnde Unterdomänen von
+    /// <c>githubusercontent.com</c> aus und hat sie mehrfach umbenannt. Am 2026-08-31 scheiterte
+    /// deshalb jeder Anhang-Download an „Ziel nicht erlaubt", weil nur
+    /// <c>objects.githubusercontent.com</c> freigegeben war und GitHub auf
+    /// <c>release-assets.githubusercontent.com</c> umgestellt hatte — das betraf sowohl
+    /// Werkzeug-Downloads als auch das Selbst-Update der Anwendung. Der Test hält fest, dass die
+    /// Freigabe an der Domäne hängt und nicht an einem einzelnen Rechnernamen.
+    /// </summary>
+    [Theory]
+    [InlineData("https://release-assets.githubusercontent.com/github-production-release-asset/1/2?sig=x")]
+    [InlineData("https://github-releases.githubusercontent.com/foo")]
+    [InlineData("https://objects.githubusercontent.com/foo")]
+    [InlineData("https://raw.githubusercontent.com/foo/version.json")]
+    public void IsAllowed_WechselndeGitHubAnhangHosts_SindErlaubt(string url)
+    {
+        Assert.True(UrlSafety.IsAllowed(new Uri(url)));
+    }
+
+    [Theory]
+    [InlineData("https://githubusercontent.com.evil.com/foo")]
+    [InlineData("https://evil-githubusercontent.com/foo")]
+    public void IsAllowed_NurAehnlicherGitHubHost_IstFalse(string url)
+    {
+        Assert.False(UrlSafety.IsAllowed(new Uri(url)));
+    }
+
     [Theory]
     [InlineData("https://cdn-lfs.huggingface.co/foo")]
     [InlineData("https://objects.githubusercontent.com.evil.com/foo")]
