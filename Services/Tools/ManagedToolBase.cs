@@ -97,8 +97,75 @@ namespace MortysDLP.Services.Tools
             return new ToolStatus(Id, missing.Count == 0, missing);
         }
 
-        public Task<ToolProbe> ProbeAsync(CancellationToken ct) =>
-            ProbeAsync(VersionExecutable, VersionArguments, ExtractVersion, IsOwnVersion, ct);
+        /// <summary>
+        /// Der billige Weg, sofern das Werkzeug ihn hergibt: Version und Identität aus der
+        /// Versionsressource der Datei, ohne Prozessstart. <c>null</c> heißt „keine verwertbare
+        /// Auskunft" — dann wird gefragt. Standardmäßig gibt es diesen Weg nicht; Werkzeuge, deren
+        /// Dateien eine Versionsressource tragen, überschreiben das (siehe
+        /// <see cref="ProbeFromVersionResource"/>).
+        /// </summary>
+        protected virtual ToolProbe? TryProbeWithoutProcess() => null;
+
+        /// <summary>
+        /// Fragt zuerst die Datei, dann das Programm. Das ist keine Optimierung am Rand: Für
+        /// <c>yt-dlp.exe</c> — ein PyInstaller-Bündel, das bei jedem Aufruf einen ganzen
+        /// Python-Interpreter hochfährt — sind das rund 5 ms statt rund 3700 ms, gemessen am
+        /// 2026-08-31. Für <c>ffmpeg.exe</c> gibt es diesen Weg nicht (seine Builds tragen keine
+        /// Versionsressource), und er ist dort mit 51–67 ms für den Prozessaufruf auch nicht nötig.
+        /// </summary>
+        public Task<ToolProbe> ProbeAsync(CancellationToken ct)
+        {
+            if (TryProbeWithoutProcess() is { } withoutProcess)
+                return Task.FromResult(withoutProcess);
+
+            return ProbeAsync(VersionExecutable, VersionArguments, ExtractVersion, IsOwnVersion, ct);
+        }
+
+        /// <summary>
+        /// Umsetzung von <see cref="TryProbeWithoutProcess"/> über die Versionsressource, samt
+        /// Protokollzeile je Ausgang. Ein nachweislich fremdes Programm wird hier abgelehnt,
+        /// <b>ohne es zu starten</b> — das ist der eigentliche Gewinn gegenüber dem Prozessweg,
+        /// nicht nur die gesparte Zeit.
+        /// </summary>
+        protected ToolProbe? ProbeFromVersionResource(
+            string exePath, IReadOnlyList<string> expectedNames, Func<ToolVersion, bool> isOwnVersion)
+        {
+            var resource = ToolVersionResource.TryRead(exePath);
+            string name = Path.GetFileName(exePath);
+
+            if (resource is null)
+            {
+                // Keine Versionsressource ist der Normalfall bei manchen Werkzeugen und deshalb
+                // keine Warnung wert - nur die Feststellung, dass jetzt ein Programmstart folgt.
+                Log.Debug($"[{Id}] {name} trägt keine Versionsressource - {DisplayName} wird gefragt.");
+                return null;
+            }
+
+            var probe = ToolVersionResource.Judge(resource, expectedNames, isOwnVersion);
+
+            switch (probe?.Health)
+            {
+                case ToolHealth.Ok:
+                    Log.Info($"[{Id}] {name} meldet Version {probe.Version} " +
+                        $"({(probe.Version.IsOrdering ? "ordnend" : "nicht ordnend")}) - aus den " +
+                        "Datei-Eigenschaften gelesen, ohne Programmstart.");
+                    break;
+
+                case ToolHealth.Foreign:
+                    Log.Warn($"[{Id}] {name} weist sich in seinen Datei-Eigenschaften als " +
+                        $"{Quote(probe.Answer)} aus und damit nicht als {DisplayName}. Die Datei gilt " +
+                        "als nicht brauchbar - gestartet wurde sie dafür nicht.");
+                    break;
+
+                default:
+                    Log.Info($"[{Id}] Die Datei-Eigenschaften von {name} " +
+                        $"({resource.Describe()}) tragen keine brauchbare Version - " +
+                        $"{DisplayName} wird gefragt, das kostet einen Programmstart.");
+                    break;
+            }
+
+            return probe;
+        }
 
         public ToolRemovalResult Uninstall()
         {
@@ -228,8 +295,12 @@ namespace MortysDLP.Services.Tools
                 return new ToolProbe(ToolHealth.Foreign, ToolVersion.Unknown, answer);
             }
 
+            // Die Dauer bleibt dauerhaft in der Zeile: Sie ist der Beleg dafür, welcher Weg hier
+            // gegriffen hat, und sie macht eine Regression sichtbar (ein Werkzeug, das plötzlich
+            // wieder Sekunden braucht, statt aus den Datei-Eigenschaften gelesen zu werden).
             Log.Info($"[{Id}] {name} meldet Version {version} " +
-                $"({(version.IsOrdering ? "ordnend" : "nicht ordnend")}).");
+                $"({(version.IsOrdering ? "ordnend" : "nicht ordnend")}, " +
+                $"{result.Duration.TotalMilliseconds:F0} ms für den Programmstart).");
             return new ToolProbe(ToolHealth.Ok, version, answer);
         }
 

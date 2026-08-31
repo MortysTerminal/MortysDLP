@@ -72,10 +72,11 @@ Ablauf beim Start (`App.OnStartup`):
    (`ffmpeg_download_*.zip`, `extract_*`).
 
 > **Bekannte Einschränkung:** Die Werkzeugprüfung (Schritt 4) läuft weiterhin vor dem
-> Hauptfenster und ein Werkzeug nach dem anderen — das ist der größte verbleibende Anteil an
-> der Startzeit. Die Versionsabfragen gehen jetzt höchstens alle zwölf Stunden über das Netz;
-> das Auslesen der installierten Version startet aber bei jedem Start je Werkzeug einen
-> kurzen Prozess. Das Nebenläufigmachen und Verlegen in den Hintergrund ist noch offen.
+> Hauptfenster und ein Werkzeug nach dem anderen. Sie kostet dort aber nur noch wenig: Die
+> Versionsabfragen gehen höchstens alle zwölf Stunden über das Netz, und die installierte
+> Version wird gelesen statt erfragt, wo das möglich ist (siehe Abschnitt 3). Das
+> Nebenläufigmachen und das vollständige Verlegen in den Hintergrund sind noch offen und lohnen
+> erst mit mehr verwalteten Werkzeugen.
 
 **Fehlerbehandlung:** Ein unerwarteter Fehler beendet MortysDLP nicht mehr wortlos. Er wird in
 einer Protokolldatei festgehalten (siehe Abschnitt 13) und in einem Dialog mit verständlichem
@@ -107,15 +108,26 @@ jemand eine EXE umbenannt hat oder eine Datei beschädigt ist — sieht eine rei
 nichts davon, und jeder Download würde später ohne erkennbaren Grund fehlschlagen. Deshalb wird
 jedes Werkzeug beim Start **gefragt** und muss sich ausweisen:
 
-| Werkzeug | Aufruf | Was als Ausweis gilt |
+| Werkzeug | Woher | Was als Ausweis gilt |
 |---|---|---|
-| yt-dlp | `yt-dlp.exe --version` | Eine Zeile mit **nichts als** einer Datumsversion (`2026.08.19`), ohne Leerzeichen. `git version 2.55.0.windows.3` oder `2.47.1` fällt damit durch. |
+| yt-dlp | **Dateieigenschaften** von `yt-dlp.exe`, ohne Programmstart | Die Datei muss sich als Produkt `yt-dlp` ausgeben **und** eine Datumsversion tragen (`2026.08.19`). `git.exe` gibt sich als `Git` aus und fällt damit durch, ohne ausgeführt zu werden. |
 | ffmpeg | `ffmpeg.exe -version` | Die Zeile muss mit `ffmpeg version ` **beginnen**. |
 | ffprobe | `ffprobe.exe -version` | Die Zeile muss mit `ffprobe version ` **beginnen**, und die Version muss zu der von ffmpeg passen. |
 
+Warum der Unterschied: yt-dlp ist ein gebündeltes Python-Programm und braucht für einen Aufruf
+rund 3,7 Sekunden, weil es dabei jedes Mal einen vollständigen Interpreter hochfährt. Dieselbe
+Auskunft steht in den Dateieigenschaften und kostet dort wenige Millisekunden. ffmpeg und ffprobe
+tragen keine solche Angabe, antworten aber als native Programme in rund 60 Millisekunden — dort
+ist der Programmaufruf der richtige Weg.
+
+Trägt eine Datei keine oder keine brauchbare Angabe in ihren Eigenschaften — etwa eine selbst
+gebaute Fassung —, wird das Programm wie bisher gefragt. Nur eine Datei, die sich ausdrücklich
+als ein *anderes* Programm ausgibt, wird ohne Nachfrage abgelehnt. Welcher Weg gegriffen hat,
+steht im Protokoll.
+
 Drei Ergebnisse werden unterschieden und getrennt protokolliert: *fehlt* (Datei nicht da oder
 leer), *keine Antwort* (nicht startfähig, Zeitlimit von 15 Sekunden, Fehler-Exitcode) und
-*fremdes Programm* (hat geantwortet, aber nicht so). Die letzten beiden führen zu einem eigenen
+*fremdes Programm* (weist sich als etwas anderes aus). Die letzten beiden führen zu einem eigenen
 Dialog, der den Unterschied zu „fehlt" benennt und das erneute Herunterladen anbietet. Für ein
 Werkzeug, das MortysDLP zum Arbeiten braucht, beendet sich die Anwendung, wenn der Nutzer
 ablehnt — dieselbe Behandlung wie bei einem fehlenden Werkzeug.
@@ -127,10 +139,11 @@ nach dem sich das Werkzeug nicht mehr ausweisen kann, gilt als fehlgeschlagen.
 
 Für yt-dlp und ffmpeg/ffprobe gilt derselbe Ablauf:
 
-1. **Version bestimmen.** Die installierte Version kommt aus dem Werkzeug selbst — über denselben
-   Aufruf, der auch den Ausweis liefert. Antwortet es nicht oder nicht wie erwartet, gilt die
-   Version als *unbekannt*, und dann wird **kein** Update angeboten; stattdessen wird der Grund
-   protokolliert und das Werkzeug als nicht einsatzbereit behandelt.
+1. **Version bestimmen.** Über denselben Weg, der auch den Ausweis liefert (siehe oben): bei
+   yt-dlp aus den Dateieigenschaften, bei ffmpeg/ffprobe über den Programmaufruf. Passt die
+   Antwort nicht oder bleibt sie aus, gilt die Version als *unbekannt*, und dann wird **kein**
+   Update angeboten; stattdessen wird der Grund protokolliert und das Werkzeug als nicht
+   einsatzbereit behandelt.
 2. **Bezugsquelle fragen.** yt-dlp wird über mehrere unabhängige Quellen der Reihe nach
    abgefragt (GitHub-Release-API, Python-Paketindex, GitHub-Nachrichtenfeed, GitHub-Weiterleitung);
    für ffmpeg liefert ein eigener Versionsendpunkt des Anbieters die Nummer des Pakets, das

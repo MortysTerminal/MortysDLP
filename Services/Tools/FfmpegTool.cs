@@ -85,6 +85,12 @@ namespace MortysDLP.Services.Tools
         /// <summary>Ein Bindestrich, nicht zwei — ffmpeg kennt <c>--version</c> nicht.</summary>
         protected override IReadOnlyList<string> VersionArguments => ["-version"];
 
+        // Kein TryProbeWithoutProcess: Die ausgelieferten Builds tragen überhaupt keine
+        // Versionsressource - am 2026-08-31 geprüft, ProductName und FileVersion sind bei
+        // ffmpeg.exe und ffprobe.exe leer. Es fehlt hier also nichts, es ist nichts da. Nötig ist
+        // es auch nicht: Als natives Programm antwortet ffmpeg in 51-67 ms, während yt-dlp für
+        // dieselbe Frage rund 3,7 Sekunden braucht.
+
         protected override string? ExtractVersion(string output) =>
             ExtractVersionToken(output, "ffmpeg");
 

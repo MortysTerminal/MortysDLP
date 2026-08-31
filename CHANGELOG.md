@@ -83,6 +83,17 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
   läuft die Anwendung danach normal weiter.
 
 ### Geändert
+- **Der Start wartet nicht mehr sekundenlang auf die yt-dlp-Prüfung.** Die installierte Version
+  wird jetzt aus den Dateieigenschaften von `yt-dlp.exe` gelesen, statt das Programm dafür zu
+  starten. Hintergrund: yt-dlp ist ein gebündeltes Python-Programm und fährt bei *jedem* Aufruf
+  einen vollständigen Interpreter hoch — auf einem Testrechner reproduzierbar rund 3,7 Sekunden
+  für die eine Zeile Versionsausgabe, und damit zwei Drittel der gesamten Startzeit. Aus der
+  Datei gelesen sind es wenige Millisekunden. Dieselben Dateieigenschaften weisen das Programm
+  auch aus, sodass ein fremdes Programm unter diesem Namen jetzt erkannt und abgelehnt wird,
+  **ohne es überhaupt zu starten**. Trägt eine Datei keine oder keine brauchbare Angabe (etwa
+  eine selbst gebaute Fassung), wird wie bisher das Programm gefragt; welcher Weg gegriffen hat,
+  steht im Protokoll. Für ffmpeg und ffprobe bleibt es beim Programmaufruf — ihre Dateien tragen
+  keine solche Angabe, und mit rund 60 Millisekunden fallen sie ohnehin nicht auf.
 - Werkzeug-Updates (yt-dlp, ffmpeg, ffprobe) sichern die vorhandene Fassung jetzt, bevor sie
   ersetzt wird, und rufen das Werkzeug danach einmal auf. Antwortet es nicht mehr brauchbar,
   wird die vorherige Fassung automatisch wiederhergestellt und der Vorgang als fehlgeschlagen

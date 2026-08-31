@@ -80,6 +80,27 @@ namespace MortysDLP.Services.Tools
 
         protected override IReadOnlyList<string> VersionArguments => ["--version"];
 
+        /// <summary>Namen, unter denen sich yt-dlp in seiner Versionsressource ausweist. Am
+        /// 2026-08-31 an der ausgelieferten Datei geprüft: <c>ProductName</c> und
+        /// <c>FileDescription</c> lauten beide <c>yt-dlp</c>, <c>FileVersion</c> ist
+        /// <c>2026.08.19</c> — genau die Angabe, die auch <c>--version</c> ausgibt.</summary>
+        private static readonly string[] ProductNames = ["yt-dlp"];
+
+        /// <summary>
+        /// yt-dlp trägt Version und Identität in seiner Versionsressource — der Prozessaufruf
+        /// erübrigt sich damit im Normalfall. Das ist bei diesem Werkzeug kein Feinschliff: Als
+        /// PyInstaller-Bündel fährt es bei <b>jedem</b> Aufruf einen vollständigen
+        /// Python-Interpreter hoch und braucht dafür rund 3,7 Sekunden — auf den gemessenen
+        /// Startpfad umgerechnet zwei Drittel der gesamten Startzeit, für eine einzige Zeile
+        /// Ausgabe.
+        ///
+        /// <para>Derselbe Weg wird laut Entwurf auch für TwitchDownloaderCLI genutzt; das Muster
+        /// ist also nicht neu, sondern hier nur an der Stelle angewandt, an der es am meisten
+        /// spart.</para>
+        /// </summary>
+        protected override ToolProbe? TryProbeWithoutProcess() =>
+            ProbeFromVersionResource(AppPaths.YtDlp, ProductNames, IsYtDlpVersion);
+
         protected override string? ExtractVersion(string output) => ExtractVersionLine(output);
 
         protected override bool IsOwnVersion(ToolVersion version) => IsYtDlpVersion(version);
