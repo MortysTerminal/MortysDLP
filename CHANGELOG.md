@@ -131,6 +131,10 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
   Jetzt erscheint sie genau einmal, stderr-Zeilen weiterhin erkennbar markiert.
 
 ### Intern
+- Aufräumende Vorgänge in der Update-Kette protokollieren jetzt auch ihren Erfolg, nicht nur
+  einen Fehlschlag: geleerter Update-Zwischenspeicher, gelöschter Update-Zustand, gelöschte
+  alte Protokolldateien. Der Installations-Updater bekommt außerdem erstmals eine eigene
+  Rotation für seine Protokolldateien (Alter über 180 Tage oder mehr als 50 Dateien).
 - Der neue Installations-Updater lässt eigene Werkzeuge (`Tools\`) und den Download-Verlauf
   jetzt grundsätzlich unangetastet, selbst wenn ein Release-Paket zufällig Dateien an
   denselben Pfaden enthält — die Programm-Konfigurationsdatei (`MortysDLP.dll.config`) wird

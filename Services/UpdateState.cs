@@ -135,7 +135,10 @@ namespace MortysDLP.Services
             try
             {
                 if (File.Exists(path))
+                {
                     File.Delete(path);
+                    Log.Info($"Update-Zustand gelöscht: {path}");
+                }
             }
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
             {

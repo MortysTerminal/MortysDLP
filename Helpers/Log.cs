@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -153,7 +154,21 @@ namespace MortysDLP.Helpers
                     _writer = new StreamWriter(
                         new FileStream(path, FileMode.Append, FileAccess.Write, FileShare.Read))
                     { AutoFlush = false };
-                    CleanupOldFiles(LogsDirectory, DateTime.Now, MaxAge);
+
+                    // Direkt in die gerade geöffnete (aktive) Datei geschrieben, nicht über
+                    // Log.Info: Ein Umweg über die Warteschlange wäre zwar unschädlich (die
+                    // Zeile landet ohnehin im selben Writer), aber diese Stelle läuft bereits
+                    // auf dem Schreiber-Thread - direktes Schreiben ist einfacher nachzuvollziehen
+                    // und garantiert, dass die Zeile vor der auslösenden Nachricht steht (W-13).
+                    var deletedLogFiles = CleanupOldFiles(LogsDirectory, DateTime.Now, MaxAge);
+                    if (deletedLogFiles.Count > 0)
+                    {
+                        string names = string.Join(", ", deletedLogFiles.ConvertAll(Path.GetFileName));
+                        string summary = FormatLine(LogLevel.Info,
+                            $"Alte Protokolldateien gelöscht ({deletedLogFiles.Count}): {names}",
+                            null, nameof(CleanupOldFiles), "Log.cs");
+                        _writer.WriteLine(summary);
+                    }
                 }
 
                 _writer.WriteLine(line);
@@ -192,25 +207,32 @@ namespace MortysDLP.Helpers
             catch { return false; }
         }
 
-        /// <summary>Löscht Protokolldateien, die älter als <paramref name="maxAge"/> sind.
+        /// <summary>Löscht Protokolldateien, die älter als <paramref name="maxAge"/> sind, und
+        /// liefert ihre Pfade zurück — der Aufrufer protokolliert, welche und wie viele es
+        /// waren (W-13: ein erfolgreiches Aufräumen darf nicht stillschweigend geschehen).
         /// Rein für sich testbar, ohne den Schreib-Thread zu berühren.</summary>
-        internal static void CleanupOldFiles(string directory, DateTime now, TimeSpan maxAge)
+        internal static List<string> CleanupOldFiles(string directory, DateTime now, TimeSpan maxAge)
         {
+            var deleted = new List<string>();
             try
             {
-                if (!Directory.Exists(directory)) return;
+                if (!Directory.Exists(directory)) return deleted;
 
                 foreach (string f in Directory.EnumerateFiles(directory, "mortysdlp-*.log"))
                 {
                     try
                     {
                         if (now - File.GetLastWriteTime(f) > maxAge)
+                        {
                             File.Delete(f);
+                            deleted.Add(f);
+                        }
                     }
                     catch { /* einzelne Datei überspringen */ }
                 }
             }
             catch { /* Best-Effort */ }
+            return deleted;
         }
     }
 }

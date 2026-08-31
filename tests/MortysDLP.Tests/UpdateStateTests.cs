@@ -1,3 +1,4 @@
+using MortysDLP.Helpers;
 using MortysDLP.Models;
 using MortysDLP.Services;
 using System.IO;
@@ -180,6 +181,22 @@ public class UpdateStateTests : IDisposable
 
         Assert.Null(await UpdateState.ReadAsync(_filePath));
         Assert.False(File.Exists(_filePath));
+    }
+
+    [Fact]
+    public async Task DeleteAsync_VorhandeneDatei_ProtokolliertErfolg()
+    {
+        string logDir = Path.Combine(_tempDir, "logs");
+        Log.LogsDirectory = logDir;
+        Log.MinLevel = LogLevel.Debug;
+
+        await UpdateState.RecordAttemptAsync("2026.06.01", "2026.09.01", Now, _filePath);
+
+        await UpdateState.DeleteAsync(_filePath);
+        Log.CloseForTests();
+
+        string content = File.ReadAllText(Log.CurrentLogFile);
+        Assert.Contains("Update-Zustand gelöscht", content, StringComparison.Ordinal);
     }
 
     [Fact]

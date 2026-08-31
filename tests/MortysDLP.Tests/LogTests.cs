@@ -179,4 +179,50 @@ public class LogTests : IDisposable
         Assert.False(File.Exists(oldFile));
         Assert.True(File.Exists(newFile));
     }
+
+    [Fact]
+    public void CleanupOldFiles_LiefertPfadeDerGeloeschtenDateien()
+    {
+        string oldFile = Path.Combine(_tempDir, "mortysdlp-old.log");
+        string newFile = Path.Combine(_tempDir, "mortysdlp-new.log");
+        File.WriteAllText(oldFile, "alt");
+        File.WriteAllText(newFile, "neu");
+
+        var now = new DateTime(2026, 8, 27, 12, 0, 0, DateTimeKind.Local);
+        File.SetLastWriteTime(oldFile, now - TimeSpan.FromDays(20));
+        File.SetLastWriteTime(newFile, now - TimeSpan.FromDays(1));
+
+        var deleted = Log.CleanupOldFiles(_tempDir, now, TimeSpan.FromDays(14));
+
+        Assert.Equal([oldFile], deleted);
+    }
+
+    [Fact]
+    public void CleanupOldFiles_NichtsZuLoeschen_LiefertLeereListe()
+    {
+        var now = new DateTime(2026, 8, 27, 12, 0, 0, DateTimeKind.Local);
+
+        var deleted = Log.CleanupOldFiles(_tempDir, now, TimeSpan.FromDays(14));
+
+        Assert.Empty(deleted);
+    }
+
+    [Fact]
+    public void Info_LoescheAlteDateiBeimOeffnen_ProtokolliertDieLoeschungImAktivenProtokoll()
+    {
+        string oldFile = Path.Combine(_tempDir, "mortysdlp-2020-01-01.log");
+        File.WriteAllText(oldFile, "sehr alt");
+        File.SetLastWriteTime(oldFile, DateTime.Now - TimeSpan.FromDays(30));
+
+        // Löst WriteLine -> "neue Datei öffnen" -> CleanupOldFiles aus (kein Schreiber bislang
+        // offen in dieser Testinstanz von Log.LogsDirectory).
+        Log.Info("Testnachricht");
+        Log.CloseForTests();
+
+        Assert.False(File.Exists(oldFile));
+
+        string content = File.ReadAllText(Log.CurrentLogFile);
+        Assert.Contains("Alte Protokolldateien gelöscht (1)", content, StringComparison.Ordinal);
+        Assert.Contains("mortysdlp-2020-01-01.log", content, StringComparison.Ordinal);
+    }
 }

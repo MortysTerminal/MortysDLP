@@ -47,7 +47,10 @@ namespace MortysDLP.Services
             try
             {
                 if (File.Exists(_filePath))
+                {
                     File.Delete(_filePath);
+                    Log.Info($"Update-Zwischenspeicher geleert: {_filePath}");
+                }
             }
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
             {

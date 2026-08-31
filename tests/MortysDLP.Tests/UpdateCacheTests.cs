@@ -1,3 +1,4 @@
+using MortysDLP.Helpers;
 using MortysDLP.Services;
 using System.IO;
 
@@ -161,5 +162,43 @@ public class UpdateCacheTests : IDisposable
 
         Assert.Equal("2026.06.01", app!.Version);
         Assert.Equal("2026.08.20", ytDlp!.Version);
+    }
+
+    [Fact]
+    public async Task ClearAsync_VorhandeneDatei_WirdGeloescht()
+    {
+        var cache = new UpdateCache(_filePath);
+        await cache.WriteAsync("app", MakeEntry(), CancellationToken.None);
+
+        await cache.ClearAsync(CancellationToken.None);
+
+        Assert.False(File.Exists(_filePath));
+    }
+
+    [Fact]
+    public async Task ClearAsync_VorhandeneDatei_ProtokolliertErfolg()
+    {
+        string logDir = Path.Combine(_tempDir, "logs");
+        Log.LogsDirectory = logDir;
+        Log.MinLevel = LogLevel.Debug;
+
+        var cache = new UpdateCache(_filePath);
+        await cache.WriteAsync("app", MakeEntry(), CancellationToken.None);
+
+        await cache.ClearAsync(CancellationToken.None);
+        Log.CloseForTests();
+
+        string content = File.ReadAllText(Log.CurrentLogFile);
+        Assert.Contains("Update-Zwischenspeicher geleert", content, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task ClearAsync_KeineDatei_WirftNicht()
+    {
+        var cache = new UpdateCache(_filePath);
+
+        var exception = await Record.ExceptionAsync(() => cache.ClearAsync(CancellationToken.None));
+
+        Assert.Null(exception);
     }
 }
