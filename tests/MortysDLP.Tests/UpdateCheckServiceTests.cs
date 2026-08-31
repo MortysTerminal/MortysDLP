@@ -9,7 +9,7 @@ namespace MortysDLP.Tests;
 /// <summary>
 /// Prüft <see cref="UpdateCheckService"/> über eine Attrappe des Resolvers und einen echten
 /// <see cref="UpdateCache"/> gegen ein Temp-Verzeichnis — mit übergebener Zeit, ohne echtes
-/// Warten. Siehe <c>werkstatt/tasks/W2-T06.md</c>.
+/// Warten.
 /// </summary>
 public class UpdateCheckServiceTests : IDisposable
 {

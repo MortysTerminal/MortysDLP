@@ -7,8 +7,8 @@ namespace MortysDLP.Services
 {
     /// <summary>
     /// Hilfsfunktionen rund um das App-Update, die nichts mit der Versionsermittlung zu tun
-    /// haben (die läuft seit W2-T04a–T06 über <c>Services/Releases/*</c> und
-    /// <see cref="UpdateCheckService"/>). Download und Prüfung übernimmt seit W2-T07
+    /// haben (die läuft über <c>Services/Releases/*</c> und
+    /// <see cref="UpdateCheckService"/>). Download und Prüfung übernimmt
     /// <see cref="VerifiedDownload"/>.
     /// </summary>
     internal class UpdateService
@@ -54,10 +54,10 @@ namespace MortysDLP.Services
 
         /// <summary>
         /// Prüft, ob die heruntergeladene ZIP-Datei lesbar ist und den erwarteten Haupteintrag
-        /// enthält. Ersetzt die frühere "irgendeine .exe"-Prüfung (Befund K-05): Ein zweites
+        /// enthält. Ersetzt die frühere "irgendeine.exe"-Prüfung: Ein zweites
         /// Asset im Release (Screenshot, portable Variante) ließ diese bisher fälschlich
         /// bestehen. Weitergehende Sicherheitsprüfungen (Zip-Slip, Eintragsanzahl,
-        /// Gesamtgröße) macht der Updater beim Entpacken (W3-T03) — hier geht es nur darum,
+        /// Gesamtgröße) macht der Updater beim Entpacken — hier geht es nur darum,
         /// ein offensichtlich unbrauchbares Paket vor dem Neustart zu erkennen.
         /// </summary>
         public static bool ValidateZipContainsMainExe(string zipPath, string mainExeName)

@@ -35,6 +35,22 @@
     </Content>
   </ItemGroup>
 
+  <!--
+    Die Updater-EXE wird nicht mehr eingecheckt, sondern vor jedem Release aus dem separaten
+    Updater-Repository frisch gebaut und nach Updater\ kopiert. Weil sie damit weder in
+    "git status" noch im Build auffällt, wenn sie fehlt, würde ein Release ohne sie
+    unbemerkt durchlaufen - und die ausgelieferte Anwendung könnte sich nie wieder selbst
+    aktualisieren. Deshalb schlägt genau dieser Fall im Release-Build fehl, statt sich erst
+    beim Nutzer zu zeigen. Debug-Builds bleiben unberührt: Zum Entwickeln wird der Updater
+    nicht gebraucht.
+  -->
+  <Target Name="EnsureUpdaterPresentForRelease"
+          BeforeTargets="Build"
+          Condition="'$(Configuration)' == 'Release'">
+    <Error Condition="!Exists('$(MSBuildProjectDirectory)\Updater\MortysDLP-Updater.exe')"
+           Text="Updater\MortysDLP-Updater.exe fehlt. Vor einem Release-Build muss der Updater aus seinem eigenen Repository gebaut und hierher kopiert werden - siehe Release-Prozess, Schritt 'Updater bauen'." />
+  </Target>
+
   <ItemGroup>
     <Compile Remove="Assets\**" />
     <Compile Remove="MortysDLP\**" />

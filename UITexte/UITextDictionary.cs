@@ -258,6 +258,8 @@ namespace MortysDLP.UITexte
             ["UpdateBanner.Text"]                    = "Neue Version {0} verfügbar",
             ["UpdateBanner.SubText"]                 = "Klicken für Details & Update",
             ["UpdateBanner.SubText.NeedsElevation"]  = "Administratorrechte erforderlich — für Details klicken",
+            ["UpdateBanner.Text.Blocked"]            = "Version {0} verfügbar — hier nicht installierbar",
+            ["UpdateBanner.SubText.Blocked"]         = "Für die Erklärung klicken",
             ["UpdateBanner.Dismiss"]                 = "Für diesen Start ausblenden",
             ["UpdateBannerDialog.Title"]             = "Update verfügbar",
             ["UpdateBannerDialog.Subtitle"]          = "Version {0} steht bereit",
@@ -268,7 +270,7 @@ namespace MortysDLP.UITexte
             ["UpdateBannerDialog.Button.Skip.Tooltip"] = "Kein Hinweis mehr zu dieser Version — erst bei einer neueren Version wieder.",
             ["UpdateBannerDialog.NoChangelog"]       = "Keine Änderungsnotizen vorhanden.",
 
-            // Update-Rückmeldung nach dem Neustart (W2-T10)
+            // Update-Rückmeldung nach dem Neustart
             ["Update.Result.Success"]           = "MortysDLP wurde erfolgreich auf Version {0} aktualisiert.",
             ["Update.Result.Failed"]            = "Das Update auf Version {0} hat offenbar nicht funktioniert — MortysDLP läuft weiterhin mit der vorherigen Version.",
             ["Update.Result.Failed.Hint"]       = "Details dazu stehen im Protokoll: {0}",
@@ -276,14 +278,15 @@ namespace MortysDLP.UITexte
             ["Update.Result.ViewChanges"]       = "Änderungen ansehen",
             ["Update.Blocked.TooManyAttempts"]  = "Version {0} wird deshalb nicht mehr automatisch angeboten.",
 
-            // "Was ist neu" nach einem erfolgreichen Update (W3-T06)
+            // "Was ist neu" nach einem erfolgreichen Update
             ["WhatsNew.Title"]    = "Was ist neu",
             ["WhatsNew.Subtitle"] = "Version {0}",
 
-            // Vorprüfung des Installationsorts vor dem Update (W3-T06)
-            ["Update.Elevation.Warning"] = "MortysDLP liegt in einem geschützten Systemordner und kann sich dort nicht selbst aktualisieren.\n\nVerschiebe die Installation an einen Ort, an dem MortysDLP schreiben darf (z. B. deine Dokumente oder einen eigenen Ordner).\n\nAchtung: Beim Verschieben gehen alle gespeicherten Einstellungen (Downloadpfad, Sprache, Bandbreitenlimit usw.) verloren, da sie an den aktuellen Installationsort gebunden sind.",
+            // Vorprüfung des Installationsorts vor dem Update
+            ["Update.Elevation.Warning"] = "MortysDLP liegt in einem geschützten Systemordner und kann sich dort voraussichtlich nicht selbst aktualisieren.\n\nEmpfohlen: Verschiebe die Installation an einen Ort, an dem MortysDLP schreiben darf (z. B. deine Dokumente oder einen eigenen Ordner).\n\nAchtung: Beim Verschieben gehen alle gespeicherten Einstellungen (Downloadpfad, Sprache, Bandbreitenlimit usw.) verloren, da sie an den aktuellen Installationsort gebunden sind.\n\nDu kannst das Update auch trotzdem versuchen. Schlägt es fehl, bleibt die vorhandene Version unverändert lauffähig.",
+            ["Update.Elevation.TryAnyway"] = "Trotzdem versuchen",
 
-            // Update-Vorprüfung laufender Vorgänge (W3-T02b)
+            // Update-Vorprüfung laufender Vorgänge
             ["Update.Confirm.ActiveWork.Title"] = "Laufende Vorgänge",
             ["Update.Confirm.ActiveWork"]       = "Es läuft noch: {0}. Update jetzt starten und laufende Vorgänge abbrechen?",
             ["ActiveWork.Label.Download"]       = "Download",
@@ -581,13 +584,13 @@ namespace MortysDLP.UITexte
             // Main Window Navigation
             ["MainWindow.Nav.TwitchDownload"]         = "Twitch Video + Chat",
 
-            // Update-Verifikation (W2-T07)
+            // Update-Verifikation
             ["Update.Error.AssetNotFound"]     = "Für dieses Release wurde kein passendes Update-Paket gefunden.",
             ["Update.Error.AssetAmbiguous"]    = "Es gibt mehrere passende Update-Pakete ({0}) — keine eindeutige Auswahl möglich. Bitte das Paket manuell von GitHub herunterladen.",
             ["Update.Error.ChecksumMismatch"]  = "Die heruntergeladene Datei stimmt nicht mit der erwarteten Prüfsumme überein. Das Update wurde abgebrochen, die vorhandene Installation ist unverändert.",
             ["Update.Warning.NoChecksum"]      = "Für dieses Update ist keine Prüfsumme verfügbar — nur die Dateigröße wird geprüft.",
 
-            // Update-Download mit Fortschritt (W2-T08)
+            // Update-Download mit Fortschritt
             ["Update.Download.InProgress"]        = "MortysDLP wird heruntergeladen …",
             ["DownloadProgressDialog.Title"]       = "Download läuft …",
             ["DownloadProgressDialog.Button.Cancel"] = "Abbrechen",
@@ -866,6 +869,8 @@ namespace MortysDLP.UITexte
             ["UpdateBanner.Text"]                    = "New version {0} available",
             ["UpdateBanner.SubText"]                 = "Click for details & update",
             ["UpdateBanner.SubText.NeedsElevation"]  = "Administrator rights required — click for details",
+            ["UpdateBanner.Text.Blocked"]            = "Version {0} available — can't be installed here",
+            ["UpdateBanner.SubText.Blocked"]         = "Click for an explanation",
             ["UpdateBanner.Dismiss"]                 = "Hide for this session",
             ["UpdateBannerDialog.Title"]             = "Update Available",
             ["UpdateBannerDialog.Subtitle"]          = "Version {0} is ready",
@@ -876,7 +881,7 @@ namespace MortysDLP.UITexte
             ["UpdateBannerDialog.Button.Skip.Tooltip"] = "No more reminders for this version — you'll be asked again only for a newer one.",
             ["UpdateBannerDialog.NoChangelog"]       = "No release notes available.",
 
-            // Update result after restart (W2-T10)
+            // Update result after restart
             ["Update.Result.Success"]           = "MortysDLP was successfully updated to version {0}.",
             ["Update.Result.Failed"]            = "The update to version {0} doesn't seem to have worked — MortysDLP is still running the previous version.",
             ["Update.Result.Failed.Hint"]       = "Details are in the log file: {0}",
@@ -884,14 +889,15 @@ namespace MortysDLP.UITexte
             ["Update.Result.ViewChanges"]       = "View changes",
             ["Update.Blocked.TooManyAttempts"]  = "Version {0} will therefore no longer be offered automatically.",
 
-            // "What's new" after a successful update (W3-T06)
+            // "What's new" after a successful update
             ["WhatsNew.Title"]    = "What's new",
             ["WhatsNew.Subtitle"] = "Version {0}",
 
-            // Install-location preflight check before an update (W3-T06)
-            ["Update.Elevation.Warning"] = "MortysDLP is located in a protected system folder and can't update itself there.\n\nMove the installation to a location where MortysDLP can write (e.g. your Documents folder or a folder of your own).\n\nWarning: Moving it will lose all saved settings (download path, language, bandwidth limit, etc.), since they're tied to the current installation location.",
+            // Install-location preflight check before an update
+            ["Update.Elevation.Warning"] = "MortysDLP is located in a protected system folder and probably can't update itself there.\n\nRecommended: move the installation to a location where MortysDLP can write (e.g. your Documents folder or a folder of your own).\n\nWarning: Moving it will lose all saved settings (download path, language, bandwidth limit, etc.), since they're tied to the current installation location.\n\nYou can also try the update anyway. If it fails, your current version keeps working unchanged.",
+            ["Update.Elevation.TryAnyway"] = "Try anyway",
 
-            // Update preflight check for running work (W3-T02b)
+            // Update preflight check for running work
             ["Update.Confirm.ActiveWork.Title"] = "Work in progress",
             ["Update.Confirm.ActiveWork"]       = "Still running: {0}. Start the update now and cancel this work?",
             ["ActiveWork.Label.Download"]       = "Download",
@@ -1150,13 +1156,13 @@ namespace MortysDLP.UITexte
             // Main Window Navigation
             ["MainWindow.Nav.TwitchDownload"]         = "Twitch Vid+Chat",
 
-            // Update verification (W2-T07)
+            // Update verification
             ["Update.Error.AssetNotFound"]     = "No matching update package was found for this release.",
             ["Update.Error.AssetAmbiguous"]    = "Several matching update packages were found ({0}) — no unambiguous choice possible. Please download the package manually from GitHub.",
             ["Update.Error.ChecksumMismatch"]  = "The downloaded file does not match the expected checksum. The update was cancelled, the existing installation is unchanged.",
             ["Update.Warning.NoChecksum"]      = "No checksum is available for this update — only the file size is checked.",
 
-            // Update download with progress (W2-T08)
+            // Update download with progress
             ["Update.Download.InProgress"]        = "Downloading MortysDLP …",
             ["DownloadProgressDialog.Title"]       = "Download in progress …",
             ["DownloadProgressDialog.Button.Cancel"] = "Cancel",

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 namespace MortysDLP.Helpers
 {
     /// <summary>Seiten mit einem abbrechbaren Hintergrundvorgang (Download, Konvertierung,
-    /// Transkription, …) implementieren dies, damit die Update-Vorprüfung (W3-T02b) laufende
+    /// Transkription, …) implementieren dies, damit die Update-Vorprüfung laufende
     /// Arbeit erkennen und auf Wunsch genau so abbrechen kann wie über den zugehörigen
     /// Abbrechen-Knopf in der Oberfläche.</summary>
     internal interface ICancellableWork
@@ -19,7 +19,7 @@ namespace MortysDLP.Helpers
     }
 
     /// <summary>Reine, ohne UI testbare Auswertung von <see cref="ICancellableWork"/>-Quellen
-    /// (W3-T02b) — von der eigentlichen Nachfrage/dem Abbrechen bewusst getrennt.</summary>
+    /// — von der eigentlichen Nachfrage/dem Abbrechen bewusst getrennt.</summary>
     internal static class ActiveWorkHelper
     {
         public static IReadOnlyList<ICancellableWork> FindBusy(IEnumerable<ICancellableWork> sources)

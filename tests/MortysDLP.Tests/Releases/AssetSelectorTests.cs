@@ -3,8 +3,7 @@ using MortysDLP.Services.Releases;
 namespace MortysDLP.Tests.Releases;
 
 /// <summary>
-/// Prüft <see cref="AssetSelector"/> — reine Logik, kein Netzzugriff. Siehe
-/// <c>werkstatt/tasks/W2-T07.md</c>.
+/// Prüft <see cref="AssetSelector"/> — reine Logik, kein Netzzugriff.
 /// </summary>
 public class AssetSelectorTests
 {

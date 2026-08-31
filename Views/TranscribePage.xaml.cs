@@ -363,7 +363,7 @@ namespace MortysDLP.Views
                     AppendLog(line);
                 }));
 
-                // numericProgress meldet einen Anteil (0.0–1.0, siehe 02-BEST-PRACTICES.md);
+                // numericProgress meldet einen Anteil (0.0–1.0, projektweite Konvention);
                 // die ProgressBar hier arbeitet mit Prozent (0–100).
                 var numericProgress = new Progress<double>(fraction => Dispatcher.Invoke(() =>
                 {

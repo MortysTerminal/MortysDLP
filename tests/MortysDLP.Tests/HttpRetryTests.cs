@@ -7,8 +7,7 @@ namespace MortysDLP.Tests;
 /// <summary>
 /// Prüft die Wiederholstrategie (<see cref="RetryPolicy"/>) und die Ausführung
 /// (<see cref="Http.SendWithRetryAsync"/>) — reine Logik bzw. mit einem
-/// <see cref="HttpMessageHandler"/>-Ersatz, ohne echten Netzzugriff. Siehe
-/// <c>werkstatt/tasks/W2-T03.md</c>.
+/// <see cref="HttpMessageHandler"/>-Ersatz, ohne echten Netzzugriff.
 /// </summary>
 public class HttpRetryTests
 {

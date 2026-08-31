@@ -8,7 +8,7 @@ namespace MortysDLP.Tests;
 /// <summary>
 /// Prüft <see cref="UpdateState"/>: die reine Auswertung (<see cref="UpdateState.Evaluate"/>,
 /// <see cref="UpdateState.IsBlocked"/>) mit übergebener Zeit, sowie Lesen/Schreiben/Löschen
-/// gegen ein eigenes Temp-Verzeichnis. Siehe <c>werkstatt/tasks/W2-T10.md</c>.
+/// gegen ein eigenes Temp-Verzeichnis.
 /// </summary>
 public class UpdateStateTests : IDisposable
 {
@@ -136,6 +136,31 @@ public class UpdateStateTests : IDisposable
         var read = await UpdateState.ReadAsync(_filePath);
 
         Assert.Equal(2, read!.Attempts);
+    }
+
+    [Fact]
+    public async Task RecordAttemptAsync_MitUpdaterProtokollpfad_WirdMitgespeichert()
+    {
+        // Der Grund eines fehlgeschlagenen Updates steht nur im Protokoll des Updaters. Ohne
+        // diesen Pfad in der Zustandsdatei könnte die Fehlermeldung ihn nicht nennen.
+        const string logPath = @"C:\Users\test\AppData\Local\MortysDLP\logs\updater-20260901-101500.log";
+
+        await UpdateState.RecordAttemptAsync(
+            "2026.06.01", "2026.09.01", Now, _filePath, updaterLogPath: logPath);
+
+        var read = await UpdateState.ReadAsync(_filePath);
+
+        Assert.Equal(logPath, read!.UpdaterLogPath);
+    }
+
+    [Fact]
+    public async Task RecordAttemptAsync_OhneUpdaterProtokollpfad_LiefertNull()
+    {
+        await UpdateState.RecordAttemptAsync("2026.06.01", "2026.09.01", Now, _filePath);
+
+        var read = await UpdateState.ReadAsync(_filePath);
+
+        Assert.Null(read!.UpdaterLogPath);
     }
 
     [Fact]

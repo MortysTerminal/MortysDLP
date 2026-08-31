@@ -15,8 +15,7 @@ namespace MortysDLP.Services
     /// defekte oder fremde Datei zählt wie „kein Zwischenspeicher" — eine fehlgeschlagene
     /// Update-Prüfung darf höchstens eine überflüssige Netzabfrage kosten, nie einen
     /// Startfehler. Schreibt atomar (<c>.tmp</c> + <see cref="File.Move"/>), damit ein
-    /// Abbruch mittendrin nie eine defekte Datei hinterlässt. Siehe
-    /// <c>werkstatt/tasks/W2-T06.md</c>.
+    /// Abbruch mittendrin nie eine defekte Datei hinterlässt.
     /// </summary>
     internal sealed class UpdateCache(string? filePath = null)
     {
@@ -41,7 +40,7 @@ namespace MortysDLP.Services
 
         /// <summary>Leert den gesamten Zwischenspeicher (alle Schlüssel). Für den Fall, dass
         /// ein Wert sofort überholt ist, statt erst nach Ablauf seiner Laufzeit — z. B. direkt
-        /// nach einem tatsächlich durchgeführten Update (W2-T10).</summary>
+        /// nach einem tatsächlich durchgeführten Update.</summary>
         public Task ClearAsync(CancellationToken ct)
         {
             try

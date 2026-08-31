@@ -10,11 +10,10 @@ namespace MortysDLP.Tests;
 
 /// <summary>
 /// Prüft die vereinheitlichte Fortschritts-Konvention (<c>IProgress&lt;double&gt;</c> meldet
-/// immer einen Anteil <c>0.0</c>–<c>1.0</c>, siehe <c>werkstatt/02-BEST-PRACTICES.md</c>,
+/// immer einen Anteil <c>0.0</c>–<c>1.0</c>,
 /// Abschnitt 8) am Beispiel von <see cref="ToolDownloadHelper.DownloadAssetAsync"/> — der von
 /// allen Werkzeug-Downloads gemeinsam genutzten Stelle. Reine Logik über
-/// <see cref="HttpMessageHandler"/>-Ersätze, kein echter Netzzugriff. Siehe
-/// <c>werkstatt/tasks/W2-T08.md</c>.
+/// <see cref="HttpMessageHandler"/>-Ersätze, kein echter Netzzugriff.
 /// </summary>
 public class ProgressScaleTests : IDisposable
 {

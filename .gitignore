@@ -5,8 +5,8 @@ TWITCH_FEATURE_PROGRESS.md
 Tools/*
 !Tools/.gitkeep
 
-# Updater-EXE entsteht beim Release-Bauen frisch aus dem separaten Repo
-# MortysDLP-Updater (Befund U-02, W3-T07) - nie wieder ein Binary hier einchecken.
+# Die Updater-EXE entsteht beim Release-Bauen frisch aus dem separaten Repository
+# MortysDLP-Updater - hier wird nie wieder ein Binary ohne Quellcode eingecheckt.
 Updater/*
 !Updater/.gitkeep
 
@@ -36,7 +36,7 @@ mono_crash.*
 [Dd]ebugPublic/
 [Rr]elease/
 [Rr]eleases/
-# Kein Build-Ordner: eigener Quellcode-Namensraum für Update-Release-Quellen (W2-T04a)
+# Kein Build-Ordner: eigener Quellcode-Namensraum für die Update-Release-Quellen
 !Services/Releases/
 !tests/MortysDLP.Tests/Releases/
 x64/

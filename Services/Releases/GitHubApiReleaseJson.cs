@@ -31,9 +31,9 @@ namespace MortysDLP.Services.Releases
         /// <summary>Parst ein einzelnes Release-JSON-Objekt. Liefert <c>null</c>, wenn der Tag
         /// fehlt oder von <see cref="AppVersion.TryParse"/> nicht gelesen werden kann. Setzt
         /// <c>DownloadUrl</c>, <c>ExpectedSize</c> und <c>Sha256</c> bewusst nicht — welches
-        /// Asset gemeint ist, entscheidet erst die Auswahl in W2-T07; hier wird nur die
+        /// Asset gemeint ist, entscheidet erst die Auswahl; hier wird nur die
         /// vollständige Asset-Liste befüllt. <paramref name="etag"/> ist die Kopfzeile der
-        /// GESAMTEN Antwort (W2-T06), nicht des einzelnen Release-Objekts.</summary>
+        /// GESAMTEN Antwort, nicht des einzelnen Release-Objekts.</summary>
         public static ReleaseInfo? TryParse(JsonElement release, string sourceName, string? etag = null)
         {
             if (!release.TryGetProperty("tag_name", out var tagProp))

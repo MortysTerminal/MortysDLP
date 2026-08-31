@@ -5,8 +5,7 @@ namespace MortysDLP.Tests;
 
 /// <summary>
 /// Prüft, dass die aus der Assembly gelesene Version brauchbar ist und dass die
-/// SourceLink-Abschneide-Logik ("+&lt;sha&gt;") für sich testbar ist — siehe
-/// <c>werkstatt/tasks/W2-T02.md</c>.
+/// SourceLink-Abschneide-Logik ("+&lt;sha&gt;") für sich testbar ist.
 /// </summary>
 public class AppInfoTests
 {

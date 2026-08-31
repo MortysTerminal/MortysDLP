@@ -6,8 +6,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
-    <!-- Testnamen nutzen Unterstriche (Methode_Situation_ErwartetesVerhalten, siehe
-         02-BEST-PRACTICES.md §11) — CA1707 widerspricht dieser vorgeschriebenen Konvention. -->
+    <!-- Testnamen nutzen bewusst Unterstriche (Methode_Situation_ErwartetesVerhalten), damit
+         beim Fehlschlag ohne Nachlesen klar ist, was kaputt ist - CA1707 widerspricht dem. -->
     <NoWarn>CA1707</NoWarn>
   </PropertyGroup>
 

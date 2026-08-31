@@ -5,7 +5,7 @@ namespace MortysDLP.Tests;
 
 /// <summary>
 /// Prüft <see cref="UpdateDecision.ShouldOffer"/> — reine Logik, kein Netz- oder
-/// Dateizugriff. Siehe <c>werkstatt/tasks/W2-T09.md</c>.
+/// Dateizugriff.
 /// </summary>
 public class UpdateDecisionTests
 {

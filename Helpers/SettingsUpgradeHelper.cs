@@ -7,7 +7,7 @@ namespace MortysDLP.Helpers
     /// <c>user.config</c>. Die eigentliche Übernahme erledigt weiterhin
     /// <c>ApplicationSettingsBase.Upgrade()</c> selbst; diese Klasse ermittelt nur, aus welchem
     /// Verzeichnis sie vermutlich stammt, für die Protokollzeile in <c>App.OnStartup</c> (siehe
-    /// <c>werkstatt/04-UPDATE-ARCHITEKTUR.md</c>, Abschnitt 11.1).
+    ///).
     /// </summary>
     internal static class SettingsUpgradeHelper
     {

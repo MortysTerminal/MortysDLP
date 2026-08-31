@@ -7,8 +7,7 @@ namespace MortysDLP.Views
 {
     /// <summary>Die drei Möglichkeiten, auf einen Update-Hinweis zu reagieren. Der Dialog
     /// speichert selbst keine Einstellungen — er meldet nur die Entscheidung, der Aufrufer
-    /// (<c>MainWindow</c>) schreibt <c>VersionSkip</c>. Siehe
-    /// <c>werkstatt/tasks/W2-T09.md</c>.</summary>
+    /// (<c>MainWindow</c>) schreibt <c>VersionSkip</c>.</summary>
     public enum UpdateChoice
     {
         /// <summary>Jetzt aktualisieren.</summary>
@@ -26,7 +25,7 @@ namespace MortysDLP.Views
 
         /// <param name="isWhatsNewOnly">Zeigt nur den Changelog mit einem einzelnen
         /// Schließen-Knopf — für den einmaligen „Was ist neu"-Hinweis nach einem bereits
-        /// erfolgreich abgeschlossenen Update (W3-T06). „Jetzt aktualisieren"/„Überspringen"
+        /// erfolgreich abgeschlossenen Update. „Jetzt aktualisieren"/„Überspringen"
         /// ergäben dort keinen Sinn mehr.</param>
         public UpdateChangelogDialog(string version, string changelog, bool isWhatsNewOnly = false)
         {

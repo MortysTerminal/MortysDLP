@@ -14,8 +14,7 @@ namespace MortysDLP.Tests.Releases;
 /// <see cref="HttpMessageHandler"/>-Ersatz für Tests: bildet URL-Muster auf vorgegebene
 /// Antworten ab (Statuscode, Kopfzeilen, Inhalt), zählt Aufrufe je Muster und kann Verzögerung
 /// oder eine Ausnahme statt einer Antwort simulieren. Wird von den Release-Quellen-Tests
-/// genutzt und in W2-T04b, T05, T06, T07 und T08 wiederverwendet — siehe
-/// <c>werkstatt/tasks/W2-T04a.md</c>.
+/// genutzt und, T05, T06, T07 und T08 wiederverwendet.
 /// </summary>
 internal sealed class FakeHttpMessageHandler : HttpMessageHandler
 {

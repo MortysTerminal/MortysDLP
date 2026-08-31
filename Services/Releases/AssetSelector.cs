@@ -12,7 +12,7 @@ namespace MortysDLP.Services.Releases
     /// Anhänge tragen (`checksums.txt`, eine portable Variante, ein Screenshot). Kennt nichts
     /// Repository-Spezifisches: Muster und die bevorzugte Auflösung bei Mehrdeutigkeit kommen
     /// vollständig aus dem übergebenen Muster, damit Welle 4 dieselbe Klasse für yt-dlp,
-    /// ffmpeg usw. wiederverwenden kann. Siehe <c>werkstatt/tasks/W2-T07.md</c>.
+    /// ffmpeg usw. wiederverwenden kann.
     /// </summary>
     internal static class AssetSelector
     {

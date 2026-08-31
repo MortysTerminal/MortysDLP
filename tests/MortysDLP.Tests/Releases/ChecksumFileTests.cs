@@ -4,8 +4,7 @@ namespace MortysDLP.Tests.Releases;
 
 /// <summary>
 /// Prüft <see cref="ChecksumFile"/> gegen die Toleranzen von <c>sha256sum</c>/
-/// <c>Get-FileHash</c>-Ausgaben — reine Logik, kein Netzzugriff. Siehe
-/// <c>werkstatt/tasks/W2-T07.md</c>.
+/// <c>Get-FileHash</c>-Ausgaben — reine Logik, kein Netzzugriff.
 /// </summary>
 public class ChecksumFileTests
 {

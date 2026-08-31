@@ -13,11 +13,11 @@ namespace MortysDLP.Services.Releases
     /// <summary>
     /// Quelle 5: <c>raw.githubusercontent.com/{owner}/{repo}/master/version.json</c> — eine
     /// von Hand gepflegte Datei im Repository, die einzige Quelle mit Prüfsumme. Anders als die
-    /// vier Quellen aus W2-T04a hängt sie an keinem GitHub-API-Kontingent, aber sie kann als
+    /// vier Quellen hängt sie an keinem GitHub-API-Kontingent, aber sie kann als
     /// einzige Quelle dauerhaft falsch sein, wenn die Pflege beim Release vergessen wird.
     /// Deshalb <see cref="IsAuthoritative"/> = false und deshalb steht sie am Ende der Kette
-    /// (<c>04-UPDATE-ARCHITEKTUR.md</c>, Abschnitt 4) — der Rettungsanker, wenn alle
-    /// GitHub-Endpunkte schweigen, nicht die erste Anlaufstelle.
+    /// — der Rettungsanker, wenn alle GitHub-Endpunkte schweigen, nicht die erste
+    /// Anlaufstelle.
     /// </summary>
     internal sealed class VersionJsonReleaseSource(HttpClient? client = null) : IReleaseSource
     {

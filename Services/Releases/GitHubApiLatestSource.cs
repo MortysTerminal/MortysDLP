@@ -12,7 +12,7 @@ namespace MortysDLP.Services.Releases
     /// Quelle 1: <c>GET /repos/{owner}/{repo}/releases/latest</c>. Die reichhaltigste Quelle
     /// (Version, Assets, Changelog) — aber mit GitHub-Kontingent (60/h/IP) und <c>404</c>, wenn
     /// ein Repository nur Vorabversionen enthält. Ist <see cref="ReleaseQuery.ETag"/> gesetzt,
-    /// wird es als <c>If-None-Match</c> mitgeschickt (W2-T06) — ein <c>304</c> kostet kein
+    /// wird es als <c>If-None-Match</c> mitgeschickt — ein <c>304</c> kostet kein
     /// Kontingent und wird als <see cref="ReleaseInfo.NotModified"/> gemeldet.
     /// </summary>
     internal sealed class GitHubApiLatestSource(HttpClient? client = null) : IReleaseSource

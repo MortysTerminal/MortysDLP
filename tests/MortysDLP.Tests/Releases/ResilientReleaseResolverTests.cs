@@ -12,9 +12,9 @@ namespace MortysDLP.Tests.Releases;
 /// <summary>
 /// Prüft die Ausweichkette (<see cref="ResilientReleaseResolver"/>) über Attrappen-Quellen
 /// (<see cref="FakeReleaseSource"/>) — unabhängig von HTTP, im Sekundenbereich. Für die
-/// Kontingent-Prüfung kommen die echten GitHub-API-Quellen aus W2-T04a mit einem
+/// Kontingent-Prüfung kommen die echten GitHub-API-Quellen mit einem
 /// <see cref="FakeHttpMessageHandler"/> zum Einsatz, der bei einem unerwarteten Aufruf wirft.
-/// Siehe <c>werkstatt/tasks/W2-T04b.md</c>.
+///
 /// </summary>
 public class ResilientReleaseResolverTests : IDisposable
 {

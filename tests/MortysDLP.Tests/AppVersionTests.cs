@@ -5,7 +5,7 @@ namespace MortysDLP.Tests;
 
 /// <summary>
 /// Prüft Parsen, Vergleichen und Anzeigen von <see cref="AppVersion"/> — reine Logik ohne
-/// Netz oder Dateisystem, siehe <c>werkstatt/tasks/W2-T01.md</c>.
+/// Netz oder Dateisystem
 /// </summary>
 public class AppVersionTests
 {

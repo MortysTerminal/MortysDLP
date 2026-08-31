@@ -15,8 +15,7 @@ namespace MortysDLP.Services.Releases
     /// für die App-Kette, Welle 4 für weitere).
     ///
     /// Die einzige Ausnahme von „erste brauchbare Antwort gewinnt" ist die Regel gegen
-    /// veraltete Antworten (Befund U-15/U-13, siehe <c>werkstatt/04-UPDATE-ARCHITEKTUR.md</c>
-    /// Abschnitt 4): Eine nicht-primäre Quelle (<see cref="IReleaseSource.IsAuthoritative"/> ==
+    /// veraltete Antworten: Eine nicht-primäre Quelle (<see cref="IReleaseSource.IsAuthoritative"/> ==
     /// false), die eine Version meldet, die nicht neuer als <c>current</c> ist, kann das nicht
     /// abschließend beurteilen — Atom-Feeds und Weiterleitungen liegen hinter einem CDN und
     /// können hinterherhinken. Ihre Antwort wird zurückgehalten und die Kette fragt weiter;
@@ -25,7 +24,7 @@ namespace MortysDLP.Services.Releases
     /// „gleich oder älter" — der Normalfall (API antwortet, kein Update) darf keine
     /// zusätzliche Anfrage kosten. Ist <c>current</c> <c>null</c>, greift die Regel nicht.
     ///
-    /// Meldet eine Quelle <see cref="ReleaseInfo.NotModified"/> (W2-T06, <c>304</c> auf ein
+    /// Meldet eine Quelle <see cref="ReleaseInfo.NotModified"/> (<c>304</c> auf ein
     /// mitgeschicktes <c>ETag</c>), wird das unabhängig von allem anderen sofort
     /// zurückgegeben — der Rückgabewert trägt dann keinen brauchbaren Versionswert, sondern
     /// ist ausschließlich die Bestätigung „unverändert" für den Aufrufer, der den
@@ -90,7 +89,7 @@ namespace MortysDLP.Services.Releases
 
                 if (info.NotModified)
                 {
-                    // 304 (W2-T06): bestätigt nur, dass sich seit dem mitgeschickten ETag
+                    // 304: bestätigt nur, dass sich seit dem mitgeschickten ETag
                     // nichts geändert hat - kein echter Versionswert, also nie über die
                     // Regel gegen veraltete Antworten laufen lassen. Der Aufrufer
                     // (UpdateCheckService) kennt den zugehörigen Zwischenspeicher-Eintrag und

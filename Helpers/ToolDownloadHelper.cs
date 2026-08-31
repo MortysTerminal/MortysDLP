@@ -8,7 +8,7 @@ namespace MortysDLP.Services
         private const int BufferSize = 81920;
 
         /// <param name="progress">Fortschritt als Anteil (0.0–1.0) — siehe
-        /// <c>werkstatt/02-BEST-PRACTICES.md</c>, Abschnitt 8. Bleibt unbenutzt, solange
+        /// Bleibt unbenutzt, solange
         /// <c>Content-Length</c> fehlt (Gesamtgröße unbekannt).</param>
         public static async Task DownloadAssetAsync(HttpClient client, string url, string targetPath, IProgress<double>? progress = null, CancellationToken cancellationToken = default)
         {

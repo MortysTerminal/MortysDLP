@@ -15,7 +15,7 @@ namespace MortysDLP.Services.Releases
     /// wählt unter den verbleibenden Einträgen die höchste <see cref="Models.AppVersion"/> —
     /// nicht den zuerst gelisteten Eintrag, denn GitHub sortiert nach Veröffentlichungsdatum,
     /// nicht nach Versionsnummer. Ist <see cref="ReleaseQuery.ETag"/> gesetzt, wird es als
-    /// <c>If-None-Match</c> mitgeschickt (W2-T06).
+    /// <c>If-None-Match</c> mitgeschickt.
     /// </summary>
     internal sealed class GitHubApiListSource(HttpClient? client = null) : IReleaseSource
     {

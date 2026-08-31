@@ -24,7 +24,7 @@ namespace MortysDLP
         /// <summary>
         /// Wenn beim Start ein Update gefunden wurde, wird hier die Info hinterlegt.
         /// Das MainWindow liest <c>Version</c>/<c>Changelog</c> für den Update-Banner.
-        /// <c>Assets</c>/<c>Sha256</c>/<c>ExpectedSize</c> sind seit W2-T07 dabei, damit
+        /// <c>Assets</c>/<c>Sha256</c>/<c>ExpectedSize</c> sind dabei, damit
         /// <see cref="StartUpdateCore"/> das richtige Asset wählen und den Download
         /// verifizieren kann, ohne die Update-Prüfung zu wiederholen. <c>AssetUrl</c> bleibt
         /// der Rückfallwert, wenn <c>Assets</c> leer ist (Atom-Feed, Weiterleitung,
@@ -35,21 +35,34 @@ namespace MortysDLP
         { get; private set; }
 
         /// <summary>Ergebnis der Auswertung eines beim letzten Lauf angestoßenen Updates
-        /// (W2-T10) — <c>null</c>, wenn keine Zustandsdatei vorlag oder sie unklar/veraltet
+        /// — <c>null</c>, wenn keine Zustandsdatei vorlag oder sie unklar/veraltet
         /// war. Das MainWindow zeigt dazu einmalig eine Erfolgs- bzw. Fehlermeldung.
         /// <c>Attempts</c> sagt der Meldung, ob der Schleifenschutz bereits greift (dann bietet
         /// sie „Trotzdem erneut versuchen" an). <c>Changelog</c> ist der Auslöser für den
-        /// einmaligen „Was ist neu"-Hinweis (W3-T06) — <c>null</c>, wenn er nicht vorliegt
-        /// (z. B. beim Rückfall über <c>--updated-from</c> ohne Zustandsdatei).</summary>
-        internal (UpdateOutcome Outcome, string? ToVersion, int Attempts, string? Changelog)? PendingUpdateOutcome
+        /// einmaligen „Was ist neu"-Hinweis — <c>null</c>, wenn er nicht vorliegt
+        /// (z. B. beim Rückfall über <c>--updated-from</c> ohne Zustandsdatei).
+        /// <c>UpdaterLogPath</c> ist im Fehlerfall der Pfad, in dem der Grund tatsächlich
+        /// steht.</summary>
+        internal (UpdateOutcome Outcome, string? ToVersion, int Attempts, string? Changelog,
+            string? UpdaterLogPath)? PendingUpdateOutcome
         { get; private set; }
 
         /// <summary>Installationsort-Klassifizierung zum Zeitpunkt des letzten Update-Angebots
-        /// (W3-T06) — <c>null</c>, solange kein Update angeboten wird. <c>NeedsElevation</c>
-        /// lässt den Banner weiterhin erscheinen, aber mit einem Warnhinweis statt eines
-        /// direkten Downloads; <c>ReadOnly</c>/<c>RunningFromArchive</c> unterdrücken das
-        /// Angebot bereits hier vollständig (siehe <see cref="OnStartup"/>).</summary>
+        /// — <c>null</c>, solange kein Update angeboten wird. <c>NeedsElevation</c>
+        /// lässt den Banner weiterhin erscheinen, aber mit einem Warnhinweis vor dem Download;
+        /// <c>ReadOnly</c>/<c>RunningFromArchive</c> führen stattdessen zu
+        /// <see cref="BlockedUpdateInfo"/> (siehe <see cref="OnStartup"/>).</summary>
         internal InstallKind? PendingUpdateInstallKind { get; private set; }
+
+        /// <summary>Ein Update, das es zwar gibt, das sich am aktuellen Installationsort aber
+        /// nicht installieren lässt — schreibgeschützter Ordner oder Start aus der
+        /// ZIP-Vorschau. Das Angebot wird bewusst unterdrückt (ein Download wäre sinnlos),
+        /// der Nutzer erfährt aber, <b>dass</b> es eines gibt und <b>warum</b> es hier nicht
+        /// geht: Ein Programm, das ohne jede Erklärung nie wieder ein Update anbietet, sieht
+        /// aus wie ein Programm, das nicht mehr gepflegt wird.
+        /// <c>ReasonKey</c> ist der Textschlüssel aus <see cref="InstallInfo.ReasonKey"/>.</summary>
+        internal (string Version, InstallKind Kind, string ReasonKey)? BlockedUpdateInfo
+        { get; private set; }
 
         /*
          * DEBUG
@@ -61,7 +74,7 @@ namespace MortysDLP
             RegisterGlobalExceptionHandlers();
 
             // Ganz früh, vor dem ersten Lesen einer Einstellung: Seit die AssemblyVersion pro
-            // Release wechselt (W2-T02), wechselt auch der user.config-Ordner. Ohne diese
+            // Release wechselt, wechselt auch der user.config-Ordner. Ohne diese
             // Übernahme stünde der Nutzer nach jedem Update vor Standardeinstellungen.
             ApplySettingsUpgradeIfNeeded();
 
@@ -87,10 +100,10 @@ namespace MortysDLP
                 // splash.SetTitle("Dein Produktname");
 
                 // 1. Status: Nach Software-Update suchen — höchstens alle 6 Stunden, sonst aus
-                // dem Zwischenspeicher (W2-T06). Kein direkter GitHub-Zugriff mehr bei jedem Start.
+                // dem Zwischenspeicher. Kein direkter GitHub-Zugriff mehr bei jedem Start.
                 // Zuerst: Hat ein beim letzten Lauf angestoßenes Update tatsächlich gewirkt?
                 // Ohne diese Prüfung ist ein fehlgeschlagenes Update von einem erfolgreichen
-                // nicht zu unterscheiden (W2-T10, Befund U-10).
+                // nicht zu unterscheiden.
                 var previousUpdateState = await EvaluateAndHandlePreviousUpdateAsync();
 
                 ResetVersionSkipIfObsolete();
@@ -116,6 +129,7 @@ namespace MortysDLP
                     {
                         Log.Info($"Update {info.Version} verfügbar, aber am aktuellen " +
                             $"Installationsort nicht anbietbar ({installInfo.Kind}).");
+                        BlockedUpdateInfo = (info.Version.ToString(), installInfo.Kind, installInfo.ReasonKey);
                     }
                     else
                     {
@@ -208,7 +222,7 @@ namespace MortysDLP
 
         /// <summary>Übernimmt einmalig Einstellungen der vorherigen Version, sobald sich der
         /// user.config-Ordner mit der AssemblyVersion ändert (siehe
-        /// <c>werkstatt/04-UPDATE-ARCHITEKTUR.md</c>, Abschnitt 11.1). Das Kennzeichen muss VOR
+        ///). Das Kennzeichen muss VOR
         /// dem Aufruf von <c>Upgrade()</c> gelesen werden, weil dieser es im Speicher mit dem
         /// Wert der Vorgängerversion überschreibt.</summary>
         private static void ApplySettingsUpgradeIfNeeded()
@@ -289,7 +303,7 @@ namespace MortysDLP
         }
 
         /// <summary>Ob ein sonst angebotenes Update am aktuellen Installationsort komplett
-        /// unterdrückt werden muss (W3-T06, §8). <c>ReadOnly</c> kann nicht schreiben,
+        /// unterdrückt werden muss. <c>ReadOnly</c> kann nicht schreiben,
         /// <c>RunningFromArchive</c> verliert das Ergebnis beim Schließen — beides macht das
         /// Herunterladen sinnlos. <c>NeedsElevation</c> bleibt bewusst außen vor: Dort wird das
         /// Update weiterhin angeboten, nur mit einem Warnhinweis statt eines direkten
@@ -298,13 +312,12 @@ namespace MortysDLP
             kind is InstallKind.ReadOnly or InstallKind.RunningFromArchive;
 
         /// <summary>Wertet eine beim letzten Lauf hinterlassene Update-Zustandsdatei aus
-        /// (W2-T10) und reagiert entsprechend. Liefert den Zustand nur im Fall
+        /// und reagiert entsprechend. Liefert den Zustand nur im Fall
         /// <see cref="UpdateOutcome.Failed"/> zurück — genau den braucht
         /// <see cref="UpdateDecision.ShouldOffer"/> für den Schleifenschutz; in jedem anderen
         /// Fall ist die Datei bereits gelöscht und <c>null</c> die richtige Antwort.
         /// <c>update-state.json</c> bleibt dabei die Grundlage — <c>--updated-from</c>
-        /// (W3-T06) ist nur die Ergänzung für den Fall, dass die Zustandsdatei selbst fehlt
-        /// (04-UPDATE-ARCHITEKTUR.md §9).</summary>
+        /// ist nur die Ergänzung für den Fall, dass die Zustandsdatei selbst fehlt.</summary>
         private async Task<UpdateStateData?> EvaluateAndHandlePreviousUpdateAsync()
         {
             string? updatedFrom = TryGetUpdatedFromArgument(Environment.GetCommandLineArgs());
@@ -320,18 +333,33 @@ namespace MortysDLP
                         // Keine Zustandsdatei (z. B. Schreibfehler), aber der Neustart kam
                         // nachweislich vom Updater - ohne diesen Rückfall bliebe der Nutzer
                         // ganz ohne Rückmeldung, obwohl das Update tatsächlich gewirkt hat.
-                        Log.Info($"Update erfolgreich (bestätigt über --updated-from={updatedFrom}, " +
-                            "keine Zustandsdatei vorhanden).");
-                        PendingUpdateOutcome = (UpdateOutcome.Succeeded, AppInfo.Current, 0, null);
-                        await new UpdateCache().ClearAsync(CancellationToken.None);
-                        ClearVersionSkip();
+                        // Das Argument allein belegt aber nur "der Updater hat neu gestartet",
+                        // nicht "es hat gewirkt": Hat er keine einzige Datei ersetzt, startet er
+                        // trotzdem mit --updated-from. Deshalb muss sich die Version geändert
+                        // haben, sonst wäre die Erfolgsmeldung eine Falschaussage - und genau
+                        // das ist das Fehlerbild, das die Erfolgskontrolle beseitigen soll.
+                        if (IsVersionChangeConfirmed(updatedFrom, AppInfo.Current))
+                        {
+                            Log.Info($"Update erfolgreich (bestätigt über --updated-from={updatedFrom}, " +
+                                "keine Zustandsdatei vorhanden).");
+                            PendingUpdateOutcome = (UpdateOutcome.Succeeded, AppInfo.Current, 0, null, null);
+                            await new UpdateCache().ClearAsync(CancellationToken.None);
+                            ClearVersionSkip();
+                        }
+                        else
+                        {
+                            Log.Warn($"Neustart über --updated-from={updatedFrom}, aber die laufende " +
+                                $"Version ist unverändert ({AppInfo.Current ?? "unbekannt"}) - das Update " +
+                                "hat nicht gewirkt. Keine Erfolgsmeldung.");
+                        }
                     }
                     return null;
 
                 case UpdateOutcome.Succeeded:
                     Log.Info($"Update erfolgreich: {state!.FromVersion} -> {state.ToVersion}." +
                         (updatedFrom != null ? " (bestätigt über --updated-from)" : ""));
-                    PendingUpdateOutcome = (UpdateOutcome.Succeeded, state.ToVersion, state.Attempts, state.Changelog);
+                    PendingUpdateOutcome = (UpdateOutcome.Succeeded, state.ToVersion, state.Attempts,
+                        state.Changelog, null);
                     await new UpdateCache().ClearAsync(CancellationToken.None);
                     ClearVersionSkip();
                     await UpdateState.DeleteAsync();
@@ -339,8 +367,10 @@ namespace MortysDLP
 
                 case UpdateOutcome.Failed:
                     Log.Warn($"Update von {state!.FromVersion} nach {state.ToVersion} hat nicht " +
-                        $"gewirkt (Versuch {state.Attempts}).");
-                    PendingUpdateOutcome = (UpdateOutcome.Failed, state.ToVersion, state.Attempts, null);
+                        $"gewirkt (Versuch {state.Attempts}). Updater-Protokoll: " +
+                        $"{state.UpdaterLogPath ?? "nicht aufgezeichnet"}.");
+                    PendingUpdateOutcome = (UpdateOutcome.Failed, state.ToVersion, state.Attempts,
+                        null, state.UpdaterLogPath);
                     return state;
 
                 case UpdateOutcome.Stale:
@@ -356,6 +386,28 @@ namespace MortysDLP
                     await UpdateState.DeleteAsync();
                     return null;
             }
+        }
+
+        /// <summary>
+        /// Ob sich die laufende Version tatsächlich von der Version unterscheidet, mit der der
+        /// Updater gestartet wurde. Nur dann belegt ein Neustart mit <c>--updated-from</c> einen
+        /// Erfolg; sind beide gleich, ist das Update wirkungslos geblieben.
+        ///
+        /// <para>Der Vergleich läuft über <see cref="AppVersion"/>, wo beide Seiten sich parsen
+        /// lassen — sonst würden <c>2026.06.01</c> und <c>v2026.6.1</c> fälschlich als
+        /// Versionswechsel gelten. Ist eine der beiden Angaben unbrauchbar, gilt der Wechsel als
+        /// <b>nicht</b> belegt: Eine unsichere Erfolgsmeldung ist schlimmer als keine.</para>
+        /// </summary>
+        internal static bool IsVersionChangeConfirmed(string? updatedFrom, string? currentVersion)
+        {
+            if (string.IsNullOrWhiteSpace(updatedFrom) || string.IsNullOrWhiteSpace(currentVersion))
+                return false;
+
+            if (AppVersion.TryParse(updatedFrom, out var previous) &&
+                AppVersion.TryParse(currentVersion, out var current))
+                return !previous.Equals(current);
+
+            return !string.Equals(updatedFrom.Trim(), currentVersion.Trim(), StringComparison.OrdinalIgnoreCase);
         }
 
         /// <summary>Sucht <c>--updated-from &lt;version&gt;</c> in den Kommandozeilenargumenten
@@ -457,7 +509,7 @@ namespace MortysDLP
         }
 
         /// <summary>Fragt nach, wenn gerade ein Download, eine Konvertierung oder eine
-        /// Transkription läuft (W3-T02b) — der Updater fährt die Anwendung sonst mitten in
+        /// Transkription läuft — der Updater fährt die Anwendung sonst mitten in
         /// laufender Arbeit herunter, ohne Vorwarnung. Liefert <c>false</c>, wenn der Nutzer
         /// das Update daraufhin abbricht; in diesem Fall bleibt alles unverändert.</summary>
         private bool ConfirmActiveWorkOrCancel()
@@ -504,7 +556,7 @@ namespace MortysDLP
         /// kommen von <c>version.json</c>, falls diese Quelle geantwortet hat, und haben
         /// Vorrang vor <c>checksums.txt</c> nur, wenn beide vorhanden wären — praktisch
         /// schließen sie sich aus, da nur eine Quelle je Prüfung antwortet.
-        /// <paramref name="toVersion"/> wird für den Update-Zustand (W2-T10) gebraucht, nicht
+        /// <paramref name="toVersion"/> wird für den Update-Zustand gebraucht, nicht
         /// für die Auswahl selbst.</summary>
         private async Task StartUpdateCore(string toVersion,
             string fallbackAssetUrl, IReadOnlyList<ReleaseAsset> assets, string? knownSha256, long? knownSize,
@@ -562,9 +614,9 @@ namespace MortysDLP
                 string tempZipPath = Path.Combine(tempDir, Settings.Default.MortysDLPUpdateZipFile);
 
                 // 2. Download mit Fortschrittsdialog, Retry, streamender Prüfsumme und
-                // Größenabgleich (W2-T07/T08) - erst nach bestandener Prüfung trägt die Datei
+                // Größenabgleich - erst nach bestandener Prüfung trägt die Datei
                 // ihren endgültigen Namen. using: der Dialog wird in jedem Fall geschlossen,
-                // auch bei Erfolg (K-08 - nicht-modal - bleibt bewusst unangetastet).
+                // auch bei Erfolg. Dass er nicht-modal ist, bleibt bewusst unangetastet.
                 using (var dialog = new DownloadProgressDialog(UITexte.UITextDictionary.Get("Update.Download.InProgress")))
                 {
                     dialog.Owner = MainWindow;
@@ -599,7 +651,7 @@ namespace MortysDLP
                 }
 
                 // 3. ZIP-Grundprüfung: enthält den erwarteten Haupteintrag, nicht nur
-                // "irgendeine .exe" (Befund K-05)
+                // "irgendeine.exe"
                 if (!UpdateService.ValidateZipContainsMainExe(tempZipPath, Settings.Default.MortysDLPExeFile))
                 {
                     try { if (File.Exists(tempZipPath)) File.Delete(tempZipPath); } catch { }
@@ -624,8 +676,8 @@ namespace MortysDLP
                 string tempUpdaterDir = Path.Combine(tempDir, Settings.Default.MortysDLPUpdaterFolderName);
                 CopyDirectory(sourceUpdaterDir, tempUpdaterDir);
 
-                // 5. Benannte Argumente statt Position (04-UPDATE-ARCHITEKTUR.md §7) - der neue
-                // Updater (ab W3-T01) versteht ausschließlich --zip/--target/--exe/--pid/
+                // 5. Benannte Argumente statt Position - der neue
+                // Updater versteht ausschließlich --zip/--target/--exe/--pid/
                 // --version/--log und lehnt alles andere mit Exit-Code 2 ab.
                 string mainExeName = Settings.Default.MortysDLPExeFile;
                 int currentPid = Environment.ProcessId;
@@ -639,14 +691,15 @@ namespace MortysDLP
                 Log.Info($"Ziel={targetDir}, Version={toVersion}, Pid={currentPid}, " +
                     $"Updater-Protokoll={updaterLogPath}");
 
-                // 5b. Update-Zustand aufzeichnen (W2-T10) - unmittelbar vor dem Start des
+                // 5b. Update-Zustand aufzeichnen - unmittelbar vor dem Start des
                 // Updaters, nach bestandener Prüfsumme/ZIP-Prüfung. Das ist der einzige Beleg,
                 // den der nächste Start hat, um ein gewirktes von einem wirkungslosen Update zu
                 // unterscheiden - der Exit-Code des heutigen Updaters ist dafür nicht nutzbar.
-                // Der Changelog-Text wandert mit, damit der "Was ist neu"-Hinweis (W3-T06) nach
+                // Der Changelog-Text wandert mit, damit der "Was ist neu"-Hinweis nach
                 // dem Neustart keinen zweiten Netzabruf braucht.
                 if (AppInfo.Current is { } fromVersion)
-                    await UpdateState.RecordAttemptAsync(fromVersion, toVersion, DateTimeOffset.UtcNow, changelog: changelog);
+                    await UpdateState.RecordAttemptAsync(fromVersion, toVersion, DateTimeOffset.UtcNow,
+                        changelog: changelog, updaterLogPath: updaterLogPath);
 
                 // 6. Updater starten – UseShellExecute = true für unabhängigen Prozess, der MortysDLP
                 // überlebt. Läuft deshalb bewusst außerhalb von ProcessRunner (das immer

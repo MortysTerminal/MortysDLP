@@ -8,7 +8,7 @@ namespace MortysDLP.Tests.Releases;
 /// <summary>
 /// Prüft die vier unabhängigen Release-Quellen — reine Logik über die internen Parse-Methoden
 /// und die volle <c>TryGetLatestAsync</c>-Kette über <see cref="FakeHttpMessageHandler"/>. Kein
-/// Test greift auf das echte Netz zu. Siehe <c>werkstatt/tasks/W2-T04a.md</c>.
+/// Test greift auf das echte Netz zu.
 /// </summary>
 public class ReleaseSourceTests
 {

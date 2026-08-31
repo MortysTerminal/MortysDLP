@@ -329,12 +329,16 @@ Wandelt Videos in animierte GIFs.
    Ausweiche) und die neueste Version mit der eigenen verglichen; dazwischen zählt der
    Zwischenspeicher.
 2. Bei einer neueren Version prüft MortysDLP zuerst, ob am aktuellen Installationsort
-   überhaupt aktualisiert werden kann. Liegt er in einem geschützten Systemordner, erscheint
-   ein Banner mit einem Warnhinweis; ein Klick darauf erklärt, dass die Installation an einen
-   beschreibbaren Ort verschoben werden muss und dass dabei alle gespeicherten Einstellungen
-   verloren gehen. Ist der Ordner schreibgeschützt oder läuft MortysDLP direkt aus einer
-   ZIP-Vorschau des Explorers, erscheint gar kein Update-Banner — ein Herunterladen wäre dort
-   ohnehin sinnlos. In jedem anderen Fall erscheint das gewohnte Banner.
+   überhaupt aktualisiert werden kann:
+   - **Geschützter Systemordner** (z. B. `C:\Program Files`): Der Banner erscheint mit einem
+     Warnhinweis. Beim Klick auf „Jetzt aktualisieren" wird erklärt, dass die Installation an
+     einen beschreibbaren Ort verschoben werden sollte und dass dabei alle gespeicherten
+     Einstellungen verloren gehen. Das Update lässt sich danach über „Trotzdem versuchen"
+     dennoch starten — scheitert es, bleibt die vorhandene Version unverändert lauffähig.
+   - **Schreibgeschützter Ordner oder Start aus der ZIP-Vorschau des Explorers:** Es wird kein
+     Download angeboten, weil er dort nichts bewirken könnte. Der Banner meldet trotzdem, dass
+     es eine neue Version gibt; ein Klick erklärt, warum sie sich hier nicht einspielen lässt.
+   - **Alles andere:** das gewohnte Banner.
 3. Ein Klick öffnet ein Fenster mit den Release-Notizen und drei Möglichkeiten:
    - **Jetzt aktualisieren** — startet den Download (siehe unten).
    - **Später** — der Hinweis bleibt nur für den laufenden Programmlauf weg; beim nächsten
@@ -362,19 +366,23 @@ Wandelt Videos in animierte GIFs.
 7. Zusätzlich wird geprüft, dass das Paket lesbar ist und tatsächlich die Hauptanwendung
    enthält.
 8. Der Updater wird nach Temp kopiert und mit benannten Kommandozeilenargumenten gestartet.
-   Er sichert jede Datei, die er ersetzt, bevor er sie austauscht; scheitert das Update
-   mittendrin (z. B. eine gesperrte Datei), spielt er alle bereits ersetzten Dateien
-   automatisch aus der Sicherung zurück — die vorhandene Installation bleibt in jedem Fall
-   lauffähig. Eigene Werkzeuge (`Tools\`) und der Download-Verlauf werden dabei nie
-   überschrieben.
+   Bevor er etwas anfasst, prüft er, dass genug Platz frei ist — auf dem Datenträger der
+   Installation *und* auf dem der Sicherungskopie, die unter `%LOCALAPPDATA%` liegt und
+   durchaus auf einem anderen Laufwerk sein kann. Dann sichert er jede Datei, die er ersetzt,
+   bevor er sie austauscht; scheitert das Update mittendrin (z. B. eine gesperrte Datei),
+   spielt er alle bereits ersetzten Dateien automatisch aus der Sicherung zurück — die
+   vorhandene Installation bleibt in jedem Fall lauffähig. Eigene Werkzeuge (`Tools\`) und der
+   Download-Verlauf werden dabei nie überschrieben.
 9. Die App beendet sich; der Updater wartet auf das Prozessende, entpackt und startet die
    App neu.
 10. **Beim nächsten Start prüft MortysDLP, ob das Update tatsächlich gewirkt hat:**
    - Läuft danach die neue Version, erscheint sofort eine Bestätigung mit der Möglichkeit,
      die Änderungen der neuen Version anzusehen — einmalig, danach nicht erneut. Der
      Zwischenspeicher der Update-Prüfung sowie eine übersprungene Version werden geleert.
-   - Läuft weiterhin die alte Version, erscheint ein Hinweis mit dem Pfad zum Protokoll — das
-     Update hat offenbar nicht funktioniert (z. B. weil der Updater unterbrochen wurde).
+   - Läuft weiterhin die alte Version, erscheint ein Hinweis mit dem Pfad zum Protokoll des
+     Updaters — dort steht der Grund (z. B. eine gesperrte Datei oder ein unterbrochener
+     Lauf). Das gilt auch dann, wenn der Updater die Anwendung zwar neu gestartet, aber
+     tatsächlich nichts ersetzt hat: Maßgeblich ist die laufende Version, nicht der Neustart.
    - Bleibt **dasselbe** Update zweimal hintereinander ohne Wirkung, bietet MortysDLP es
      danach nicht mehr von selbst an. Ein Knopf „Trotzdem erneut versuchen" in der Meldung
      hebt das wieder auf.

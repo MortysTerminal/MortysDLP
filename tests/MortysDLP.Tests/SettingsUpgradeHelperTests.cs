@@ -6,7 +6,7 @@ namespace MortysDLP.Tests;
 /// <summary>
 /// Prüft die reine Verzeichnislogik hinter der Protokollzeile zu
 /// <c>Settings.Default.Upgrade()</c> — mit erfundenen Ordnern, ohne echte
-/// <c>user.config</c>. Siehe <c>werkstatt/tasks/W2-T02.md</c>, Schritt 4.
+/// <c>user.config</c>.
 /// </summary>
 public class SettingsUpgradeHelperTests
 {

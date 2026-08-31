@@ -7,7 +7,7 @@ namespace MortysDLP.Tests;
 /// <summary>
 /// Prüft <see cref="UpdateCache"/>: Lesen/Schreiben, defekte Dateien, atomares Schreiben —
 /// jeweils gegen ein eigenes Temp-Verzeichnis, ohne die echte Anwendungsablage zu berühren.
-/// Siehe <c>werkstatt/tasks/W2-T06.md</c>.
+///
 /// </summary>
 public class UpdateCacheTests : IDisposable
 {

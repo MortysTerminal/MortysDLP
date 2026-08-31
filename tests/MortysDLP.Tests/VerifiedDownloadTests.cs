@@ -10,7 +10,7 @@ namespace MortysDLP.Tests;
 /// <summary>
 /// Prüft <see cref="VerifiedDownload"/> über einen gefälschten <see cref="HttpMessageHandler"/>
 /// — kein echter Netzzugriff, keine echte Datei außerhalb eines eigenen Temp-Verzeichnisses.
-/// Siehe <c>werkstatt/tasks/W2-T07.md</c>.
+///
 /// </summary>
 public class VerifiedDownloadTests : IDisposable
 {

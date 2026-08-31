@@ -6,7 +6,7 @@ namespace MortysDLP.Tests;
 
 /// <summary>
 /// Prüft die Zielprüfung für Netzwerkanfragen (<see cref="UrlSafety"/>) — reine Logik ohne
-/// Netzzugriff. Siehe <c>werkstatt/tasks/W2-T04a.md</c>.
+/// Netzzugriff.
 /// </summary>
 public class UrlSafetyTests
 {

@@ -159,7 +159,7 @@ namespace MortysDLP.Helpers
                     // Log.Info: Ein Umweg über die Warteschlange wäre zwar unschädlich (die
                     // Zeile landet ohnehin im selben Writer), aber diese Stelle läuft bereits
                     // auf dem Schreiber-Thread - direktes Schreiben ist einfacher nachzuvollziehen
-                    // und garantiert, dass die Zeile vor der auslösenden Nachricht steht (W-13).
+                    // und garantiert, dass die Zeile vor der auslösenden Nachricht steht.
                     var deletedLogFiles = CleanupOldFiles(LogsDirectory, DateTime.Now, MaxAge);
                     if (deletedLogFiles.Count > 0)
                     {
@@ -209,7 +209,9 @@ namespace MortysDLP.Helpers
 
         /// <summary>Löscht Protokolldateien, die älter als <paramref name="maxAge"/> sind, und
         /// liefert ihre Pfade zurück — der Aufrufer protokolliert, welche und wie viele es
-        /// waren (W-13: ein erfolgreiches Aufräumen darf nicht stillschweigend geschehen).
+        /// waren. Ein erfolgreiches Aufräumen darf nicht stillschweigend geschehen: Sonst lässt
+        /// sich später nicht unterscheiden, ob eine erwartete Datei nie geschrieben, regulär
+        /// aufgeräumt oder durch einen Fehler verschwunden ist.
         /// Rein für sich testbar, ohne den Schreib-Thread zu berühren.</summary>
         internal static List<string> CleanupOldFiles(string directory, DateTime now, TimeSpan maxAge)
         {

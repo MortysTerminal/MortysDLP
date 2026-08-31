@@ -9,16 +9,15 @@ namespace MortysDLP.Services
 {
     /// <summary>Ergebnis einer Prüfung. Stellt nur den SACHVERHALT fest ("es gibt etwas
     /// Neueres") — <see cref="UpdateAvailable"/> wertet bewusst kein <c>VersionSkip</c> aus.
-    /// Ob ein Update tatsächlich angeboten wird, entscheidet der Aufrufer (ab W2-T09
-    /// <c>UpdateDecision.ShouldOffer</c>).</summary>
+    /// Ob ein Update tatsächlich angeboten wird, entscheidet der Aufrufer
+    /// (<c>UpdateDecision.ShouldOffer</c>).</summary>
     internal sealed record UpdateCheckResult(ReleaseInfo? Info, bool FromCache, bool UpdateAvailable);
 
     /// <summary>
     /// Prüft höchstens alle sechs Stunden auf eine neuere MortysDLP-Version — alles dazwischen
     /// kommt aus dem Zwischenspeicher, ohne Netzzugriff. Ersetzt den bisherigen direkten
     /// <see cref="UpdateService"/>-Aufruf im Startpfad und den toten,
-    /// nie instanziierten <c>StartupHealthCheckService</c> (Befund U-05). Siehe
-    /// <c>werkstatt/tasks/W2-T06.md</c>.
+    /// nie instanziierten <c>StartupHealthCheckService</c>.
     /// </summary>
     internal sealed class UpdateCheckService(IReleaseResolver resolver, UpdateCache cache, Func<DateTimeOffset> now)
     {
@@ -28,8 +27,8 @@ namespace MortysDLP.Services
         private const string AppOwner = "MortysTerminal";
         private const string AppRepo = "MortysDLP";
 
-        // Deterministische GitHub-Konvention, siehe 04-UPDATE-ARCHITEKTUR.md Abschnitt 4.
-        // Übergangslösung, bis W2-T07 Assets nach Namensmuster auswählt: Für die beiden
+        // Deterministische GitHub-Konvention für die Adresse eines Release-Anhangs.
+        // Übergangslösung: Für die beiden
         // GitHub-API-Quellen bleibt ReleaseInfo.DownloadUrl bewusst null (Assets werden dort
         // nur befüllt, nicht ausgewertet) - ohne diese Vorlage hätte "Jetzt aktualisieren" im
         // Normalfall (API antwortet zuerst) nichts zum Herunterladen.

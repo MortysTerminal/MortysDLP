@@ -8,7 +8,7 @@ namespace MortysDLP.Services.Releases
     /// Liest eine <c>checksums.txt</c> im Format <c>&lt;sha256&gt;  &lt;dateiname&gt;</c> je
     /// Zeile — das Format von <c>sha256sum</c> bzw. <c>Get-FileHash</c>. Wirft nie: eine
     /// ungültige Zeile wird übersprungen, keine gültige Zeile heißt „keine Prüfsumme
-    /// bekannt", nicht „Datei kaputt". Siehe <c>werkstatt/tasks/W2-T07.md</c>.
+    /// bekannt", nicht „Datei kaputt".
     /// </summary>
     internal static class ChecksumFile
     {

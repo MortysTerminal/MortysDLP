@@ -9,7 +9,7 @@ namespace MortysDLP.Tests;
 /// Prüft die Auswertung der GitHub-Kontingent-Kopfzeilen. <c>now</c> wird in jedem Test
 /// explizit übergeben — kein echtes Warten nötig. xUnit erzeugt pro Testmethode eine neue
 /// Instanz dieser Klasse, der Konstruktor setzt deshalb vor jedem Test den (statischen)
-/// Zustand von <see cref="GitHubRateLimit"/> zurück. Siehe <c>werkstatt/tasks/W2-T03.md</c>.
+/// Zustand von <see cref="GitHubRateLimit"/> zurück.
 /// </summary>
 public class GitHubRateLimitTests
 {

@@ -118,7 +118,7 @@ namespace MortysDLP.Services
         /// Gibt den Pfad-Präfix zurück, unter dem whisper.cpp seine Ausgaben erzeugt hat.
         /// </summary>
         /// <param name="numericProgress">Fortschritt als Anteil (0.0–1.0) — siehe
-        /// <c>werkstatt/02-BEST-PRACTICES.md</c>, Abschnitt 8.</param>
+        ///</param>
         public static async Task<string> RunTranscriptionAsync(
             string whisperExe,
             string ffmpegPath,

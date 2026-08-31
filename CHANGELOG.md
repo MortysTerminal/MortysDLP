@@ -38,10 +38,12 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
 
 ### Hinzugefügt
 - MortysDLP prüft jetzt vor jedem Update-Angebot, ob der Installationsordner ein Update
-  überhaupt zulässt: Liegt er in einem geschützten Systemordner, erscheint ein Hinweis mit der
+  überhaupt zulässt. Liegt er in einem geschützten Systemordner, erscheint ein Hinweis mit der
   Empfehlung, die Installation zu verschieben (inklusive des Hinweises, dass dabei alle
-  Einstellungen verloren gehen). Ist der Ordner schreibgeschützt oder läuft MortysDLP direkt
-  aus einer ZIP-Vorschau, wird das Update gar nicht erst angeboten.
+  Einstellungen verloren gehen) — das Update lässt sich danach trotzdem versuchen, falls die
+  Berechtigungen im Einzelfall doch ausreichen. Ist der Ordner schreibgeschützt oder läuft
+  MortysDLP direkt aus einer ZIP-Vorschau, wird kein Download angeboten; der Banner sagt in
+  diesem Fall, dass es eine neue Version gibt und warum sie sich hier nicht einspielen lässt.
 - Nach einem erfolgreichen Update erscheint jetzt sofort nach dem Neustart eine Bestätigung
   mit der Möglichkeit, die Änderungen der neuen Version anzusehen — einmalig, danach nicht
   erneut.
@@ -87,6 +89,12 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
   verfügbar" zu melden.
 
 ### Behoben
+- Schlägt ein Update fehl, nennt die Meldung jetzt das Protokoll des Installations-Updaters —
+  dort steht der Grund. Bisher verwies sie auf das Protokoll der Anwendung, das genau an der
+  Stelle endet, an der das Update beginnt.
+- Startet MortysDLP nach einem Update neu, ohne dass sich die Version tatsächlich geändert
+  hat, erscheint keine Erfolgsmeldung mehr, sondern das Update gilt korrekt als
+  fehlgeschlagen.
 - Enthält ein Release mehr als eine Datei (z. B. zusätzlich eine Prüfsummenliste), lädt
   MortysDLP jetzt zuverlässig das richtige Update-Paket — unabhängig davon, in welcher
   Reihenfolge GitHub die Anhänge nennt. Sind mehrere Pakete gleichermaßen passend und keines
@@ -153,10 +161,17 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
   jemals zwangsweise zu beenden, falls sie nicht rechtzeitig reagiert. Vorher wird außerdem
   geprüft, ob der Installationsordner beschreibbar ist und genug freier Speicherplatz zur
   Verfügung steht.
-- Der Installations-Updater bekommt einen eigenen, vollständigen Quellcode (bislang ein
-  Binary ohne Quellcode) und läuft künftig auf derselben .NET-Version wie die Hauptanwendung.
-  Bislang nur das Grundgerüst (Kommandozeilenargumente, eigenes Protokoll) — der eigentliche
-  Update-Ablauf wird ausgeliefert, sobald er vollständig ist.
+- Der Installations-Updater hat einen eigenen, vollständigen Quellcode (bislang ein Binary
+  ohne Quellcode) und läuft auf derselben .NET-Version wie die Hauptanwendung: benannte
+  Kommandozeilenargumente, eigenes Protokoll, klare Rückgabewerte.
+- Ein beschädigtes oder unvollständiges Update-Paket lässt den Installations-Updater nicht
+  mehr abstürzen, sondern führt zu einer regulären Fehlermeldung im Protokoll — die
+  vorhandene Installation bleibt unangetastet.
+- Der Installations-Updater lässt Werkzeuge und Verlauf auch dann in Ruhe, wenn ein
+  Paket denselben Pfad in einer abweichenden Schreibweise enthält.
+- Ein Update prüft jetzt vor dem Start, ob auf **beiden** beteiligten Datenträgern genug Platz
+  ist — dem der Installation und dem der Sicherungskopie. Liegen sie auf verschiedenen
+  Laufwerken, wurde bisher nur eines davon geprüft.
 - Alle Netzabfragen laufen jetzt über eine gemeinsame Verbindungsverwaltung statt über fünf
   getrennte, jeweils eigene Verbindungen aufbauende Instanzen. Mit umfangreicher
   Testabdeckung für die Wiederholstrategie und die GitHub-Kontingent-Auswertung.

@@ -7,7 +7,7 @@ namespace MortysDLP.Tests.Releases;
 /// <summary>
 /// Prüft die von Hand gepflegte <c>version.json</c>-Quelle — reine Logik über
 /// <c>ParseVersionJson</c> und der volle Weg über <see cref="FakeHttpMessageHandler"/>, ohne
-/// echten Netzzugriff. Siehe <c>werkstatt/tasks/W2-T05.md</c>.
+/// echten Netzzugriff.
 /// </summary>
 public class VersionJsonSourceTests
 {

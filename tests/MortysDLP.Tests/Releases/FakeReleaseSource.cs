@@ -8,7 +8,7 @@ namespace MortysDLP.Tests.Releases;
 /// <summary>
 /// Attrappe für <see cref="IReleaseSource"/>: fester Rückgabewert, künstliche Verzögerung und
 /// optionale Ausnahme, alles über den Konstruktor konfigurierbar. Zählt ihre Aufrufe, damit die
-/// Resolver-Tests unabhängig von HTTP bleiben. Siehe <c>werkstatt/tasks/W2-T04b.md</c>.
+/// Resolver-Tests unabhängig von HTTP bleiben.
 /// </summary>
 internal sealed class FakeReleaseSource(
     string name,

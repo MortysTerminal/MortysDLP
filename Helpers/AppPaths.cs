@@ -44,13 +44,13 @@ namespace MortysDLP.Helpers
 
         public static string HistoryFile => Path.Combine(DataDir, "download_history.json");
 
-        /// <summary>Zwischenspeicher der Update-Prüfung (W2-T06). Bewusst unter
-        /// <see cref="CacheDir"/> statt direkt unter <see cref="DataDir"/>, wie es der Entwurf
-        /// in <c>04-UPDATE-ARCHITEKTUR.md</c> noch vorsieht — alle Zwischenspeicher sollen an
-        /// einer Stelle liegen.</summary>
+        /// <summary>Zwischenspeicher der Update-Prüfung. Bewusst unter
+        /// <see cref="CacheDir"/> statt direkt unter <see cref="DataDir"/> — alle
+        /// Zwischenspeicher sollen an einer Stelle liegen, damit sie sich gemeinsam leeren
+        /// lassen, ohne dabei Belege wie den Update-Zustand mitzunehmen.</summary>
         public static string UpdateCacheFile => Path.Combine(CacheDir, "update-cache.json");
 
-        /// <summary>Beleg dafür, dass ein Update tatsächlich angestoßen wurde (W2-T10).
+        /// <summary>Beleg dafür, dass ein Update tatsächlich angestoßen wurde.
         /// Bewusst direkt unter <see cref="DataDir"/>, **nicht** unter <see cref="CacheDir"/>:
         /// Anders als ein Zwischenspeicher darf diese Datei nicht mit dem Cache gemeinsam
         /// weggeräumt werden — sie ist der einzige Weg, ein fehlgeschlagenes von einem
@@ -69,7 +69,7 @@ namespace MortysDLP.Helpers
             RemoveObsoleteStartupCacheIfPresent();
         }
 
-        /// <summary>Der nie instanziierte <c>StartupHealthCheckService</c> ist mit W2-T06
+        /// <summary>Der nie instanziierte <c>StartupHealthCheckService</c> ist
         /// entfernt worden - eine vorhandene Datei aus früheren Installationen ist ab jetzt
         /// bedeutungslos und würde bei der Fehlersuche nur verwirren.</summary>
         private static void RemoveObsoleteStartupCacheIfPresent()

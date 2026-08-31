@@ -12,8 +12,7 @@ namespace MortysDLP.Helpers
     /// <summary>
     /// Ein gemeinsamer <see cref="HttpClient"/> für die gesamte Anwendung, mit
     /// Wiederholstrategie und GitHub-Kontingent-Auswertung. Ersetzt die bisher fünf
-    /// getrennten <see cref="HttpClient"/>-Instanzen in den Update-Services — siehe
-    /// <c>werkstatt/04-UPDATE-ARCHITEKTUR.md</c>, Abschnitt 5.
+    /// getrennten <see cref="HttpClient"/>-Instanzen in den Update-Services.
     /// </summary>
     internal static class Http
     {
@@ -23,7 +22,7 @@ namespace MortysDLP.Helpers
         public static HttpClient Shared { get; } = Create(followRedirects: true);
 
         /// <summary>Folgt Weiterleitungen NICHT — für Quellen, die das Ziel der Weiterleitung
-        /// selbst auswerten (siehe W2-T04a).</summary>
+        /// selbst auswerten.</summary>
         public static HttpClient NoRedirect { get; } = Create(followRedirects: false);
 
         private static HttpClient Create(bool followRedirects)

@@ -45,11 +45,19 @@ namespace MortysDLP.Services
         [JsonPropertyName("attempts")]
         public int Attempts { get; set; }
 
-        /// <summary>Changelog-Text der Zielversion, mitgeschrieben beim Update-Start (W3-T06) —
+        /// <summary>Changelog-Text der Zielversion, mitgeschrieben beim Update-Start
         /// erspart nach einem erfolgreichen Neustart einen zweiten Netzabruf für den
         /// „Was ist neu"-Hinweis.</summary>
         [JsonPropertyName("changelog")]
         public string? Changelog { get; set; }
+
+        /// <summary>Protokolldatei, die der Updater für diesen Versuch angelegt hat. Der Grund
+        /// eines fehlgeschlagenen Updates (gesperrte Datei, voller Datenträger, Rollback) steht
+        /// ausschließlich dort — das Protokoll der Anwendung endet beim Start des Updaters.
+        /// Ohne diesen Pfad müsste der Nutzer erst das eine Protokoll öffnen, um den Namen des
+        /// anderen zu finden.</summary>
+        [JsonPropertyName("updaterLogPath")]
+        public string? UpdaterLogPath { get; set; }
     }
 
     /// <summary>
@@ -57,7 +65,7 @@ namespace MortysDLP.Services
     /// <see cref="AppPaths.UpdateStateFile"/>, bewusst **nicht** im Cache-Verzeichnis: Er ist
     /// kein Zwischenspeicher und darf nicht mit dem Cache gemeinsam weggeräumt werden. Darf nie
     /// werfen (fehlende/gesperrte/defekte/fremde Datei zählt wie „kein Zustand") und schreibt
-    /// atomar (<c>.tmp</c> + <see cref="File.Move"/>). Siehe <c>werkstatt/tasks/W2-T10.md</c>.
+    /// atomar (<c>.tmp</c> + <see cref="File.Move"/>).
     /// </summary>
     internal static class UpdateState
     {
@@ -99,7 +107,8 @@ namespace MortysDLP.Services
         /// angelegt; für eine andere Zielversion beginnt die Zählung wieder bei 1.</summary>
         public static async Task RecordAttemptAsync(
             string fromVersion, string toVersion, DateTimeOffset now,
-            string? filePath = null, string? changelog = null, CancellationToken ct = default)
+            string? filePath = null, string? changelog = null, string? updaterLogPath = null,
+            CancellationToken ct = default)
         {
             string path = filePath ?? AppPaths.UpdateStateFile;
 
@@ -118,6 +127,7 @@ namespace MortysDLP.Services
                     StartedUtc = now,
                     Attempts = attempts,
                     Changelog = changelog,
+                    UpdaterLogPath = updaterLogPath,
                 };
 
                 await WriteAsync(data, path, ct);
@@ -162,7 +172,7 @@ namespace MortysDLP.Services
 
         /// <summary>Reine Klassifizierung, ohne Dateizugriff — testbar mit übergebener Zeit.
         /// Ein <paramref name="now"/> vor <c>startedUtc</c> (Zeitstempel aus der Zukunft) gilt
-        /// wie ein zu alter Eintrag (Befund U-14).</summary>
+        /// wie ein zu alter Eintrag.</summary>
         public static UpdateOutcome Evaluate(UpdateStateData? state, AppVersion? current, DateTimeOffset now)
         {
             if (state is null)

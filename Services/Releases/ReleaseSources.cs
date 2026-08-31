@@ -10,7 +10,7 @@ namespace MortysDLP.Services.Releases
     /// Hand gepflegt und kann als einzige Quelle dauerhaft falsch sein, wenn diese Pflege
     /// vergessen wird — der Rettungsanker, wenn alle GitHub-Endpunkte schweigen, nicht die
     /// erste Anlaufstelle. Wer die Reihenfolge umdreht, verliert Informationen, ohne robuster zu
-    /// werden. Noch nicht in den Startpfad eingebaut (→ W2-T06); Welle 4 ergänzt hier
+    /// werden. Noch nicht in den Startpfad eingebaut; Welle 4 ergänzt hier
     /// <c>CreateYtDlpChain()</c> und die übrigen Werkzeuge.
     /// </summary>
     internal static class ReleaseSources

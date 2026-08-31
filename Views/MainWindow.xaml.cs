@@ -22,6 +22,11 @@ namespace MortysDLP
         private string? _pendingUpdateVersion;
         private string? _pendingUpdateChangelog;
 
+        /// <summary>Gesetzt, solange der Banner ein Update meldet, das hier nicht installierbar
+        /// ist. Ein Klick auf den Banner zeigt dann die Erklärung statt des Änderungsdialogs —
+        /// „Jetzt aktualisieren" gäbe es an dieser Stelle nichts anzubieten.</summary>
+        private string? _blockedUpdateReasonKey;
+
         internal DownloadPage DownloadPage => _downloadPage;
         internal ConvertPage ConvertPage => _convertPage;
         internal TranscribePage TranscribePage => _transcribePage;
@@ -30,7 +35,7 @@ namespace MortysDLP
         internal GifPage GifPage => _gifPage;
 
         /// <summary>Alle Seiten mit einem abbrechbaren Hintergrundvorgang — Grundlage der
-        /// Update-Vorprüfung aus W3-T02b. Seiten laufen als Singletons im Hintergrund weiter,
+        /// Update-Vorprüfung. Seiten laufen als Singletons im Hintergrund weiter,
         /// auch wenn gerade eine andere Seite angezeigt wird (siehe Navigate-Aufrufe unten).</summary>
         internal IReadOnlyList<ICancellableWork> ActiveWorkSources =>
             new ICancellableWork[] { _downloadPage, _batchDownloadPage, _convertPage, _gifPage, _transcribePage, _twitchPage };
@@ -49,11 +54,12 @@ namespace MortysDLP
             if (Application.Current is not App app)
                 return;
 
-            // Erst die Rückmeldung zu einem zuvor angestoßenen Update (W2-T10), dann erst ein
+            // Erst die Rückmeldung zu einem zuvor angestoßenen Update, dann erst ein
             // ggf. neues Angebot - beides kann in derselben Sitzung zutreffen (Update Y hat
             // nicht gewirkt, Version Z ist inzwischen erschienen).
             if (app.PendingUpdateOutcome is { } outcome)
-                ShowUpdateOutcomeNotice(outcome.Outcome, outcome.ToVersion, outcome.Attempts, outcome.Changelog);
+                ShowUpdateOutcomeNotice(outcome.Outcome, outcome.ToVersion, outcome.Attempts,
+                    outcome.Changelog, outcome.UpdaterLogPath);
 
             if (app.PendingUpdateInfo.HasValue)
             {
@@ -62,15 +68,20 @@ namespace MortysDLP
                 _pendingUpdateChangelog = info.Changelog;
                 ShowUpdateBanner(info.Version, app.PendingUpdateInstallKind);
             }
+            else if (app.BlockedUpdateInfo is { } blocked)
+            {
+                ShowBlockedUpdateBanner(blocked.Version, blocked.ReasonKey);
+            }
         }
 
         /// <summary>Zeigt die Rückmeldung zu einem beim letzten Lauf angestoßenen Update. Bei
         /// einem Fehlschlag mit „Trotzdem erneut versuchen" — das löscht nur den
         /// Schleifenschutz-Zustand, ein neuer Versuch geschieht erst über das nächste
         /// automatische oder manuelle Angebot. Bei Erfolg mit vorliegendem Changelog-Text
-        /// (W3-T06) zusätzlich „Änderungen ansehen" — der einmalige „Was ist neu"-Hinweis, der
+        /// zusätzlich „Änderungen ansehen" — der einmalige „Was ist neu"-Hinweis, der
         /// dank Löschung von <c>update-state.json</c> danach nicht erneut erscheint.</summary>
-        private void ShowUpdateOutcomeNotice(UpdateOutcome outcome, string? version, int attempts, string? changelog)
+        private void ShowUpdateOutcomeNotice(UpdateOutcome outcome, string? version, int attempts,
+            string? changelog, string? updaterLogPath)
         {
             var T = UITextDictionary.Get;
             string versionText = version ?? string.Empty;
@@ -104,9 +115,17 @@ namespace MortysDLP
             if (outcome != UpdateOutcome.Failed)
                 return;
 
+            // Der Grund des Fehlschlags steht im Protokoll des Updaters, nicht in dem der
+            // Anwendung - deren Protokoll endet beim Start des Updaters. Nur wenn der Pfad
+            // nicht aufgezeichnet wurde (Zustandsdatei aus einer älteren Version), bleibt das
+            // App-Protokoll der beste verfügbare Hinweis.
+            string logPathForUser = string.IsNullOrWhiteSpace(updaterLogPath)
+                ? Log.CurrentLogFile
+                : updaterLogPath;
+
             string message =
                 T("Update.Result.Failed").Replace("{0}", versionText, StringComparison.Ordinal) + "\n\n" +
-                T("Update.Result.Failed.Hint").Replace("{0}", Log.CurrentLogFile, StringComparison.Ordinal);
+                T("Update.Result.Failed.Hint").Replace("{0}", logPathForUser, StringComparison.Ordinal);
 
             if (attempts >= UpdateState.MaxAttemptsBeforeBlocking)
                 message += "\n\n" +
@@ -125,12 +144,13 @@ namespace MortysDLP
         }
 
         /// <summary><paramref name="installKind"/> ändert nur den Unterhinweis im Banner
-        /// (der Klick öffnet weiterhin denselben Änderungsdialog) — die eigentliche Sperre für
+        /// (der Klick öffnet weiterhin denselben Änderungsdialog) — die eigentliche Warnung für
         /// <c>NeedsElevation</c> greift erst bei „Jetzt aktualisieren" in
         /// <see cref="btnUpdateBanner_Click"/>, wo mehr Platz für die volle Erklärung ist.</summary>
         private void ShowUpdateBanner(string version, InstallKind? installKind)
         {
             var T = UITextDictionary.Get;
+            _blockedUpdateReasonKey  = null;
             txtUpdateBannerMain.Text = string.Format(T("UpdateBanner.Text"), version);
             txtUpdateBannerSub.Text  = installKind == InstallKind.NeedsElevation
                 ? T("UpdateBanner.SubText.NeedsElevation")
@@ -139,8 +159,32 @@ namespace MortysDLP
             UpdateBanner.Visibility  = Visibility.Visible;
         }
 
+        /// <summary>Banner für ein Update, das es gibt, das sich hier aber nicht installieren
+        /// lässt (schreibgeschützter Ordner, Start aus der ZIP-Vorschau). Der Download wird
+        /// nicht angeboten — der Grund aber genannt, statt dass die Anwendung kommentarlos nie
+        /// wieder ein Update meldet.</summary>
+        private void ShowBlockedUpdateBanner(string version, string reasonKey)
+        {
+            var T = UITextDictionary.Get;
+            _blockedUpdateReasonKey  = reasonKey;
+            txtUpdateBannerMain.Text = T("UpdateBanner.Text.Blocked")
+                .Replace("{0}", version, StringComparison.Ordinal);
+            txtUpdateBannerSub.Text  = T("UpdateBanner.SubText.Blocked");
+            btnDismissBanner.ToolTip = T("UpdateBanner.Dismiss");
+            UpdateBanner.Visibility  = Visibility.Visible;
+        }
+
         private async void btnUpdateBanner_Click(object sender, RoutedEventArgs e)
         {
+            // Update vorhanden, aber hier nicht installierbar: Es gibt nichts zu entscheiden,
+            // also auch keinen Änderungsdialog mit "Jetzt aktualisieren" - nur die Erklärung.
+            if (_blockedUpdateReasonKey is { } reasonKey)
+            {
+                FluentMessageBox.Show(
+                    UITextDictionary.Get(reasonKey), "", MessageBoxImage.Information, this);
+                return;
+            }
+
             var dialog = new UpdateChangelogDialog(_pendingUpdateVersion ?? string.Empty, _pendingUpdateChangelog ?? string.Empty)
             {
                 Owner = this
@@ -151,14 +195,12 @@ namespace MortysDLP
             {
                 case UpdateChoice.Update:
                     if (Application.Current is App appForElevationCheck &&
-                        appForElevationCheck.PendingUpdateInstallKind == InstallKind.NeedsElevation)
+                        appForElevationCheck.PendingUpdateInstallKind == InstallKind.NeedsElevation &&
+                        !ConfirmElevationRisk())
                     {
-                        // Banner bleibt bewusst sichtbar - der Nutzer kann die Installation
-                        // verschieben und es danach erneut versuchen, ohne das Angebot zu
-                        // verlieren (§8, "Achtung beim Fall NeedsElevation").
-                        FluentMessageBox.Show(
-                            UITextDictionary.Get("Update.Elevation.Warning"),
-                            "", MessageBoxImage.Warning, this);
+                        // Abgelehnt: Banner bleibt bewusst sichtbar - der Nutzer kann die
+                        // Installation verschieben und es danach erneut versuchen, ohne das
+                        // Angebot zu verlieren.
                         break;
                     }
 
@@ -177,8 +219,25 @@ namespace MortysDLP
             }
         }
 
+        /// <summary>Erklärt vor einem Update in einem geschützten Systemordner, was dort
+        /// passieren wird, und lässt den Nutzer entscheiden. „Trotzdem versuchen" ist bewusst
+        /// nicht die vorbelegte Antwort, aber vorhanden: Die Einschätzung „geschützter Ordner"
+        /// stammt aus einer Pfadprüfung und kann danebenliegen — etwa bei einer Installation,
+        /// deren Berechtigungen jemand bewusst geöffnet hat. Ein Programm, das dem Nutzer die
+        /// Entscheidung ganz abnimmt, sperrt genau diese Fälle grundlos aus. Scheitert der
+        /// Versuch, meldet der Updater das geordnet und die alte Version läuft weiter.</summary>
+        private bool ConfirmElevationRisk()
+        {
+            var T = UITextDictionary.Get;
+
+            return FluentMessageBox.Show(
+                T("Update.Elevation.Warning"), "", MessageBoxImage.Warning, this,
+                (T("Update.Elevation.TryAnyway"), MessageBoxResult.Yes, false),
+                (T("Common.Button.Cancel"), MessageBoxResult.Cancel, true)) == MessageBoxResult.Yes;
+        }
+
         /// <summary>Schreibt <c>VersionSkip</c> — der Dialog selbst speichert keine
-        /// Einstellungen, das übernimmt der Aufrufer (siehe <c>werkstatt/tasks/W2-T09.md</c>).
+        /// Einstellungen, das übernimmt der Aufrufer.
         /// Best-Effort: Ein Fehlschlag hier soll den Nutzer nicht mit einer Fehlermeldung
         /// stören, nur beim nächsten Start erneut fragen.</summary>
         private static void TrySkipVersion(string? version)

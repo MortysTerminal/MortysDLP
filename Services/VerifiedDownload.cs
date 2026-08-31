@@ -25,8 +25,7 @@ namespace MortysDLP.Services
     /// Lädt eine Datei herunter und prüft sie gegen eine erwartete SHA-256-Prüfsumme und/oder
     /// Größe — <b>bevor</b> sie ihren endgültigen Namen trägt. Bewusst allgemein gehalten (URL,
     /// Zielpfad, erwartete Werte kommen vollständig herein), damit Welle 4 dieselbe Klasse für
-    /// Werkzeug-Downloads (yt-dlp, ffmpeg, Whisper-Modelle) wiederverwenden kann. Siehe
-    /// <c>werkstatt/tasks/W2-T07.md</c>.
+    /// Werkzeug-Downloads (yt-dlp, ffmpeg, Whisper-Modelle) wiederverwenden kann.
     /// </summary>
     internal static class VerifiedDownload
     {
@@ -44,7 +43,7 @@ namespace MortysDLP.Services
         /// einen gefälschten Handler testen lässt.
         /// </summary>
         /// <param name="progress">Fortschritt als Anteil (0.0–1.0) — siehe
-        /// <c>werkstatt/02-BEST-PRACTICES.md</c>, Abschnitt 8. Bleibt unbenutzt, solange
+        /// Bleibt unbenutzt, solange
         /// <c>Content-Length</c> fehlt (Gesamtgröße unbekannt).</param>
         public static async Task<DownloadVerification> ToFileAsync(
             string url, string targetPath,

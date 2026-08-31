@@ -7,8 +7,7 @@ namespace MortysDLP.Helpers
     /// Prüft, ob ein Netzwerkziel angefragt werden darf: nur <c>https</c> und eine feste
     /// Freigabeliste bekannter Update-Quellen. Geprüft wird beides — die URL vor dem Absenden
     /// UND <c>response.RequestMessage?.RequestUri</c> danach, das nach automatischen
-    /// Weiterleitungen das tatsächlich erreichte Ziel ist. Siehe
-    /// <c>werkstatt/04-UPDATE-ARCHITEKTUR.md</c>, Abschnitt 6.
+    /// Weiterleitungen das tatsächlich erreichte Ziel ist.
     /// </summary>
     internal static class UrlSafety
     {
