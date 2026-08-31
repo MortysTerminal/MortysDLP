@@ -32,17 +32,36 @@ namespace MortysDLP.Services.Releases
     /// <summary>Beschreibt, wonach gefragt wird. Repository-Spezifisches (Owner/Repo,
     /// Namensmuster, URL-Vorlage) kommt ausschließlich hierüber herein — keine Quelle darf
     /// eigene Annahmen über ein bestimmtes Repository treffen, sonst lässt sie sich in
-    /// Welle 4 nicht für die anderen Werkzeuge wiederverwenden.</summary>
+    /// Welle 4 nicht für die anderen Werkzeuge wiederverwenden.
+    ///
+    /// <para><c>Owner</c>/<c>Repo</c> sind ein GitHub-Detail, historisch der einzige Kern
+    /// dieses Typs — sie bleiben Pflichtfelder, weil die vier GitHub-Quellen sie brauchen.
+    /// <c>PackageName</c> und <c>PlainTextVersionUrl</c> ergänzen das um die beiden
+    /// GitHub-unabhängigen Fälle: ein PyPI-Paketname ist keine URL, eine reine
+    /// Text-Antwort-URL (z. B. gyan.dev) ist kein Paketname und folgt keinem gemeinsamen
+    /// Muster mehrerer Anbieter. Eine Quelle liest ausschließlich das Feld, das sie
+    /// versteht, und ignoriert den Rest — eine <see cref="ResilientReleaseResolver"/>-Kette
+    /// kann trotzdem GitHub- und Nicht-GitHub-Quellen mischen, weil alle dieselbe Anfrage
+    /// bekommen.</para></summary>
     /// <param name="ETag">Zuletzt bekannter <c>ETag</c> dieser Abfrage. Gesetzt, senden
     /// die beiden GitHub-API-Quellen <c>If-None-Match</c> — eine Bestätigung per <c>304</c>
     /// kostet kein Kontingent.</param>
+    /// <param name="PackageName">Paketname für <see cref="PyPiReleaseSource"/>, z. B.
+    /// <c>"yt-dlp"</c>. <c>null</c>, wenn die Kette keine PyPI-Quelle enthält.</param>
+    /// <param name="PlainTextVersionUrl">Vollständige URL für <see cref="PlainTextVersionSource"/>,
+    /// deren Antwort ausschließlich aus einer Versionsnummer besteht (z. B.
+    /// <c>https://www.gyan.dev/ffmpeg/builds/release-version</c>). Anders als bei
+    /// <c>PackageName</c> gibt es hier kein gemeinsames URL-Muster mehrerer Anbieter — die
+    /// Quelle kennt nur die fertige Adresse, nie einen Anbieter.</param>
     internal sealed record ReleaseQuery(
         string Owner,
         string Repo,
         string? AssetPattern = null,
         string? DownloadUrlTemplate = null,
         bool AllowPrerelease = false,
-        string? ETag = null);
+        string? ETag = null,
+        string? PackageName = null,
+        string? PlainTextVersionUrl = null);
 
     /// <summary>Ergebnis einer Quelle. Führt bewusst nur die geparste <see cref="AppVersion"/>,
     /// keine Roh-Zeichenkette des Tags — jede Quelle schreibt den Tag anders,
@@ -52,7 +71,7 @@ namespace MortysDLP.Services.Releases
     /// wenn die Quelle keine Kopfzeile mitschickt.</param>
     /// <param name="NotModified">true nur, wenn diese Antwort aus einem <c>304 Not Modified</c>
     /// stammt — dann sind alle anderen Felder außer <see cref="ETag"/> und
-    /// <see cref="SourceName"/> bedeutungslos. Der Aufrufer (<c>UpdateCheckService</c>)
+    /// <see cref="SourceName"/> bedeutungslos. Der Aufrufer (<c>ToolCheckService</c>)
     /// bestätigt in diesem Fall den vorhandenen Zwischenspeicher-Eintrag, statt ihn zu
     /// ersetzen.</param>
     internal sealed record ReleaseInfo(

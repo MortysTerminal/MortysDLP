@@ -1,5 +1,6 @@
 using MortysDLP.Helpers;
 using System.Globalization;
+using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
 
@@ -126,5 +127,91 @@ public class GitHubRateLimitTests
 
         Assert.Null(exception);
         Assert.False(GitHubRateLimit.IsExhausted(Now));
+    }
+
+    [Fact]
+    public void Observe_ErschoepftMitMehrerenPrueflingen_NenntDerenAnzahlImProtokoll()
+    {
+        string logDir = Path.Combine(Path.GetTempPath(), "MortysDLP.Tests.GitHubRateLimit", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(logDir);
+        Log.LogsDirectory = logDir;
+        Log.MinLevel = LogLevel.Debug;
+        try
+        {
+            GitHubRateLimit.RecordQuery("app", Now);
+            GitHubRateLimit.RecordQuery("yt-dlp", Now);
+            GitHubRateLimit.RecordQuery("ffmpeg", Now);
+
+            var headers = MakeHeaders(
+                ("X-RateLimit-Remaining", "0"),
+                ("X-RateLimit-Reset", Now.AddMinutes(20).ToUnixTimeSeconds().ToString(CultureInfo.InvariantCulture)));
+            GitHubRateLimit.Observe(headers, Now);
+            Log.CloseForTests();
+
+            string content = File.ReadAllText(Log.CurrentLogFile);
+            Assert.Contains("3 Prüfling(e)", content, StringComparison.Ordinal);
+        }
+        finally
+        {
+            try { Directory.Delete(logDir, recursive: true); } catch { /* Best-Effort */ }
+        }
+    }
+
+    [Fact]
+    public void RecordQuery_DerselbeSchluesselMehrfach_ZaehltNurEinmal()
+    {
+        string logDir = Path.Combine(Path.GetTempPath(), "MortysDLP.Tests.GitHubRateLimit", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(logDir);
+        Log.LogsDirectory = logDir;
+        Log.MinLevel = LogLevel.Debug;
+        try
+        {
+            GitHubRateLimit.RecordQuery("app", Now);
+            GitHubRateLimit.RecordQuery("app", Now.AddMinutes(1));
+            GitHubRateLimit.RecordQuery("app", Now.AddMinutes(2));
+
+            var headers = MakeHeaders(
+                ("X-RateLimit-Remaining", "0"),
+                ("X-RateLimit-Reset", Now.AddMinutes(20).ToUnixTimeSeconds().ToString(CultureInfo.InvariantCulture)));
+            GitHubRateLimit.Observe(headers, Now.AddMinutes(2));
+            Log.CloseForTests();
+
+            string content = File.ReadAllText(Log.CurrentLogFile);
+            Assert.Contains("1 Prüfling(e)", content, StringComparison.Ordinal);
+        }
+        finally
+        {
+            try { Directory.Delete(logDir, recursive: true); } catch { /* Best-Effort */ }
+        }
+    }
+
+    [Fact]
+    public void RecordQuery_NachAblaufDesFensters_ZaehlungBeginntNeu()
+    {
+        GitHubRateLimit.RecordQuery("app", Now);
+        GitHubRateLimit.RecordQuery("yt-dlp", Now);
+
+        string logDir = Path.Combine(Path.GetTempPath(), "MortysDLP.Tests.GitHubRateLimit", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(logDir);
+        Log.LogsDirectory = logDir;
+        Log.MinLevel = LogLevel.Debug;
+        try
+        {
+            var later = Now.AddHours(2);
+            GitHubRateLimit.RecordQuery("ffmpeg", later);
+
+            var headers = MakeHeaders(
+                ("X-RateLimit-Remaining", "0"),
+                ("X-RateLimit-Reset", later.AddMinutes(20).ToUnixTimeSeconds().ToString(CultureInfo.InvariantCulture)));
+            GitHubRateLimit.Observe(headers, later);
+            Log.CloseForTests();
+
+            string content = File.ReadAllText(Log.CurrentLogFile);
+            Assert.Contains("1 Prüfling(e)", content, StringComparison.Ordinal);
+        }
+        finally
+        {
+            try { Directory.Delete(logDir, recursive: true); } catch { /* Best-Effort */ }
+        }
     }
 }

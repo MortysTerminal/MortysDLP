@@ -114,12 +114,40 @@ public class UpdateCacheTests : IDisposable
     [Fact]
     public async Task ReadAsync_FalscheSchemaVersion_LiefertNull()
     {
-        await File.WriteAllTextAsync(_filePath, """{"schemaVersion":2,"entries":{"app":{"version":"2026.06.01"}}}""");
+        await File.WriteAllTextAsync(_filePath, """{"schemaVersion":99,"entries":{"app":{"version":"2026.06.01"}}}""");
         var cache = new UpdateCache(_filePath);
 
         var entry = await cache.ReadAsync("app", CancellationToken.None);
 
         Assert.Null(entry);
+    }
+
+    [Fact]
+    public async Task ReadAsync_AlteSchemaVersionOhneSha256UndSize_WirdVerworfenNichtFalschGelesen()
+    {
+        // Schema 1 (vor Sha256/ExpectedSize) - ein Eintrag im alten Format darf nicht als
+        // gültig durchgehen, nur weil die vorhandenen Felder zufällig lesbar wären.
+        await File.WriteAllTextAsync(_filePath, """{"schemaVersion":1,"entries":{"app":{"version":"2026.06.01"}}}""");
+        var cache = new UpdateCache(_filePath);
+
+        var entry = await cache.ReadAsync("app", CancellationToken.None);
+
+        Assert.Null(entry);
+    }
+
+    [Fact]
+    public async Task WriteAsync_DannReadAsync_TraegtSha256UndExpectedSize()
+    {
+        var cache = new UpdateCache(_filePath);
+        var entry = MakeEntry();
+        entry.Sha256 = "a".PadLeft(64, '0');
+        entry.ExpectedSize = 12345;
+
+        await cache.WriteAsync("app", entry, CancellationToken.None);
+        var read = await cache.ReadAsync("app", CancellationToken.None);
+
+        Assert.Equal(entry.Sha256, read!.Sha256);
+        Assert.Equal(entry.ExpectedSize, read.ExpectedSize);
     }
 
     [Fact]

@@ -6,7 +6,7 @@ namespace MortysDLP.Services
     /// <summary>
     /// Entscheidet, ob ein Update angeboten wird — reine Logik, ohne Oberfläche und ohne
     /// direkten Settings-Zugriff. Der Sachverhalt ("es gibt etwas Neueres") kommt bereits
-    /// fertig aus <see cref="UpdateCheckService"/>; hier kommen <c>VersionSkip</c>
+    /// fertig aus <see cref="ToolCheckService"/>; hier kommen <c>VersionSkip</c>
     /// und der Schleifenschutz dazu. Genau diese Trennung fehlte beim ersten Anlauf:
     /// Die Prüfung stand im Startpfad, das Schreiben von <c>VersionSkip</c> nirgends — die
     /// Einstellung wurde gelesen, aber nie geschrieben.

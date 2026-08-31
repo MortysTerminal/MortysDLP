@@ -19,7 +19,13 @@ namespace MortysDLP.Services
     /// </summary>
     internal sealed class UpdateCache(string? filePath = null)
     {
-        private const int CurrentSchemaVersion = 1;
+        // Erhöht für Prüfsumme/Größe (Sha256/ExpectedSize) in UpdateCacheEntry - ein Eintrag im
+        // alten Format ohne diese Felder wird verworfen und neu geholt statt falsch gelesen zu
+        // werden (LoadAsync unten prüft bereits auf Gleichheit, nicht nur "vorhanden").
+        // internal, nicht private: UpdateCacheData.SchemaVersion (unten) muss denselben Wert als
+        // Standard tragen, sonst würde ein frisch angelegter Eintrag sofort wieder als
+        // "falsche Schemaversion" verworfen.
+        internal const int CurrentSchemaVersion = 2;
 
         private static readonly JsonSerializerOptions WriteOptions = new() { WriteIndented = true };
 
@@ -104,7 +110,7 @@ namespace MortysDLP.Services
     internal sealed class UpdateCacheData
     {
         [JsonPropertyName("schemaVersion")]
-        public int SchemaVersion { get; set; } = 1;
+        public int SchemaVersion { get; set; } = UpdateCache.CurrentSchemaVersion;
 
         [JsonPropertyName("entries")]
         public Dictionary<string, UpdateCacheEntry> Entries { get; set; } = [];
@@ -132,5 +138,14 @@ namespace MortysDLP.Services
 
         [JsonPropertyName("source")]
         public string? Source { get; set; }
+
+        /// <summary>Für Werkzeuge wichtiger als für die App: Dort existiert seltener eine
+        /// <c>checksums.txt</c>, sodass diese Angabe aus der Release-Quelle selbst (z. B.
+        /// <c>version.json</c>) oft der einzige verfügbare Beleg ist.</summary>
+        [JsonPropertyName("sha256")]
+        public string? Sha256 { get; set; }
+
+        [JsonPropertyName("expectedSize")]
+        public long? ExpectedSize { get; set; }
     }
 }

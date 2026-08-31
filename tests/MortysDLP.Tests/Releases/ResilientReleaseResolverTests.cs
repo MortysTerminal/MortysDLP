@@ -221,6 +221,36 @@ public class ResilientReleaseResolverTests : IDisposable
     }
 
     [Fact]
+    public async Task ResolveAsync_GitHubQuelleAngefragt_ZaehltAlsPruefling()
+    {
+        var handler = new FakeHttpMessageHandler().When(@"releases/latest$", content: """{"tag_name":"2026.06.01"}""");
+        using var client = new HttpClient(handler);
+        var resolver = new ResilientReleaseResolver([new GitHubApiLatestSource(client)]);
+
+        await resolver.ResolveAsync(Query, null, CancellationToken.None);
+
+        // Indirekt geprüft über die Erschöpfungs-Protokollzeile - GitHubRateLimit selbst hat
+        // dafür keinen öffentlichen Lesezugriff auf die Zählung.
+        GitHubRateLimit.Observe(MakeExhaustedRateLimitHeaders(), DateTimeOffset.UtcNow);
+        Log.CloseForTests();
+
+        Assert.Contains("1 Prüfling(e)", File.ReadAllText(Log.CurrentLogFile));
+    }
+
+    [Fact]
+    public async Task ResolveAsync_NichtGitHubQuelle_ZaehltNichtAlsPruefling()
+    {
+        var resolver = new ResilientReleaseResolver([new FakeReleaseSource("nicht-github", result: MakeInfo("2026.06.01"))]);
+
+        await resolver.ResolveAsync(Query, null, CancellationToken.None);
+
+        GitHubRateLimit.Observe(MakeExhaustedRateLimitHeaders(), DateTimeOffset.UtcNow);
+        Log.CloseForTests();
+
+        Assert.Contains("0 Prüfling(e)", File.ReadAllText(Log.CurrentLogFile));
+    }
+
+    [Fact]
     public void CreateAppChain_LiefertQuellenInDerRichtigenReihenfolge()
     {
         var chain = ReleaseSources.CreateAppChain();

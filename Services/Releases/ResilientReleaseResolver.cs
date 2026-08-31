@@ -46,10 +46,20 @@ namespace MortysDLP.Services.Releases
             {
                 ct.ThrowIfCancellationRequested();
 
-                if (IsGitHubApiSource(source) && GitHubRateLimit.IsExhausted(DateTimeOffset.UtcNow))
+                if (IsGitHubApiSource(source))
                 {
-                    Log.Info($"'{source.Name}' übersprungen: GitHub-Kontingent erschöpft.");
-                    continue;
+                    DateTimeOffset nowUtc = DateTimeOffset.UtcNow;
+
+                    // Zählt als "hat gefragt", auch wenn der Aufruf gleich darauf wegen
+                    // erschöpften Kontingents übersprungen wird - genau dieser Fall soll in die
+                    // Prüflinge-Zählung einfließen, nicht nur tatsächlich gesendete Anfragen.
+                    GitHubRateLimit.RecordQuery($"{query.Owner}/{query.Repo}", nowUtc);
+
+                    if (GitHubRateLimit.IsExhausted(nowUtc))
+                    {
+                        Log.Info($"'{source.Name}' übersprungen: GitHub-Kontingent erschöpft.");
+                        continue;
+                    }
                 }
 
                 ReleaseInfo? info;
@@ -92,7 +102,7 @@ namespace MortysDLP.Services.Releases
                     // 304: bestätigt nur, dass sich seit dem mitgeschickten ETag
                     // nichts geändert hat - kein echter Versionswert, also nie über die
                     // Regel gegen veraltete Antworten laufen lassen. Der Aufrufer
-                    // (UpdateCheckService) kennt den zugehörigen Zwischenspeicher-Eintrag und
+                    // (ToolCheckService) kennt den zugehörigen Zwischenspeicher-Eintrag und
                     // bestätigt ihn selbst.
                     Log.Info($"Quelle '{source.Name}' meldet: unverändert (304).");
                     return info;

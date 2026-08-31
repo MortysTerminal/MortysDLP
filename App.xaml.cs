@@ -272,14 +272,14 @@ namespace MortysDLP
         }
 
         /// <summary>Trifft die ENTSCHEIDUNG, ob das Update angeboten wird — der Sachverhalt
-        /// ("es gibt etwas Neueres") kommt bereits fertig aus <see cref="UpdateCheckService"/>.
+        /// ("es gibt etwas Neueres") kommt bereits fertig aus <see cref="ToolCheckService"/>.
         /// Die eigentliche Regel (inkl. <c>VersionSkip</c> und Schleifenschutz) steckt in
         /// <see cref="UpdateDecision.ShouldOffer"/>; hier kommt nur noch die Prüfung auf eine
-        /// tatsächlich nutzbare Download-Adresse dazu, da <see cref="UpdateCheckService"/>
+        /// tatsächlich nutzbare Download-Adresse dazu, da <see cref="ToolCheckService"/>
         /// reine Versionsermittlung ist. Protokolliert immer, wenn ein vorhandenes Update nicht
         /// angeboten wird — ohne diese Zeile ist später nicht erklärbar, warum kein Hinweis
         /// erscheint.</summary>
-        private static bool ShouldOfferUpdate(UpdateCheckResult result, UpdateStateData? previousUpdateState)
+        private static bool ShouldOfferUpdate(ToolCheckResult result, UpdateStateData? previousUpdateState)
         {
             if (result.Info?.DownloadUrl is null || AppInfo.CurrentVersion is not { } current)
                 return false;
@@ -315,12 +315,23 @@ namespace MortysDLP
         {
             try
             {
-                var updateCheckService = new UpdateCheckService(
+                if (AppInfo.CurrentVersion is null)
+                {
+                    // Die App muss ihre eigene Version immer kennen - anders als bei einem
+                    // Werkzeug ist das hier kein Normalfall, sondern ein Zeichen für ein
+                    // kaputtes Assembly. Ohne Vergleichswert wäre jede Antwort bedeutungslos.
+                    Log.Error("Eigene Version nicht ermittelbar - Update-Prüfung übersprungen.");
+                    return;
+                }
+
+                var toolCheckService = new ToolCheckService(
                     new ResilientReleaseResolver(ReleaseSources.CreateAppChain()),
                     new UpdateCache(),
                     () => DateTimeOffset.UtcNow);
 
-                var checkResult = await updateCheckService.CheckAppAsync(force: false, CancellationToken.None);
+                var checkResult = await toolCheckService.CheckAsync(
+                    AppCacheKey, BuildAppQuery(), AppInfo.CurrentVersion, ToolCheckService.AppCacheLifetime,
+                    force: false, CancellationToken.None);
 
                 if (!ShouldOfferUpdate(checkResult, previousUpdateState))
                 {
@@ -521,6 +532,24 @@ namespace MortysDLP
         /// mehreren Treffern bevorzugt (siehe dort).</summary>
         private const string MainAssetPattern = "MortysDLP*.zip";
 
+        // Die App ist seit der Verallgemeinerung auf ToolCheckService nur noch ein Aufrufer
+        // unter mehreren - diese vier Werte waren zuvor feste Konstanten im (entfernten)
+        // UpdateCheckService, jetzt baut BuildAppQuery() daraus die eigene Anfrage.
+        private const string AppCacheKey = "app";
+        private const string AppOwner = "MortysTerminal";
+        private const string AppRepo = "MortysDLP";
+
+        // Deterministische GitHub-Konvention für die Adresse eines Release-Anhangs.
+        // Übergangslösung: Für die beiden GitHub-API-Quellen bleibt ReleaseInfo.DownloadUrl
+        // bewusst null (Assets werden dort nur befüllt, nicht ausgewertet) - ohne diese Vorlage
+        // hätte "Jetzt aktualisieren" im Normalfall (API antwortet zuerst) nichts zum
+        // Herunterladen.
+        private const string AppDownloadUrlTemplate =
+            "https://github.com/{owner}/{repo}/releases/download/{tag}/MortysDLP.zip";
+
+        private static ReleaseQuery BuildAppQuery() =>
+            new(AppOwner, AppRepo, DownloadUrlTemplate: AppDownloadUrlTemplate);
+
         public async Task StartUpdate()
         {
             if (!ConfirmActiveWorkOrCancel())
@@ -532,11 +561,13 @@ namespace MortysDLP
                 // Fallback: kein PendingUpdateInfo vorhanden (z. B. MainWindow ohne
                 // vorangegangenen Startpfad) - erneut über dieselbe Ausweichkette prüfen,
                 // erzwungen statt aus dem Zwischenspeicher.
-                var updateCheckService = new UpdateCheckService(
+                var toolCheckService = new ToolCheckService(
                     new ResilientReleaseResolver(ReleaseSources.CreateAppChain()),
                     new UpdateCache(),
                     () => DateTimeOffset.UtcNow);
-                var result = await updateCheckService.CheckAppAsync(force: true, CancellationToken.None);
+                var result = await toolCheckService.CheckAsync(
+                    AppCacheKey, BuildAppQuery(), AppInfo.CurrentVersion, ToolCheckService.AppCacheLifetime,
+                    force: true, CancellationToken.None);
 
                 if (result.Info?.DownloadUrl is not { } assetUrl)
                 {

@@ -153,6 +153,9 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
   Jetzt erscheint sie genau einmal, stderr-Zeilen weiterhin erkennbar markiert.
 
 ### Intern
+- Die Prüfung auf neue Versionen ist jetzt so gebaut, dass sie sich für beliebige externe
+  Werkzeuge wiederverwenden lässt, nicht nur für MortysDLP selbst — Grundlage für künftige
+  automatische Werkzeug-Updates. Für Nutzer ändert sich dadurch noch nichts.
 - Aufräumende Vorgänge in der Update-Kette protokollieren jetzt auch ihren Erfolg, nicht nur
   einen Fehlschlag: geleerter Update-Zwischenspeicher, gelöschter Update-Zustand, gelöschte
   alte Protokolldateien. Der Installations-Updater bekommt außerdem erstmals eine eigene

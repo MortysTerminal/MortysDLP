@@ -185,7 +185,29 @@ namespace MortysDLP.Helpers
         private const int LowRemainingThreshold = 5;
         private static readonly TimeSpan MaxSkipDuration = TimeSpan.FromHours(1);
 
+        // Rollierendes Fenster der letzten Stunde: Mit fünf Prüflingen statt einem (App +
+        // Werkzeuge, Welle 4) ist das Kontingent deutlich schneller erschöpft - die
+        // Protokollzeile bei Erschöpfung soll nennen, wie viele Prüflinge dazu beigetragen
+        // haben, nicht nur dass es passiert ist.
+        private static readonly HashSet<string> _queriedThisWindow = new(StringComparer.OrdinalIgnoreCase);
+        private static DateTimeOffset _windowStartUtc = DateTimeOffset.MinValue;
+
         public static DateTimeOffset? SkipUntilUtc { get; private set; }
+
+        /// <summary>Vermerkt, dass <paramref name="prueflingKey"/> gerade eine GitHub-API-Quelle
+        /// angefragt hat — unabhängig davon, ob das Kontingent dabei bereits erschöpft ist.
+        /// Das Fenster beginnt bei der ersten Aufzeichnung neu, sobald die letzte Stunde
+        /// abgelaufen ist.</summary>
+        public static void RecordQuery(string prueflingKey, DateTimeOffset now)
+        {
+            if (now - _windowStartUtc > MaxSkipDuration)
+            {
+                _queriedThisWindow.Clear();
+                _windowStartUtc = now;
+            }
+
+            _queriedThisWindow.Add(prueflingKey);
+        }
 
         /// <summary>Liest <c>X-RateLimit-Remaining</c>/<c>-Reset</c> aus einer Antwort. Bei
         /// einem Rest unter 5 gilt das Kontingent bis zum Reset-Zeitpunkt (höchstens aber eine
@@ -211,7 +233,8 @@ namespace MortysDLP.Helpers
 
             SkipUntilUtc = resetUtc;
             Log.Info($"GitHub-API-Kontingent knapp (verbleibend={remaining}) - " +
-                $"API-Quellen bis {resetUtc:u} übersprungen.");
+                $"API-Quellen bis {resetUtc:u} übersprungen. {_queriedThisWindow.Count} " +
+                "Prüfling(e) haben in dieser Stunde bereits gefragt.");
         }
 
         public static bool IsExhausted(DateTimeOffset now) =>
@@ -219,7 +242,12 @@ namespace MortysDLP.Helpers
 
         /// <summary>Nur für Tests: setzt den beobachteten Kontingent-Zustand zurück, damit
         /// Testfälle sich nicht gegenseitig beeinflussen.</summary>
-        internal static void ResetForTests() => SkipUntilUtc = null;
+        internal static void ResetForTests()
+        {
+            SkipUntilUtc = null;
+            _queriedThisWindow.Clear();
+            _windowStartUtc = DateTimeOffset.MinValue;
+        }
 
         private static bool TryGetIntHeader(HttpResponseHeaders headers, string name, out int value)
         {

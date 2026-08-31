@@ -8,7 +8,7 @@ namespace MortysDLP.Services
     /// <summary>
     /// Hilfsfunktionen rund um das App-Update, die nichts mit der Versionsermittlung zu tun
     /// haben (die läuft über <c>Services/Releases/*</c> und
-    /// <see cref="UpdateCheckService"/>). Download und Prüfung übernimmt
+    /// <see cref="ToolCheckService"/>). Download und Prüfung übernimmt
     /// <see cref="VerifiedDownload"/>.
     /// </summary>
     internal class UpdateService
