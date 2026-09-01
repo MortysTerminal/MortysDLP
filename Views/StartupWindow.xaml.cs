@@ -383,7 +383,19 @@ namespace MortysDLP
             dialog.Show();
 
             var progress = new Progress<double>(dialog.SetProgress);
-            var stage = new Progress<ToolInstallStage>(s => SetStatus(StageText(s, tool.DisplayName, T)));
+
+            // Nach dem Download bleibt der Dialog offen (Entpacken, Ersetzen, Prüfen) - ohne
+            // eigene Anzeige dieser Abschnitte sähe er bei 100 % eingefroren aus, obwohl im
+            // Hintergrund weitergearbeitet wird. Die Statuszeile im Hintergrundfenster
+            // (SetStatus) allein reicht nicht: Der modale Dialog verdeckt sie.
+            var stage = new Progress<ToolInstallStage>(s =>
+            {
+                string text = StageText(s, tool.DisplayName, T);
+                SetStatus(text);
+
+                if (s != ToolInstallStage.Downloading)
+                    dialog.SetStage(text);
+            });
 
             SetStatus(downloadText);
 

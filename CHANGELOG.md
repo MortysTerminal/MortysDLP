@@ -181,6 +181,13 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
 - Im Fortschrittsfenster eines Downloads lag der Knopf „Abbrechen" bei größerer
   Anzeigeskalierung außerhalb des Fensters und war damit nicht erreichbar. Das Fenster richtet
   seine Höhe jetzt nach dem Inhalt, und ein langer Text bricht um statt zu verdrängen.
+- **Das Fortschrittsfenster beim Herunterladen eines Werkzeugs sah nach 100 % eingefroren
+  aus.** Nach dem eigentlichen Download laufen im Hintergrund noch das Entpacken, das
+  Einsetzen und eine Erfolgskontrolle — bislang ohne jede sichtbare Rückmeldung im Fenster, das
+  bei vollem Balken einfach stehen blieb. Das konnte den Eindruck erwecken, die Anwendung habe
+  sich aufgehängt, obwohl im Hintergrund alles ordnungsgemäß weiterlief. Das Fenster zeigt jetzt
+  für jeden dieser Abschnitte einen eigenen Text und einen pulsierenden statt eingefrorenen
+  Balken.
 - Für yt-dlp wird kein Update mehr angeboten, wenn die installierte Fassung **neuer** ist als
   die veröffentlichte — etwa nach einem Zwischenbuild. Bisher genügte es, dass sich die beiden
   Versionsangaben unterschieden, und das Angebot war dann ein Rückschritt. Ebenso erscheint

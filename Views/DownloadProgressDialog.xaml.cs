@@ -49,6 +49,18 @@ namespace MortysDLP
             PercentText.Text = $"{clamped * 100:F0} %";
         }
 
+        /// <summary>Wechselt die Anzeige auf einen Abschnitt ohne eigenen Prozentwert
+        /// (Entpacken, Ersetzen, Prüfen) — der Balken pulsiert wieder, statt bei 100 % stehen
+        /// zu bleiben. Ohne diesen Wechsel sieht der Dialog nach dem Download eingefroren aus,
+        /// obwohl im Hintergrund weitergearbeitet wird: Der Nutzer sieht nur den Balken, nicht
+        /// die Statuszeile dahinter, die zwar mitläuft, aber vom Dialog verdeckt wird.</summary>
+        public void SetStage(string text)
+        {
+            InfoText.Text = text;
+            ProgressBar.IsIndeterminate = true;
+            PercentText.Text = "";
+        }
+
         private void CancelButton_Click(object sender, RoutedEventArgs e)
         {
             // Explizit auslösen statt sich nur auf OnClosing zu verlassen, und den Knopf
