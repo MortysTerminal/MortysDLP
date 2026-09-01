@@ -4,7 +4,7 @@
 geplant ist. Bekannte Einschränkungen sind bewusst mit aufgeführt; sie werden nach und nach
 behoben.
 
-**Stand:** 2026-08-27 · beschreibt Version `2026.06.01`
+**Stand:** 2026-09-01 · beschreibt Version `2026.06.01`
 
 ---
 
@@ -19,10 +19,11 @@ behoben.
 7. [Tab: Transkribieren](#7-tab-transkribieren)
 8. [Tab: GIF-Maker](#8-tab-gif-maker)
 9. [Tab: Twitch-Download](#9-tab-twitch-download)
-10. [Einstellungen](#10-einstellungen)
-11. [Fenster & Dialoge](#11-fenster--dialoge)
-12. [Selbst-Update](#12-selbst-update)
-13. [Wo liegt was](#13-wo-liegt-was)
+10. [Tab: Werkzeuge](#10-tab-werkzeuge)
+11. [Einstellungen](#11-einstellungen)
+12. [Fenster & Dialoge](#12-fenster--dialoge)
+13. [Selbst-Update](#13-selbst-update)
+14. [Wo liegt was](#14-wo-liegt-was)
 
 ---
 
@@ -79,7 +80,7 @@ Ablauf beim Start (`App.OnStartup`):
 > erst mit mehr verwalteten Werkzeugen.
 
 **Fehlerbehandlung:** Ein unerwarteter Fehler beendet MortysDLP nicht mehr wortlos. Er wird in
-einer Protokolldatei festgehalten (siehe Abschnitt 13) und in einem Dialog mit verständlichem
+einer Protokolldatei festgehalten (siehe Abschnitt 14) und in einem Dialog mit verständlichem
 Kurztext und ausklappbaren technischen Details angezeigt — mit Knöpfen zum Kopieren der
 Details und zum Öffnen des Protokollordners. Bei Fehlern, die nur eine einzelne Aktion
 betreffen, läuft die Anwendung danach normal weiter. Scheitert bereits der Programmstart
@@ -421,7 +422,35 @@ Wandelt Videos in animierte GIFs.
 
 ---
 
-## 10. Einstellungen
+## 10. Tab: Werkzeuge
+
+Ein eigener Tab zeigt alle in [Abschnitt 3](#3-werkzeuge-externe-tools) beschriebenen
+Werkzeuge an einer Stelle, statt sie über den Start-Dialog und einzelne Seiten verstreut zu
+lassen.
+
+- Je Werkzeug eine Zeile mit **Zustand** (fehlt / unvollständig / installiert / Update
+  verfügbar), **installierter Version**, **Speicherort** und **Dateigröße**.
+- **Reparieren** lädt ein Werkzeug neu und ersetzt es — auch wenn die Versionsnummer stimmt.
+  Das ist der richtige Weg für eine beschädigte oder leere Datei, die sonst nicht ohne
+  manuelles Löschen wieder in Ordnung zu bringen wäre.
+- **Aktualisieren** erscheint nur, wenn tatsächlich eine neuere Fassung bekannt ist.
+- **Deinstallieren** fragt zurück; bei yt-dlp und ffmpeg wird ausdrücklich genannt, welche
+  Funktionen danach nicht mehr verfügbar sind, bis das Werkzeug neu installiert wird.
+- **Ordner öffnen** zeigt den Ablageort im Explorer.
+- **Alle prüfen** stößt eine erneute Prüfung aller Werkzeuge an, ohne den Zwischenspeicher
+  der letzten Prüfung zu verwenden.
+- Läuft eine Aktion, erscheint der Fortschritt in der betroffenen Zeile mit einem eigenen
+  Abbrechen-Knopf; die übrige Seite bleibt bedienbar.
+- Ein eigener Bereich zeigt zusammengefasst, wie viele Whisper-Modelle bereits vollständig
+  heruntergeladen sind. Herunterladen und Löschen einzelner Modelle laufen weiterhin über das
+  Fenster „Whisper-Modelle", dorthin verlinkt der Bereich.
+- Ein laufender Werkzeug-Download wird von der Update-Vorprüfung der Anwendung als aktiver
+  Vorgang erkannt: Ein App-Update fragt dann nach, statt den Download stillschweigend
+  abzubrechen.
+
+---
+
+## 11. Einstellungen
 
 - **Download-Pfade** — öffnet denselben Dialog wie auf der Download-Seite.
 - **App** — GitHub-Seite öffnen, Anwendung beenden.
@@ -434,7 +463,7 @@ Wandelt Videos in animierte GIFs.
 
 ---
 
-## 11. Fenster & Dialoge
+## 12. Fenster & Dialoge
 
 | Fenster | Zweck |
 |---|---|
@@ -451,7 +480,7 @@ Wandelt Videos in animierte GIFs.
 
 ---
 
-## 12. Selbst-Update
+## 13. Selbst-Update
 
 1. Beim Start wird höchstens alle 6 Stunden online geprüft (mehrere unabhängige Quellen als
    Ausweiche) und die neueste Version mit der eigenen verglichen; dazwischen zählt der
@@ -517,7 +546,7 @@ Wandelt Videos in animierte GIFs.
 
 ---
 
-## 13. Wo liegt was
+## 14. Wo liegt was
 
 | Inhalt | Ort (Stand heute) |
 |---|---|

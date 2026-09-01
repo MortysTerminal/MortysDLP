@@ -309,6 +309,12 @@ namespace MortysDLP.Views
                 {
                     mainWindow.ConvertPage.SetUITexts();
                 }
+
+                // Aktualisiere Werkzeuge-Seite
+                if (mainWindow.ToolsPage.IsLoaded)
+                {
+                    mainWindow.ToolsPage.SetUITexts();
+                }
             }
         }
     }

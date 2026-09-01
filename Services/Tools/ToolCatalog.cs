@@ -3,6 +3,7 @@ using MortysDLP.Models;
 using MortysDLP.Services.Releases;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -142,6 +143,36 @@ namespace MortysDLP.Services.Tools
 
             var fresh = await CheckAsync(outcome.Tool, force: true, ct);
             return fresh.Release ?? outcome.Release;
+        }
+
+        /// <summary>
+        /// Summe der tatsächlichen Dateigrößen aller <see cref="IManagedTool.TargetPaths"/>, die
+        /// existieren — für die Größenspalte der Seite „Werkzeuge". Zählt bewusst nur die
+        /// nachverfolgten Zieldateien, nicht den gesamten Werkzeugordner: Bei whisper.cpp liegen
+        /// daneben noch mehrere Laufzeitbibliotheken, die nicht Teil der Erfolgskontrolle sind
+        /// (siehe <see cref="WhisperTool.TargetPaths"/>) — die angezeigte Größe unterschätzt den
+        /// tatsächlichen Speicherbedarf dieses einen Werkzeugs deshalb bewusst, statt eine eigene,
+        /// werkzeugspezifische Ordner-Logik in die Seite zu tragen.
+        /// </summary>
+        public static long GetInstalledSize(IManagedTool tool)
+        {
+            long total = 0;
+
+            foreach (string path in tool.TargetPaths)
+            {
+                try
+                {
+                    var info = new FileInfo(path);
+                    if (info.Exists)
+                        total += info.Length;
+                }
+                catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+                {
+                    Log.Warn($"[{tool.Id}] Größe von '{path}' nicht lesbar: {ex.Message}");
+                }
+            }
+
+            return total;
         }
 
         /// <summary>

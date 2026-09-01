@@ -18,6 +18,7 @@ namespace MortysDLP
         private readonly GifPage _gifPage = new();
         private readonly BatchDownloadPage _batchDownloadPage = new();
         private readonly TwitchPage _twitchPage = new();
+        private readonly ToolsPage _toolsPage = new();
 
         private string? _pendingUpdateVersion;
         private string? _pendingUpdateChangelog;
@@ -33,12 +34,13 @@ namespace MortysDLP
         internal TwitchPage TwitchPage => _twitchPage;
         internal BatchDownloadPage BatchDownloadPage => _batchDownloadPage;
         internal GifPage GifPage => _gifPage;
+        internal ToolsPage ToolsPage => _toolsPage;
 
         /// <summary>Alle Seiten mit einem abbrechbaren Hintergrundvorgang — Grundlage der
         /// Update-Vorprüfung. Seiten laufen als Singletons im Hintergrund weiter,
         /// auch wenn gerade eine andere Seite angezeigt wird (siehe Navigate-Aufrufe unten).</summary>
         internal IReadOnlyList<ICancellableWork> ActiveWorkSources =>
-            new ICancellableWork[] { _downloadPage, _batchDownloadPage, _convertPage, _gifPage, _transcribePage, _twitchPage };
+            new ICancellableWork[] { _downloadPage, _batchDownloadPage, _convertPage, _gifPage, _transcribePage, _twitchPage, _toolsPage };
 
         public MainWindow()
         {
@@ -286,6 +288,7 @@ namespace MortysDLP
             txtNavGifMaker.Text = T("MainWindow.Nav.GifMaker");
             txtNavTwitchDownload.Text = T("MainWindow.Nav.TwitchDownload");
             txtNavBatchDownload.Text = T("MainWindow.Nav.BatchDownload");
+            txtNavTools.Text = T("MainWindow.Nav.Tools");
 
             // Version Label und Softwareinfo
             txtVersionLabel.Text = T("MainWindow.Version");
@@ -324,6 +327,7 @@ namespace MortysDLP
                 T("MainWindow.Nav.Transcribe"),
                 T("MainWindow.Nav.GifMaker"),
                 T("MainWindow.Nav.TwitchDownload"),
+                T("MainWindow.Nav.Tools"),
             };
 
             if (idx < sectionTitles.Length)
@@ -364,6 +368,9 @@ namespace MortysDLP
                     break;
                 case 5:
                     MainFrame.Navigate(_twitchPage);
+                    break;
+                case 6:
+                    MainFrame.Navigate(_toolsPage);
                     break;
             }
         }

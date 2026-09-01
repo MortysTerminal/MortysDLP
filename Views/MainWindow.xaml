@@ -144,6 +144,13 @@
                             <TextBlock x:Name="txtNavTwitchDownload" FontWeight="SemiBold" VerticalAlignment="Center"/>
                         </StackPanel>
                     </ListBoxItem>
+                    <ListBoxItem>
+                        <StackPanel Orientation="Horizontal" Margin="0,1,0,1">
+                            <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE90F;"
+                                       VerticalAlignment="Center" Margin="0,0,10,0" FontSize="15"/>
+                            <TextBlock x:Name="txtNavTools" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </ListBoxItem>
                 </ListBox>
 
                 <!-- Einstellungen – abgesetzt unten links, über dem Spenden-Button -->

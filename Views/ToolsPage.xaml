@@ -1,0 +1,167 @@
+<Page x:Class="MortysDLP.Views.ToolsPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      Title="Werkzeuge"
+      Loaded="ToolsPage_Loaded">
+    <Page.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+    </Page.Resources>
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="0">
+
+            <!-- INFO -->
+            <Border CornerRadius="8" Padding="14,12" Margin="0,0,0,8"
+                    Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="1">
+                <StackPanel>
+                    <TextBlock x:Name="txtSectionInfo" FontWeight="SemiBold" FontSize="11"
+                               Foreground="{StaticResource BrandOrangeBrush}" Margin="0,0,0,8"/>
+                    <TextBlock x:Name="txtInfoText" TextWrapping="Wrap" LineHeight="20" Opacity="0.9"/>
+                </StackPanel>
+            </Border>
+
+            <!-- ALLE PRÜFEN -->
+            <Border CornerRadius="8" Padding="14,12" Margin="0,0,0,8"
+                    Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="1">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock x:Name="txtCheckAllHint" Grid.Column="0" VerticalAlignment="Center"
+                               TextWrapping="Wrap" Opacity="0.75" Margin="0,0,10,0"/>
+                    <Button x:Name="btnCheckAll" Grid.Column="1" Click="btnCheckAll_Click"
+                            Style="{StaticResource PrimaryButtonStyle}" Padding="14,6"/>
+                </Grid>
+            </Border>
+
+            <!-- WERKZEUGE -->
+            <Border CornerRadius="8" Padding="14,12" Margin="0,0,0,8"
+                    Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="1">
+                <StackPanel>
+                    <TextBlock x:Name="txtSectionTools" FontWeight="SemiBold" FontSize="11"
+                               Foreground="{StaticResource BrandOrangeBrush}" Margin="0,0,0,8"/>
+
+                    <ItemsControl x:Name="icTools">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border CornerRadius="8" Padding="12,10" Margin="0,0,0,6"
+                                        Background="{DynamicResource LayerFillColorDefaultBrush}"
+                                        BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="1">
+                                    <StackPanel>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="150"/>
+                                                <ColumnDefinition Width="120"/>
+                                                <ColumnDefinition Width="110"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="65"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <TextBlock Grid.Column="0" Text="{Binding DisplayName}"
+                                                       FontWeight="SemiBold" VerticalAlignment="Center"
+                                                       Margin="0,0,8,0" TextWrapping="Wrap"/>
+
+                                            <TextBlock Grid.Column="1" Text="{Binding StateText}"
+                                                       Foreground="{Binding StateColor}" FontWeight="SemiBold"
+                                                       VerticalAlignment="Center" Margin="0,0,8,0"/>
+
+                                            <TextBlock Grid.Column="2" Text="{Binding VersionText}"
+                                                       VerticalAlignment="Center" Opacity="0.8" Margin="0,0,8,0"
+                                                       TextTrimming="CharacterEllipsis"/>
+
+                                            <TextBlock Grid.Column="3" Text="{Binding LocationText}"
+                                                       VerticalAlignment="Center" Opacity="0.6" Margin="0,0,8,0"
+                                                       TextTrimming="CharacterEllipsis" FontSize="11"
+                                                       ToolTip="{Binding LocationText}"/>
+
+                                            <TextBlock Grid.Column="4" Text="{Binding SizeText}"
+                                                       VerticalAlignment="Center" Opacity="0.75"
+                                                       HorizontalAlignment="Right" Margin="0,0,8,0"/>
+
+                                            <StackPanel Grid.Column="5" Orientation="Horizontal">
+                                                <Button Content="{Binding RepairButtonText}" Tag="{Binding ToolId}"
+                                                        IsEnabled="{Binding CanRepair}" Click="btnRepair_Click"
+                                                        Margin="0,0,6,0" Padding="8,4"/>
+                                                <Button Content="{Binding UpdateButtonText}" Tag="{Binding ToolId}"
+                                                        Visibility="{Binding UpdateVisibility}" Click="btnUpdate_Click"
+                                                        Style="{StaticResource PrimaryButtonStyle}"
+                                                        Margin="0,0,6,0" Padding="8,4"/>
+                                                <Button Content="{Binding UninstallButtonText}" Tag="{Binding ToolId}"
+                                                        IsEnabled="{Binding CanUninstall}" Click="btnUninstall_Click"
+                                                        Margin="0,0,6,0" Padding="8,4"/>
+                                                <Button Content="{Binding OpenFolderButtonText}" Tag="{Binding ToolId}"
+                                                        IsEnabled="{Binding CanOpenFolder}" Click="btnOpenFolder_Click"
+                                                        Padding="8,4"/>
+                                            </StackPanel>
+                                        </Grid>
+
+                                        <!-- Fortschritt während einer laufenden Aktion -->
+                                        <Grid Visibility="{Binding ProgressVisible, Converter={StaticResource BoolToVis}}"
+                                              Margin="0,8,0,0">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0">
+                                                <TextBlock Text="{Binding StatusMessage}" FontSize="11" Opacity="0.8" Margin="0,0,0,4"/>
+                                                <ProgressBar Value="{Binding ProgressFraction}" Minimum="0" Maximum="1"
+                                                             Height="8" Style="{StaticResource FluentProgressBarStyle}"/>
+                                            </StackPanel>
+                                            <Button x:Name="btnCancelRow" Grid.Column="1" Click="btnCancelRow_Click"
+                                                    VerticalAlignment="Center" Padding="10,3"/>
+                                        </Grid>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+
+            <!-- WHISPER-MODELLE -->
+            <Border CornerRadius="8" Padding="14,12" Margin="0,0,0,8"
+                    Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="1">
+                <StackPanel>
+                    <Grid Margin="0,0,0,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" x:Name="txtSectionModels" FontWeight="SemiBold" FontSize="11"
+                                   Foreground="{StaticResource BrandOrangeBrush}" VerticalAlignment="Center"/>
+                        <Button Grid.Column="1" x:Name="btnManageModels" Click="btnManageModels_Click" Padding="10,4"/>
+                    </Grid>
+
+                    <TextBlock x:Name="txtModelsSummary" Opacity="0.75" Margin="0,0,0,8" TextWrapping="Wrap"/>
+
+                    <ItemsControl x:Name="icModels">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border CornerRadius="6" Padding="8,4" Margin="0,0,8,6"
+                                        Background="{DynamicResource LayerFillColorDefaultBrush}"
+                                        BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="1">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="{Binding Name}" Margin="0,0,6,0" FontSize="12"/>
+                                        <TextBlock Text="{Binding StateText}" Foreground="{Binding StateColor}"
+                                                   FontSize="12" FontWeight="SemiBold"/>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+
+        </StackPanel>
+    </ScrollViewer>
+</Page>

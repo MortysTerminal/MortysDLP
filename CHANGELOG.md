@@ -85,6 +85,14 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
   verständlichem Kurztext, ausklappbaren technischen Details, „Details kopieren" und
   „Protokollordner öffnen" angezeigt. Bei Fehlern, die nur eine einzelne Aktion betreffen,
   läuft die Anwendung danach normal weiter.
+- Neuer Tab „Werkzeuge" zeigt alle externen Werkzeuge (yt-dlp, ffmpeg, whisper.cpp,
+  TwitchDownloaderCLI) an einer Stelle: Zustand, installierte Version, Speicherort und
+  Größe. Von dort aus lässt sich jedes Werkzeug reparieren (neu laden und ersetzen, auch bei
+  richtiger Versionsnummer), aktualisieren, deinstallieren oder sein Ordner öffnen — mit
+  Rückfrage vor dem Deinstallieren, die bei yt-dlp und ffmpeg ausdrücklich nennt, welche
+  Funktionen danach fehlen. „Alle prüfen" stößt eine erneute Prüfung ohne Zwischenspeicher an.
+  Ein eigener Bereich zeigt zusammengefasst den Stand der Whisper-Modelle und verlinkt zu
+  deren Verwaltung.
 
 ### Geändert
 - **Der Start wartet nicht mehr sekundenlang auf die yt-dlp-Prüfung.** Die installierte Version
