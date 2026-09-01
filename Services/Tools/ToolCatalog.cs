@@ -4,6 +4,7 @@ using MortysDLP.Services.Releases;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -118,6 +119,71 @@ namespace MortysDLP.Services.Tools
                     $"{(result.FromCache ? ", aus Cache" : "")}]" : ""));
 
             return new ToolCheckOutcome(tool, status, probe, result.Info, remote, result.FromCache, verdict);
+        }
+
+        /// <summary>Zeitlimit je Werkzeug innerhalb von <see cref="CheckAllAsync"/> — zusätzlich zu
+        /// den Zeitlimits, die <see cref="IManagedTool.ProbeAsync"/> und die Quellenkette bereits
+        /// selbst mitbringen. Eine einzelne hängende Prüfung darf trotzdem nicht die gesamte
+        /// gleichzeitige Prüfung offenhalten.</summary>
+        private static readonly TimeSpan PerToolTimeout = TimeSpan.FromSeconds(25);
+
+        /// <summary>
+        /// Prüft mehrere Werkzeuge <b>gleichzeitig</b> statt nacheinander — für die
+        /// Hintergrundprüfung nach dem Start und für „Alle prüfen" auf der Seite „Werkzeuge".
+        /// Liefert immer genau ein Ergebnis je übergebenem Werkzeug, in derselben Reihenfolge:
+        /// Schlägt eine einzelne Prüfung fehl oder überschreitet ihr Zeitlimit, wird das
+        /// protokolliert und für dieses eine Werkzeug ein Ergebnis mit
+        /// <see cref="ToolHealth.NoAnswer"/> bzw. <see cref="ToolProbe.NotInstalled"/>
+        /// zurückgegeben, statt die ganze Prüfung abzubrechen.
+        ///
+        /// <para>Bewusst kein einfaches <c>await Task.WhenAll(tasks)</c> über
+        /// <see cref="CheckAsync"/> direkt: Jede einzelne Aufgabe fängt ihren eigenen Fehler
+        /// bereits ab (s. u.), bevor <c>WhenAll</c> überhaupt etwas sehen könnte — sonst würde
+        /// bei mehreren gleichzeitigen Fehlschlägen nur der erste sichtbar und die übrigen
+        /// stillschweigend verschluckt (02-BEST-PRACTICES.md, Abschnitt 4).</para>
+        /// </summary>
+        public async Task<IReadOnlyList<ToolCheckOutcome>> CheckAllAsync(
+            IReadOnlyList<IManagedTool> tools, bool force, CancellationToken ct)
+        {
+            var outcomes = await Task.WhenAll(tools.Select(t => CheckWithTimeoutAsync(t, force, ct)));
+            return outcomes;
+        }
+
+        /// <summary>Eine einzelne Prüfung mit eigenem Zeitlimit, das den Aufrufer selbst nie
+        /// mit einer Ausnahme verlässt (außer bei echtem Abbruch über <paramref name="ct"/>) —
+        /// das macht <see cref="CheckAllAsync"/> robust, ohne dort jede Aufgabe einzeln
+        /// nachträglich auf ihren Zustand prüfen zu müssen.</summary>
+        private async Task<ToolCheckOutcome> CheckWithTimeoutAsync(IManagedTool tool, bool force, CancellationToken ct)
+        {
+            using var linked = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            linked.CancelAfter(PerToolTimeout);
+
+            try
+            {
+                return await CheckAsync(tool, force, linked.Token);
+            }
+            catch (OperationCanceledException) when (!ct.IsCancellationRequested)
+            {
+                Log.Warn($"[{tool.Id}] Prüfung hat das Zeitlimit " +
+                    $"({PerToolTimeout.TotalSeconds:0} s) überschritten.");
+                return FailureOutcome(tool);
+            }
+            catch (Exception ex)
+            {
+                Log.Warn($"[{tool.Id}] Prüfung fehlgeschlagen: {ex.Message}", ex);
+                return FailureOutcome(tool);
+            }
+        }
+
+        private static ToolCheckOutcome FailureOutcome(IManagedTool tool)
+        {
+            var status = tool.GetStatus();
+            var probe = status.Installed
+                ? new ToolProbe(ToolHealth.NoAnswer, ToolVersion.Unknown, null)
+                : ToolProbe.NotInstalled;
+
+            return new ToolCheckOutcome(tool, status, probe, Release: null, RemoteVersion: ToolVersion.Unknown,
+                FromCache: false, Verdict: new ToolUpdateVerdict(false, "Prüfung fehlgeschlagen oder Zeitlimit überschritten"));
         }
 
         /// <summary>

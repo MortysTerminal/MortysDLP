@@ -135,22 +135,31 @@ namespace MortysDLP
         }
 
         /// <summary>
-        /// Prüft die für den Betrieb <b>erforderlichen</b> Werkzeuge über <see cref="ToolCatalog"/>
-        /// und liefert <c>false</c>, wenn danach eines davon fehlt. Für jedes Werkzeug denselben
-        /// Weg: vorhanden? → sonst anbieten und installieren; vorhanden, aber etwas Neueres da? →
-        /// anbieten. Zwei getrennte Wege für yt-dlp und ffmpeg gab es hier früher, mit jeweils
-        /// eigener Download-, Ersetzungs- und Fehlerbehandlung — und beide ersetzten Dateien ohne
-        /// zu prüfen, ob das Werkzeug danach überhaupt noch antwortet.
+        /// Prüft die für den Betrieb <b>erforderlichen</b> Werkzeuge und liefert <c>false</c>,
+        /// wenn danach eines davon fehlt. Zweigeteilt:
+        ///
+        /// <para><b>Sofort, ohne Netz:</b> Ist die Datei da, und antwortet sie als das
+        /// erwartete Programm (<see cref="ToolStartupDecision"/>)? Läuft für alle
+        /// erforderlichen Werkzeuge <b>gleichzeitig</b> (<see cref="ProbeRequiredToolsAsync"/>)
+        /// statt nacheinander — eine langsame Prüfung hält die andere nicht mehr auf. Das
+        /// entscheidet, ob die Anwendung überhaupt starten kann.</para>
+        ///
+        /// <para><b>Danach, im Hintergrund:</b> Ob es eine neuere Version gibt, prüft
+        /// <c>App.RunBackgroundToolCheckAsync</c> erst, nachdem das Hauptfenster bereits
+        /// sichtbar ist — dieselbe Aufteilung wie beim Update der Anwendung selbst
+        /// (<c>App.RunBackgroundUpdateCheckAsync</c>). Ein Angebot zum Aktualisieren gibt es an
+        /// dieser Stelle deshalb nicht mehr; wer aktualisieren will, tut das auf der Seite
+        /// „Werkzeuge".</para>
+        ///
+        /// <para>Fehlt ein Werkzeug oder antwortet es nicht richtig, bleibt der bekannte Ablauf
+        /// unverändert: nachfragen, laden, bei Ablehnung sauber beenden
+        /// (<see cref="InstallMissingToolAsync"/>) — streng nacheinander, weil ein Dialog kein
+        /// Netzvorgang ist, den man parallelisieren könnte.</para>
         ///
         /// <para>Auch whisper.cpp und TwitchDownloaderCLI stehen mittlerweile in
         /// <see cref="ToolCatalog.CreateAll"/> — deshalb hier die Einschränkung auf
         /// <see cref="IManagedTool.RequiredForOperation"/>: Beide sind optionale Funktionen und
         /// werden weiterhin erst auf ihrer jeweiligen Seite geprüft, nicht bei jedem Start.</para>
-        ///
-        /// <para>Die Prüfungen laufen bewusst weiterhin nacheinander und vor dem Hauptfenster.
-        /// Das Nebenläufigmachen und Verlegen in den Hintergrund ist eine eigene Aufgabe — sie
-        /// setzt voraus, dass alle Werkzeuge über diese Abstraktion laufen, und wird sonst zweimal
-        /// gemacht.</para>
         /// </summary>
         public async Task<bool> ToolUpdaterAsync(IProgress<string>? progress = null)
         {
@@ -161,30 +170,13 @@ namespace MortysDLP
                 WarnIfRunningFromArchive(T);
 
                 var catalog = new ToolCatalog();
-                var summary = new List<string>();
-                bool allRequiredPresent = true;
+                var requiredTools = ToolCatalog.CreateAll().Where(t => t.RequiredForOperation).ToList();
 
-                foreach (var tool in ToolCatalog.CreateAll())
-                {
-                    if (!tool.RequiredForOperation)
-                        continue;
-
-                    var (present, version) = await HandleToolAsync(catalog, tool, T);
-
-                    summary.Add($"{tool.Id}={(present ? version.HasValue ? version.Raw : "vorhanden" : "fehlt")}");
-
-                    if (present || !tool.RequiredForOperation)
-                        continue;
-
-                    // Ohne ein erforderliches Werkzeug abbrechen, statt die restlichen Dialoge
-                    // noch abzufragen: Der Nutzer hat entweder abgelehnt (dann wurde die
-                    // Anwendung schon beendet) oder die Installation ist gescheitert.
-                    allRequiredPresent = false;
-                    break;
-                }
+                var checkedByToolId = await ProbeRequiredToolsAsync(requiredTools, T);
+                var (allPresent, summary) = await EnsureRequiredToolsPresentAsync(catalog, requiredTools, checkedByToolId, T);
 
                 Log.Info($"Werkzeuge: {string.Join(", ", summary)}");
-                return allRequiredPresent;
+                return allPresent;
             }
             catch (Exception ex)
             {
@@ -196,6 +188,73 @@ namespace MortysDLP
                     MessageBoxImage.Error));
                 return false;
             }
+        }
+
+        /// <summary>Existenz und Ausweis für alle erforderlichen Werkzeuge — ganz ohne
+        /// Netzzugriff. Die Existenzprüfung (<see cref="IManagedTool.GetStatus"/>) kostet
+        /// nichts und läuft deshalb einfach der Reihe nach; der Ausweis
+        /// (<see cref="IManagedTool.ProbeAsync"/>, ein kurzer Programmstart bzw. eine
+        /// Dateieigenschaft, aber kein Netzzugriff) läuft für alle vorhandenen Werkzeuge
+        /// <b>gleichzeitig</b>, damit die Gesamtdauer der langsamsten einzelnen Prüfung
+        /// entspricht, nicht ihrer Summe (02-BEST-PRACTICES.md, Abschnitt 3/4).</summary>
+        private async Task<IReadOnlyDictionary<string, (ToolStatus Status, ToolProbe Probe)>> ProbeRequiredToolsAsync(
+            IReadOnlyList<IManagedTool> requiredTools, Func<string, string> T)
+        {
+            var statuses = new Dictionary<string, ToolStatus>();
+
+            foreach (var tool in requiredTools)
+            {
+                SetStatus(StatusChecking(tool, T));
+                var status = tool.GetStatus();
+                statuses[tool.Id] = status;
+                SetStatus(status.Installed ? StatusCheckingVersion(tool, T) : StatusNotFound(tool, T));
+            }
+
+            var installedTools = requiredTools.Where(t => statuses[t.Id].Installed).ToList();
+            var probes = await Task.WhenAll(installedTools.Select(t => t.ProbeAsync(CancellationToken.None)));
+            var probeByToolId = installedTools
+                .Select((tool, i) => (tool.Id, probes[i]))
+                .ToDictionary(x => x.Id, x => x.Item2);
+
+            return requiredTools.ToDictionary(
+                tool => tool.Id,
+                tool => (statuses[tool.Id], probeByToolId.GetValueOrDefault(tool.Id, ToolProbe.NotInstalled)));
+        }
+
+        /// <summary>Fragt nach und installiert für jedes Werkzeug, das laut
+        /// <see cref="ToolStartupDecision"/> nicht sofort starten darf — streng nacheinander,
+        /// in der Reihenfolge von <paramref name="requiredTools"/> (yt-dlp zuerst), und bricht
+        /// beim ersten abgelehnten oder fehlgeschlagenen Werkzeug ab: Wer yt-dlp ablehnt, soll
+        /// nicht im nächsten Atemzug auch noch nach ffmpeg gefragt werden.</summary>
+        private async Task<(bool AllPresent, List<string> Summary)> EnsureRequiredToolsPresentAsync(
+            ToolCatalog catalog, IReadOnlyList<IManagedTool> requiredTools,
+            IReadOnlyDictionary<string, (ToolStatus Status, ToolProbe Probe)> checkedByToolId, Func<string, string> T)
+        {
+            var summary = new List<string>();
+
+            foreach (var tool in requiredTools)
+            {
+                var (status, probe) = checkedByToolId[tool.Id];
+
+                if (ToolStartupDecision.For(status, probe) == ToolStartupAction.CanProceed)
+                {
+                    summary.Add($"{tool.Id}={probe.Version.Raw}");
+                    continue;
+                }
+
+                // Fehlt oder nicht brauchbar: jetzt einmal live fragen - der Ausweis allein
+                // reicht für die Installation nicht, es fehlt die Bezugsadresse
+                // (ToolCatalog.CheckAsync holt beides zusammen).
+                var outcome = await catalog.CheckAsync(tool, force: false, CancellationToken.None);
+                var (present, version) = await InstallMissingToolAsync(catalog, tool, outcome, T);
+
+                summary.Add($"{tool.Id}={(present ? (version.HasValue ? version.Raw : "vorhanden") : "fehlt")}");
+
+                if (!present)
+                    return (false, summary);
+            }
+
+            return (true, summary);
         }
 
         /// <summary>Zeigt einen nicht blockierenden Hinweis, wenn MortysDLP erkennbar aus der
@@ -220,36 +279,6 @@ namespace MortysDLP
                 try { System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo { FileName = info.Path, UseShellExecute = true }); }
                 catch (Exception ex) { Log.Warn("Installationsordner konnte nicht geöffnet werden", ex); }
             }
-        }
-
-        /// <summary>Ein Werkzeug vollständig behandeln: prüfen, ggf. installieren, ggf. Update
-        /// anbieten. Liefert, ob es danach einsatzbereit ist, und die dann bekannte Version — der
-        /// Rückgabewert erspart der Zusammenfassung im Protokoll einen zweiten Prozessstart nur
-        /// zum Nachfragen.</summary>
-        private async Task<(bool Present, ToolVersion Version)> HandleToolAsync(
-            ToolCatalog catalog, IManagedTool tool, Func<string, string> T)
-        {
-            SetStatus(StatusChecking(tool, T));
-
-            // Die reine Dateiprüfung kostet nichts und entscheidet, welche Statuszeile vor der
-            // Netzabfrage sinnvoll ist.
-            var initialStatus = tool.GetStatus();
-            SetStatus(initialStatus.Installed
-                ? StatusCheckingVersion(tool, T)
-                : StatusNotFound(tool, T));
-
-            var outcome = await catalog.CheckAsync(tool, force: false, CancellationToken.None);
-
-            // Nicht `Status.Installed`, sondern `Usable`: Eine Datei mit dem richtigen Namen ist
-            // kein Werkzeug. Liegt dort etwas anderes oder etwas Kaputtes, ist das für den Start
-            // dasselbe wie "fehlt" — nur der erklärende Text unterscheidet sich.
-            if (!outcome.Usable)
-                return await InstallMissingToolAsync(catalog, tool, outcome, T);
-
-            if (!outcome.Verdict.Offer)
-                return (true, outcome.LocalVersion);
-
-            return await OfferToolUpdateAsync(catalog, tool, outcome, T);
         }
 
         /// <summary>Fragt nach und installiert — sowohl für ein fehlendes als auch für ein
@@ -322,69 +351,6 @@ namespace MortysDLP
             // Nach einem Fehlschlag noch einmal nachfragen statt zu raten: Der Start darf nur
             // weiterlaufen, wenn dort jetzt wirklich das Werkzeug liegt.
             return await ConfirmUsableAsync(tool);
-        }
-
-        /// <summary>Bietet ein Update an — und führt es nie ohne Zustimmung durch. Schlägt es fehl,
-        /// bleibt das Werkzeug in der vorherigen Fassung einsatzbereit; der Start läuft weiter.</summary>
-        private async Task<(bool Present, ToolVersion Version)> OfferToolUpdateAsync(
-            ToolCatalog catalog, IManagedTool tool, ToolCheckOutcome outcome, Func<string, string> T)
-        {
-            string message = Fmt(T("StartupWindow.ToolUpdate.NewVersion"),
-                tool.DisplayName, outcome.RemoteVersion, outcome.LocalVersion);
-
-            var answer = FluentMessageBox.Show(
-                message + T("StartupWindow.ToolUpdate.Question"),
-                Fmt(T("StartupWindow.ToolUpdate.Title"), tool.DisplayName),
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Information,
-                this);
-
-            if (answer != MessageBoxResult.Yes)
-            {
-                Log.Info($"[{tool.Id}] Update auf {outcome.RemoteVersion} vom Nutzer abgelehnt - " +
-                    $"{outcome.LocalVersion} bleibt installiert.");
-                return (true, outcome.LocalVersion);
-            }
-
-            var install = await RunInstallAsync(catalog, tool, outcome, T);
-
-            if (install.Success)
-            {
-                FluentMessageBox.Show(
-                    Fmt(T("StartupWindow.ToolUpdate.Success"), tool.DisplayName),
-                    T("StartupWindow.Title.DownloadComplete"),
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information,
-                    this);
-
-                return (true, install.NewVersion);
-            }
-
-            // Der zurückgenommene Fall bekommt eine eigene Meldung: „fehlgeschlagen" allein würde
-            // offenlassen, ob das Werkzeug jetzt noch benutzbar ist - und genau das ist die
-            // einzige Frage, die den Nutzer hier interessiert.
-            if (install.Status == ToolInstallStatus.RolledBack)
-            {
-                FluentMessageBox.Show(
-                    Fmt(T("StartupWindow.ToolUpdate.RolledBack"), tool.DisplayName),
-                    T("StartupWindow.Title.Error"),
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning,
-                    this);
-            }
-            else if (install.Status != ToolInstallStatus.Canceled)
-            {
-                FluentMessageBox.Show(
-                    Fmt(T("StartupWindow.ToolUpdate.Failed"), tool.DisplayName),
-                    T("StartupWindow.Title.Error"),
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning,
-                    this);
-            }
-
-            // Ein fehlgeschlagenes Update lässt das Werkzeug unverändert - aber "unverändert"
-            // heißt hier "wie vorher brauchbar", und das war es vor diesem Zweig bereits.
-            return (true, outcome.LocalVersion);
         }
 
         /// <summary>Fragt das Werkzeug erneut, ob es jetzt brauchbar ist — nach einem

@@ -106,6 +106,13 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
   eine selbst gebaute Fassung), wird wie bisher das Programm gefragt; welcher Weg gegriffen hat,
   steht im Protokoll. Für ffmpeg und ffprobe bleibt es beim Programmaufruf — ihre Dateien tragen
   keine solche Angabe, und mit rund 60 Millisekunden fallen sie ohnehin nicht auf.
+- **Der Start wartet nicht mehr auf die Frage „gibt es eine neuere Werkzeugversion?".** Ob
+  yt-dlp und ffmpeg vorhanden und einsatzbereit sind, wird weiterhin sofort geprüft — jetzt für
+  beide gleichzeitig statt nacheinander. Ob es eine neuere Version gibt, prüft MortysDLP für
+  alle Werkzeuge erst, nachdem das Hauptfenster bereits offen ist, genau wie schon beim
+  Update der Anwendung selbst. Ein Update wird dabei nicht mehr automatisch angeboten — wer
+  ein Werkzeug aktualisieren will, sieht den aktuellen Stand jetzt auf der Seite „Werkzeuge"
+  und stößt es dort an.
 - Werkzeug-Updates (yt-dlp, ffmpeg, ffprobe) sichern die vorhandene Fassung jetzt, bevor sie
   ersetzt wird, und rufen das Werkzeug danach einmal auf. Antwortet es nicht mehr brauchbar,
   wird die vorherige Fassung automatisch wiederhergestellt und der Vorgang als fehlgeschlagen

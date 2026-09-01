@@ -3,6 +3,7 @@ using MortysDLP.Models;
 using MortysDLP.Properties;
 using MortysDLP.Services;
 using MortysDLP.Services.Releases;
+using MortysDLP.Services.Tools;
 using MortysDLP.UITexte;
 using System.Collections.Generic;
 using System.Configuration;
@@ -157,6 +158,12 @@ namespace MortysDLP
                 // stören und bleibt sonst eine unbeobachtete Task-Ausnahme. Sichtbar wird
                 // höchstens eine Protokollzeile, nie ein Dialog.
                 _ = Task.Run(() => RunBackgroundUpdateCheckAsync(mainWindow, previousUpdateState));
+
+                // 5. Dasselbe für die Werkzeuge: Ob es eine neuere Version gibt, wird erst jetzt
+                // geprüft, ohne das Fenster aufzuhalten. Die Existenzprüfung, die tatsächlich
+                // entscheidet, ob die Anwendung starten kann, ist zu diesem Zeitpunkt bereits
+                // gelaufen (splash.ToolUpdaterAsync oben).
+                _ = Task.Run(() => RunBackgroundToolCheckAsync());
 
                 // Aufräumen der temporären ffmpeg-/Entpack-Artefakte (nicht blockierend, Best-Effort)
                 _ = CleanupTempArtifactsAsync();
@@ -365,6 +372,41 @@ namespace MortysDLP
             catch (Exception ex)
             {
                 Log.Warn("Update-Prüfung im Hintergrund fehlgeschlagen", ex);
+            }
+        }
+
+        /// <summary>Prüft im Hintergrund, ob es für die verwalteten Werkzeuge neuere Versionen
+        /// gibt, nachdem das Hauptfenster bereits sichtbar ist. Anders als bei der Anwendung
+        /// selbst gibt es hier <b>kein Angebot</b> mehr — wer ein Werkzeug aktualisieren will,
+        /// tut das auf der Seite „Werkzeuge"; diese Prüfung aktualisiert nur den
+        /// Zwischenspeicher, damit die Seite beim nächsten Öffnen einen frischen Stand zeigt,
+        /// und schreibt eine zusammenfassende Protokollzeile.
+        ///
+        /// <para>Prüft alle vier Werkzeuge, nicht nur die für den Betrieb erforderlichen: Mit
+        /// fünf Prüflingen (App + vier Werkzeuge) ist das GitHub-Kontingent schneller
+        /// ausgeschöpft, deshalb ist der Zwischenspeicher hier Voraussetzung, nicht nur
+        /// Optimierung.</para>
+        ///
+        /// <para>Läuft wie <see cref="RunBackgroundUpdateCheckAsync"/> als eigene Task mit
+        /// eigenem <c>try/catch</c> statt <c>async void</c>.</para></summary>
+        private static async Task RunBackgroundToolCheckAsync()
+        {
+            try
+            {
+                var catalog = new ToolCatalog();
+                var tools = ToolCatalog.CreateAll();
+                var outcomes = await catalog.CheckAllAsync(tools, force: false, CancellationToken.None);
+
+                int fromCache = outcomes.Count(o => o.FromCache);
+                int updatesAvailable = outcomes.Count(o => o.Verdict.Offer);
+
+                Log.Info($"Werkzeugprüfung im Hintergrund abgeschlossen: {outcomes.Count} geprüft " +
+                    $"({fromCache} aus Cache, {outcomes.Count - fromCache} über das Netz), " +
+                    $"{updatesAvailable} mit Update-Angebot.");
+            }
+            catch (Exception ex)
+            {
+                Log.Warn("Werkzeugprüfung im Hintergrund fehlgeschlagen", ex);
             }
         }
 

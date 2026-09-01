@@ -52,15 +52,18 @@ Ablauf beim Start (`App.OnStartup`):
    Explorers (also aus einem temporären Ordner, der beim Schließen verschwindet), erscheint
    ein Hinweis mit den Optionen „Ordner öffnen" und „Trotzdem fortfahren". Der Hinweis blockt
    nicht — die Erkennung ist eine Heuristik, kein sicherer Nachweis.
-4. **Werkzeuge prüfen** — für jedes verwaltete Werkzeug derselbe Ablauf (siehe Abschnitt 3):
+4. **Werkzeuge prüfen, nur was ohne Netz zu beantworten ist** — für yt-dlp und ffmpeg
+   gleichzeitig statt nacheinander, damit eine langsame Prüfung die andere nicht aufhält:
    - Sind alle zugehörigen Dateien vorhanden und nicht leer?
-   - Ist es auch wirklich das Werkzeug? Jedes Werkzeug wird gefragt und muss sich ausweisen
-     (siehe Abschnitt 3, „Woran MortysDLP erkennt, dass es das richtige Werkzeug ist").
-   - Fehlt es oder weist es sich nicht aus: Nachfrage, dann Download mit Fortschrittsdialog.
-     Lehnt der Nutzer ein für den Betrieb erforderliches Werkzeug ab, erklärt ein Dialog, wie es
-     von Hand nachgeholt werden kann, und die Anwendung beendet sich.
-   - Sonst: installierte Version mit der Version der Bezugsquelle vergleichen. Gibt es etwas
-     Neueres, wird ein Update **angeboten** — durchgeführt wird es nie ohne Zustimmung.
+   - Ist es auch wirklich das Werkzeug? Jedes vorhandene Werkzeug wird gefragt und muss sich
+     ausweisen (siehe Abschnitt 3, „Woran MortysDLP erkennt, dass es das richtige Werkzeug
+     ist") — ein kurzer Programmstart bzw. eine Dateieigenschaft, aber kein Netzzugriff.
+   - Fehlt ein Werkzeug oder weist es sich nicht aus: Nachfrage, dann Download mit
+     Fortschrittsdialog. Lehnt der Nutzer ein für den Betrieb erforderliches Werkzeug ab,
+     erklärt ein Dialog, wie es von Hand nachgeholt werden kann, und die Anwendung beendet
+     sich.
+   - Ob es eine neuere Version gibt, wird an dieser Stelle **nicht mehr** geprüft — das würde
+     einen Netzzugriff brauchen und ist Schritt 7.
 5. **Hauptfenster öffnen**, Startbildschirm schließen.
 6. **Suche nach App-Update, jetzt im Hintergrund** — läuft erst an, nachdem das Hauptfenster
    bereits offen ist, und hält es an keiner Stelle auf. Höchstens alle 6 Stunden wird
@@ -69,15 +72,14 @@ Ablauf beim Start (`App.OnStartup`):
    ausfällt oder überlastet ist; ohne Internet gilt der zuletzt bekannte Stand weiter, ganz
    ohne Verzögerung oder Fehlermeldung. Ist eine neuere Version verfügbar, blendet sich der
    Update-Banner im Hauptfenster nachträglich ein, sobald das Ergebnis vorliegt.
-7. Ebenfalls im Hintergrund werden alte Temp-Dateien früherer Downloads aufgeräumt
+7. **Werkzeuge auf eine neuere Version prüfen, ebenfalls im Hintergrund** — für alle vier
+   verwalteten Werkzeuge gleichzeitig, höchstens alle zwölf Stunden über das Netz, sonst aus
+   dem Zwischenspeicher. Anders als beim App-Update gibt es hier **kein Angebot**, das die
+   Bedienung unterbricht: Das Ergebnis landet nur im Zwischenspeicher und im Protokoll. Wer
+   ein Werkzeug aktualisieren will, sieht das und tut das auf der Seite „Werkzeuge"
+   (Abschnitt 10).
+8. Ebenfalls im Hintergrund werden alte Temp-Dateien früherer Downloads aufgeräumt
    (`ffmpeg_download_*.zip`, `extract_*`).
-
-> **Bekannte Einschränkung:** Die Werkzeugprüfung (Schritt 4) läuft weiterhin vor dem
-> Hauptfenster und ein Werkzeug nach dem anderen. Sie kostet dort aber nur noch wenig: Die
-> Versionsabfragen gehen höchstens alle zwölf Stunden über das Netz, und die installierte
-> Version wird gelesen statt erfragt, wo das möglich ist (siehe Abschnitt 3). Das
-> Nebenläufigmachen und das vollständige Verlegen in den Hintergrund sind noch offen und lohnen
-> erst mit mehr verwalteten Werkzeugen.
 
 **Fehlerbehandlung:** Ein unerwarteter Fehler beendet MortysDLP nicht mehr wortlos. Er wird in
 einer Protokolldatei festgehalten (siehe Abschnitt 14) und in einem Dialog mit verständlichem
