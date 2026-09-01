@@ -1,5 +1,4 @@
 using MortysDLP.Helpers;
-using MortysDLP.Models;
 using MortysDLP.Services;
 using MortysDLP.Services.Tools;
 using MortysDLP.UITexte;
@@ -49,31 +48,38 @@ namespace MortysDLP.Views
             var lang = UITextDictionary.CurrentLanguage;
             string modelsDir = WhisperService.ModelsDirectory;
 
-            var items = WhisperModelInfo.All.Select(m => new ModelViewModel
+            var items = WhisperModelCatalog.All.Select(m => new ModelViewModel
             {
                 ModelId = m.Id,
                 DisplayName = m.GetDisplayName(lang),
                 Description = m.GetDescription(lang),
-                SizeHint = m.SizeHint,
-                IsInstalled = m.IsDownloaded(modelsDir),
+                SizeHint = m.FormatSize(),
+                State = WhisperModelStore.GetState(m, modelsDir),
                 CanDownload = !_busy,
                 CanDelete = !_busy,
                 DownloadButtonText = T("WhisperModels.Button.Download"),
                 DeleteButtonText = T("WhisperModels.Button.Delete"),
             }).ToList();
 
+            // Drei Zustände statt zwei: nicht vorhanden, unvollständig (Größe außerhalb der
+            // Toleranz - typischerweise ein abgebrochener Download), vollständig. Unvollständig
+            // bekommt beide Aktionen: erneut laden (überschreibt) oder löschen.
             foreach (var item in items)
             {
-                item.StatusText = item.IsInstalled ? T("WhisperModels.Status.Installed") : T("WhisperModels.Status.NotInstalled");
-                item.StatusColor = item.IsInstalled ? "#22C55E" : "#94A3B8";
-                item.DownloadVisibility = item.IsInstalled ? Visibility.Collapsed : Visibility.Visible;
-                item.DeleteVisibility = item.IsInstalled ? Visibility.Visible : Visibility.Collapsed;
+                (item.StatusText, item.StatusColor) = item.State switch
+                {
+                    WhisperModelState.Complete => (T("WhisperModels.Status.Installed"), "#22C55E"),
+                    WhisperModelState.Incomplete => (T("WhisperModels.Status.Incomplete"), "#F59E0B"),
+                    _ => (T("WhisperModels.Status.NotInstalled"), "#94A3B8"),
+                };
+                item.DownloadVisibility = item.State == WhisperModelState.Complete ? Visibility.Collapsed : Visibility.Visible;
+                item.DeleteVisibility = item.State == WhisperModelState.NotPresent ? Visibility.Collapsed : Visibility.Visible;
             }
 
             icModels.ItemsSource = items;
 
             bool whisperInstalled = WhisperService.IsWhisperInstalled();
-            bool hasAnyModel = items.Any(i => i.IsInstalled);
+            bool hasAnyModel = items.Any(i => i.State != WhisperModelState.NotPresent);
 
             // Modellliste nur zeigen wenn Whisper installiert ist ODER bereits Modelle vorhanden sind
             scrollModels.Visibility = (whisperInstalled || hasAnyModel) ? Visibility.Visible : Visibility.Collapsed;
@@ -160,23 +166,26 @@ namespace MortysDLP.Views
                 _ => T("StartupWindow.Status.Verifying"),
             }, displayName);
 
+        /// <summary>
+        /// Lädt ein Modell über <see cref="WhisperModelStore.DownloadAsync"/> — eine
+        /// <c>.part</c>-Datei, Prüfsumme (wo bekannt) und Größenabgleich, Umbenennen erst nach
+        /// bestandener Prüfung. Ein Abbruch oder Netzwerkfehler kann damit keine scheinbar
+        /// fertige Datei mehr hinterlassen (bisher: <c>WhisperUpdateService.DownloadModelAsync</c>
+        /// schrieb ohne diese Absicherung direkt in die Zieldatei).
+        /// </summary>
         private async void btnDownloadModel_Click(object sender, RoutedEventArgs e)
         {
             if (_busy || sender is not System.Windows.Controls.Button btn) return;
             string? modelId = btn.Tag?.ToString();
             if (string.IsNullOrEmpty(modelId)) return;
 
-            var model = WhisperModelInfo.All.FirstOrDefault(m => m.Id == modelId);
+            var model = WhisperModelCatalog.All.FirstOrDefault(m => m.Id == modelId);
             if (model == null) return;
 
             var T = UITextDictionary.Get;
             SetBusy(true, string.Format(T("WhisperModels.Downloading"), model.GetDisplayName(UITextDictionary.CurrentLanguage)));
 
-            WhisperService.EnsureModelsDirExists();
-
             _cts = new CancellationTokenSource();
-            var service = new WhisperUpdateService();
-            string targetPath = Path.Combine(WhisperService.ModelsDirectory, model.FileName);
 
             try
             {
@@ -186,7 +195,7 @@ namespace MortysDLP.Views
                     txtProgressPercent.Text = $"{v * 100:F0} %";
                 }));
 
-                await service.DownloadModelAsync(model.DownloadUrl, targetPath, progress, _cts.Token);
+                await WhisperModelStore.DownloadAsync(model, WhisperService.ModelsDirectory, progress, _cts.Token);
 
                 FluentMessageBox.Show(
                     string.Format(T("WhisperModels.Success.Download"),
@@ -198,7 +207,6 @@ namespace MortysDLP.Views
             {
                 FluentMessageBox.Show(string.Format(T("WhisperModels.Error.Download"), ex.Message),
                     icon: MessageBoxImage.Error, owner: this);
-                try { if (File.Exists(targetPath)) File.Delete(targetPath); } catch { }
             }
             finally
             {
@@ -213,7 +221,7 @@ namespace MortysDLP.Views
             string? modelId = btn.Tag?.ToString();
             if (string.IsNullOrEmpty(modelId)) return;
 
-            var model = WhisperModelInfo.All.FirstOrDefault(m => m.Id == modelId);
+            var model = WhisperModelCatalog.All.FirstOrDefault(m => m.Id == modelId);
             if (model == null) return;
 
             var T = UITextDictionary.Get;
@@ -228,8 +236,7 @@ namespace MortysDLP.Views
 
             try
             {
-                string path = Path.Combine(WhisperService.ModelsDirectory, model.FileName);
-                if (File.Exists(path)) File.Delete(path);
+                WhisperModelStore.Delete(model, WhisperService.ModelsDirectory);
                 RefreshModelList();
             }
             catch (Exception ex)
@@ -320,7 +327,7 @@ namespace MortysDLP.Views
         public string DisplayName { get; set; } = "";
         public string Description { get; set; } = "";
         public string SizeHint { get; set; } = "";
-        public bool IsInstalled { get; set; }
+        public WhisperModelState State { get; set; }
         public string StatusText { get; set; } = "";
         public string StatusColor { get; set; } = "#94A3B8";
         public bool CanDownload { get; set; }

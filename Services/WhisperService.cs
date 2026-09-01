@@ -1,5 +1,5 @@
 using MortysDLP.Helpers;
-using MortysDLP.Models;
+using MortysDLP.Services.Tools;
 using System.Diagnostics;
 using System.IO;
 using System.Text.RegularExpressions;
@@ -23,21 +23,22 @@ namespace MortysDLP.Services
 
         public static bool IsModelInstalled(string modelId)
         {
-            var model = WhisperModelInfo.All.FirstOrDefault(m => m.Id == modelId);
-            if (model == null) return false;
-            return File.Exists(Path.Combine(ModelsDirectory, model.FileName));
+            var model = WhisperModelCatalog.All.FirstOrDefault(m => m.Id == modelId);
+            return model != null && WhisperModelStore.GetState(model, ModelsDirectory) == WhisperModelState.Complete;
         }
 
         public static string GetModelPath(string modelId)
         {
-            var model = WhisperModelInfo.All.First(m => m.Id == modelId);
+            var model = WhisperModelCatalog.All.First(m => m.Id == modelId);
             return Path.Combine(ModelsDirectory, model.FileName);
         }
 
-        public static IEnumerable<WhisperModelInfo> GetInstalledModels()
+        /// <summary>Nur <b>vollständige</b> Modelle — ein abgebrochener Download darf hier nicht
+        /// auftauchen, sonst wäre er auf der Transkriptionsseite auswählbar.</summary>
+        public static IEnumerable<WhisperModelEntry> GetInstalledModels()
         {
             string dir = ModelsDirectory;
-            return WhisperModelInfo.All.Where(m => m.IsDownloaded(dir));
+            return WhisperModelCatalog.All.Where(m => WhisperModelStore.GetState(m, dir) == WhisperModelState.Complete);
         }
 
         // ── Verzeichnis sicherstellen ────────────────────────────────────────────────

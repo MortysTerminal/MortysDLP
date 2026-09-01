@@ -223,6 +223,13 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
   und zeigt dafür eine eigene Statuszeile („Entpacke whisper.cpp …"). Bisher blieb die Anzeige
   für die gesamte Dauer des Entpackens unverändert auf „Lade herunter" stehen, ohne dass
   erkennbar war, dass noch etwas passiert.
+- Ein abgebrochener oder unterbrochener Whisper-Modell-Download gilt nicht mehr als
+  installiertes Modell. Bisher blieb eine unvollständige Datei liegen, erschien in der Liste
+  als vorhanden und ließ die Transkription erst mittendrin fehlschlagen. Die Modell-Liste zeigt
+  jetzt drei Zustände (nicht vorhanden, unvollständig, vollständig) statt zwei, ein
+  unvollständiges Modell lässt sich erneut laden oder löschen, und auf der Transkriptionsseite
+  ist es nicht auswählbar. Ist HuggingFace nicht erreichbar, wird automatisch eine
+  Ausweichadresse versucht.
 
 ### Intern
 - Die Prüfung auf neue Versionen ist jetzt so gebaut, dass sie sich für beliebige externe
@@ -310,6 +317,11 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
   sind entfernt.
 - Die Beschaffung einer Prüfsumme aus einem Release-Anhang läuft jetzt an einer gemeinsamen
   Stelle statt an zwei nahezu gleichen Kopien.
+- Whisper-Modelle werden jetzt über dieselbe geprüfte Download-Stelle geladen wie Werkzeuge
+  (Zwischendatei, Prüfsumme wo bekannt, Größenabgleich, Umbenennen erst nach bestandener
+  Prüfung) statt über einen eigenen, ungeprüften Downloadpfad. Der Fortschritt bei großen
+  Downloads (mehrere Gigabyte) wird jetzt gedrosselt gemeldet, statt bei jedem gelesenen
+  Datenblock — das betrifft auch Werkzeug-Downloads, die dieselbe Stelle nutzen.
 
 ---
 

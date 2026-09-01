@@ -1,5 +1,6 @@
 using MortysDLP.Helpers;
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using System.Security.Cryptography;
@@ -30,6 +31,18 @@ namespace MortysDLP.Services
     internal static class VerifiedDownload
     {
         private const int BufferSize = 81920;
+
+        /// <summary>Drosselung für <see cref="IProgress{T}"/>-Meldungen — höchstens alle 100 ms
+        /// oder alle 0,5 % (02-BEST-PRACTICES.md, Abschnitt 8). Bei einem 3,1-GB-Whisper-Modell
+        /// und 80-KB-Puffern wären das sonst zehntausende Meldungen.</summary>
+        internal static readonly TimeSpan ProgressInterval = TimeSpan.FromMilliseconds(100);
+        internal const double ProgressStep = 0.005;
+
+        /// <summary>Reine Entscheidung, losgelöst von Zeit und Netz testbar: Melden, wenn sich
+        /// der Anteil seit der letzten Meldung um mindestens <see cref="ProgressStep"/> geändert
+        /// hat, oder wenn seitdem mindestens <see cref="ProgressInterval"/> vergangen ist.</summary>
+        internal static bool ShouldReportProgress(double fraction, double lastReported, TimeSpan elapsedSinceLastReport) =>
+            fraction - lastReported >= ProgressStep || elapsedSinceLastReport >= ProgressInterval;
 
         /// <summary>
         /// Lädt <paramref name="url"/> nach <c>&lt;targetPath&gt;.part</c>, berechnet die
@@ -69,6 +82,9 @@ namespace MortysDLP.Services
 
                 using var hasher = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
 
+                var progressClock = Stopwatch.StartNew();
+                double lastReported = 0.0;
+
                 await using (var contentStream = await response.Content.ReadAsStreamAsync(ct))
                 await using (var fileStream = new FileStream(
                     partPath, FileMode.Create, FileAccess.Write, FileShare.None, BufferSize, useAsync: true))
@@ -81,11 +97,29 @@ namespace MortysDLP.Services
                         hasher.AppendData(buffer, 0, read);
                         bytesRead += read;
 
-                        if (totalBytes > 0)
+                        if (totalBytes > 0 && progress is not null)
+                        {
                             // Math.Clamp: eine unzuverlässige Content-Length darf den Balken
                             // nie über 100 % treiben.
-                            progress?.Report(Math.Clamp((double)bytesRead / totalBytes, 0.0, 1.0));
+                            double fraction = Math.Clamp((double)bytesRead / totalBytes, 0.0, 1.0);
+
+                            // Gedrosselt: höchstens alle 100 ms oder alle 0,5 % - bei einem
+                            // mehrere Gigabyte großen Download mit 80-KB-Puffern sonst
+                            // zehntausende Meldungen pro Datei.
+                            if (ShouldReportProgress(fraction, lastReported, progressClock.Elapsed))
+                            {
+                                progress.Report(fraction);
+                                lastReported = fraction;
+                                progressClock.Restart();
+                            }
+                        }
                     }
+
+                    // Der letzte Wert wird immer gemeldet, auch wenn die Drosselung ihn
+                    // zurückgehalten hat - sonst bleibt eine Fortschrittsanzeige knapp unter
+                    // 100 % stehen, obwohl der Download fertig ist.
+                    if (totalBytes > 0 && lastReported < 1.0)
+                        progress?.Report(1.0);
                 }
 
                 string actualSha256 = Convert.ToHexStringLower(hasher.GetHashAndReset());

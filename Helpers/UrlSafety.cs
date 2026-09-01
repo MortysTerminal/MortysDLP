@@ -29,6 +29,16 @@ namespace MortysDLP.Helpers
 
             "huggingface.co",
             "hf-mirror.com",
+
+            // huggingface.co liefert die eigentliche Datei nicht selbst aus, sondern
+            // leitet auf eine signierte CDN-Adresse unter dieser Domäne weiter (z. B.
+            // "us.aws.cdn.hf.co/xet-bridge-us/..."), am 2026-09-02 gegen den echten Download
+            // eines Whisper-Modells geprüft. Ohne diesen Eintrag würde jeder Modell-Download
+            // mit "Ziel nicht erlaubt" scheitern, obwohl huggingface.co selbst erreichbar ist -
+            // dieselbe Falle wie schon einmal bei GitHubs wechselnden
+            // Anhang-Auslieferungsdomänen, nur eine Domäne weiter.
+            "hf.co",
+
             "pypi.org",
             "files.pythonhosted.org",
             "www.gyan.dev",

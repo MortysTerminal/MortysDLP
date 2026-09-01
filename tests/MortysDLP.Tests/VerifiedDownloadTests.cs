@@ -155,4 +155,96 @@ public class VerifiedDownloadTests : IDisposable
         Assert.False(File.Exists(_targetPath));
         Assert.False(File.Exists(_targetPath + ".part"));
     }
+
+    /// <summary>Mehrere Puffergrößen (81920 Byte je Lesevorgang), damit tatsächlich mehrfach
+    /// berichtet wird, nicht nur einmal am Ende - dieselbe Fortschritts-Konvention wie überall
+    /// im Projekt (Anteil 0.0–1.0, monoton steigend, letzter Wert ist 1.0).</summary>
+    [Fact]
+    public async Task ToFileAsync_MeldetFortschritt_MonotonSteigendLetzterWertEins()
+    {
+        string content = new string('x', 300_000);
+        using var client = new HttpClient(new FakeHttpMessageHandler().When(".*", content: content));
+
+        var reported = new List<double>();
+        var progress = new SyncProgress<double>(reported.Add);
+
+        await VerifiedDownload.ToFileAsync(
+            DownloadUrl, _targetPath, null, content.Length, progress, CancellationToken.None, client);
+
+        Assert.NotEmpty(reported);
+        Assert.All(reported, v => Assert.InRange(v, 0.0, 1.0));
+        for (int i = 1; i < reported.Count; i++)
+            Assert.True(reported[i] >= reported[i - 1], "Fortschritt muss monoton steigen.");
+        Assert.Equal(1.0, reported[^1]);
+    }
+
+    /// <summary>Ruft den Rückruf synchron auf - anders als <see cref="Progress{T}"/>, das über
+    /// einen <see cref="SynchronizationContext"/> postet und damit in Tests ohne UI-Kontext
+    /// asynchron (und außerhalb der erwarteten Reihenfolge) auslösen kann.</summary>
+    private sealed class SyncProgress<T>(Action<T> callback) : IProgress<T>
+    {
+        public void Report(T value) => callback(value);
+    }
+}
+
+/// <summary>
+/// Prüft <see cref="VerifiedDownload.ShouldReportProgress"/> als reine, von Zeit und Netz
+/// losgelöste Funktion — die eigentliche Drosselung (höchstens alle 100 ms oder alle 0,5 %,
+/// 02-BEST-PRACTICES.md Abschnitt 8) lässt sich damit ohne einen mehrere Gigabyte großen
+/// simulierten Download nachweisen.
+/// </summary>
+public class VerifiedDownloadProgressThrottleTests
+{
+    [Fact]
+    public void KleinerSchrittUndKeineZeitVergangen_WirdNichtGemeldet()
+    {
+        Assert.False(VerifiedDownload.ShouldReportProgress(
+            fraction: 0.501, lastReported: 0.500, elapsedSinceLastReport: TimeSpan.Zero));
+    }
+
+    [Fact]
+    public void SchrittAbDerSchwelle_WirdGemeldet()
+    {
+        Assert.True(VerifiedDownload.ShouldReportProgress(
+            fraction: 0.505, lastReported: 0.500, elapsedSinceLastReport: TimeSpan.Zero));
+    }
+
+    [Fact]
+    public void GenugZeitVergangen_WirdAuchOhneGrossenSchrittGemeldet()
+    {
+        Assert.True(VerifiedDownload.ShouldReportProgress(
+            fraction: 0.5001, lastReported: 0.5000, elapsedSinceLastReport: VerifiedDownload.ProgressInterval));
+    }
+
+    [Fact]
+    public void WedeSchrittNochZeit_WirdNichtGemeldet()
+    {
+        var knappDrunter = VerifiedDownload.ProgressInterval - TimeSpan.FromMilliseconds(1);
+        Assert.False(VerifiedDownload.ShouldReportProgress(
+            fraction: 0.5001, lastReported: 0.5000, elapsedSinceLastReport: knappDrunter));
+    }
+
+    /// <summary>Der Fall, der die Drosselung überhaupt nötig macht: Bei tausenden kleinen
+    /// Schritten (ein 3-GB-Download mit 80-KB-Puffern hat über 38.000 davon) meldet die
+    /// Funktion nur einen Bruchteil - nicht jeden einzelnen.</summary>
+    [Fact]
+    public void VieleKleineSchritteOhneZeitfortschritt_WerdenGrossteilsZurueckgehalten()
+    {
+        const int steps = 2000;
+        double lastReported = 0.0;
+        int reportCount = 0;
+
+        for (int i = 1; i <= steps; i++)
+        {
+            double fraction = (double)i / steps;
+            if (VerifiedDownload.ShouldReportProgress(fraction, lastReported, TimeSpan.Zero))
+            {
+                lastReported = fraction;
+                reportCount++;
+            }
+        }
+
+        // Erwartet ca. 1 / ProgressStep (= 200) Meldungen, nicht 2000.
+        Assert.InRange(reportCount, 195, 205);
+    }
 }

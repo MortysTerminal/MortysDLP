@@ -328,6 +328,15 @@ Wandelt Sprache in Text — vollständig lokal, ohne Cloud und ohne API-Schlüss
   | Large v3 Turbo | ~1,6 GB | sehr genau, moderat — Empfehlung |
   | Large v3 | ~3,1 GB | höchste Genauigkeit, sehr anspruchsvoll |
 
+  Ein Modell gilt erst als installiert, wenn seine Dateigröße der erwarteten Größe entspricht
+  (kleine Toleranz für unterschiedliche Ablagen desselben Modells). Die Liste unterscheidet drei
+  Zustände: **nicht vorhanden**, **unvollständig** (z. B. nach einem abgebrochenen Download —
+  lässt sich erneut laden oder löschen, ist aber nicht auswählbar) und **vollständig**. Der
+  Download läuft über eine Zwischendatei, die erst nach bestandener Prüfung ihren endgültigen
+  Namen erhält — ein Abbruch kann deshalb keine scheinbar fertige, in Wirklichkeit unvollständige
+  Datei mehr hinterlassen. Ist die Bezugsquelle nicht erreichbar, wird automatisch eine
+  Ausweichadresse versucht.
+
 - **Eingabe**: Video- oder Audiodatei. Videos werden vorab per ffmpeg in eine temporäre
   WAV-Datei (16 kHz, mono) umgewandelt — das ist Whispers interne Arbeitsauflösung.
 - **Sprache**: automatische Erkennung oder eine von 18 Sprachen. Die Sprache wird immer

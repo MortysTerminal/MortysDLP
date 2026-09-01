@@ -17,6 +17,9 @@ public class UrlSafetyTests
     [InlineData("https://raw.githubusercontent.com/foo")]
     [InlineData("https://huggingface.co/foo")]
     [InlineData("https://hf-mirror.com/foo")]
+    // Die tatsächliche CDN-Adresse, auf die huggingface.co beim Herunterladen eines
+    // Whisper-Modells weiterleitet - am 2026-09-02 gegen den echten Download geprüft.
+    [InlineData("https://us.aws.cdn.hf.co/xet-bridge-us/foo")]
     [InlineData("https://pypi.org/pypi/yt-dlp/json")]
     [InlineData("https://files.pythonhosted.org/foo")]
     [InlineData("https://www.gyan.dev/ffmpeg/builds/release-version")]
