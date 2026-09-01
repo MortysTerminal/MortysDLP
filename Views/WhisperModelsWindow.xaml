@@ -51,10 +51,19 @@
                 Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
                 BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="1">
             <StackPanel>
-                <TextBlock x:Name="txtProgressLabel" FontWeight="SemiBold" Margin="0,0,0,6"/>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" x:Name="txtProgressLabel" FontWeight="SemiBold"
+                               VerticalAlignment="Center" TextWrapping="Wrap"/>
+                    <Button Grid.Column="1" x:Name="btnCancelProgress" Click="btnCancelProgress_Click"
+                            Margin="10,0,0,0" Padding="10,3"/>
+                </Grid>
                 <ProgressBar x:Name="pbProgress"
                              Style="{StaticResource FluentProgressBarStyle}"
-                             Height="10" Minimum="0" Maximum="100" Value="0"/>
+                             Height="10" Minimum="0" Maximum="100" Value="0" Margin="0,8,0,0"/>
                 <TextBlock x:Name="txtProgressPercent" Margin="0,4,0,0" Opacity="0.7"/>
             </StackPanel>
         </Border>

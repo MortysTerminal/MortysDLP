@@ -33,6 +33,7 @@ namespace MortysDLP.Views
             btnInstallWhisper.Content = T("WhisperModels.Button.InstallWhisper");
             btnUninstall.Content = T("WhisperModels.Button.Uninstall");
             btnClose.Content = T("WhisperModels.Button.Close");
+            btnCancelProgress.Content = T("Common.Button.Cancel");
 
             bool whisperInstalled = WhisperService.IsWhisperInstalled();
             string statusKey = whisperInstalled ? "WhisperModels.Whisper.Installed" : "WhisperModels.Whisper.NotInstalled";
@@ -310,9 +311,20 @@ namespace MortysDLP.Views
                     txtProgressLabel.Text = statusText;
                     pbProgress.Value = 0;
                     txtProgressPercent.Text = "0 %";
+                    btnCancelProgress.IsEnabled = true;
                 }
             });
             if (!busy) RefreshModelList();
+        }
+
+        /// <summary>Bricht den laufenden Vorgang ab (whisper.cpp-Installation oder
+        /// Modell-Download, je nachdem, welcher gerade läuft) — bisher ließ sich das nur über
+        /// das Schließen des ganzen Fensters erreichen. Der Knopf wird sofort deaktiviert, damit
+        /// ein zweiter Klick während des Abbruchs keinen zweiten Versuch auslöst.</summary>
+        private void btnCancelProgress_Click(object sender, RoutedEventArgs e)
+        {
+            btnCancelProgress.IsEnabled = false;
+            _cts?.Cancel();
         }
 
         private void SetStatus(string text) => Dispatcher.Invoke(() => txtProgressLabel.Text = text);
