@@ -41,8 +41,16 @@
                     Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
                     BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="1">
                 <StackPanel>
-                    <TextBlock x:Name="txtSectionTools" FontWeight="SemiBold" FontSize="11"
-                               Foreground="{StaticResource BrandOrangeBrush}" Margin="0,0,0,8"/>
+                    <Grid Margin="0,0,0,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" x:Name="txtSectionTools" FontWeight="SemiBold" FontSize="11"
+                                   Foreground="{StaticResource BrandOrangeBrush}" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Column="1" x:Name="txtTotalSize" Opacity="0.7" FontSize="11"
+                                   VerticalAlignment="Center"/>
+                    </Grid>
 
                     <ItemsControl x:Name="icTools">
                         <ItemsControl.ItemTemplate>

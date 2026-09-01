@@ -1,5 +1,7 @@
+using MortysDLP.Helpers;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 
 namespace MortysDLP.Services.Tools
 {
@@ -110,6 +112,31 @@ namespace MortysDLP.Services.Tools
                 ExpectedSize: 3_095_033_483,
                 Sha256: "64d182b440b98d5203c4f9bd541544d84c605196c4f7b845dfa11fb23594d1e2"),
         ];
+
+        /// <summary>Summe der tatsächlichen Dateigrößen aller vorhandenen Modelle in
+        /// <paramref name="modelsDir"/> — für die Gesamtgrößen-Anzeige der Seite „Werkzeuge".
+        /// Zählt bewusst auch ein unvollständiges Modell mit: Was auf der Platte liegt, belegt
+        /// Platz, unabhängig davon, ob der Download je fertig wurde.</summary>
+        public static long GetInstalledSize(string modelsDir)
+        {
+            long total = 0;
+
+            foreach (var model in All)
+            {
+                try
+                {
+                    var info = new FileInfo(Path.Combine(modelsDir, model.FileName));
+                    if (info.Exists)
+                        total += info.Length;
+                }
+                catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+                {
+                    Log.Warn($"[{model.Id}] Größe nicht lesbar: {ex.Message}");
+                }
+            }
+
+            return total;
+        }
 
         /// <summary>Formatiert eine Byte-Zahl als Größenangabe (<c>KB</c>/<c>MB</c>/<c>GB</c>,
         /// dezimal). Kulturunabhängig — dieselbe Schreibweise unabhängig von der UI-Sprache, wie

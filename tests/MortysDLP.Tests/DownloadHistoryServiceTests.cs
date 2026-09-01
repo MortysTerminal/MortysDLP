@@ -204,4 +204,55 @@ public class DownloadHistoryServiceTests : IDisposable
         var result = await DownloadHistoryService.LoadAsync();
         Assert.Empty(result);
     }
+
+    private void MakeCorruptBackup(string suffix, DateTime lastWriteUtc)
+    {
+        string path = Path.Combine(_tempDir, $"download_history.corrupt-{suffix}.json");
+        File.WriteAllText(path, "kaputt");
+        File.SetLastWriteTimeUtc(path, lastWriteUtc);
+    }
+
+    [Fact]
+    public void PruneCorruptBackups_MehrAlsDreiSicherungen_BehaeltNurDieDreiJuengsten()
+    {
+        var now = DateTime.UtcNow;
+        MakeCorruptBackup("1", now.AddDays(-4));
+        MakeCorruptBackup("2", now.AddDays(-3));
+        MakeCorruptBackup("3", now.AddDays(-2));
+        MakeCorruptBackup("4", now.AddDays(-1));
+        MakeCorruptBackup("5", now);
+
+        var deleted = DownloadHistoryService.PruneCorruptBackups(_tempDir);
+
+        Assert.Equal(2, deleted.Count);
+        var remaining = Directory.GetFiles(_tempDir, "download_history.corrupt-*.json")
+            .Select(Path.GetFileName).ToHashSet();
+        Assert.Equal(3, remaining.Count);
+        Assert.Contains("download_history.corrupt-3.json", remaining);
+        Assert.Contains("download_history.corrupt-4.json", remaining);
+        Assert.Contains("download_history.corrupt-5.json", remaining);
+    }
+
+    [Fact]
+    public void PruneCorruptBackups_DreiOderWeniger_LoeschtNichts()
+    {
+        var now = DateTime.UtcNow;
+        MakeCorruptBackup("1", now.AddDays(-1));
+        MakeCorruptBackup("2", now);
+
+        var deleted = DownloadHistoryService.PruneCorruptBackups(_tempDir);
+
+        Assert.Empty(deleted);
+        Assert.Equal(2, Directory.GetFiles(_tempDir, "download_history.corrupt-*.json").Length);
+    }
+
+    [Fact]
+    public void PruneCorruptBackups_OrdnerFehlt_WirftNichtUndLiefertLeereListe()
+    {
+        string missing = Path.Combine(_tempDir, "does-not-exist");
+
+        var deleted = DownloadHistoryService.PruneCorruptBackups(missing);
+
+        Assert.Empty(deleted);
+    }
 }

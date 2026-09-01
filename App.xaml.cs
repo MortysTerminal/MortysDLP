@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics;
 using System.IO;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -165,8 +164,9 @@ namespace MortysDLP
                 // gelaufen (splash.ToolUpdaterAsync oben).
                 _ = Task.Run(() => RunBackgroundToolCheckAsync());
 
-                // Aufräumen der temporären ffmpeg-/Entpack-Artefakte (nicht blockierend, Best-Effort)
-                _ = CleanupTempArtifactsAsync();
+                // 6. Reste der Werkzeugverwaltung aufräumen (abgebrochene Downloads, alte
+                // Sicherungen, eigene Temp-Reste) — ebenfalls erst jetzt, nicht blockierend.
+                _ = Task.Run(RunToolHousekeeping);
 
                 splash.Close(); // Splash explizit schließen
             }
@@ -407,6 +407,47 @@ namespace MortysDLP
             catch (Exception ex)
             {
                 Log.Warn("Werkzeugprüfung im Hintergrund fehlgeschlagen", ex);
+            }
+        }
+
+        /// <summary>Räumt auf, was die Werkzeugverwaltung über die Zeit hinterlässt —
+        /// abgebrochene Downloads, alte Sicherungen, eigene Temp-Reste
+        /// (<see cref="ToolHousekeeping"/>) sowie überzählige Sicherungen einer defekten
+        /// Verlaufsdatei. Läuft wie <see cref="RunBackgroundUpdateCheckAsync"/> erst nach dem
+        /// Anzeigen des Hauptfensters, damit ein Aufräumdurchgang den Start nie verlangsamt.
+        ///
+        /// <para>Jede Löschung bekommt ihre eigene Protokollzeile (die Funktionen liefern nur
+        /// die Liste, ohne selbst zu protokollieren); am Ende steht eine Zusammenfassung. Gibt
+        /// es nichts aufzuräumen, entsteht genau diese eine Zeile.</para>
+        ///
+        /// <para>Rein rechnend/blockierend (Dateisystemzugriffe), deshalb kein <c>async</c> —
+        /// der Aufrufer schiebt den gesamten Durchgang bereits über <c>Task.Run</c> auf den
+        /// Threadpool.</para></summary>
+        private static void RunToolHousekeeping()
+        {
+            try
+            {
+                var now = DateTime.Now;
+                var deleted = new List<CleanupEntry>(ToolHousekeeping.RunAll(now));
+                deleted.AddRange(DownloadHistoryService.PruneCorruptBackups(AppPaths.DataDir));
+
+                foreach (var entry in deleted)
+                    Log.Info($"Aufräumen: '{entry.Path}' entfernt ({entry.Reason}).");
+
+                if (deleted.Count == 0)
+                {
+                    Log.Info("Aufräumen: nichts zu entfernen.");
+                }
+                else
+                {
+                    double megaBytes = deleted.Sum(e => e.Bytes) / (1024.0 * 1024.0);
+                    Log.Info($"Aufräumen abgeschlossen: {deleted.Count} Datei(en), " +
+                        $"{megaBytes:F1} MB freigegeben.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Warn("Aufräumen fehlgeschlagen", ex);
             }
         }
 
@@ -901,81 +942,5 @@ namespace MortysDLP
             }
         }
 
-        private static Task CleanupTempArtifactsAsync()
-        {
-            return Task.Run(() =>
-            {
-                try
-                {
-                    string tempDir = Path.GetTempPath();
-
-                    foreach (var file in Directory.EnumerateFiles(tempDir, "ffmpeg_download_*.zip", SearchOption.TopDirectoryOnly))
-                    {
-                        string name = Path.GetFileName(file);
-                        if (FfmpegZipRegex().IsMatch(name))
-                        {
-                            TryDeleteFile(file);
-                        }
-                    }
-
-                    foreach (var dir in Directory.EnumerateDirectories(tempDir, "extract_*", SearchOption.TopDirectoryOnly))
-                    {
-                        string name = Path.GetFileName(dir);
-                        if (ExtractDirRegex().IsMatch(name))
-                        {
-                            TryDeleteDirectory(dir);
-                        }
-                    }
-                }
-                catch
-                {
-                    // Best-effort: Keine Exception nach außen
-                }
-            });
-        }
-
-        [GeneratedRegex(@"^ffmpeg_download_[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\.zip$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
-        private static partial Regex FfmpegZipRegex();
-
-        [GeneratedRegex(@"^extract_[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
-        private static partial Regex ExtractDirRegex();
-
-        private static void TryDeleteFile(string path)
-        {
-            try
-            {
-                if (File.Exists(path))
-                {
-                    try { File.SetAttributes(path, FileAttributes.Normal); } catch { }
-                    File.Delete(path);
-                }
-            }
-            catch { }
-        }
-
-        private static void TryDeleteDirectory(string path)
-        {
-            try
-            {
-                if (Directory.Exists(path))
-                {
-                    ClearReadOnlyAttributes(path);
-                    Directory.Delete(path, true);
-                }
-            }
-            catch { }
-        }
-
-        private static void ClearReadOnlyAttributes(string rootDir)
-        {
-            try
-            {
-                foreach (var file in Directory.EnumerateFiles(rootDir, "*", SearchOption.AllDirectories))
-                {
-                    try { File.SetAttributes(file, FileAttributes.Normal); } catch { }
-                }
-            }
-            catch { }
-        }
     }
 }

@@ -431,7 +431,8 @@ Werkzeuge an einer Stelle, statt sie über den Start-Dialog und einzelne Seiten 
 lassen.
 
 - Je Werkzeug eine Zeile mit **Zustand** (fehlt / unvollständig / installiert / Update
-  verfügbar), **installierter Version**, **Speicherort** und **Dateigröße**.
+  verfügbar), **installierter Version**, **Speicherort** und **Dateigröße** — sowie, wie viel
+  Platz alle Werkzeuge und Modelle zusammen belegen.
 - **Reparieren** lädt ein Werkzeug neu und ersetzt es — auch wenn die Versionsnummer stimmt.
   Das ist der richtige Weg für eine beschädigte oder leere Datei, die sonst nicht ohne
   manuelles Löschen wieder in Ordnung zu bringen wäre.
@@ -556,8 +557,21 @@ lassen.
 | Externe Werkzeuge | `%LOCALAPPDATA%\MortysDLP\Tools\` (aus einer älteren Installation vorhandene Werkzeuge werden beim ersten Start einmalig aus dem Entpackungsordner übernommen) |
 | Whisper-Modelle | `%LOCALAPPDATA%\MortysDLP\Tools\Whisper\models\` |
 | Download-Verlauf | `%LOCALAPPDATA%\MortysDLP\download_history.json` |
+| Sicherung einer defekten Verlaufsdatei | `%LOCALAPPDATA%\MortysDLP\download_history.corrupt-JJJJMMTT-hhmmss.json` (die drei jüngsten bleiben, ältere werden automatisch entfernt) |
 | Einstellungen | `%LOCALAPPDATA%\MortysDLP\MortysDLP.exe_*\<Version>\user.config` |
 | Protokolle | `%LOCALAPPDATA%\MortysDLP\logs\mortysdlp-JJJJ-MM-TT.log` (14 Tage bzw. 10 MB je Datei) |
 | Update-Zwischenspeicher | `%LOCALAPPDATA%\MortysDLP\cache\update-cache.json` |
 | Update-Zustand (Erfolgskontrolle) | `%LOCALAPPDATA%\MortysDLP\update-state.json` (existiert nur zwischen einem angestoßenen Update und dessen Auswertung) |
-| Temporäres | `%TEMP%` (`ffmpeg_download_*.zip`, `extract_*`, `whisper_audio_*.wav`) |
+| Temporäres | `%TEMP%\MortysDLP\` (Werkzeug-Pakete während der Installation, z. B. `ffmpeg-*.zip`), `%TEMP%` (`whisper_audio_*.wav` während einer Transkription) |
+
+**Automatisches Aufräumen beim Start** (im Hintergrund, hält das Fenster nicht auf — jede
+Löschung steht im Protokoll):
+- Abgebrochene Downloads (`*.part`, im Werkzeug- und Modellordner) älter als **24 Stunden**.
+- Sicherungen eines Werkzeug-Updates (`*.old`, im Werkzeugordner) älter als **7 Tage** — bewusst
+  länger, weil eine solche Sicherung die einzige Rückfallebene ist, falls ein Update erst Tage
+  später als fehlerhaft auffällt.
+- Eigene, verwaiste Reste unter `%TEMP%\MortysDLP\` älter als **24 Stunden**.
+- Sicherungen einer defekten Verlaufsdatei: Die drei jüngsten bleiben, ältere verschwinden.
+
+Jüngere Dateien bleiben in jedem Fall unangetastet — sie könnten zu einem gerade laufenden
+Vorgang gehören.

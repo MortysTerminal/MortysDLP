@@ -141,11 +141,58 @@ namespace MortysDLP.Services
                 string backupPath = Path.Combine(dir, $"download_history.corrupt-{DateTime.Now:yyyyMMdd-HHmmss}.json");
                 File.Move(HistoryPath, backupPath, overwrite: true);
                 Log.Info($"Defekte Verlaufsdatei gesichert: {backupPath}");
+
+                // Nur jetzt kann überhaupt ein Überschuss entstehen - nicht erst beim
+                // nächsten Start abwarten (der allgemeine Aufräumdurchgang ruft dieselbe
+                // Funktion trotzdem noch einmal auf, für Überschuss aus einer Zeit vor
+                // dieser Obergrenze).
+                foreach (var entry in PruneCorruptBackups(dir))
+                    Log.Info($"Alte Korruptions-Sicherung entfernt: {entry.Path}");
             }
             catch (Exception ex)
             {
                 Log.Warn("Sicherung der defekten Verlaufsdatei fehlgeschlagen", ex);
             }
+        }
+
+        /// <summary>Entfernt alle bis auf die
+        /// <see cref="Tools.ToolHousekeeping.CorruptHistoryBackupsToKeep"/> jüngsten
+        /// Korruptions-Sicherungen — Korruption ist selten, aber ohne Obergrenze wächst die
+        /// Zahl der Sicherungen über Jahre der Nutzung unbegrenzt weiter. Protokolliert selbst
+        /// nichts (Muster wie <see cref="Tools.ToolHousekeeping"/>) — der Aufrufer entscheidet,
+        /// wie die Zeilen aussehen.</summary>
+        internal static List<Tools.CleanupEntry> PruneCorruptBackups(string directory)
+        {
+            var result = new List<Tools.CleanupEntry>();
+
+            List<string> backups;
+            try
+            {
+                backups = [.. Directory.EnumerateFiles(directory, "download_history.corrupt-*.json")
+                    .OrderByDescending(File.GetLastWriteTimeUtc)];
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                Log.Warn($"Korruptions-Sicherungen in '{directory}' nicht auflistbar: {ex.Message}");
+                return result;
+            }
+
+            foreach (string path in backups.Skip(Tools.ToolHousekeeping.CorruptHistoryBackupsToKeep))
+            {
+                try
+                {
+                    long size = new FileInfo(path).Length;
+                    File.Delete(path);
+                    result.Add(new Tools.CleanupEntry(path, size,
+                        $"überzählige Korruptions-Sicherung (mehr als die {Tools.ToolHousekeeping.CorruptHistoryBackupsToKeep} jüngsten)"));
+                }
+                catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+                {
+                    Log.Warn($"Alte Korruptions-Sicherung '{path}' konnte nicht entfernt werden: {ex.Message}");
+                }
+            }
+
+            return result;
         }
 
         private static bool IsRecoverable(Exception ex) =>

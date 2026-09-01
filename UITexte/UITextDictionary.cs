@@ -631,6 +631,7 @@ namespace MortysDLP.UITexte
             ["ToolsPage.Uninstall.Consequence.Ffmpeg"] = "Ohne ffmpeg funktionieren Konvertierung, GIF-Erstellung, Twitch-Video-Zusammenführung und die Audio-Extraktion für die Transkription nicht mehr, bis es neu installiert wird.",
             ["ToolsPage.Uninstall.Failed"]         = "{0} konnte nicht vollständig entfernt werden. Näheres steht im Protokoll.",
             ["ToolsPage.Models.Summary"]           = "{0} von {1} Modellen vollständig heruntergeladen.",
+            ["ToolsPage.TotalSize"]                = "Gesamt: {0}",
         };
 
         // English
@@ -1239,6 +1240,7 @@ namespace MortysDLP.UITexte
             ["ToolsPage.Uninstall.Consequence.Ffmpeg"] = "Without ffmpeg, conversion, GIF creation, Twitch video merging and audio extraction for transcription no longer work until it is reinstalled.",
             ["ToolsPage.Uninstall.Failed"]         = "{0} could not be fully removed. See the log for details.",
             ["ToolsPage.Models.Summary"]           = "{0} of {1} models fully downloaded.",
+            ["ToolsPage.TotalSize"]                = "Total: {0}",
         };
 
         public static void SetLanguage(string language)

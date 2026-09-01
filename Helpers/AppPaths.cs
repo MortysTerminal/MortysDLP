@@ -39,6 +39,14 @@ namespace MortysDLP.Helpers
         public static string LogsDir => Path.Combine(DataDir, "logs");
         public static string CacheDir => Path.Combine(DataDir, "cache");
 
+        /// <summary>Eigener, exklusiver Ordner unter dem System-Temp-Verzeichnis für
+        /// Werkzeug-Pakete während der Installation (<c>ffmpeg-*.zip</c> usw.) — nicht zu
+        /// verwechseln mit dem Temp-Ordner des Selbst-Updates der Anwendung
+        /// (<c>UpdateService.GetSafeTempDirectory</c>, anders benannt). Alles darin gehört
+        /// MortysDLP; ein Aufräumdurchgang darf hier löschen, ohne fremde Temp-Inhalte zu
+        /// gefährden.</summary>
+        public static string ToolTempDir => Path.Combine(Path.GetTempPath(), "MortysDLP");
+
         public static string Tool(string exeName) => Path.Combine(ToolsDir, exeName);
 
         public static string YtDlp => Tool("yt-dlp.exe");

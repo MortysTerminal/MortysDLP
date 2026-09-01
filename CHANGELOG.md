@@ -92,7 +92,8 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
   Rückfrage vor dem Deinstallieren, die bei yt-dlp und ffmpeg ausdrücklich nennt, welche
   Funktionen danach fehlen. „Alle prüfen" stößt eine erneute Prüfung ohne Zwischenspeicher an.
   Ein eigener Bereich zeigt zusammengefasst den Stand der Whisper-Modelle und verlinkt zu
-  deren Verwaltung.
+  deren Verwaltung. Eine weitere Zeile zeigt, wie viel Platz alle Werkzeuge und Modelle
+  zusammen belegen.
 
 ### Geändert
 - **Der Start wartet nicht mehr sekundenlang auf die yt-dlp-Prüfung.** Die installierte Version
@@ -348,6 +349,13 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
   Prüfung) statt über einen eigenen, ungeprüften Downloadpfad. Der Fortschritt bei großen
   Downloads (mehrere Gigabyte) wird jetzt gedrosselt gemeldet, statt bei jedem gelesenen
   Datenblock — das betrifft auch Werkzeug-Downloads, die dieselbe Stelle nutzen.
+- Ein Aufräumdurchgang beim Start entfernt jetzt automatisch, was die Werkzeugverwaltung über
+  die Zeit hinterlassen kann: abgebrochene Downloads nach 24 Stunden, Sicherungen eines
+  Werkzeug-Updates nach 7 Tagen, eigene Temp-Reste nach 24 Stunden, und überzählige
+  Sicherungen einer defekten Verlaufsdatei (die drei jüngsten bleiben). Läuft erst nach dem
+  Anzeigen des Hauptfensters und hält es nicht auf; jede Löschung steht im Protokoll. Eine
+  bereits vorhandene, aber seit einem früheren Umbau wirkungslose Aufräumfunktion für
+  Werkzeug-Downloads ist dabei durch diesen einheitlichen Durchgang ersetzt worden.
 
 ---
 

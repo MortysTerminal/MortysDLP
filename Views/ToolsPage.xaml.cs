@@ -410,6 +410,21 @@ namespace MortysDLP.Views
             icModels.ItemsSource = rows;
             txtModelsSummary.Text = string.Format(
                 CultureInfo.CurrentCulture, T("ToolsPage.Models.Summary"), complete, WhisperModelCatalog.All.Count);
+
+            RefreshTotalSize();
+        }
+
+        /// <summary>Summe der tatsächlichen Größe aller Werkzeuge und Modelle — ohne diese
+        /// Zeile merkt niemand, dass hier über die Zeit mehrere Gigabyte zusammenkommen
+        /// können.</summary>
+        private void RefreshTotalSize()
+        {
+            var T = UITextDictionary.Get;
+            long toolsBytes = _tools.Sum(ToolCatalog.GetInstalledSize);
+            long modelsBytes = WhisperModelCatalog.GetInstalledSize(WhisperService.ModelsDirectory);
+
+            txtTotalSize.Text = string.Format(CultureInfo.CurrentCulture,
+                T("ToolsPage.TotalSize"), WhisperModelCatalog.FormatSize(toolsBytes + modelsBytes));
         }
     }
 }
