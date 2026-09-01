@@ -56,9 +56,11 @@ public class ToolInstallerTests : IDisposable
 
     private void WriteExisting(string content = OldContent) => File.WriteAllText(_target, content);
 
-    private Task<ToolReplaceResult> ReplaceAsync(Func<CancellationToken, Task<bool>> verify) =>
+    private Task<ToolReplaceResult> ReplaceAsync(
+        Func<CancellationToken, Task<bool>> verify, bool checksumVerified = false) =>
         ToolInstaller.ReplaceAllAsync(
-            "test", [new ToolInstaller.Replacement(_target, _staged)], verify, CancellationToken.None);
+            "test", [new ToolInstaller.Replacement(_target, _staged)], checksumVerified, verify,
+            CancellationToken.None);
 
     [Fact]
     public async Task Neuinstallation_BestandeneKontrolle_DateiIstDaUndKeinRestBleibt()
@@ -174,6 +176,7 @@ public class ToolInstallerTests : IDisposable
                 new ToolInstaller.Replacement(_target, _staged),
                 new ToolInstaller.Replacement(secondTarget, secondStaged),
             ],
+            false,
             Fails,
             CancellationToken.None);
 
@@ -199,6 +202,7 @@ public class ToolInstallerTests : IDisposable
                 new ToolInstaller.Replacement(_target, _staged),
                 new ToolInstaller.Replacement(secondTarget, secondTarget + ToolInstaller.StagedSuffix),
             ],
+            false,
             Passes,
             CancellationToken.None);
 
@@ -243,7 +247,7 @@ public class ToolInstallerTests : IDisposable
     [Fact]
     public async Task KeineDateiAngegeben_WirdAbgelehnt()
     {
-        var result = await ToolInstaller.ReplaceAllAsync("test", [], Passes, CancellationToken.None);
+        var result = await ToolInstaller.ReplaceAllAsync("test", [], false, Passes, CancellationToken.None);
 
         Assert.False(result.Success);
     }
@@ -260,6 +264,7 @@ public class ToolInstallerTests : IDisposable
             ToolInstaller.ReplaceAllAsync(
                 "test",
                 [new ToolInstaller.Replacement(_target, _staged)],
+                false,
                 _ =>
                 {
                     cts.Cancel();
@@ -270,5 +275,98 @@ public class ToolInstallerTests : IDisposable
 
         Assert.Equal(OldContent, File.ReadAllText(_target));
         Assert.False(File.Exists(BackupPath));
+    }
+
+    // ── Mark-of-the-Web ─────────────────────────────────────────────────────────────
+    // Läuft nur auf NTFS/ReFS - siehe MarkOfTheWebTests für die Begründung, warum hier kein
+    // dynamischer Skip verwendet wird (xUnit 2).
+
+    private bool TryTagStagedWithZoneIdentifier()
+    {
+        try
+        {
+            File.WriteAllText(_staged + ":Zone.Identifier", "[ZoneTransfer]\r\nZoneId=3\r\n");
+            return true;
+        }
+        catch (IOException)
+        {
+            return false;
+        }
+    }
+
+    private bool TargetHasZoneIdentifier()
+    {
+        try
+        {
+            File.ReadAllText(_target + ":Zone.Identifier");
+            return true;
+        }
+        catch (IOException)
+        {
+            return false;
+        }
+    }
+
+    [Fact]
+    public async Task BestandenePruefsumme_EntferntDieInternetKennzeichnung()
+    {
+        WriteStaged();
+        if (!TryTagStagedWithZoneIdentifier())
+            return;
+
+        var result = await ReplaceAsync(Passes, checksumVerified: true);
+
+        Assert.True(result.Success);
+        Assert.False(TargetHasZoneIdentifier());
+    }
+
+    /// <summary>Der Kern dieser Aufgabe: Ohne bestandene Prüfsumme bleibt die Kennzeichnung
+    /// stehen, auch wenn die Datei ansonsten erfolgreich eingesetzt wurde.</summary>
+    [Fact]
+    public async Task KeineBestandenePruefsumme_KennzeichnungBleibtStehen()
+    {
+        WriteStaged();
+        if (!TryTagStagedWithZoneIdentifier())
+            return;
+
+        var result = await ReplaceAsync(Passes, checksumVerified: false);
+
+        Assert.True(result.Success);
+        Assert.True(TargetHasZoneIdentifier());
+    }
+
+    [Fact]
+    public async Task BestandenePruefsummeOhneKennzeichnung_LoestKeinenFehlerAus()
+    {
+        WriteStaged();
+
+        var result = await ReplaceAsync(Passes, checksumVerified: true);
+
+        Assert.True(result.Success);
+        Assert.False(TargetHasZoneIdentifier());
+    }
+
+    [Fact]
+    public async Task BestandenePruefsumme_StehtAlsEigeneZeileImProtokoll()
+    {
+        WriteStaged();
+        if (!TryTagStagedWithZoneIdentifier())
+            return;
+
+        await ReplaceAsync(Passes, checksumVerified: true);
+        Log.CloseForTests();
+
+        Assert.Contains("Internet-Kennzeichnung entfernt", File.ReadAllText(Log.CurrentLogFile), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task KeineBestandenePruefsumme_StehtAlsEigeneZeileImProtokoll()
+    {
+        WriteStaged();
+
+        await ReplaceAsync(Passes, checksumVerified: false);
+        Log.CloseForTests();
+
+        Assert.Contains("Internet-Kennzeichnung bleibt bestehen", File.ReadAllText(Log.CurrentLogFile), StringComparison.Ordinal);
     }
 }

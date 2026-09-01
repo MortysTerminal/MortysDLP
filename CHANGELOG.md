@@ -44,6 +44,10 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
   TwitchDownloaderCLI, whisper.cpp). Kopierte URLs oder Videotitel mit ungewöhnlichen
   Sonderzeichen können externen Werkzeugen nicht mehr zusätzliche, nicht beabsichtigte
   Befehlszeilenargumente unterschieben.
+- MortysDLP entfernt bei Werkzeugen, die es selbst mit bestandener Prüfsumme geladen hat, die
+  Internet-Kennzeichnung (Mark-of-the-Web) — damit blockiert SmartScreen den ersten Start
+  nicht mehr ohne erkennbaren Grund. Ohne bestandene Prüfsumme bleibt die Kennzeichnung
+  bestehen.
 
 ### Hinzugefügt
 - MortysDLP prüft jetzt vor jedem Update-Angebot, ob der Installationsordner ein Update

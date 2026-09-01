@@ -132,11 +132,13 @@ namespace MortysDLP.Services.Tools
                 string tempDir = Path.Combine(Path.GetTempPath(), "MortysDLP");
                 Directory.CreateDirectory(tempDir);
                 string tempZip = Path.Combine(tempDir, $"twitch-downloader-{Guid.NewGuid():N}.zip");
+                bool checksumChecked;
 
                 try
                 {
                     var verification = await VerifiedDownload.ToFileAsync(
                         asset.Url, tempZip, asset.Sha256, asset.Size, progress, ct);
+                    checksumChecked = verification.ChecksumChecked;
 
                     Log.Info($"[{Id}] Paket geladen: {verification.Bytes} Byte, " +
                         $"Prüfsumme {(verification.ChecksumChecked ? "geprüft" : "nicht prüfbar")}, " +
@@ -175,6 +177,7 @@ namespace MortysDLP.Services.Tools
                 var replaceResult = await ToolInstaller.ReplaceAllAsync(
                     Id,
                     [new ToolInstaller.Replacement(target, staged)],
+                    checksumChecked,
                     verifyCt =>
                     {
                         stage?.Report(ToolInstallStage.Verifying);

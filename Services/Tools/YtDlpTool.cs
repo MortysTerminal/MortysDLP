@@ -170,6 +170,7 @@ namespace MortysDLP.Services.Tools
                 var replaceResult = await ToolInstaller.ReplaceAllAsync(
                     Id,
                     [new ToolInstaller.Replacement(target, staged)],
+                    verification.ChecksumChecked,
                     verifyCt =>
                     {
                         stage?.Report(ToolInstallStage.Verifying);

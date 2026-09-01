@@ -53,11 +53,19 @@ namespace MortysDLP.Services.Tools
         /// ist ein Zustand, den niemand geprüft hat.
         /// </summary>
         /// <param name="toolId">Für das Protokoll — jede Zeile ist einem Werkzeug zuzuordnen.</param>
+        /// <param name="checksumVerified">true, wenn der Download gegen eine erwartete Prüfsumme
+        /// bestanden hat (<see cref="VerifiedDownload.ToFileAsync"/>, dort
+        /// <c>DownloadVerification.ChecksumChecked</c>). Nur dann wird die Internet-Kennzeichnung
+        /// (Mark-of-the-Web) der eingesetzten Dateien entfernt — eine von drei Bedingungen, die
+        /// zugleich gelten müssen (Autorenentscheidung: Nutzerbestätigung, feste Quelle,
+        /// bestandene Prüfsumme). War keine Prüfsumme verfügbar, bleibt die Kennzeichnung
+        /// stehen, auch wenn nur die Größe abgeglichen wurde.</param>
         /// <param name="verifyAsync">Die Erfolgskontrolle: ruft das Werkzeug tatsächlich auf und
         /// sagt, ob die Antwort brauchbar ist. Wirft sie, gilt das als „nicht bestanden".</param>
         public static async Task<ToolReplaceResult> ReplaceAllAsync(
             string toolId,
             IReadOnlyList<Replacement> replacements,
+            bool checksumVerified,
             Func<CancellationToken, Task<bool>> verifyAsync,
             CancellationToken ct)
         {
@@ -112,6 +120,40 @@ namespace MortysDLP.Services.Tools
                 Log.Warn($"[{toolId}] Einsetzen fehlgeschlagen: {ex.Message}", ex);
                 bool rolledBack = RollBack(toolId, applied);
                 return new ToolReplaceResult(false, rolledBack, $"Einsetzen fehlgeschlagen: {ex.Message}");
+            }
+
+            // Mark-of-the-Web: erst hier, nach dem Einsetzen und vor der Erfolgskontrolle - nie
+            // früher (die Erfolgskontrolle startet die Datei selbst und würde sonst als Erste auf
+            // eine noch stehende Kennzeichnung treffen) und nie ohne bestandene Prüfsumme. Drei
+            // Bedingungen müssen für diese eine, bewusst aufgeweichte Windows-Schutzmaßnahme
+            // zugleich gelten: Der Installationsweg läuft nie ohne Nutzerbestätigung, die Quelle
+            // ist fest im Programm hinterlegt (beides schon vor dieser Methode sichergestellt),
+            // und die Prüfsumme muss tatsächlich bestanden haben - nicht nur die Größe.
+            foreach (var entry in applied)
+            {
+                string name = Path.GetFileName(entry.TargetPath);
+
+                if (!checksumVerified)
+                {
+                    Log.Info($"[{toolId}] {name}: Internet-Kennzeichnung bleibt bestehen - " +
+                        "keine Prüfsumme verfügbar, um sie zu rechtfertigen.");
+                    continue;
+                }
+
+                switch (MarkOfTheWeb.TryRemove(entry.TargetPath))
+                {
+                    case MarkOfTheWebResult.Removed:
+                        Log.Info($"[{toolId}] {name}: Internet-Kennzeichnung entfernt " +
+                            "(Prüfsumme bestanden).");
+                        break;
+                    case MarkOfTheWebResult.NotPresent:
+                        Log.Debug($"[{toolId}] {name}: keine Internet-Kennzeichnung vorhanden.");
+                        break;
+                    default:
+                        Log.Warn($"[{toolId}] {name}: Internet-Kennzeichnung konnte nicht " +
+                            "entfernt werden - die Datei bleibt trotzdem einsatzbereit.");
+                        break;
+                }
             }
 
             bool verified;

@@ -193,6 +193,7 @@ namespace MortysDLP.Services.Tools
                         new ToolInstaller.Replacement(ffmpegTarget, ffmpegStaged),
                         new ToolInstaller.Replacement(ffprobeTarget, ffprobeStaged),
                     ],
+                    verification.ChecksumChecked,
                     verifyCt =>
                     {
                         stage?.Report(ToolInstallStage.Verifying);

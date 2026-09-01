@@ -194,6 +194,25 @@ lädt die Werkzeuge auf jedem Rechner, an dem er verwendet wird, einmalig neu �
 mehr auf dem Stick mitgeführt. Werkzeuge aus einer Installation vor dieser Umstellung werden
 beim ersten Start einmalig automatisch in den neuen Ordner übernommen.
 
+### Internet-Kennzeichnung (Mark-of-the-Web)
+
+Windows versieht aus dem Internet geladene Dateien mit einer unsichtbaren Kennzeichnung
+(„Mark-of-the-Web"). Bei ausführbaren Dateien kann das dazu führen, dass SmartScreen den ersten
+Start blockiert oder eine Warnung zeigt — ohne für den Nutzer erkennbaren Grund, wenn die Datei
+tatsächlich unverändert und vertrauenswürdig ist.
+
+MortysDLP entfernt diese Kennzeichnung bei einem neu eingesetzten Werkzeug — aber **nur**, wenn
+alle drei Bedingungen zugleich zutreffen: Der Nutzer hat den Download ausdrücklich bestätigt,
+die Quelle ist fest im Programm hinterlegt, und die Prüfsumme der heruntergeladenen Datei wurde
+erfolgreich geprüft. Fehlt auch nur eine dieser Bedingungen — etwa weil für dieses Werkzeug
+gerade keine Prüfsumme verfügbar war —, bleibt die Kennzeichnung bestehen, und das Protokoll
+nennt den Grund. Ein Fehlschlag beim Entfernen (z. B. fehlende Rechte) ist kein Fehler der
+Installation: Das Werkzeug bleibt einsatzbereit, nur die Kennzeichnung bleibt stehen.
+
+Jeder dieser Fälle steht als eigene Zeile im Protokoll (`%LOCALAPPDATA%\MortysDLP\logs\`):
+entfernt, nicht entfernt mangels Prüfsumme, Fehlschlag beim Entfernen, oder gar keine
+Kennzeichnung vorhanden.
+
 ---
 
 ## 4. Tab: Download
