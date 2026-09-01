@@ -310,10 +310,17 @@ namespace MortysDLP
         {
             var T = UITextDictionary.Get;
 
-            // Einstellungen in separater ListBox prüfen
-            if (SettingsNavigationList.SelectedIndex >= 0)
+            // Werkzeuge/Einstellungen in separater ListBox prüfen
+            int settingsIdx = SettingsNavigationList.SelectedIndex;
+            if (settingsIdx >= 0)
             {
-                txtSectionTitle.Text = T("MainWindow.Nav.Settings");
+                var settingsSectionTitles = new[] {
+                    T("MainWindow.Nav.Tools"),
+                    T("MainWindow.Nav.Settings"),
+                };
+
+                if (settingsIdx < settingsSectionTitles.Length)
+                    txtSectionTitle.Text = settingsSectionTitles[settingsIdx];
                 return;
             }
 
@@ -327,7 +334,6 @@ namespace MortysDLP
                 T("MainWindow.Nav.Transcribe"),
                 T("MainWindow.Nav.GifMaker"),
                 T("MainWindow.Nav.TwitchDownload"),
-                T("MainWindow.Nav.Tools"),
             };
 
             if (idx < sectionTitles.Length)
@@ -369,15 +375,13 @@ namespace MortysDLP
                 case 5:
                     MainFrame.Navigate(_twitchPage);
                     break;
-                case 6:
-                    MainFrame.Navigate(_toolsPage);
-                    break;
             }
         }
 
         private void SettingsNavigationList_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (SettingsNavigationList.SelectedIndex < 0) return;
+            int idx = SettingsNavigationList.SelectedIndex;
+            if (idx < 0) return;
 
             // Haupt-NavList abwählen
             NavigationList.SelectionChanged -= NavigationList_SelectionChanged;
@@ -385,7 +389,16 @@ namespace MortysDLP
             NavigationList.SelectionChanged += NavigationList_SelectionChanged;
 
             RefreshSectionTitle();
-            MainFrame.Navigate(_settingsPage);
+
+            switch (idx)
+            {
+                case 0:
+                    MainFrame.Navigate(_toolsPage);
+                    break;
+                case 1:
+                    MainFrame.Navigate(_settingsPage);
+                    break;
+            }
         }
 
         private void btnCredits_Click(object sender, RoutedEventArgs e)
