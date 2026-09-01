@@ -135,12 +135,17 @@ namespace MortysDLP
         }
 
         /// <summary>
-        /// Prüft alle verwalteten Werkzeuge über <see cref="ToolCatalog"/> und liefert
-        /// <c>false</c>, wenn danach ein für den Betrieb erforderliches Werkzeug fehlt. Für jedes
-        /// Werkzeug denselben Weg: vorhanden? → sonst anbieten und installieren; vorhanden, aber
-        /// etwas Neueres da? → anbieten. Zwei getrennte Wege für yt-dlp und ffmpeg gab es hier
-        /// früher, mit jeweils eigener Download-, Ersetzungs- und Fehlerbehandlung — und beide
-        /// ersetzten Dateien ohne zu prüfen, ob das Werkzeug danach überhaupt noch antwortet.
+        /// Prüft die für den Betrieb <b>erforderlichen</b> Werkzeuge über <see cref="ToolCatalog"/>
+        /// und liefert <c>false</c>, wenn danach eines davon fehlt. Für jedes Werkzeug denselben
+        /// Weg: vorhanden? → sonst anbieten und installieren; vorhanden, aber etwas Neueres da? →
+        /// anbieten. Zwei getrennte Wege für yt-dlp und ffmpeg gab es hier früher, mit jeweils
+        /// eigener Download-, Ersetzungs- und Fehlerbehandlung — und beide ersetzten Dateien ohne
+        /// zu prüfen, ob das Werkzeug danach überhaupt noch antwortet.
+        ///
+        /// <para>Auch whisper.cpp und TwitchDownloaderCLI stehen mittlerweile in
+        /// <see cref="ToolCatalog.CreateAll"/> — deshalb hier die Einschränkung auf
+        /// <see cref="IManagedTool.RequiredForOperation"/>: Beide sind optionale Funktionen und
+        /// werden weiterhin erst auf ihrer jeweiligen Seite geprüft, nicht bei jedem Start.</para>
         ///
         /// <para>Die Prüfungen laufen bewusst weiterhin nacheinander und vor dem Hauptfenster.
         /// Das Nebenläufigmachen und Verlegen in den Hintergrund ist eine eigene Aufgabe — sie
@@ -161,6 +166,9 @@ namespace MortysDLP
 
                 foreach (var tool in ToolCatalog.CreateAll())
                 {
+                    if (!tool.RequiredForOperation)
+                        continue;
+
                     var (present, version) = await HandleToolAsync(catalog, tool, T);
 
                     summary.Add($"{tool.Id}={(present ? version.HasValue ? version.Raw : "vorhanden" : "fehlt")}");

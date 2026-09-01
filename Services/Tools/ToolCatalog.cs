@@ -52,15 +52,23 @@ namespace MortysDLP.Services.Tools
         }
 
         /// <summary>
-        /// Alle verwalteten Werkzeuge, in der Reihenfolge, in der sie beim Start behandelt werden:
-        /// yt-dlp zuerst, weil ohne yt-dlp kein Download möglich ist und der Nutzer bei einer
-        /// Ablehnung dann gar nicht erst nach ffmpeg gefragt werden soll.
+        /// Alle vier verwalteten Werkzeuge. Die Reihenfolge ist die, in der
+        /// <c>StartupWindow.ToolUpdaterAsync</c> die für den Betrieb erforderlichen Werkzeuge
+        /// behandelt: yt-dlp zuerst, weil ohne yt-dlp kein Download möglich ist und der Nutzer bei
+        /// einer Ablehnung dann gar nicht erst nach ffmpeg gefragt werden soll. whisper.cpp und
+        /// TwitchDownloaderCLI stehen zwar hier im Katalog (<see cref="IManagedTool.RequiredForOperation"/>
+        /// ist bei beiden <c>false</c>), werden aber bewusst <b>nicht</b> automatisch beim Start
+        /// geprüft — das würde jeden Nutzer ohne Transkriptions- oder Twitch-Bedarf mit einer
+        /// Installationsfrage für ein Werkzeug konfrontieren, das er nie anfasst. Ihre Prüfung
+        /// bleibt an den Aufrufzeitpunkten ihrer jeweiligen Seite (<c>TranscribePage</c>/
+        /// <c>WhisperModelsWindow</c>, <c>TwitchPage</c>) unverändert.
         ///
-        /// <para>whisper.cpp, TwitchDownloaderCLI und die Whisper-Modelle stehen bewusst noch nicht
-        /// hier: Die beiden Werkzeuge folgen in einer eigenen Aufgabe, die Modelle haben gar keine
-        /// Version und passen absichtlich nicht in <see cref="IManagedTool"/>.</para>
+        /// <para>Die Whisper-<b>Modelle</b> stehen bewusst nicht hier: Sie haben gar keine Version
+        /// und passen absichtlich nicht in <see cref="IManagedTool"/> — ein eigener Fall für eine
+        /// künftige Aufgabe.</para>
         /// </summary>
-        public static IReadOnlyList<IManagedTool> CreateAll() => [new YtDlpTool(), new FfmpegTool()];
+        public static IReadOnlyList<IManagedTool> CreateAll() =>
+            [new YtDlpTool(), new FfmpegTool(), new WhisperTool(), new TwitchDownloaderTool()];
 
         /// <summary>
         /// Ermittelt Zustand, installierte Version, entfernte Version und die Entscheidung

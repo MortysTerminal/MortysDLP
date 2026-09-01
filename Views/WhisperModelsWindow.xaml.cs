@@ -1,6 +1,7 @@
 using MortysDLP.Helpers;
 using MortysDLP.Models;
 using MortysDLP.Services;
+using MortysDLP.Services.Tools;
 using MortysDLP.UITexte;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -82,6 +83,14 @@ namespace MortysDLP.Views
             btnUninstall.Visibility = whisperInstalled ? Visibility.Visible : Visibility.Collapsed;
         }
 
+        /// <summary>
+        /// Installiert oder aktualisiert whisper.cpp über <see cref="WhisperTool"/> — dieselbe
+        /// Abstraktion wie bei yt-dlp und ffmpeg (Rückfallebene und Erfolgskontrolle inklusive),
+        /// statt der früheren eigenen Release-Abfrage und ZIP-Entpackung dieser Klasse. Das
+        /// Entpacken selbst läuft dabei in <see cref="Task.Run"/> und meldet über
+        /// <paramref name="stage"/> ausdrücklich „Entpacke..." statt die Oberfläche stumm
+        /// einfrieren zu lassen.
+        /// </summary>
         private async void btnInstallWhisper_Click(object sender, RoutedEventArgs e)
         {
             if (_busy) return;
@@ -89,42 +98,40 @@ namespace MortysDLP.Views
 
             SetBusy(true, T("WhisperModels.Installing"));
 
-            var service = new WhisperUpdateService();
-            string tempZip = Path.Combine(Path.GetTempPath(), $"whisper_download_{Guid.NewGuid():N}.zip");
+            var tool = new WhisperTool();
 
             try
             {
                 _cts = new CancellationTokenSource();
 
-                var (version, assetUrl) = await service.GetLatestReleaseInfoAsync();
-                if (string.IsNullOrEmpty(assetUrl))
-                {
-                    FluentMessageBox.Show(T("WhisperModels.NoAsset"), icon: MessageBoxImage.Warning, owner: this);
-                    return;
-                }
+                var catalog = new ToolCatalog();
+                var outcome = await catalog.CheckAsync(tool, force: false, _cts.Token);
+                var release = await catalog.ResolveForInstallAsync(outcome, _cts.Token);
 
-                var progress = new Progress<double>(v =>
+                var progress = new Progress<double>(v => Dispatcher.Invoke(() =>
                 {
-                    Dispatcher.Invoke(() =>
+                    pbProgress.Value = v * 100;
+                    txtProgressPercent.Text = $"{v * 100:F0} %";
+                }));
+                var stage = new Progress<ToolInstallStage>(s => SetStatus(StageText(s, tool.DisplayName, T)));
+
+                var result = await tool.InstallAsync(release, progress, stage, _cts.Token);
+
+                if (!result.Success)
+                {
+                    // Wie im Startablauf: die technische Ursache steht im Protokoll (das hat
+                    // WhisperTool bereits geschrieben), der Dialog nennt nur, was der Nutzer
+                    // wissen muss (02-BEST-PRACTICES.md, Abschnitt 6).
+                    if (result.Status == ToolInstallStatus.RolledBack)
                     {
-                        pbProgress.Value = v * 100;
-                        txtProgressPercent.Text = $"{v * 100:F0} %";
-                    });
-                });
-
-                await service.DownloadAssetAsync(assetUrl, tempZip, progress, _cts.Token);
-                SetStatus(T("StartupWindow.Ffmpeg.Extracting") ?? "Entpacke...");
-
-                string whisperExe = AppPaths.Whisper;
-                string? whisperDir = Path.GetDirectoryName(whisperExe);
-                if (!string.IsNullOrEmpty(whisperDir) && !Directory.Exists(whisperDir))
-                    Directory.CreateDirectory(whisperDir);
-
-                bool extracted = await WhisperUpdateService.ExtractWhisperExeFromZipAsync(tempZip, whisperExe);
-                if (!extracted)
-                {
-                    FluentMessageBox.Show(string.Format(T("WhisperModels.Error.Install"), "Executable not found in ZIP"),
-                        icon: MessageBoxImage.Error, owner: this);
+                        FluentMessageBox.Show(string.Format(T("StartupWindow.ToolUpdate.RolledBack"), tool.DisplayName),
+                            icon: MessageBoxImage.Warning, owner: this);
+                    }
+                    else if (result.Status != ToolInstallStatus.Canceled)
+                    {
+                        FluentMessageBox.Show(string.Format(T("StartupWindow.Tool.InstallFailed"), tool.DisplayName),
+                            icon: MessageBoxImage.Error, owner: this);
+                    }
                     return;
                 }
 
@@ -140,10 +147,18 @@ namespace MortysDLP.Views
             }
             finally
             {
-                try { if (File.Exists(tempZip)) File.Delete(tempZip); } catch { }
                 SetBusy(false);
             }
         }
+
+        private static string StageText(ToolInstallStage stage, string displayName, Func<string, string> T) =>
+            string.Format(stage switch
+            {
+                ToolInstallStage.Downloading => T("StartupWindow.Status.Downloading"),
+                ToolInstallStage.Extracting => T("StartupWindow.Status.Extracting"),
+                ToolInstallStage.Replacing => T("StartupWindow.Status.Replacing"),
+                _ => T("StartupWindow.Status.Verifying"),
+            }, displayName);
 
         private async void btnDownloadModel_Click(object sender, RoutedEventArgs e)
         {

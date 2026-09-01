@@ -1,3 +1,5 @@
+using MortysDLP.Models;
+using MortysDLP.Services.Tools;
 using System.Collections.Generic;
 
 namespace MortysDLP.Services.Releases
@@ -67,6 +69,62 @@ namespace MortysDLP.Services.Releases
         public static IReadOnlyList<IReleaseSource> CreateFfmpegChain() =>
         [
             new PlainTextVersionSource("gyan-dev-release-version", isAuthoritative: true),
+        ];
+
+        /// <summary>
+        /// whisper.cpp. <b>Bewusst ohne</b> <see cref="GitHubAtomFeedSource"/> — anders als bei
+        /// yt-dlp und TwitchDownloaderCLI trägt dieses Repository <b>zwei</b> Tag-Schemata
+        /// parallel: <c>vX.Y.Z</c>-Tags ohne jeden Anhang (semantische Marker, am 2026-09-01
+        /// gegen die echte API geprüft: <c>v1.9.3</c> ist <c>prerelease: true</c> und hat
+        /// <b>keine</b> Assets) und <c>bNNNN</c>-Tags mit den tatsächlichen Programmpaketen.
+        /// <c>GitHubAtomFeedSource</c> kennt keine Vorabversions-Kennzeichnung (der Atom-Feed
+        /// führt dieses Feld nicht) und griff im echten Testlauf genau deshalb den assetlosen
+        /// <c>v1.9.3</c>-Eintrag — mit der Folge, dass <see cref="ReleaseQueryExtensions.ResolveDownloadUrl"/>
+        /// eine Adresse baute, die mit <c>404</c> antwortet, obwohl die versionslose
+        /// Rückfalladresse (<see cref="WhisperTool"/>) zuverlässig funktioniert hätte. Eine Quelle,
+        /// die eine <b>falsche</b> Adresse liefert, ist schädlicher als eine, die schweigt — deshalb
+        /// bleibt sie hier draußen, nicht aus Bequemlichkeit.
+        ///
+        /// <para><see cref="GitHubApiLatestSource"/> und <see cref="GitHubRedirectSource"/> fragen
+        /// beide ausschließlich <c>/releases/latest</c> — dort filtert GitHub selbst Vorabversionen
+        /// heraus, das Problem der Atom-Quelle betrifft sie nicht. <b>Am 2026-09-01 gegen die echte
+        /// API geprüft:</b> Das Repository heißt inzwischen <c>ggml-org/whisper.cpp</c> —
+        /// <c>ggerganov/whisper.cpp</c> ist nur noch eine GitHub-Weiterleitung (die
+        /// <c>api.github.com</c> transparent mitgeht, die HEAD-Weiterleitung von
+        /// <see cref="GitHubRedirectSource"/> aber nicht, weil dort der erste Sprung die
+        /// Weiterleitung auf das neue Owner/Repo wäre, nicht mehr auf den Tag). Der alte Name ist
+        /// deshalb keine Option mehr, nicht nur eine veraltete Schreibweise.</para>
+        ///
+        /// <para><b>Beide verbleibenden Quellen liefern trotzdem heute keine Version:</b>
+        /// <c>/releases/latest</c> zeigt aktuell auf den Tag <c>b4938</c> — eine fortlaufende
+        /// Build-Nummer, kein <c>vX.Y.Z</c>. <see cref="AppVersion.TryParse"/> scheitert daran, und
+        /// <see cref="GitHubApiReleaseJson.TryParse"/> verwirft dabei auch die mitgelieferte
+        /// Asset-Liste. Die Ursache liegt im gemeinsamen Quellen-Layer (<see cref="ReleaseInfo.Version"/> ist eine
+        /// <see cref="AppVersion"/>) und betrifft potenziell jede weitere Quelle mit
+        /// nicht-semantischem Tag-Schema. Beide Quellen bleiben trotzdem stehen: harmlos im
+        /// heutigen Fehlschlag, und sofort nutzbar, falls <c>ggml-org</c> seine „latest"-Kennzeichnung
+        /// einmal auf ein parsebares Schema umstellt. Die Installation bleibt in der Zwischenzeit
+        /// möglich: <see cref="WhisperTool"/> lädt ohne Versionsantwort über eine feste,
+        /// versionslose Adresse (wie schon bei yt-dlp und ffmpeg) — am 2026-09-01 gegen das echte
+        /// Release durchgespielt.</para>
+        /// </summary>
+        public static IReadOnlyList<IReleaseSource> CreateWhisperChain() =>
+        [
+            new GitHubApiLatestSource(),
+            new GitHubRedirectSource(),
+        ];
+
+        /// <summary>
+        /// TwitchDownloaderCLI. Dieselben drei GitHub-Wege wie bei whisper.cpp — anders als dort
+        /// ist der Tag von <c>lay295/TwitchDownloader</c> (z. B. <c>1.56.5</c>) eine echte,
+        /// ordnende Version, am 2026-09-01 gegen die echte API bestätigt. Die Kette trägt hier
+        /// also tatsächlich, nicht nur auf dem Papier.
+        /// </summary>
+        public static IReadOnlyList<IReleaseSource> CreateTwitchDownloaderChain() =>
+        [
+            new GitHubApiLatestSource(),
+            new GitHubAtomFeedSource(),
+            new GitHubRedirectSource(),
         ];
     }
 }

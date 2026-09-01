@@ -98,8 +98,10 @@ selbst, bleibt nur „Beenden".
 | **Whisper-Modelle** | Sprachmodelle für die Transkription | `%LOCALAPPDATA%\MortysDLP\Tools\Whisper\models\ggml-*.bin` | nein |
 | **TwitchDownloaderCLI** | Twitch-Chat laden und rendern | `%LOCALAPPDATA%\MortysDLP\Tools\TwitchDownloaderCLI.exe` | nein |
 
-yt-dlp und ffmpeg/ffprobe werden beim Start verwaltet. Whisper und TwitchDownloaderCLI
-werden auf ihren jeweiligen Seiten installiert, aktualisiert und deinstalliert.
+Alle vier Werkzeuge laufen über dieselbe Verwaltung (Ausweis, Herunterladen, Ersetzen mit
+Rückfallebene, Erfolgskontrolle — siehe unten). Ausgelöst wird sie an unterschiedlichen Stellen:
+yt-dlp und ffmpeg/ffprobe werden beim Start geprüft, Whisper und TwitchDownloaderCLI auf ihren
+jeweiligen Seiten installiert, aktualisiert und deinstalliert.
 
 ### Woran MortysDLP erkennt, dass es das richtige Werkzeug ist
 
@@ -113,12 +115,15 @@ jedes Werkzeug beim Start **gefragt** und muss sich ausweisen:
 | yt-dlp | **Dateieigenschaften** von `yt-dlp.exe`, ohne Programmstart | Die Datei muss sich als Produkt `yt-dlp` ausgeben **und** eine Datumsversion tragen (`2026.08.19`). `git.exe` gibt sich als `Git` aus und fällt damit durch, ohne ausgeführt zu werden. |
 | ffmpeg | `ffmpeg.exe -version` | Die Zeile muss mit `ffmpeg version ` **beginnen**. |
 | ffprobe | `ffprobe.exe -version` | Die Zeile muss mit `ffprobe version ` **beginnen**, und die Version muss zu der von ffmpeg passen. |
+| whisper.cpp | `whisper.exe --version` | Die Zeile muss mit `whisper.cpp version:` **beginnen**. |
+| TwitchDownloaderCLI | **Dateieigenschaften**, ohne Programmstart | Die Datei muss sich als Produkt `TwitchDownloaderCLI` ausgeben und eine Zahlenversion tragen. |
 
-Warum der Unterschied: yt-dlp ist ein gebündeltes Python-Programm und braucht für einen Aufruf
-rund 3,7 Sekunden, weil es dabei jedes Mal einen vollständigen Interpreter hochfährt. Dieselbe
-Auskunft steht in den Dateieigenschaften und kostet dort wenige Millisekunden. ffmpeg und ffprobe
-tragen keine solche Angabe, antworten aber als native Programme in rund 60 Millisekunden — dort
-ist der Programmaufruf der richtige Weg.
+Warum der Unterschied: yt-dlp und TwitchDownloaderCLI sind gebündelte Programme, deren
+Dateieigenschaften bereits die Auskunft tragen, die ein Programmstart liefern würde — bei yt-dlp
+spart das rund 3,7 Sekunden pro Prüfung, weil es sonst jedes Mal einen vollständigen
+Python-Interpreter hochfährt. ffmpeg, ffprobe und whisper.cpp tragen keine solche Angabe in ihren
+Dateieigenschaften, antworten aber als native Programme in rund 60 Millisekunden — dort ist der
+Programmaufruf der richtige Weg.
 
 Trägt eine Datei keine oder keine brauchbare Angabe in ihren Eigenschaften — etwa eine selbst
 gebaute Fassung —, wird das Programm wie bisher gefragt. Nur eine Datei, die sich ausdrücklich
@@ -137,23 +142,25 @@ nach dem sich das Werkzeug nicht mehr ausweisen kann, gilt als fehlgeschlagen.
 
 ### Wie ein Werkzeug-Update abläuft
 
-Für yt-dlp und ffmpeg/ffprobe gilt derselbe Ablauf:
+Für alle vier Werkzeuge gilt derselbe Ablauf, auch wenn er an unterschiedlichen Stellen ausgelöst
+wird (yt-dlp/ffmpeg beim Start, whisper.cpp/TwitchDownloaderCLI auf ihren jeweiligen Seiten):
 
 1. **Version bestimmen.** Über denselben Weg, der auch den Ausweis liefert (siehe oben): bei
-   yt-dlp aus den Dateieigenschaften, bei ffmpeg/ffprobe über den Programmaufruf. Passt die
-   Antwort nicht oder bleibt sie aus, gilt die Version als *unbekannt*, und dann wird **kein**
-   Update angeboten; stattdessen wird der Grund protokolliert und das Werkzeug als nicht
-   einsatzbereit behandelt.
-2. **Bezugsquelle fragen.** yt-dlp wird über mehrere unabhängige Quellen der Reihe nach
-   abgefragt (GitHub-Release-API, Python-Paketindex, GitHub-Nachrichtenfeed, GitHub-Weiterleitung);
-   für ffmpeg liefert ein eigener Versionsendpunkt des Anbieters die Nummer des Pakets, das
-   MortysDLP auch herunterlädt. Das Ergebnis wird zwischengespeichert und höchstens alle zwölf
-   Stunden erneuert.
-3. **Vergleichen.** Bei yt-dlp ist die Version eine ordnende Zahlenfolge — ein Update wird nur
-   angeboten, wenn die veröffentlichte Fassung nachweislich **neuer** ist. Bei ffmpeg ist die
-   Version *keine* ordnende Zahl (sie trägt die Build-Bezeichnung des Anbieters mit), deshalb
-   lautet die Frage dort nur „dieselbe Ausgabe oder eine andere?". Lässt sich „neuer als" nicht
-   beantworten, führt das nie zu einem automatischen Update, höchstens zu einem Angebot.
+   yt-dlp und TwitchDownloaderCLI aus den Dateieigenschaften, bei ffmpeg/ffprobe und whisper.cpp
+   über den Programmaufruf. Passt die Antwort nicht oder bleibt sie aus, gilt die Version als
+   *unbekannt*, und dann wird **kein** Update angeboten; stattdessen wird der Grund protokolliert
+   und das Werkzeug als nicht einsatzbereit behandelt.
+2. **Bezugsquelle fragen.** yt-dlp, whisper.cpp und TwitchDownloaderCLI werden über mehrere
+   unabhängige GitHub-Wege der Reihe nach abgefragt (bei yt-dlp zusätzlich der von GitHub
+   unabhängige Python-Paketindex); für ffmpeg liefert ein eigener Versionsendpunkt des
+   Anbieters die Nummer des Pakets, das MortysDLP auch herunterlädt. Das Ergebnis wird
+   zwischengespeichert und höchstens alle zwölf Stunden erneuert.
+3. **Vergleichen.** Bei yt-dlp und TwitchDownloaderCLI ist die Version eine ordnende
+   Zahlenfolge — ein Update wird nur angeboten, wenn die veröffentlichte Fassung nachweislich
+   **neuer** ist. Bei ffmpeg ist die Version *keine* ordnende Zahl (sie trägt die
+   Build-Bezeichnung des Anbieters mit), deshalb lautet die Frage dort nur „dieselbe Ausgabe
+   oder eine andere?". Lässt sich „neuer als" nicht beantworten, führt das nie zu einem
+   automatischen Update, höchstens zu einem Angebot.
 4. **Herunterladen und prüfen.** Der Download läuft über eine Prüfsumme (soweit die Quelle eine
    nennt) und einen Größenabgleich, in eine Zwischendatei — erst nach bestandener Prüfung wird
    sie weiterverwendet. Fehlt eine Prüfsumme, steht das im Protokoll.
@@ -168,6 +175,12 @@ Für yt-dlp und ffmpeg/ffprobe gilt derselbe Ablauf:
 
 Jeder dieser Schritte steht mit einer eigenen Zeile im Protokoll — auch die Erfolgsfälle,
 nicht nur die Fehlschläge.
+
+**Warum bei whisper.cpp aktuell kein Update angeboten wird:** Der Anbieter kennzeichnet seine
+Programm-Pakete anders als seine Versions-Tags, sodass sich daraus derzeit keine vergleichbare
+Versionsnummer gewinnen lässt. Fehlt whisper.cpp ganz, lässt es sich davon unabhängig über eine
+feste Adresse installieren — nur das Update-Angebot bleibt bis auf Weiteres aus, statt eines zu
+zeigen, das sich nicht belegen lässt.
 
 **Warum ffmpeg nie erzwungen wird:** ffmpeg ist die Komponente, bei der ein unnötiges Update am
 meisten kaputtmachen kann, und die Versionsangabe der ausgelieferten Ausgabe erlaubt keine

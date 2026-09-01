@@ -1,10 +1,10 @@
 using MortysDLP.Helpers;
 using MortysDLP.Services;
+using MortysDLP.Services.Tools;
 using MortysDLP.UITexte;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
-using System.IO.Compression;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows;
@@ -21,7 +21,8 @@ namespace MortysDLP.Views
 
         private CancellationTokenSource? _cts;
         private bool _initialized = false;
-        private readonly TwitchDownloaderService _service = new();
+        private readonly TwitchDownloaderTool _tool = new();
+        private readonly ToolCatalog _catalog = new();
         private Process? _currentYtDlpProcess;
         private double   _activeRateLimitMBps = 0;
         private volatile bool _bandwidthKillPending = false;
@@ -325,6 +326,14 @@ namespace MortysDLP.Views
             }
         }
 
+        /// <summary>
+        /// Installiert oder aktualisiert TwitchDownloaderCLI über <see cref="TwitchDownloaderTool"/>
+        /// — dieselbe Abstraktion wie bei yt-dlp, ffmpeg und whisper.cpp, statt der früheren
+        /// eigenen Release-Abfrage, ZIP-Entpackung und Ersetzung dieser Seite. Anders als bei
+        /// whisper.cpp gibt es hier keine versionslose Rückfalladresse (der Dateiname trägt die
+        /// Version) — schweigen alle Quellen, meldet <see cref="TwitchDownloaderTool.InstallAsync"/>
+        /// das als Fehlschlag, statt zu raten.
+        /// </summary>
         private async Task InstallOrUpdateAsync()
         {
             var T = UITextDictionary.Get;
@@ -335,81 +344,34 @@ namespace MortysDLP.Views
             try
             {
                 AppendDebug("[SETUP] Suche nach neuestem TwitchDownloaderCLI-Release...");
-                var (version, assetUrl) = await _service.GetLatestReleaseInfoAsync();
 
-                if (assetUrl == null)
+                var outcome = await _catalog.CheckAsync(_tool, force: false, CancellationToken.None);
+                var release = await _catalog.ResolveForInstallAsync(outcome, CancellationToken.None);
+
+                var stage = new Progress<ToolInstallStage>(s => AppendDebug($"[SETUP] {StageText(s, _tool.DisplayName, T)}"));
+                var result = await _tool.InstallAsync(release, progress: null, stage, CancellationToken.None);
+
+                if (!result.Success)
                 {
-                    AppendDebug("[SETUP] Kein Asset gefunden.");
+                    AppendDebug($"[SETUP] {result.Detail}");
                     SetStatus(T("TwitchPage.Status.Error"), false);
-                    FluentMessageBox.Show(
-                        string.Format(T("TwitchPage.Error.InstallFailed"), "Kein passendes Windows-Binary im Release gefunden."),
-                        T("TwitchPage.UpdateCheck.Title"),
-                        MessageBoxButton.OK, MessageBoxImage.Error,
-                        owner: Window.GetWindow(this));
+
+                    if (result.Status != ToolInstallStatus.Canceled)
+                    {
+                        string message = result.Status == ToolInstallStatus.RolledBack
+                            ? string.Format(T("StartupWindow.ToolUpdate.RolledBack"), _tool.DisplayName)
+                            : string.Format(T("StartupWindow.Tool.InstallFailed"), _tool.DisplayName);
+
+                        FluentMessageBox.Show(
+                            message,
+                            T("TwitchPage.UpdateCheck.Title"),
+                            MessageBoxButton.OK, MessageBoxImage.Error,
+                            owner: Window.GetWindow(this));
+                    }
                     return;
                 }
 
-                string targetPath = AppPaths.TwitchCli;
-                string? targetDir = System.IO.Path.GetDirectoryName(targetPath);
-                if (!string.IsNullOrEmpty(targetDir) && !Directory.Exists(targetDir))
-                    Directory.CreateDirectory(targetDir);
-
-                AppendDebug($"[SETUP] Lade {assetUrl} → {targetPath}");
-
-                // Immer zuerst in Temp-Datei laden, dann atomisch ersetzen
-                // (vermeidet "file is being used by another process" beim Überschreiben)
-                string tempTarget = targetPath + ".tmp";
-
-                // Prüfen ob ZIP oder EXE
-                if (assetUrl.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
-                {
-                    string tempZip = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "TwitchDownloaderCLI_dl.zip");
-                    await _service.DownloadAssetAsync(assetUrl, tempZip);
-                    AppendDebug("[SETUP] ZIP heruntergeladen, entpacke...");
-
-                    using (var archive = ZipFile.OpenRead(tempZip))
-                    {
-                        foreach (var entry in archive.Entries)
-                        {
-                            if (entry.Name.Equals("TwitchDownloaderCLI.exe", StringComparison.OrdinalIgnoreCase))
-                            {
-                                entry.ExtractToFile(tempTarget, overwrite: true);
-                                break;
-                            }
-                        }
-                    }
-                    File.Delete(tempZip);
-                }
-                else
-                {
-                    await _service.DownloadAssetAsync(assetUrl, tempTarget);
-                }
-
-                // Atomisches Ersetzen: alte EXE umbenennen, neue einsetzen
-                if (File.Exists(targetPath))
-                {
-                    string backup = targetPath + ".old";
-                    if (File.Exists(backup)) File.Delete(backup);
-                    File.Move(targetPath, backup);
-                    try
-                    {
-                        File.Move(tempTarget, targetPath);
-                        File.Delete(backup);
-                    }
-                    catch
-                    {
-                        // Rollback
-                        File.Move(backup, targetPath);
-                        if (File.Exists(tempTarget)) File.Delete(tempTarget);
-                        throw;
-                    }
-                }
-                else
-                {
-                    File.Move(tempTarget, targetPath);
-                }
-
-                AppendDebug($"[SETUP] Installation abgeschlossen. Version: {version}");
+                AppendDebug($"[SETUP] Installation abgeschlossen. Version: {result.NewVersion}");
                 pnlUpdateHint.Visibility = Visibility.Collapsed;
                 RefreshToolStatus();
                 ValidateStartButton();
@@ -435,7 +397,18 @@ namespace MortysDLP.Views
             }
         }
 
-        // Stille Hintergrundprüfung beim Seitenaufruf
+        private static string StageText(ToolInstallStage stage, string displayName, Func<string, string> T) =>
+            string.Format(stage switch
+            {
+                ToolInstallStage.Downloading => T("StartupWindow.Status.Downloading"),
+                ToolInstallStage.Extracting => T("StartupWindow.Status.Extracting"),
+                ToolInstallStage.Replacing => T("StartupWindow.Status.Replacing"),
+                _ => T("StartupWindow.Status.Verifying"),
+            }, displayName);
+
+        // Stille Hintergrundprüfung beim Seitenaufruf - Aufrufzeitpunkte unverändert
+        // (Loaded-Handler und nach einer Installation), nur der Weg dahinter ist jetzt
+        // ToolCatalog/TwitchDownloaderTool statt der eigenen Release-Abfrage dieser Seite.
         private async Task CheckForUpdateSilentlyAsync()
         {
             var T = UITextDictionary.Get;
@@ -445,25 +418,17 @@ namespace MortysDLP.Views
 
             try
             {
-                var (latestVersion, _) = await _service.GetLatestReleaseInfoAsync();
-                string? localVersion   = await _service.GetLocalVersionAsync();
+                var outcome = await _catalog.CheckAsync(_tool, force: false, CancellationToken.None);
+                AppendDebug($"[UPDATE] Lokal: '{outcome.LocalVersion}'  |  entfernt: '{outcome.RemoteVersion}'");
 
-                // Versionen normalisieren: v1.56.4 → 1.56.4
-                string localNorm  = (localVersion  ?? "").TrimStart('v', 'V').Trim();
-                string latestNorm = (latestVersion ?? "").TrimStart('v', 'V').Trim();
-
-                AppendDebug($"[UPDATE] Lokal: '{localNorm}'  |  Latest: '{latestNorm}'");
-
-                bool updateRequired = _service.IsUpdateRequired(localNorm, latestNorm) && !string.IsNullOrEmpty(latestNorm);
-
-                if (updateRequired)
+                if (outcome.Verdict.Offer)
                 {
                     // Update verfügbar → Button in Primärfarbe orange
-                    btnUpdateAction.Content   = string.Format(T("TwitchPage.Button.UpdateAvailable"), latestVersion);
+                    btnUpdateAction.Content   = string.Format(T("TwitchPage.Button.UpdateAvailable"), outcome.RemoteVersion);
                     btnUpdateAction.IsEnabled = true;
-                    btnUpdateAction.Tag       = "update:" + latestNorm;
+                    btnUpdateAction.Tag       = "update";
                     SetButtonStyle(btnUpdateAction, primary: true);
-                    txtUpdateHint.Text       = string.Format(T("TwitchPage.Tool.UpdateAvailable"), latestVersion);
+                    txtUpdateHint.Text       = string.Format(T("TwitchPage.Tool.UpdateAvailable"), outcome.RemoteVersion);
                     pnlUpdateHint.Visibility = Visibility.Visible;
                 }
                 else
@@ -476,9 +441,12 @@ namespace MortysDLP.Views
                     pnlUpdateHint.Visibility  = Visibility.Collapsed;
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                // Netzwerkfehler – kein Dialog, Button bleibt klickbar für Retry
+                // Fehlschlag – kein Dialog, Button bleibt klickbar für Retry. Anders als das
+                // frühere bare "catch": mit Protokollzeile, sonst verschwindet ein wiederholter
+                // Fehlschlag stillschweigend.
+                Log.Warn($"[{_tool.Id}] Stille Update-Prüfung fehlgeschlagen: {ex.Message}", ex);
                 btnUpdateAction.Content   = T("TwitchPage.Button.CheckUpdate");
                 btnUpdateAction.IsEnabled = true;
                 btnUpdateAction.Tag       = "check";
@@ -499,7 +467,7 @@ namespace MortysDLP.Views
         private async void btnUpdateAction_Click(object sender, RoutedEventArgs e)
         {
             string? tag = btnUpdateAction.Tag as string;
-            if (tag != null && tag.StartsWith("update:"))
+            if (tag == "update")
                 await InstallOrUpdateAsync();
             else
                 await CheckForUpdateSilentlyAsync();

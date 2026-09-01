@@ -33,17 +33,10 @@ namespace MortysDLP.Services.Tools
         /// Versionsnummer des Pakets ist, das unter <see cref="PackageUrl"/> liegt.</summary>
         private const string VersionUrl = "https://www.gyan.dev/ffmpeg/builds/release-version";
 
-        // Grenzen gegen ZIP-Bomben (02-BEST-PRACTICES.md, Abschnitt 9). Zip-Slip ist hier kein
-        // Thema, weil nicht das Archiv in ein Verzeichnis entpackt wird, sondern genau zwei
-        // namentlich gesuchte Einträge in einen von MortysDLP bestimmten Zielpfad.
         /// <summary>So viele nicht leere Zeilen werden nach der Versionszeile durchsucht. Genug
         /// für einen Build, der eine Warnung voranstellt — zu wenig, um in der langen
         /// Konfigurationsausgabe von ffmpeg zufällig etwas Passendes zu finden.</summary>
         private const int MaxScannedLines = 5;
-
-        private const int MaxZipEntries = 10_000;
-        private const long MaxExtractedBytes = 500L * 1024 * 1024;
-        private const long MaxCompressionRatio = 100;
 
         private readonly string[] _targetPaths = [AppPaths.Ffmpeg, AppPaths.Ffprobe];
 
@@ -265,63 +258,17 @@ namespace MortysDLP.Services.Tools
         /// <see cref="ZipArchiveEntry.Name"/> (der reine Dateiname), weil das Paket die Dateien in
         /// einem versionsbenannten Unterordner führt (<c>ffmpeg-7.1-essentials_build/bin/</c>) und
         /// dieser Ordnername sich mit jeder Ausgabe ändert.
+        ///
+        /// <para>Dünne Hülle um <see cref="ZipPackageExtractor.ExtractNamedEntries"/> — die
+        /// eigentliche Prüfung (Zip-Bomben-Grenzen) liegt jetzt dort, gemeinsam mit
+        /// TwitchDownloaderCLI. Bleibt als eigene Methode stehen, damit
+        /// <c>FfmpegToolTests</c> unverändert gegen <c>FfmpegTool</c> testet.</para>
         /// </summary>
         /// <returns>Die Namen der Einträge, die im Archiv nicht gefunden wurden. Leer heißt: alle
         /// da und geschrieben.</returns>
         internal static List<string> ExtractExecutables(
-            string zipPath, IReadOnlyList<(string EntryName, string TargetPath)> wanted)
-        {
-            var missing = new List<string>();
-
-            using var archive = ZipFile.OpenRead(zipPath);
-
-            if (archive.Entries.Count > MaxZipEntries)
-            {
-                throw new InvalidDataException(
-                    $"Das Paket enthält {archive.Entries.Count} Einträge und damit mehr als die " +
-                    $"zulässigen {MaxZipEntries} - es wird nicht entpackt.");
-            }
-
-            long extractedBudget = MaxExtractedBytes;
-
-            foreach (var (entryName, targetPath) in wanted)
-            {
-                ZipArchiveEntry? entry = null;
-                foreach (var candidate in archive.Entries)
-                {
-                    if (string.Equals(candidate.Name, entryName, StringComparison.OrdinalIgnoreCase))
-                    {
-                        entry = candidate;
-                        break;
-                    }
-                }
-
-                if (entry is null)
-                {
-                    missing.Add(entryName);
-                    continue;
-                }
-
-                if (entry.Length > extractedBudget)
-                {
-                    throw new InvalidDataException(
-                        $"'{entryName}' würde entpackt {entry.Length} Byte belegen und überschreitet " +
-                        "das Gesamtlimit - das Paket wird nicht entpackt.");
-                }
-
-                if (entry.CompressedLength > 0 && entry.Length / entry.CompressedLength > MaxCompressionRatio)
-                {
-                    throw new InvalidDataException(
-                        $"'{entryName}' hat ein Kompressionsverhältnis über {MaxCompressionRatio}:1 " +
-                        "- das Paket wird nicht entpackt.");
-                }
-
-                extractedBudget -= entry.Length;
-                entry.ExtractToFile(targetPath, overwrite: true);
-            }
-
-            return missing;
-        }
+            string zipPath, IReadOnlyList<(string EntryName, string TargetPath)> wanted) =>
+            ZipPackageExtractor.ExtractNamedEntries(zipPath, wanted);
 
         /// <summary>
         /// Zieht aus <c>ffmpeg version 7.1-essentials_build-www.gyan.dev Copyright …</c> das

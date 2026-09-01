@@ -4,8 +4,6 @@ using MortysDLP.Services.Releases;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -324,41 +322,12 @@ namespace MortysDLP.Services.Tools
         /// <summary>Holt die Prüfsumme aus <c>SHA2-256SUMS</c> des Releases. <c>null</c>, wenn es
         /// diesen Anhang nicht gibt oder er nicht lesbar ist — das ist kein Grund, den Download zu
         /// verweigern, wird aber von <see cref="VerifiedDownload"/> protokolliert.</summary>
-        private async Task<string?> TryReadChecksumAsync(ReleaseInfo? release, CancellationToken ct)
+        private Task<string?> TryReadChecksumAsync(ReleaseInfo? release, CancellationToken ct)
         {
-            var checksumAsset = release?.Assets.FirstOrDefault(a =>
-                string.Equals(a.Name, ChecksumAssetName, StringComparison.OrdinalIgnoreCase));
+            if (release is null || release.Assets.Count == 0)
+                return Task.FromResult<string?>(null);
 
-            if (checksumAsset is null)
-                return null;
-
-            try
-            {
-                UrlSafety.EnsureAllowed(new Uri(checksumAsset.Url));
-
-                using var response = await Http.SendWithRetryAsync(
-                    Http.Shared, () => new HttpRequestMessage(HttpMethod.Get, checksumAsset.Url), ct: ct);
-
-                if (!response.IsSuccessStatusCode)
-                    return null;
-
-                string content = await response.Content.ReadAsStringAsync(ct);
-                string? sha = ChecksumFile.Find(content, ExeName);
-
-                if (sha is null)
-                    Log.Warn($"[{Id}] {ChecksumAssetName} enthält keinen Eintrag für {ExeName}.");
-
-                return sha;
-            }
-            catch (OperationCanceledException)
-            {
-                throw;
-            }
-            catch (Exception ex)
-            {
-                Log.Warn($"[{Id}] {ChecksumAssetName} konnte nicht gelesen werden: {ex.Message}", ex);
-                return null;
-            }
+            return ReleaseChecksums.TryFetchAsync(release.Assets, ChecksumAssetName, ExeName, $"[{Id}]", ct);
         }
     }
 }

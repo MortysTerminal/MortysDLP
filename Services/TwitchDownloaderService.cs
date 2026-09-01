@@ -1,5 +1,4 @@
 using MortysDLP.Helpers;
-using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using System.Text.Json;
@@ -8,112 +7,19 @@ using System.Text.RegularExpressions;
 namespace MortysDLP.Services
 {
     /// <summary>
-    /// Kapselt alle Operationen rund um TwitchDownloaderCLI:
-    /// Update-Check, Installation und VOD/Chat-Download.
+    /// Kapselt die Twitch-Inhaltslogik: Inhaltstyp-Erkennung und VOD/Chat-Download. Die
+    /// Werkzeugverwaltung von TwitchDownloaderCLI (Update-Prüfung, Installation) ist jetzt
+    /// <see cref="Tools.TwitchDownloaderTool"/> — diese Klasse bleibt für das, was mit
+    /// Werkzeugverwaltung nichts zu tun hat. Ohne den entfernten Update-Teil bestand sie nur noch
+    /// aus statischen Mitgliedern - deshalb jetzt eine <c>static class</c>.
     /// </summary>
-    internal class TwitchDownloaderService : IDownloadableToolService
+    internal static class TwitchDownloaderService
     {
         // ── Pfade ────────────────────────────────────────────────────────────────
 
         public static string CliExePath => AppPaths.TwitchCli;
 
         public static bool IsInstalled() => File.Exists(CliExePath);
-
-        // ── GitHub-Release ───────────────────────────────────────────────────────
-
-        public async Task DownloadAssetAsync(string url, string targetPath, IProgress<double>? progress = null,
-            CancellationToken cancellationToken = default)
-        {
-            await ToolDownloadHelper.DownloadAssetAsync(Http.Shared, url, targetPath, progress, cancellationToken);
-        }
-
-        public async Task<(string? Version, string? AssetUrl)> GetLatestReleaseInfoAsync()
-        {
-            try
-            {
-                if (GitHubRateLimit.IsExhausted(DateTimeOffset.UtcNow))
-                    return (null, null);
-
-                string api = Properties.Settings.Default.TwitchDownloaderReleaseURL;
-                using var response = await Http.SendWithRetryAsync(
-                    Http.Shared, () => Http.CreateGitHubApiRequest(api));
-                GitHubRateLimit.Observe(response.Headers, DateTimeOffset.UtcNow);
-
-                if (!response.IsSuccessStatusCode) return (null, null);
-
-                var json = await response.Content.ReadAsStringAsync();
-                using var doc = JsonDocument.Parse(json);
-
-                string? version = doc.RootElement.GetProperty("tag_name").GetString();
-                string? assetUrl = null;
-
-                if (doc.RootElement.TryGetProperty("assets", out var assets))
-                {
-                    foreach (var asset in assets.EnumerateArray())
-                    {
-                        var name = asset.GetProperty("name").GetString() ?? "";
-                        // Suche nach TwitchDownloaderCLI-Windows-Binary (keine Linux/Mac)
-                        if (name.Contains("TwitchDownloaderCLI", StringComparison.OrdinalIgnoreCase) &&
-                            (name.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) ||
-                             (name.EndsWith(".zip", StringComparison.OrdinalIgnoreCase) &&
-                              name.Contains("Windows", StringComparison.OrdinalIgnoreCase))))
-                        {
-                            assetUrl = asset.GetProperty("browser_download_url").GetString();
-                            // .exe bevorzugen
-                            if (name.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
-                                break;
-                        }
-                    }
-                }
-
-                return (version, assetUrl);
-            }
-            catch
-            {
-                return (null, null);
-            }
-        }
-
-        public async Task<string?> GetLocalVersionAsync()
-        {
-            if (!IsInstalled()) return null;
-            try
-            {
-                var fvi = System.Diagnostics.FileVersionInfo.GetVersionInfo(CliExePath);
-
-                // FileVersion ist z.B. "1.56.4.0" – zuverlässiger als ProductVersion,
-                // da ProductVersion einen Commit-Hash-Suffix enthält ("1.56.4+abc1234").
-                string? ver = fvi.FileVersion;
-                if (!string.IsNullOrWhiteSpace(ver))
-                {
-                    // "1.56.4.0" → "1.56.4": letztes ".0"-Segment entfernen
-                    var parts = ver.Trim().TrimStart('v', 'V').Split('.');
-                    if (parts.Length == 4 && parts[3] == "0")
-                        return string.Join(".", parts[0], parts[1], parts[2]);
-                    return ver.Trim().TrimStart('v', 'V');
-                }
-
-                // Fallback: ProductVersion ohne Commit-Suffix
-                ver = fvi.ProductVersion;
-                if (!string.IsNullOrWhiteSpace(ver))
-                {
-                    // "1.56.4+abc1234" → "1.56.4"
-                    int plusIdx = ver.IndexOf('+');
-                    if (plusIdx >= 0) ver = ver[..plusIdx];
-                    return ver.Trim().TrimStart('v', 'V');
-                }
-
-                // Letzter Fallback: CLI-Aufruf
-                var result = await ProcessRunner.RunAsync(CliExePath, ["--version"], timeout: TimeSpan.FromSeconds(15));
-                string? output = result.StdOut.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).FirstOrDefault();
-                return output?.Trim().TrimStart('v', 'V');
-            }
-            catch (Exception ex)
-            {
-                Log.Warn("Fehler beim Auslesen der Version", ex);
-                return null;
-            }
-        }
 
         /// <summary>Gibt die Dateigröße der EXE in MB zurück, oder null wenn nicht installiert.</summary>
         public static double? GetFileSizeMB()
@@ -125,15 +31,6 @@ namespace MortysDLP.Services
                 return Math.Round(info.Length / 1_048_576.0, 1);
             }
             catch { return null; }
-        }
-
-        public bool IsUpdateRequired(string? localVersion, string? latestVersion)
-        {
-            if (string.IsNullOrWhiteSpace(localVersion) || string.IsNullOrWhiteSpace(latestVersion))
-                return true;
-            latestVersion = latestVersion.TrimStart('v', 'V');
-            localVersion = localVersion.TrimStart('v', 'V');
-            return !string.Equals(localVersion, latestVersion, StringComparison.OrdinalIgnoreCase);
         }
 
         // ── Inhaltstyp-Erkennung ─────────────────────────────────────────────────

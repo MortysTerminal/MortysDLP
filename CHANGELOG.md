@@ -219,6 +219,10 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
   gleichzeitigen Konvertierungen sichtbar flackerte.
 - Auf der Twitch-Seite erschien jede Zeile der yt-dlp-Ausgabe doppelt im Debug-Protokoll.
   Jetzt erscheint sie genau einmal, stderr-Zeilen weiterhin erkennbar markiert.
+- Beim Installieren von whisper.cpp reagiert die Oberfläche jetzt auch während des Entpackens
+  und zeigt dafür eine eigene Statuszeile („Entpacke whisper.cpp …"). Bisher blieb die Anzeige
+  für die gesamte Dauer des Entpackens unverändert auf „Lade herunter" stehen, ohne dass
+  erkennbar war, dass noch etwas passiert.
 
 ### Intern
 - Die Prüfung auf neue Versionen ist jetzt so gebaut, dass sie sich für beliebige externe
@@ -299,6 +303,13 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
   Twitch-Häkchen und ein ungenutztes Ereignis im Whisper-Modellfenster). Verhalten für
   Nutzer unverändert. Mögliche Nullzugriffe lösen jetzt projektweit einen Build-Fehler
   statt nur einer Warnung aus, damit neue Fälle sofort auffallen.
+- whisper.cpp und TwitchDownloaderCLI laufen jetzt über dieselbe Werkzeugverwaltung wie
+  yt-dlp und ffmpeg: derselbe Identitätsnachweis (eine umbenannte oder beschädigte Datei gilt
+  nicht mehr als installiertes Werkzeug), dieselbe Rückfallebene, falls ein Ersetzen
+  fehlschlägt, und dieselbe Erfolgskontrolle danach. Die beiden bisherigen, eigenen Wege dafür
+  sind entfernt.
+- Die Beschaffung einer Prüfsumme aus einem Release-Anhang läuft jetzt an einer gemeinsamen
+  Stelle statt an zwei nahezu gleichen Kopien.
 
 ---
 

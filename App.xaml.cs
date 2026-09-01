@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics;
 using System.IO;
-using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -676,7 +675,8 @@ namespace MortysDLP
                     if (expectedSize is null && selected.Size > 0)
                         expectedSize = selected.Size;
                     if (string.IsNullOrEmpty(expectedSha256))
-                        expectedSha256 = await TryFetchChecksumFromAssetsAsync(assets, selected.Name, CancellationToken.None);
+                        expectedSha256 = await ReleaseChecksums.TryFetchAsync(
+                            assets, "checksums.txt", selected.Name, "", CancellationToken.None);
                 }
 
                 if (string.IsNullOrEmpty(assetUrl))
@@ -828,38 +828,6 @@ namespace MortysDLP
                     string.Format(UITexte.UITexte.Error_UpdateFailed, ex.Message),
                     UITexte.UITexte.Error,
                     MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-
-        /// <summary>Sucht ein Asset namens <c>checksums.txt</c> im selben Release und liefert
-        /// die darin für <paramref name="fileName"/> hinterlegte Prüfsumme — oder <c>null</c>,
-        /// wenn es keine solche Datei gibt, sie nicht lesbar ist oder keinen Eintrag für die
-        /// Datei enthält. Wirft nie: Ein Netzwerkfehler beim Lesen der Prüfsummendatei darf
-        /// das Update nicht verhindern, nur die Prüfsumme unbekannt lassen.</summary>
-        private static async Task<string?> TryFetchChecksumFromAssetsAsync(
-            IReadOnlyList<ReleaseAsset> assets, string fileName, CancellationToken ct)
-        {
-            var checksumsAsset = assets.FirstOrDefault(a =>
-                string.Equals(a.Name, "checksums.txt", StringComparison.OrdinalIgnoreCase));
-            if (checksumsAsset is null)
-                return null;
-
-            try
-            {
-                UrlSafety.EnsureAllowed(new Uri(checksumsAsset.Url));
-
-                using var response = await Http.SendWithRetryAsync(
-                    Http.Shared, () => new HttpRequestMessage(HttpMethod.Get, checksumsAsset.Url), ct: ct);
-                if (!response.IsSuccessStatusCode)
-                    return null;
-
-                string content = await response.Content.ReadAsStringAsync(ct);
-                return ChecksumFile.Find(content, fileName);
-            }
-            catch (Exception ex)
-            {
-                Log.Warn("checksums.txt konnte nicht gelesen werden.", ex);
-                return null;
             }
         }
 
