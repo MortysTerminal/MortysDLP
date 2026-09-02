@@ -56,6 +56,7 @@ namespace MortysDLP.Services
             Action<int>? onExitCode = null)
         {
             ProcessResult result;
+            bool restartRequested;
             try
             {
                 result = await ProcessRunner.RunStreamingAsync(
@@ -70,6 +71,15 @@ namespace MortysDLP.Services
             finally
             {
                 _process = null;
+
+                // Beides gehört in den finally-Zweig, nicht dahinter: Eine Neustartanfrage
+                // gilt ausschließlich für den Lauf, während dem sie gestellt wurde. Endet
+                // dieser Lauf über eine Ausnahme (Abbruch, Zeitüberschreitung), bliebe die
+                // Anfrage sonst am Objekt hängen — und der nächste, völlig unabhängige Lauf
+                // derselben Seite meldete grundlos „neu starten". Die Runner-Instanz lebt
+                // so lange wie die Seite, der Fehler überlebte also den ganzen Download.
+                restartRequested = _restartPending;
+                _restartPending = false;
             }
 
             // Absichtlicher Kill wegen Limit-Änderung → kein Fehler, sondern das Signal an
@@ -77,9 +87,14 @@ namespace MortysDLP.Services
             // Rückkanal von ProcessRunner nötig: Der Kill kommt von außen, direkt auf dem in
             // onStarted gemerkten Process (siehe RequestRestart) — das Feld hier wird nur
             // gelesen, nachdem der Prozess bereits beendet ist.
-            if (_restartPending)
+            //
+            // Zusätzlich an einen Fehler-Exitcode gebunden: RequestRestart kann den Prozess
+            // in dem Moment antreffen, in dem er ohnehin gerade regulär fertig wird — dann
+            // greift der Kill ins Leere, der Lauf endet mit Exitcode 0, und ein Neustart
+            // wäre ein überflüssiger zweiter yt-dlp-Aufruf für einen bereits abgeschlossenen
+            // Download. Ein tatsächlich gekillter Prozess endet unter Windows nie mit 0.
+            if (restartRequested && !result.Success)
             {
-                _restartPending = false;
                 ct.ThrowIfCancellationRequested();
                 return true;
             }
@@ -106,14 +121,43 @@ namespace MortysDLP.Services
         /// Anfrage etwas bewirkt hat.</returns>
         public bool RequestRestart()
         {
-            if (_process is { HasExited: false } process)
+            // Einmal in eine lokale Variable: Das Feld kann jederzeit vom Lauf selbst auf null
+            // gesetzt werden, während diese Methode noch damit arbeitet.
+            Process? process = _process;
+            if (process is null)
+                return false;
+
+            try
             {
+                if (process.HasExited)
+                    return false;
+
+                // Vor dem Kill setzen, nicht danach: Sonst gäbe es ein Fenster, in dem der
+                // Prozess bereits beendet ist, RunCoreAsync den Fehler-Exitcode aber noch als
+                // echten Fehlschlag wertet statt als angeforderten Neustart.
                 _restartPending = true;
-                try { process.Kill(entireProcessTree: true); }
-                catch { /* bereits beendet oder kein Zugriff mehr - dann ist ohnehin nichts mehr zu killen */ }
+                process.Kill(entireProcessTree: true);
                 return true;
             }
-            return false;
+            catch (Exception ex) when (ex is InvalidOperationException
+                                          or ObjectDisposedException
+                                          or System.ComponentModel.Win32Exception
+                                          or System.Runtime.InteropServices.COMException)
+            {
+                // Der Lauf ist in genau diesem Moment zu Ende gegangen. ProcessRunner entsorgt
+                // sein Process-Objekt (using) schon, bevor RunCoreAsync das Feld hier nullen
+                // kann - in diesem schmalen Fenster wirft bereits der Zugriff auf HasExited
+                // („No process is associated with this object", auf manchen Systemen auch eine
+                // COMException E_HANDLE), nicht erst der Kill. Ohne diesen Fang schlägt die
+                // Ausnahme bis in den Ereignisbehandler der Einstellungsseite durch, der
+                // ApplyBandwidthChange() für alle drei Seiten ungeschützt aufruft.
+                //
+                // Es gibt dann nichts mehr zu beenden, und weil der Lauf nicht durch uns
+                // beendet wurde, ist es auch kein Neustartfall - eine eventuell schon gesetzte
+                // Anfrage wird deshalb wieder zurückgenommen.
+                _restartPending = false;
+                return false;
+            }
         }
     }
 }

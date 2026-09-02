@@ -26,6 +26,10 @@ namespace MortysDLP.Views
         private readonly YtDlpRunner _ytDlpRunner = new();
         private double   _activeRateLimitMBps = 0;
 
+        /// <summary>Wie oft der Geschwindigkeitstext neben dem Balken höchstens neu
+        /// geschrieben wird. Gleicher Wert wie auf der Download-Seite.</summary>
+        private static readonly TimeSpan SpeedTextUpdateInterval = TimeSpan.FromSeconds(1);
+
         private readonly LogBuffer _log;
 
         public TwitchPage()
@@ -596,11 +600,23 @@ namespace MortysDLP.Views
 
                     // Eigene, geglättete Geschwindigkeit statt yt-dlps pro Fragment schwankender
                     // Momentanangabe - dieselbe Begründung wie auf der Download-/Batch-Seite
-                    // (DownloadSpeedEstimator). Läuft bewusst über einen Bandbreiten-bedingten
-                    // Neustart hinweg weiter (kein Reset in der Schleife unten), weil --continue
-                    // an derselben Byte-Position fortsetzt - kein echter Sprung.
+                    // (DownloadSpeedEstimator).
                     var ytDlpSpeedEstimator = new DownloadSpeedEstimator();
                     var ytDlpSpeedClock = Stopwatch.StartNew();
+
+                    // Fällt der Formatselektor oben von "best[ext=mp4]" (eine fertig gemuxte
+                    // Datei) auf "bestvideo+bestaudio" zurück, lädt yt-dlp zwei Streams
+                    // nacheinander - der zweite beginnt wieder bei 0 Bytes. Ohne Rücksetzung
+                    // würde dieser Sprung als (auf 0 geklammerte) Geschwindigkeit gewertet.
+                    // Ein Neustart wegen Bandbreitenwechsel ist dagegen kein Streamwechsel:
+                    // yt-dlp wiederholt die Destination-Zeile dabei mit demselben Ziel, der
+                    // Byte-Stand läuft weiter. Siehe DownloadStreamTracker.
+                    var ytDlpStreamTracker = new DownloadStreamTracker();
+
+                    // Der Balken darf bei jeder Meldung springen (glatte Bewegung); der Text
+                    // daneben wird gedrosselt, sonst wechselt er mehrfach pro Sekunde und ist
+                    // nicht lesbar - dieselbe Behebung wie auf der Download-Seite.
+                    var speedTextThrottle = Stopwatch.StartNew();
 
                     void ProcessYtDlpLine(string line, bool isError)
                     {
@@ -616,15 +632,35 @@ namespace MortysDLP.Views
                                 double? smoothedSpeed = templateProgress.DownloadedBytes.HasValue
                                     ? ytDlpSpeedEstimator.Update(templateProgress.DownloadedBytes.Value, ytDlpSpeedClock.Elapsed.TotalSeconds)
                                     : null;
+
+                                bool zeigeGeschwindigkeit = smoothedSpeed.HasValue
+                                    && speedTextThrottle.Elapsed >= SpeedTextUpdateInterval;
+                                if (zeigeGeschwindigkeit)
+                                    speedTextThrottle.Restart();
+
                                 Dispatcher.Invoke(() =>
                                 {
                                     pbDownload.IsIndeterminate = false;
                                     pbDownload.Value = Math.Min(100, templateProgress.Fraction.Value * 100);
-                                    if (smoothedSpeed.HasValue)
-                                        txtDownloadSpeed.Text = $"{smoothedSpeed.Value / (1024.0 * 1024.0):F2} MiB/s";
+                                    if (zeigeGeschwindigkeit)
+                                        txtDownloadSpeed.Text = $"{smoothedSpeed!.Value / (1024.0 * 1024.0):F2} MiB/s";
                                 });
                             }
                             return;
+                        }
+
+                        if (!isError && line.StartsWith("[download] Destination: ", StringComparison.Ordinal))
+                        {
+                            string destination = line["[download] Destination: ".Length..].Trim();
+                            if (ytDlpStreamTracker.RegisterDestination(destination))
+                            {
+                                ytDlpSpeedEstimator.Reset();
+                                ytDlpSpeedClock.Restart();
+                            }
+                            else
+                            {
+                                ytDlpSpeedEstimator.Resync();
+                            }
                         }
 
                         UpdateProgress(isError ? $"[STDERR] {line}" : line);

@@ -102,6 +102,52 @@ public class DownloadSpeedEstimatorTests
         Assert.Null(nachReset);
     }
 
+    [Fact]
+    public void Resync_BehaeltDenBisherGeglaettetenWert()
+    {
+        // Nach einem yt-dlp-Neustart mit --continue läuft derselbe Stream weiter. Die Anzeige
+        // darf dabei nicht leer werden - anders als bei Reset bleibt der letzte gültige Wert
+        // stehen, bis eine neue Messung vorliegt.
+        var estimator = new DownloadSpeedEstimator();
+        estimator.Update(0, elapsedSeconds: 0.0);
+        double vorher = estimator.Update(1_000_000, elapsedSeconds: 1.0)!.Value;
+
+        estimator.Resync();
+        double? direktNachResync = estimator.Update(1_000_000, elapsedSeconds: 4.0);
+
+        Assert.Equal(vorher, direktNachResync);
+    }
+
+    [Fact]
+    public void Resync_PauseWaehrendDesNeustarts_ZaehltNichtAlsEingebrocheneRate()
+    {
+        // Der eigentliche Zweck: Zwischen Kill und erster Meldung des neuen Prozesses vergehen
+        // Sekunden ohne Byte-Zuwachs. Ohne Resync wäre das ein Messintervall mit fast null
+        // Bytes - die angezeigte Geschwindigkeit bräche ein, obwohl gleich schnell weiterge-
+        // laden wird.
+        var mitResync = new DownloadSpeedEstimator();
+        var ohneResync = new DownloadSpeedEstimator();
+        foreach (var e in new[] { mitResync, ohneResync })
+        {
+            e.Update(0, elapsedSeconds: 0.0);
+            e.Update(1_000_000, elapsedSeconds: 1.0);
+        }
+
+        mitResync.Resync();
+
+        // 3 s Neustart-Pause, danach läuft es mit unveränderten 1 MB/s weiter.
+        double? mit = mitResync.Update(1_000_000, elapsedSeconds: 4.0);
+        mit = mitResync.Update(2_000_000, elapsedSeconds: 5.0);
+        double? ohne = ohneResync.Update(1_000_000, elapsedSeconds: 4.0);
+        ohne = ohneResync.Update(2_000_000, elapsedSeconds: 5.0);
+
+        Assert.NotNull(mit);
+        Assert.NotNull(ohne);
+        Assert.True(mit!.Value > ohne!.Value,
+            "Ohne Resync zieht die Neustart-Pause die geglättete Rate nach unten.");
+        Assert.Equal(1_000_000.0, mit.Value);
+    }
+
     // ── EstimateEta ──────────────────────────────────────────────────────────────
 
     [Fact]

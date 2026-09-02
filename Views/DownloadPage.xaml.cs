@@ -32,7 +32,7 @@ namespace MortysDLP.Views
         // Für die Fortschrittsgewichtung (DownloadProgressWeighting) - je Video (nicht je
         // Prozess-Neustart nach einem Limitwechsel) zurückgesetzt, siehe
         // BeginDownloadProgressTracking.
-        private int _streamIndex = -1;
+        private readonly DownloadStreamTracker _streamTracker = new();
         private int _streamCount = 1;
         private bool _reservePostConversion;
         private int _playlistVideoIndex;
@@ -840,13 +840,24 @@ namespace MortysDLP.Views
                 }
                 else if (line.StartsWith("[download] Destination: "))
                 {
-                    _lastOutputFilePath = line["[download] Destination: ".Length..].Trim();
-                    _streamIndex++;
+                    string destination = line["[download] Destination: ".Length..].Trim();
+                    _lastOutputFilePath = destination;
 
-                    // Der neue Stream zählt seine Bytes wieder ab 0 - ohne Rücksetzung würde
-                    // dieser Sprung als (negative, auf 0 geklammerte) Geschwindigkeit gewertet.
-                    _speedEstimator.Reset();
-                    _speedEstimatorClock.Restart();
+                    if (_streamTracker.RegisterDestination(destination))
+                    {
+                        // Der neue Stream zählt seine Bytes wieder ab 0 - ohne Rücksetzung würde
+                        // dieser Sprung als (negative, auf 0 geklammerte) Geschwindigkeit gewertet.
+                        _speedEstimator.Reset();
+                        _speedEstimatorClock.Restart();
+                    }
+                    else
+                    {
+                        // Derselbe Stream, nur fortgesetzt: yt-dlp wiederholt diese Zeile nach
+                        // "[download] Resuming download at byte N" beim Neustart wegen eines
+                        // Bandbreitenwechsels. Der Byte-Stand läuft dabei weiter, deshalb nur
+                        // die Zeitbasis neu setzen - siehe DownloadSpeedEstimator.Resync.
+                        _speedEstimator.Resync();
+                    }
                 }
                 else if (line.StartsWith("[download] ") && line.EndsWith(" has already been downloaded"))
                 {
@@ -874,7 +885,7 @@ namespace MortysDLP.Views
                     double? speedMBs = smoothedSpeed / (1024.0 * 1024.0);
                     TimeSpan? eta = DownloadSpeedEstimator.EstimateEta(templateProgress.RemainingBytes, smoothedSpeed);
                     double overall = DownloadProgressWeighting.ForStream(
-                        templateProgress.Fraction.Value * 100, Math.Max(_streamIndex, 0), _streamCount, _reservePostConversion);
+                        templateProgress.Fraction.Value * 100, Math.Max(_streamTracker.StreamIndex, 0), _streamCount, _reservePostConversion);
                     UpdateProgress(ApplyPlaylistScale(overall), false, speedMBs, eta);
                 }
                 return;
@@ -884,7 +895,7 @@ namespace MortysDLP.Views
             if (progress.HasValue)
             {
                 double overall = DownloadProgressWeighting.ForStream(
-                    progress.Value, Math.Max(_streamIndex, 0), _streamCount, _reservePostConversion);
+                    progress.Value, Math.Max(_streamTracker.StreamIndex, 0), _streamCount, _reservePostConversion);
                 UpdateProgress(ApplyPlaylistScale(overall), false, speed);
                 return;
             }
@@ -1740,7 +1751,7 @@ namespace MortysDLP.Views
         /// Stream-Zähler darf dabei nicht erneut auf „noch keiner gesehen" springen.</summary>
         private void BeginDownloadProgressTracking(bool isAudioOnly, bool reservePostConversion)
         {
-            _streamIndex = -1;
+            _streamTracker.Reset();
             _streamCount = isAudioOnly ? 1 : 2;
             _reservePostConversion = reservePostConversion;
             _speedEstimator.Reset();

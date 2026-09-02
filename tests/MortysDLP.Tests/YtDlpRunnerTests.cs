@@ -199,14 +199,58 @@ public class YtDlpRunnerTests : IDisposable
         Assert.False(called);
     }
 
-    // Kein Test dafür, dass eine echte externe Abbruchanfrage Vorrang vor einer bereits
+    [Fact]
+    public async Task RequestRestart_LaufEndetUeberEineAusnahme_WirktNichtAufDenNaechstenLauf()
+    {
+        // Gefunden bei der unabhängigen Prüfung von Welle 5: Die Neustartanfrage wurde bis
+        // dahin erst *hinter* dem try/finally zurückgesetzt. Endete der Lauf über eine
+        // Ausnahme (hier: Abbruch), blieb sie am Runner hängen - und der nächste, unabhängige
+        // Download meldete grundlos "neu starten" und lief einmal überflüssig erneut.
+        // Die Runner-Instanz lebt so lange wie die Seite, der Fehler überlebte also den
+        // gesamten abgebrochenen Download.
+        var runner = new YtDlpRunner();
+        using var cts = new CancellationTokenSource();
+
+        var runTask = runner.RunCoreAsync(
+            "powershell.exe", BuildArgs(0, 5000), onStdOut: null, onStdErr: null, idleTimeout: null, cts.Token);
+        await Task.Delay(300);
+
+        // Erst abbrechen, dann Neustart anfordern: Damit ist der Abbruch garantiert gesetzt,
+        // bevor RunCoreAsync ihn auswertet - der Lauf endet also sicher über die Ausnahme,
+        // während die Neustartanfrage gestellt ist.
+        cts.Cancel();
+
+        // Darf unter keinen Umständen werfen: Auf der Einstellungsseite ruft der
+        // Ereignisbehandler ApplyBandwidthChange() für alle drei Seiten ungeschützt auf. Genau
+        // hier trifft die Anfrage einen Lauf, der im selben Moment zu Ende geht - ProcessRunner
+        // hat sein Process-Objekt dann unter Umständen schon entsorgt.
+        var ex = Record.Exception(() => runner.RequestRestart());
+        Assert.Null(ex);
+
+        try { await runTask; }
+        catch (OperationCanceledException) { /* erwartet - der Abbruch hat Vorrang */ }
+
+        bool zweiterLauf = await runner.RunCoreAsync(
+            "powershell.exe", BuildArgs(0, 0), onStdOut: null, onStdErr: null, idleTimeout: null, CancellationToken.None);
+
+        Assert.False(zweiterLauf);
+    }
+
+    // Kein eigener Testfall für die Kombination "RequestRestart trifft einen Prozess, der
+    // ohnehin gerade regulär fertig wird". Im Code ist der Fall abgesichert, indem ein
+    // Neustart zusätzlich einen Fehler-Exitcode voraussetzt (siehe RunCoreAsync): Ein
+    // gekillter Prozess endet unter Windows nie mit 0, ein regulär fertiger immer. Das
+    // Wettrennen selbst - Kill und regulärer Prozessausgang im selben Moment - lässt sich mit
+    // einem echten Prozess nicht deterministisch herstellen; ein Test dafür würde nur
+    // gelegentlich grundlos rot. Beide Richtungen der neuen Bedingung sind einzeln abgedeckt:
+    // gekillt -> true (RequestRestart_WaehrendDesLaufs_...), regulär -> false
+    // (RunCoreAsync_RegulaererErfolg_...).
+    //
+    // Ebenso kein Test dafür, dass eine echte externe Abbruchanfrage Vorrang vor einer bereits
     // gesetzten Neustartanfrage hat (im Code: ct.ThrowIfCancellationRequested() läuft in
-    // beiden Zweigen von RunCoreAsync, siehe dort). RequestRestart() beendet den Prozess als
-    // Teil seiner eigenen Aufgabe - ein danach ausgelöster cts.Cancel() liefert sich ein
-    // echtes Wettrennen mit dieser selbst ausgelösten Prozessbeendigung auf einem anderen
-    // Thread, das sich mit einem echten Prozess nicht ohne einen eigenen Testdouble für den
-    // Prozess deterministisch nachstellen lässt. Die Reihenfolge selbst ist unverändert aus
-    // allen drei heutigen Implementierungen übernommen (siehe Klassenkommentar).
+    // beiden Zweigen von RunCoreAsync, siehe dort) - aus demselben Grund. Die Reihenfolge
+    // selbst ist unverändert aus allen drei heutigen Implementierungen übernommen (siehe
+    // Klassenkommentar).
 
     /// <summary>Kein Test von <see cref="YtDlpRunner.RunAsync"/> selbst — die öffentliche
     /// Überladung lässt sich nicht gegen das Testskript führen, weil sie die komplette

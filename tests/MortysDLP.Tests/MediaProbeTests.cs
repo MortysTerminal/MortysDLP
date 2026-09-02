@@ -67,8 +67,11 @@ public class MediaProbeTests
         // (-of csv=p=0: codec,width,height in fester Spaltenreihenfolge).
         var parts = csvOutput.Trim().Split(',');
         string? csvCodec = parts.Length > 0 ? parts[0] : null;
-        int.TryParse(parts.Length > 1 ? parts[1] : "", out int csvWidth);
-        int.TryParse(parts.Length > 2 ? parts[2] : "", out int csvHeight);
+        // Rückgabewert bewusst verworfen (_ =): Die alte Auswertung wertete ihn ebenfalls nicht
+        // aus, sondern verließ sich auf den 0-Standardwert bei einem nicht lesbaren Feld. Genau
+        // dieses Verhalten wird hier nachgebildet, nicht ein verbessertes.
+        _ = int.TryParse(parts.Length > 1 ? parts[1] : "", out int csvWidth);
+        _ = int.TryParse(parts.Length > 2 ? parts[2] : "", out int csvHeight);
 
         Assert.Equal(csvCodec, fromKeyValue.Codec);
         Assert.Equal(csvWidth, fromKeyValue.Width);

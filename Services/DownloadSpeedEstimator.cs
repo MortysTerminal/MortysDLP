@@ -52,9 +52,23 @@ namespace MortysDLP.Services
         /// Sprung nicht als (negativer) Geschwindigkeitswert in die Glättung einfließt.</summary>
         public void Reset()
         {
+            Resync();
+            _smoothedBytesPerSecond = null;
+        }
+
+        /// <summary>Verwirft nur die <b>Zeitbasis</b>, nicht den bisher geglätteten Wert - für
+        /// eine Unterbrechung, nach der derselbe Stream an derselben Byte-Position weiterläuft
+        /// (yt-dlp-Neustart mit <c>--continue</c> nach einem Bandbreitenwechsel).
+        ///
+        /// <para>Ohne das würde die Pause während des Prozess-Neustarts als Messintervall
+        /// zählen: wenige Bytes geteilt durch mehrere Sekunden ergäbe eine eingebrochene Rate,
+        /// obwohl der Download gleich schnell weiterläuft. Ein voller <see cref="Reset"/> wäre
+        /// hier ebenfalls falsch - er würde die Anzeige bis zur nächsten Messung leeren,
+        /// obwohl ein gültiger Wert vorliegt.</para></summary>
+        public void Resync()
+        {
             _lastBytes = null;
             _lastElapsedSeconds = 0;
-            _smoothedBytesPerSecond = null;
         }
 
         /// <summary>Berechnet aus geglätteter Geschwindigkeit und verbleibenden Bytes eine

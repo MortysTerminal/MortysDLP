@@ -281,7 +281,9 @@ ein Statussymbol, das nach Abschluss den Zielordner öffnet. Die Restzeit versch
 sie nicht mehr bekannt ist oder der Download abgeschlossen ist. Werden Video und Audio als
 getrennte Spuren geladen, läuft der Balken einmal durch statt zweimal neu bei 0 zu beginnen —
 dasselbe gilt für eine anschließende H.264-Nachbearbeitung und, bei einer Playlist, über alle
-enthaltenen Videos hinweg.
+enthaltenen Videos hinweg. Auch ein Bandbreitenlimit, das während des Downloads geändert wird,
+unterbricht den Balken nicht: Der Download wird an derselben Stelle fortgesetzt, die Anzeige
+läuft gleichmäßig weiter.
 
 ### Debug-Ausgabe
 Nur sichtbar, wenn in den Einstellungen der Debug-Modus aktiv ist. Zeigt die vollständige

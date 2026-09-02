@@ -165,6 +165,20 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
   verfügbar" zu melden.
 
 ### Behoben
+- **Das Ändern des Bandbreitenlimits konnte MortysDLP mit einer Fehlermeldung beenden.** Traf
+  die Änderung genau den Moment, in dem ein Download ohnehin gerade fertig wurde oder
+  abgebrochen wurde, endete der Vorgang in einem unbehandelten Fehler statt still ins Leere zu
+  laufen. Das Zeitfenster war klein, aber jeder Treffer beendete die Anwendung.
+- **Die Geschwindigkeitsanzeige auf der Twitch-Seite wechselte zu schnell zum Lesen.** Sie wird
+  jetzt wie auf der Download-Seite höchstens einmal pro Sekunde neu geschrieben; der Balken
+  bewegt sich weiterhin bei jeder Meldung. Lädt Twitch Bild und Ton als getrennte Spuren,
+  bricht die Anzeige beim Wechsel außerdem nicht mehr kurz auf 0 ein.
+- **Der Fortschrittsbalken sprang, wenn das Bandbreitenlimit während eines Downloads geändert
+  wurde.** MortysDLP setzt den Download dabei mit dem neuen Limit fort, ohne bereits geladene
+  Daten zu verwerfen. Der Balken deutete diesen Neustart bislang als Beginn der nächsten Spur:
+  Er sprang erst nach vorn und beim tatsächlichen Wechsel von Video- auf Tonspur wieder zurück.
+  Jetzt läuft er auch über einen Limitwechsel hinweg gleichmäßig weiter; die
+  Geschwindigkeitsanzeige bricht dabei nicht mehr kurzzeitig ein.
 - **Ein Video-Download im Schnittmodus (x264) startete unnötig langsam.** Vor dem eigentlichen
   Download fragte die Anwendung nebenbei Audio-Kennwerte ab, die für einen Video-Download gar
   nicht gebraucht werden — bei einer Playlist im Schnittmodus für jedes einzelne Video. Dieser
