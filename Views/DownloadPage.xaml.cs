@@ -1039,7 +1039,7 @@ namespace MortysDLP.Views
 
             // 1. Codec und Auflösung prüfen (ein ffprobe-Aufruf)
             Dispatcher.Invoke(() => txtDownloadStatus.Text = UITextDictionary.Get("DownloadPage.Status.CheckingCodec"));
-            var (codec, videoWidth, videoHeight) = await GetVideoStreamInfoAsync(ffprobePath, filePath);
+            var (codec, videoWidth, videoHeight) = await MediaProbe.GetVideoStreamInfoAsync(ffprobePath, filePath, token);
 
             if (codec != null && (codec.StartsWith("h264", StringComparison.OrdinalIgnoreCase)
                                || codec.StartsWith("avc", StringComparison.OrdinalIgnoreCase)))
@@ -1082,55 +1082,6 @@ namespace MortysDLP.Views
             }
         }
 
-        /// <summary>Ermittelt Video-Codec und Auflösung einer Datei per ffprobe (ein Aufruf).</summary>
-        private async Task<(string? Codec, int Width, int Height)> GetVideoStreamInfoAsync(string ffprobePath, string filePath)
-        {
-            try
-            {
-                var result = await ProcessRunner.RunAsync(
-                    ffprobePath,
-                    ["-v", "error", "-select_streams", "v:0", "-show_entries", "stream=codec_name,width,height",
-                     "-of", "default=noprint_wrappers=1", filePath],
-                    timeout: TimeSpan.FromSeconds(15));
-                string output = result.StdOut.Trim();
-
-                string? codec = null;
-                int width = 0, height = 0;
-
-                foreach (var line in output.Split('\n', '\r', StringSplitOptions.RemoveEmptyEntries))
-                {
-                    if (line.StartsWith("codec_name="))
-                        codec = line["codec_name=".Length..].Trim();
-                    else if (line.StartsWith("width=") && int.TryParse(line["width=".Length..].Trim(), out int w))
-                        width = w;
-                    else if (line.StartsWith("height=") && int.TryParse(line["height=".Length..].Trim(), out int h))
-                        height = h;
-                }
-
-                return (string.IsNullOrWhiteSpace(codec) ? null : codec, width, height);
-            }
-            catch
-            {
-                return (null, 0, 0);
-            }
-        }
-
-        /// <summary>Ermittelt die Gesamtdauer einer Mediendatei in Sekunden per ffprobe.</summary>
-        private async Task<double> GetMediaDurationAsync(string ffprobePath, string filePath)
-        {
-            try
-            {
-                var result = await ProcessRunner.RunAsync(
-                    ffprobePath,
-                    ["-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", filePath],
-                    timeout: TimeSpan.FromSeconds(15));
-                if (double.TryParse(result.StdOut.Trim(), NumberStyles.Any, CultureInfo.InvariantCulture, out double duration))
-                    return duration;
-            }
-            catch { }
-            return 0;
-        }
-
         /// <summary>Führt ffmpeg-Konvertierung aus und zeigt Fortschritt basierend auf der
         /// Quelldatei-Dauer. <paramref name="onProgress"/> bekommt den rohen Anteil (0–100)
         /// dieser Konvertierung allein — ohne Angabe wird er direkt an <see cref="UpdateProgress"/>
@@ -1143,34 +1094,15 @@ namespace MortysDLP.Views
             Action<double>? onProgress = null)
         {
             string ffprobePath = AppPaths.Ffprobe;
-            double totalSeconds = await GetMediaDurationAsync(ffprobePath, inputFile);
+            double totalSeconds = await MediaProbe.GetDurationAsync(ffprobePath, inputFile, token) ?? 0;
 
             AppendOutput($"[ffmpeg] CMD: {ffmpegPath} {string.Join(' ', arguments)}");
 
-            void OnStdErr(string line)
-            {
-                AppendOutput($"[ffmpeg] {line}");
-
-                if (totalSeconds > 0)
-                {
-                    var m = System.Text.RegularExpressions.Regex.Match(line, @"time=(\d{2}:\d{2}:\d{2}\.\d{2})");
-                    if (m.Success && TimeSpan.TryParse(m.Groups[1].Value, out var current))
-                    {
-                        double pct = Math.Max(0, Math.Min(100, (current.TotalSeconds / totalSeconds) * 100.0));
-                        if (onProgress != null) onProgress(pct);
-                        else UpdateProgress(pct);
-                    }
-                }
-            }
-
-            var result = await ProcessRunner.RunStreamingAsync(
-                ffmpegPath, arguments,
-                onStdErr: OnStdErr,
-                timeout: null,
-                idleTimeout: TimeSpan.FromSeconds(120),
-                ct: token);
-
-            token.ThrowIfCancellationRequested();
+            var result = await FfmpegRunner.RunAsync(
+                ffmpegPath, arguments, totalSeconds,
+                onStdErrLine: line => AppendOutput($"[ffmpeg] {line}"),
+                onProgress: onProgress ?? (pct => UpdateProgress(pct)),
+                token);
 
             AppendOutput($"[ffmpeg] Beendet mit Exit-Code: {result.ExitCode}");
 
@@ -1428,7 +1360,13 @@ namespace MortysDLP.Views
             {
                 bool videoformat = cbVideoformat.IsChecked == true && cbAudioOnly.IsChecked != true;
                 bool audioOnly = cbAudioOnly.IsChecked == true;
-                needsMeta = videoformat || audioOnly;
+                // Nur für Audio-Downloads gebraucht (Reencode-Entscheidung in BuildYtDlpJob,
+                // isAudioOnly-Zweig) - für einen Video-Download (auch im Schnittmodus) bleibt
+                // das Ergebnis ungenutzt. War bisher "videoformat || audioOnly": ein
+                // vollständig verschwendeter yt-dlp-Aufruf (eigene Webseiten-/API-Extraktion,
+                // genauso teuer wie der eigentliche Download) bei jedem Video-Download im
+                // Schnittmodus.
+                needsMeta = audioOnly;
                 isVideoformat = videoformat;
                 isAudioOnly = audioOnly;
             });
@@ -1522,7 +1460,8 @@ namespace MortysDLP.Views
             {
                 bool videoformat = cbVideoformat.IsChecked == true && cbAudioOnly.IsChecked != true;
                 bool audioOnly = cbAudioOnly.IsChecked == true;
-                needsMeta = videoformat || audioOnly;
+                // Siehe StartDownloadAsync: nur für Audio-Downloads gebraucht.
+                needsMeta = audioOnly;
                 isVideoformat = videoformat;
                 isAudioOnly = audioOnly;
             });

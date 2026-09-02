@@ -5,7 +5,6 @@ using MortysDLP.UITexte;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
-using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -30,9 +29,6 @@ namespace MortysDLP.Views
             (12, 480, 3),  // Medium
             (18, 640, 4),  // High
         };
-
-        private static readonly Regex FfmpegTimeRegex =
-            new(@"time=(\d{2}:\d{2}:\d{2}\.\d{2})", RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
         private readonly LogBuffer _log;
 
@@ -373,22 +369,11 @@ namespace MortysDLP.Views
                     return (e2 - s).TotalSeconds;
             }
 
-            try
-            {
-                string ffprobePath = AppPaths.Ffprobe;
-                if (string.IsNullOrWhiteSpace(ffprobePath) || !File.Exists(ffprobePath))
-                    return 0;
+            string ffprobePath = AppPaths.Ffprobe;
+            if (string.IsNullOrWhiteSpace(ffprobePath) || !File.Exists(ffprobePath))
+                return 0;
 
-                var result = await ProcessRunner.RunAsync(
-                    ffprobePath,
-                    ["-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", inputFile],
-                    timeout: TimeSpan.FromSeconds(15),
-                    ct: token);
-                if (double.TryParse(result.StdOut.Trim(), NumberStyles.Any, CultureInfo.InvariantCulture, out double d))
-                    return d;
-            }
-            catch { }
-            return 0;
+            return await MediaProbe.GetDurationAsync(ffprobePath, inputFile, token) ?? 0;
         }
 
         private async Task RunFfmpegAsync(
@@ -397,29 +382,11 @@ namespace MortysDLP.Views
             double totalSeconds,
             CancellationToken token)
         {
-            void OnStdErr(string line)
-            {
-                AppendDebug($"[ffmpeg] {line}");
-
-                if (totalSeconds > 0)
-                {
-                    var m = FfmpegTimeRegex.Match(line);
-                    if (m.Success && TimeSpan.TryParse(m.Groups[1].Value, out var current))
-                    {
-                        double pct = Math.Clamp(current.TotalSeconds / totalSeconds * 100.0, 0, 99);
-                        Dispatcher.Invoke(() => pbProgress.Value = pct);
-                    }
-                }
-            }
-
-            var result = await ProcessRunner.RunStreamingAsync(
-                ffmpegPath, arguments,
-                onStdErr: OnStdErr,
-                timeout: null,
-                idleTimeout: TimeSpan.FromSeconds(120),
-                ct: token);
-
-            token.ThrowIfCancellationRequested();
+            var result = await FfmpegRunner.RunAsync(
+                ffmpegPath, arguments, totalSeconds,
+                onStdErrLine: line => AppendDebug($"[ffmpeg] {line}"),
+                onProgress: pct => Dispatcher.Invoke(() => pbProgress.Value = Math.Min(pct, 99)),
+                token);
 
             AppendDebug($"[ffmpeg] Beendet mit Exit-Code: {result.ExitCode}");
 

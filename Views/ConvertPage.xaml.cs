@@ -9,7 +9,6 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -24,10 +23,6 @@ namespace MortysDLP.Views
         private readonly ObservableCollection<ConvertFileItem> _fileList = new();
         private CancellationTokenSource? _convertCancellationTokenSource;
         private readonly LogBuffer _log;
-
-        // Fortschritts-Regex (kompiliert)
-        private static readonly Regex FfmpegTimeRegex =
-            new(@"time=(\d{2}:\d{2}:\d{2}\.\d{2})", RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
         // Parallelitätsbegrenzung
         private readonly SemaphoreSlim _conversionLimiter =
@@ -481,101 +476,39 @@ namespace MortysDLP.Views
             };
         }
 
+        /// <summary>Dünner Adapter um <see cref="MediaProbe.GetAudioStreamInfoAsync"/> — hält
+        /// die lokal etablierten, kurzen Feldnamen (<c>sr</c>/<c>ch</c>/<c>brKbps</c>) bei, die
+        /// im ganzen Rest dieser Datei (Cache-Typ, <c>BuildFfmpegArguments</c>-Überladungen)
+        /// verwendet werden, statt diese unbeteiligten Stellen für die Vereinheitlichung mit
+        /// umzubenennen.</summary>
         private static async Task<(int? sr, int? ch, int? brKbps)> GetAudioStreamInfoAsync(string ffprobePath, string filePath)
         {
-            try
-            {
-                var result = await ProcessRunner.RunAsync(
-                    ffprobePath,
-                    ["-v", "error", "-select_streams", "a:0", "-show_entries", "stream=sample_rate,channels,bit_rate",
-                     "-of", "default=noprint_wrappers=1", filePath],
-                    timeout: TimeSpan.FromSeconds(15));
-
-                int? sr = null;
-                int? ch = null;
-                int? br = null;
-
-                foreach (var line in result.StdOut.Split('\n', '\r', StringSplitOptions.RemoveEmptyEntries))
-                {
-                    if (line.StartsWith("sample_rate=") &&
-                        int.TryParse(line["sample_rate=".Length..].Trim(), out int v1)) sr = v1;
-                    else if (line.StartsWith("channels=") &&
-                             int.TryParse(line["channels=".Length..].Trim(), out int v2)) ch = v2;
-                    else if (line.StartsWith("bit_rate=") &&
-                             int.TryParse(line["bit_rate=".Length..].Trim(), out int v3)) br = v3 / 1000;
-                }
-
-                return (sr, ch, br);
-            }
-            catch
-            {
-                return (null, null, null);
-            }
+            var (sampleRate, channels, bitRateKbps) = await MediaProbe.GetAudioStreamInfoAsync(ffprobePath, filePath);
+            return (sampleRate, channels, bitRateKbps);
         }
 
         private async Task RunFfmpegForItemAsync(ConvertFileItem file, string ffmpegPath, List<string> arguments, CancellationToken token)
         {
             string ffprobePath = AppPaths.Ffprobe;
-            double totalSeconds = await GetMediaDurationInSecondsAsync(ffprobePath, file.SourcePath) ?? 0;
+            double totalSeconds = await MediaProbe.GetDurationAsync(ffprobePath, file.SourcePath, token) ?? 0;
 
-            void OnStdErr(string line)
-            {
+            AppendDebugOutput($"[{file.Name}] CMD: ffmpeg {string.Join(' ', arguments)}");
+
+            var result = await FfmpegRunner.RunAsync(
+                ffmpegPath, arguments, totalSeconds,
                 // AppendDebugOutput greift auf ein Steuerelement zu -> muss auf den UI-Thread.
                 // file.Progress ist eine einfache gebundene Eigenschaft; WPF marshallt die
                 // PropertyChanged-Benachrichtigung selbst, ein Dispatcher.Invoke ist hier
                 // nicht nötig und würde nur unnötig Last auf den UI-Thread bringen.
-                Dispatcher.Invoke(() => AppendDebugOutput($"[{file.Name}] {line}"));
-
-                var percent = ParseFfmpegProgress(line, totalSeconds);
-                if (percent.HasValue)
-                    file.Progress = percent.Value;
-            }
-
-            AppendDebugOutput($"[{file.Name}] CMD: ffmpeg {string.Join(' ', arguments)}");
-
-            var result = await ProcessRunner.RunStreamingAsync(
-                ffmpegPath, arguments,
-                onStdErr: OnStdErr,
-                timeout: null,
-                idleTimeout: TimeSpan.FromSeconds(120),
-                ct: token);
-
-            token.ThrowIfCancellationRequested();
+                onStdErrLine: line => Dispatcher.Invoke(() => AppendDebugOutput($"[{file.Name}] {line}")),
+                onProgress: pct => file.Progress = pct,
+                token);
 
             if (!result.Success)
             {
                 file.Status = UITextDictionary.Get("ConvertPage.Status.Error");
                 AppendDebugOutput($"[{file.Name}] ffmpeg ExitCode={result.ExitCode}");
             }
-        }
-
-        private double? ParseFfmpegProgress(string line, double totalSeconds)
-        {
-            if (totalSeconds <= 0) return null;
-            var m = FfmpegTimeRegex.Match(line);
-            if (!m.Success) return null;
-            if (TimeSpan.TryParseExact(m.Groups[1].Value, @"hh\:mm\:ss\.ff", null, out var current))
-            {
-                double pct = (current.TotalSeconds / totalSeconds) * 100.0;
-                return Math.Max(0, Math.Min(100, pct));
-            }
-            return null;
-        }
-
-        private static async Task<double?> GetMediaDurationInSecondsAsync(string ffprobePath, string filePath)
-        {
-            try
-            {
-                var result = await ProcessRunner.RunAsync(
-                    ffprobePath,
-                    ["-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", filePath],
-                    timeout: TimeSpan.FromSeconds(15));
-                if (double.TryParse(result.StdOut.Trim(), System.Globalization.NumberStyles.Any,
-                        System.Globalization.CultureInfo.InvariantCulture, out double seconds))
-                    return seconds;
-            }
-            catch { }
-            return null;
         }
 
         private void btnConvertCancel_Click(object sender, RoutedEventArgs e)

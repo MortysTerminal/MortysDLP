@@ -779,7 +779,7 @@ namespace MortysDLP.Views
             UpdateCurrentSpeed(null);
 
             // Codec prüfen
-            var (codec, w, h) = await GetBatchVideoStreamInfoAsync(ffprobePath, filePath);
+            var (codec, w, h) = await MediaProbe.GetVideoStreamInfoAsync(ffprobePath, filePath);
             if (codec != null && (codec.StartsWith("h264", StringComparison.OrdinalIgnoreCase)
                                || codec.StartsWith("avc",  StringComparison.OrdinalIgnoreCase)))
             {
@@ -795,7 +795,7 @@ namespace MortysDLP.Views
             entry.Progress = 0;
 
             // Gesamtdauer ermitteln
-            double totalSec = await GetBatchMediaDurationAsync(ffprobePath, filePath);
+            double totalSec = await MediaProbe.GetDurationAsync(ffprobePath, filePath, token) ?? 0;
 
             string dir      = System.IO.Path.GetDirectoryName(filePath)!;
             string tempPath = System.IO.Path.Combine(dir,
@@ -804,29 +804,12 @@ namespace MortysDLP.Views
             List<string> ffmpegArgs = HwAccelHelper.BuildH264Args(encoder, filePath, tempPath);
             AppendDebug($"[ffmpeg] {ffmpegPath} {string.Join(' ', ffmpegArgs)}");
 
-            void OnStdErr(string line)
-            {
-                AppendDebug($"[ffmpeg] {line}");
-                if (totalSec > 0)
-                {
-                    var m = System.Text.RegularExpressions.Regex.Match(line, @"time=(\d{2}:\d{2}:\d{2}\.\d{2})");
-                    if (m.Success && TimeSpan.TryParse(m.Groups[1].Value, out var cur))
-                    {
-                        double pct = Math.Max(0, Math.Min(100, cur.TotalSeconds / totalSec * 100.0));
-                        entry.Progress = pct;
-                        UpdateOverallBar(pct);
-                    }
-                }
-            }
+            var result = await FfmpegRunner.RunAsync(
+                ffmpegPath, ffmpegArgs, totalSec,
+                onStdErrLine: line => AppendDebug($"[ffmpeg] {line}"),
+                onProgress: pct => { entry.Progress = pct; UpdateOverallBar(pct); },
+                token);
 
-            var result = await ProcessRunner.RunStreamingAsync(
-                ffmpegPath, ffmpegArgs,
-                onStdErr: OnStdErr,
-                timeout: null,
-                idleTimeout: TimeSpan.FromSeconds(120),
-                ct: token);
-
-            token.ThrowIfCancellationRequested();
             if (!result.Success) throw new InvalidOperationException($"ffmpeg exit code {result.ExitCode}");
 
             if (System.IO.File.Exists(tempPath))
@@ -835,40 +818,6 @@ namespace MortysDLP.Views
                 System.IO.File.Move(tempPath, filePath);
                 AppendDebug($"[SCHNITT] Fertig: {System.IO.Path.GetFileName(filePath)}");
             }
-        }
-
-        private async Task<(string? Codec, int Width, int Height)> GetBatchVideoStreamInfoAsync(string ffprobePath, string filePath)
-        {
-            try
-            {
-                var result = await ProcessRunner.RunAsync(
-                    ffprobePath,
-                    ["-v", "error", "-select_streams", "v:0", "-show_entries", "stream=codec_name,width,height",
-                     "-of", "csv=p=0", filePath],
-                    timeout: TimeSpan.FromSeconds(15));
-                var parts = result.StdOut.Trim().Split(',');
-                string? codec = parts.Length > 0 ? parts[0] : null;
-                int.TryParse(parts.Length > 1 ? parts[1] : "", out int w);
-                int.TryParse(parts.Length > 2 ? parts[2] : "", out int h);
-                return (codec, w, h);
-            }
-            catch { return (null, 0, 0); }
-        }
-
-        private async Task<double> GetBatchMediaDurationAsync(string ffprobePath, string filePath)
-        {
-            try
-            {
-                var result = await ProcessRunner.RunAsync(
-                    ffprobePath,
-                    ["-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", filePath],
-                    timeout: TimeSpan.FromSeconds(15));
-                if (double.TryParse(result.StdOut.Trim(), System.Globalization.NumberStyles.Any,
-                    System.Globalization.CultureInfo.InvariantCulture, out double d))
-                    return d;
-            }
-            catch { }
-            return 0;
         }
 
         /// <summary>Aktualisiert nur den Gesamtfortschrittsbalken ohne die Zähler-Texte zu ändern (für ffmpeg-Phase).</summary>

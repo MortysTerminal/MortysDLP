@@ -165,6 +165,10 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
   verfügbar" zu melden.
 
 ### Behoben
+- **Ein Video-Download im Schnittmodus (x264) startete unnötig langsam.** Vor dem eigentlichen
+  Download fragte die Anwendung nebenbei Audio-Kennwerte ab, die für einen Video-Download gar
+  nicht gebraucht werden — bei einer Playlist im Schnittmodus für jedes einzelne Video. Dieser
+  überflüssige Zwischenschritt entfällt jetzt.
 - **Die Geschwindigkeitsanzeige der Warteschlangen-Seite (Batch) und der Twitch-Seite sprang
   genauso unruhig wie zuvor auf der Download-Seite.** Dieselbe Ursache, dieselbe Lösung: Die
   Geschwindigkeit wird jetzt auch hier aus dem tatsächlichen Byte-Zuwachs über die Zeit
