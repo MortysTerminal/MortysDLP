@@ -167,6 +167,12 @@ namespace MortysDLP.Views
             double totalSec = _totalDuration.TotalSeconds;
             double interval = GetTickInterval(totalSec);
 
+            // Zeichenfläche, kein Statuszustand - deshalb nicht NeutralBrush (das steht für
+            // "wartet"), sondern direkt die theme-fähige, gedämpfte Fluent-Textfarbe. Einmal
+            // geholt statt pro Strich neu: Best-Practices §7 "Aktualisierungen bündeln"
+            // gilt sinngemäß auch für wiederholt erzeugte Objekte in einer Schleife.
+            var tickBrush = (Brush)FindResource("TextFillColorTertiaryBrush");
+
             for (double sec = 0; sec <= totalSec; sec += interval)
             {
                 double x = (sec / totalSec) * width;
@@ -175,7 +181,7 @@ namespace MortysDLP.Views
                 {
                     X1 = x, X2 = x,
                     Y1 = 0, Y2 = 6,
-                    Stroke = new SolidColorBrush(Colors.Gray),
+                    Stroke = tickBrush,
                     StrokeThickness = 1,
                     SnapsToDevicePixels = true
                 };

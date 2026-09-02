@@ -20,7 +20,11 @@ namespace MortysDLP.Views
         private string _status = "";
         private double _progress = 0;
         private string _icon = "\uE73E"; // Default: MDL2 Wait Icon (or empty depends on your preference)
-        private System.Windows.Media.Brush _iconColor = System.Windows.Media.Brushes.Gray;
+        // BatchDownloadEntry wird ausschließlich aus laufendem Seiten-Code heraus angelegt
+        // (nie zur Entwurfszeit oder aus Tests) - Application.Current.Resources ist an dieser
+        // Stelle deshalb immer vollständig geladen.
+        private System.Windows.Media.Brush _iconColor =
+            (System.Windows.Media.Brush)System.Windows.Application.Current.FindResource("NeutralBrush");
 
         public string Url
         {
@@ -257,7 +261,7 @@ namespace MortysDLP.Views
                     // Inline-Hinweis
                     //txtUrlHint.Text = UITextDictionary.Get("BatchDownloadPage.Label.UrlHint");
                     txtUrlHint.Visibility = Visibility.Visible;
-                    tbAddUrl.BorderBrush = System.Windows.Media.Brushes.Orange;
+                    tbAddUrl.BorderBrush = (System.Windows.Media.Brush)FindResource("WarningBrush");
                 }
                 return;
             }
@@ -269,7 +273,7 @@ namespace MortysDLP.Views
                 Title = "...",
                 Status = UITextDictionary.Get("BatchDownloadPage.Status.Waiting"),
                 Icon = "\uE118",
-                IconColor = System.Windows.Media.Brushes.Gray
+                IconColor = (System.Windows.Media.Brush)FindResource("NeutralBrush")
             };
             _entries.Add(entry);
 
@@ -376,7 +380,7 @@ namespace MortysDLP.Views
                     entry.Status   = waitStatus;
                     entry.Progress = 0;
                     entry.Icon = "\uE118";
-                    entry.IconColor = System.Windows.Media.Brushes.Gray;
+                    entry.IconColor = (System.Windows.Media.Brush)FindResource("NeutralBrush");
                 }
             }
         }
@@ -390,7 +394,7 @@ namespace MortysDLP.Views
                 entry.Status   = waitStatus;
                 entry.Progress = 0;
                 entry.Icon = "\uE118";
-                entry.IconColor = System.Windows.Media.Brushes.Gray;
+                entry.IconColor = (System.Windows.Media.Brush)FindResource("NeutralBrush");
             }
         }
 
@@ -501,13 +505,13 @@ namespace MortysDLP.Views
                     canceled = true;
                     entry.Status = UITextDictionary.Get("BatchDownloadPage.Status.Waiting");
                     entry.Icon = "\uE118";
-                    entry.IconColor = System.Windows.Media.Brushes.Gray;
+                    entry.IconColor = (System.Windows.Media.Brush)FindResource("NeutralBrush");
                     continue;
                 }
 
                 entry.Status   = UITextDictionary.Get("BatchDownloadPage.Status.Downloading");
                 entry.Icon = "\uE896"; // Download loading
-                entry.IconColor = (System.Windows.Media.Brush)FindResource("BrandOrangeBrush") ?? System.Windows.Media.Brushes.Orange;
+                entry.IconColor = (System.Windows.Media.Brush)FindResource("RunningBrush");
                 entry.Progress = 0;
                 UpdateOverall(completed, total, isRunning: true);
 
@@ -525,7 +529,7 @@ namespace MortysDLP.Views
                     entry.Status   = UITextDictionary.Get("BatchDownloadPage.Status.Done");
                     entry.Progress = 100;
                     entry.Icon = "\uE001"; // Checkmark
-                    entry.IconColor = System.Windows.Media.Brushes.MediumSeaGreen;
+                    entry.IconColor = (System.Windows.Media.Brush)FindResource("SuccessBrush");
                     completed++;
                 }
                 catch (OperationCanceledException)
@@ -534,7 +538,11 @@ namespace MortysDLP.Views
                     entry.Status   = UITextDictionary.Get("BatchDownloadPage.Status.Canceled");
                     entry.Progress = 0;
                     entry.Icon = "\uE711"; // Cancel
-                    entry.IconColor = System.Windows.Media.Brushes.Orange;
+                    // Neutral statt Warnung: Der Zustand "abgebrochen" ist derselbe wie bei
+                    // GifPage/TranscribePage (dort schon immer Grau/Neutral) - anders als die
+                    // Eingabewarnung oben (:260), die zwar früher denselben Farbnamen nutzte,
+                    // aber ein eigener Zustand ist.
+                    entry.IconColor = (System.Windows.Media.Brush)FindResource("NeutralBrush");
                 }
                 catch (Exception ex)
                 {
@@ -543,7 +551,7 @@ namespace MortysDLP.Views
                     entry.Status   = UITextDictionary.Get("BatchDownloadPage.Status.Error");
                     entry.Progress = 0;
                     entry.Icon = "\uEA39"; // Error/Warning
-                    entry.IconColor = System.Windows.Media.Brushes.Red;
+                    entry.IconColor = (System.Windows.Media.Brush)FindResource("ErrorBrush");
                     AppendDebug($"[ERROR] {entry.Url}: {ex.Message}");
                 }
             }

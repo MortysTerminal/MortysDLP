@@ -437,7 +437,7 @@ namespace MortysDLP.Views
             if (success == true)
             {
                 txtResultIcon.Text = "\uE73E"; // Segoe MDL2: Checkmark
-                txtResultIcon.Foreground = System.Windows.Media.Brushes.LimeGreen;
+                txtResultIcon.Foreground = (System.Windows.Media.Brush)FindResource("SuccessBrush");
                 if (!string.IsNullOrEmpty(outputDir))
                 {
                     btnOpenResult.Visibility = Visibility.Visible;
@@ -447,13 +447,13 @@ namespace MortysDLP.Views
             else if (success == false)
             {
                 txtResultIcon.Text = "\uE783"; // Segoe MDL2: Error badge
-                txtResultIcon.Foreground = System.Windows.Media.Brushes.OrangeRed;
+                txtResultIcon.Foreground = (System.Windows.Media.Brush)FindResource("ErrorBrush");
                 btnOpenResult.Visibility = Visibility.Collapsed;
             }
             else
             {
                 txtResultIcon.Text = "\uE711"; // Segoe MDL2: Cancel
-                txtResultIcon.Foreground = System.Windows.Media.Brushes.Gray;
+                txtResultIcon.Foreground = (System.Windows.Media.Brush)FindResource("NeutralBrush");
                 btnOpenResult.Visibility = Visibility.Collapsed;
             }
         }

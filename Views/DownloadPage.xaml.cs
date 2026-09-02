@@ -1252,17 +1252,17 @@ namespace MortysDLP.Views
                 {
                     case iaStatusIconType.Loading:
                         iaStatusIcon.Text = "\uE895";
-                        iaStatusIcon.Foreground = new SolidColorBrush(Colors.SteelBlue);
+                        iaStatusIcon.Foreground = (Brush)FindResource("RunningBrush");
                         StartIconRotation(iaStatusIcon);
                         break;
                     case iaStatusIconType.Success:
                         iaStatusIcon.Text = "\uE73E";
-                        iaStatusIcon.Foreground = new SolidColorBrush(Colors.Green);
+                        iaStatusIcon.Foreground = (Brush)FindResource("SuccessBrush");
                         StopIconRotation(iaStatusIcon);
                         break;
                     case iaStatusIconType.Error:
                         iaStatusIcon.Text = "\uE711";
-                        iaStatusIcon.Foreground = new SolidColorBrush(Colors.Red);
+                        iaStatusIcon.Foreground = (Brush)FindResource("ErrorBrush");
                         StopIconRotation(iaStatusIcon);
                         break;
                     default:
@@ -1784,13 +1784,13 @@ namespace MortysDLP.Views
 
                 if (isError)
                 {
-                    pbDownload.Foreground = new SolidColorBrush(Colors.Red);
+                    pbDownload.Foreground = (Brush)FindResource("ErrorBrush");
                     txtDownloadProgress.Text = "";
                     txtDownloadEta.Text = "";
                 }
                 else
                 {
-                    pbDownload.Foreground = new SolidColorBrush(Colors.SteelBlue);
+                    pbDownload.Foreground = (Brush)FindResource("RunningBrush");
                     if (percent > 0)
                     {
                         txtDownloadProgress.Text = speedMBs.HasValue

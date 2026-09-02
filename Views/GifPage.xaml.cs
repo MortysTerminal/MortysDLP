@@ -240,7 +240,7 @@ namespace MortysDLP.Views
             if (success == true)
             {
                 txtResultIcon.Text       = "\uE73E"; // Checkmark
-                txtResultIcon.Foreground = System.Windows.Media.Brushes.LimeGreen;
+                txtResultIcon.Foreground = (System.Windows.Media.Brush)FindResource("SuccessBrush");
                 txtResultTitle.Text      = T("GifPage.Status.Success");
                 _lastOutputDir           = outputDir;
                 btnOpenResult.Visibility = Visibility.Visible;
@@ -248,14 +248,14 @@ namespace MortysDLP.Views
             else if (success == false)
             {
                 txtResultIcon.Text       = "\uE783"; // Error badge
-                txtResultIcon.Foreground = System.Windows.Media.Brushes.OrangeRed;
+                txtResultIcon.Foreground = (System.Windows.Media.Brush)FindResource("ErrorBrush");
                 txtResultTitle.Text      = T("GifPage.Status.Error");
                 btnOpenResult.Visibility = Visibility.Collapsed;
             }
             else
             {
                 txtResultIcon.Text       = "\uE711"; // Cancel
-                txtResultIcon.Foreground = System.Windows.Media.Brushes.Gray;
+                txtResultIcon.Foreground = (System.Windows.Media.Brush)FindResource("NeutralBrush");
                 txtResultTitle.Text      = T("GifPage.Status.Canceled");
                 btnOpenResult.Visibility = Visibility.Collapsed;
             }

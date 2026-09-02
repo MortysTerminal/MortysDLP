@@ -101,6 +101,11 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
 - Knöpfe und Fortschrittsbalken nutzen jetzt die eingebauten Windows-11-Bedienelemente mit der
   Markenfarbe, statt eigens nachgebauter Vorlagen. Sichtbarer Nebeneffekt: Ein Knopf, der mit
   der Tastatur angesteuert wird, zeigt jetzt wieder einen Fokusrahmen.
+- **Statusanzeigen (Erfolg, Fehler, läuft, wartet) sehen jetzt auf allen Seiten gleich aus** —
+  Download, Warteschlange, GIF-Erstellung und Transkription verwenden dieselben vier Farben statt
+  bisher fünf unterschiedlicher Grün-, Rot- und Grautöne. Alle vier Farben sind außerdem in
+  hellem und dunklem Design geprüft lesbar; bisher waren zwei davon auf dunklem Grund
+  kontrastschwach.
 - **Der Start wartet nicht mehr sekundenlang auf die yt-dlp-Prüfung.** Die installierte Version
   wird jetzt aus den Dateieigenschaften von `yt-dlp.exe` gelesen, statt das Programm dafür zu
   starten. Hintergrund: yt-dlp ist ein gebündeltes Python-Programm und fährt bei *jedem* Aufruf

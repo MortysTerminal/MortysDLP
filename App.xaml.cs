@@ -76,6 +76,11 @@ namespace MortysDLP
 
             RegisterGlobalExceptionHandlers();
 
+            // Statusfarben (Erfolg/Warnung/Fehler/Läuft) auf den aktuellen Windows-Themamodus
+            // bringen, bevor irgendeine Seite sie abfragen könnte - hält sich danach über
+            // Windows-Themawechsel selbst aktuell (StatusColorSync).
+            StatusColorSync.Start();
+
             // Ganz früh, vor dem ersten Lesen einer Einstellung: Seit die AssemblyVersion pro
             // Release wechselt, wechselt auch der user.config-Ordner. Ohne diese
             // Übernahme stünde der Nutzer nach jedem Update vor Standardeinstellungen.
@@ -176,6 +181,12 @@ namespace MortysDLP
                 Views.ErrorDialog.Show(ex, fatal: true);
                 Shutdown();
             }
+        }
+
+        protected override void OnExit(ExitEventArgs e)
+        {
+            StatusColorSync.Stop();
+            base.OnExit(e);
         }
 
         /// <summary>Registriert die drei globalen Ausnahmebehandler. Muss ganz am Anfang von
