@@ -202,7 +202,6 @@
                                 <TextBlock x:Name="txtDownloadSpeed" Margin="8,0,0,0" Opacity="0.7" FontSize="12"/>
                             </StackPanel>
                             <ProgressBar x:Name="pbDownload"
-                                         Style="{StaticResource FluentProgressBarStyle}"
                                          Width="200" Height="11"
                                          IsIndeterminate="True"/>
                         </StackPanel>

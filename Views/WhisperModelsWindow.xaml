@@ -62,7 +62,6 @@
                             Margin="10,0,0,0" Padding="10,3"/>
                 </Grid>
                 <ProgressBar x:Name="pbProgress"
-                             Style="{StaticResource FluentProgressBarStyle}"
                              Height="10" Minimum="0" Maximum="100" Value="0" Margin="0,8,0,0"/>
                 <TextBlock x:Name="txtProgressPercent" Margin="0,4,0,0" Opacity="0.7"/>
             </StackPanel>

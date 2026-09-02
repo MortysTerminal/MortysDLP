@@ -222,7 +222,6 @@
                             </StackPanel>
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                 <ProgressBar Name="pbDownload"
-                                             Style="{StaticResource FluentProgressBarStyle}"
                                              Width="200" Height="11"
                                              Minimum="0" Maximum="100" Value="0"/>
                                 <Button Name="btnStatusIcon" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}"

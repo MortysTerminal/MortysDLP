@@ -98,6 +98,9 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
   an, neben Fortschritt und Geschwindigkeit.
 
 ### Geändert
+- Knöpfe und Fortschrittsbalken nutzen jetzt die eingebauten Windows-11-Bedienelemente mit der
+  Markenfarbe, statt eigens nachgebauter Vorlagen. Sichtbarer Nebeneffekt: Ein Knopf, der mit
+  der Tastatur angesteuert wird, zeigt jetzt wieder einen Fokusrahmen.
 - **Der Start wartet nicht mehr sekundenlang auf die yt-dlp-Prüfung.** Die installierte Version
   wird jetzt aus den Dateieigenschaften von `yt-dlp.exe` gelesen, statt das Programm dafür zu
   starten. Hintergrund: yt-dlp ist ein gebündeltes Python-Programm und fährt bei *jedem* Aufruf
@@ -165,6 +168,9 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
   verfügbar" zu melden.
 
 ### Behoben
+- **Ein unbestimmter Fortschrittsbalken stand in manchen Ansichten voll da, statt zu laufen** —
+  etwa beim reinen Herunterladen des Twitch-Chats oder während einer Transkription. Er läuft
+  jetzt sichtbar, solange der Vorgang noch andauert.
 - **Das Ändern des Bandbreitenlimits konnte MortysDLP mit einer Fehlermeldung beenden.** Traf
   die Änderung genau den Moment, in dem ein Download ohnehin gerade fertig wurde oder
   abgebrochen wurde, endete der Vorgang in einem unbehandelten Fehler statt still ins Leere zu

@@ -163,7 +163,6 @@
                                 <TextBlock x:Name="txtStatus" FontWeight="Bold"/>
                             </StackPanel>
                             <ProgressBar x:Name="pbProgress"
-                                         Style="{StaticResource FluentProgressBarStyle}"
                                          Width="220" Height="8"
                                          Minimum="0" Maximum="100" Value="0"/>
                         </StackPanel>

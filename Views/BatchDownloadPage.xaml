@@ -241,7 +241,6 @@
                             </StackPanel>
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                 <ProgressBar x:Name="pbOverall"
-                                             Style="{StaticResource FluentProgressBarStyle}"
                                              Width="200" Height="11"
                                              Minimum="0" Maximum="100" Value="0"/>
                                 <TextBlock x:Name="txtCurrentSpeed" Margin="8,0,0,0" Opacity="0.7" FontSize="11"
