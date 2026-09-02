@@ -1,0 +1,119 @@
+using System.Diagnostics;
+
+namespace MortysDLP.Services
+{
+    /// <summary>
+    /// Führt einen yt-dlp-Lauf aus, verfolgt seine Ausgabe zeilenweise und behandelt einen
+    /// Neustart nach Bandbreitenwechsel — die Schicht, die heute dreifach mit leicht
+    /// abweichendem Verhalten in <c>DownloadPage</c>, <c>BatchDownloadPage</c> und
+    /// <c>TwitchPage</c> steckt (<c>RunYtDlpAsync</c>/<c>RunDownloadAsync</c> samt jeweils
+    /// eigener <c>ApplyBandwidthChange()</c>).
+    ///
+    /// <para>Eine Instanz gehört zu **einem** laufenden Auftrag (wie heute die privaten
+    /// Felder <c>_ytDlpProcess</c>/<c>_bandwidthKillPending</c> je Seite) — nicht statisch,
+    /// weil sie den gerade laufenden Prozess kennen muss, um ihn bei einer
+    /// <see cref="RequestRestart"/>-Anfrage gezielt zu beenden.</para>
+    ///
+    /// <para><b>Der Neustart-Zyklus selbst bleibt beim Aufrufer</b> (nicht in dieser Klasse):
+    /// Nur der Aufrufer weiß, mit welchem — möglicherweise geänderten — <see cref="YtDlpJob"/>
+    /// erneut gestartet werden soll. Ein geändertes Bandbreitenlimit bedeutet einen neuen
+    /// Job (<c>job with { BandwidthLimitMBps = … }</c>), nicht denselben — <c>TwitchPage</c>
+    /// liest den aktuellen Wert heute genau deshalb bei jedem Schleifendurchlauf neu ein,
+    /// nicht einmalig vor der Schleife.</para>
+    /// </summary>
+    internal sealed class YtDlpRunner
+    {
+        private Process? _process;
+        private volatile bool _restartPending;
+
+        /// <summary>Führt <paramref name="job"/> über yt-dlp aus.</summary>
+        /// <returns><c>true</c>, wenn der Lauf wegen einer <see cref="RequestRestart"/>-Anfrage
+        /// beendet wurde und mit einem (ggf. angepassten) Job erneut gestartet werden sollte;
+        /// <c>false</c>, wenn er regulär durchgelaufen ist.</returns>
+        /// <exception cref="InvalidOperationException">yt-dlp hat sich mit einem
+        /// Fehler-Exitcode beendet, ohne dass ein Neustart angefordert wurde.</exception>
+        public Task<bool> RunAsync(
+            string ytDlpPath,
+            YtDlpJob job,
+            Action<string>? onStdOut = null,
+            Action<string>? onStdErr = null,
+            TimeSpan? idleTimeout = null,
+            CancellationToken ct = default,
+            Action<int>? onExitCode = null) =>
+            RunCoreAsync(ytDlpPath, YtDlpArgumentBuilder.Build(job), onStdOut, onStdErr, idleTimeout, ct, onExitCode);
+
+        /// <summary>Der eigentliche Ausführungs- und Neustart-Kern, unabhängig von der
+        /// Job-zu-Argumentliste-Übersetzung (die hat <c>YtDlpArgumentBuilderTests</c> bereits
+        /// abgedeckt) — dadurch lässt sich diese Methode gegen ein beliebiges Testskript
+        /// prüfen, ohne einen echten yt-dlp-Aufruf zu brauchen.</summary>
+        internal async Task<bool> RunCoreAsync(
+            string exePath,
+            IEnumerable<string> args,
+            Action<string>? onStdOut,
+            Action<string>? onStdErr,
+            TimeSpan? idleTimeout,
+            CancellationToken ct,
+            Action<int>? onExitCode = null)
+        {
+            ProcessResult result;
+            try
+            {
+                result = await ProcessRunner.RunStreamingAsync(
+                    exePath, args,
+                    onStdOut: onStdOut,
+                    onStdErr: onStdErr,
+                    timeout: null,
+                    idleTimeout: idleTimeout ?? TimeSpan.FromSeconds(120),
+                    onStarted: p => _process = p,
+                    ct: ct);
+            }
+            finally
+            {
+                _process = null;
+            }
+
+            // Absichtlicher Kill wegen Limit-Änderung → kein Fehler, sondern das Signal an
+            // den Aufrufer, mit einem (ggf. neuen) Job erneut zu starten. Kein eigener
+            // Rückkanal von ProcessRunner nötig: Der Kill kommt von außen, direkt auf dem in
+            // onStarted gemerkten Process (siehe RequestRestart) — das Feld hier wird nur
+            // gelesen, nachdem der Prozess bereits beendet ist.
+            if (_restartPending)
+            {
+                _restartPending = false;
+                ct.ThrowIfCancellationRequested();
+                return true;
+            }
+
+            ct.ThrowIfCancellationRequested();
+
+            // Wird bei einem fehlerhaften Exit-Code bewusst noch vor der Ausnahme aufgerufen -
+            // der Aufrufer soll den Code auch im Fehlerfall protokollieren können, nicht nur
+            // bei Erfolg.
+            onExitCode?.Invoke(result.ExitCode);
+
+            if (!result.Success)
+                throw new InvalidOperationException($"yt-dlp beendet mit Exit-Code {result.ExitCode}");
+
+            return false;
+        }
+
+        /// <summary>Beendet einen gerade laufenden Lauf gezielt und markiert ihn für einen
+        /// Neustart — der Aufruf von <see cref="RunAsync"/>, der dadurch beendet wird, liefert
+        /// <c>true</c> statt einer Ausnahme. Ohne laufenden Prozess bewirkt der Aufruf nichts.
+        /// </summary>
+        /// <returns><c>true</c>, wenn tatsächlich ein laufender Prozess beendet wurde -
+        /// Aufrufer nutzen das, um z. B. nur dann eine Meldung zu protokollieren, wenn die
+        /// Anfrage etwas bewirkt hat.</returns>
+        public bool RequestRestart()
+        {
+            if (_process is { HasExited: false } process)
+            {
+                _restartPending = true;
+                try { process.Kill(entireProcessTree: true); }
+                catch { /* bereits beendet oder kein Zugriff mehr - dann ist ohnehin nichts mehr zu killen */ }
+                return true;
+            }
+            return false;
+        }
+    }
+}

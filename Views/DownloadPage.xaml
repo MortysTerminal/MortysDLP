@@ -218,6 +218,7 @@
                                            Visibility="Collapsed" Margin="0,0,8,0"/>
                                 <TextBlock Name="txtDownloadStatus" FontWeight="Bold"/>
                                 <TextBlock Name="txtDownloadProgress" Text="0 %" Margin="8,0,0,0"/>
+                                <TextBlock Name="txtDownloadEta" Opacity="0.75" Margin="8,0,0,0"/>
                             </StackPanel>
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                 <ProgressBar Name="pbDownload"

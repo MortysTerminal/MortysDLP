@@ -94,6 +94,8 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
   Ein eigener Bereich zeigt zusammengefasst den Stand der Whisper-Modelle und verlinkt zu
   deren Verwaltung. Eine weitere Zeile zeigt, wie viel Platz alle Werkzeuge und Modelle
   zusammen belegen.
+- Die Download-Seite zeigt jetzt eine geschätzte Restzeit während eines laufenden Downloads
+  an, neben Fortschritt und Geschwindigkeit.
 
 ### Geändert
 - **Der Start wartet nicht mehr sekundenlang auf die yt-dlp-Prüfung.** Die installierte Version
@@ -163,6 +165,14 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
   verfügbar" zu melden.
 
 ### Behoben
+- **Die Geschwindigkeitsanzeige der Warteschlangen-Seite (Batch) und der Twitch-Seite sprang
+  genauso unruhig wie zuvor auf der Download-Seite.** Dieselbe Ursache, dieselbe Lösung: Die
+  Geschwindigkeit wird jetzt auch hier aus dem tatsächlichen Byte-Zuwachs über die Zeit
+  geglättet berechnet.
+- **Das Rendern des Twitch-Chats als Video brach immer mit „Unable to find FFmpeg" ab.**
+  MortysDLP verwaltet ein eigenes ffmpeg, aber TwitchDownloaderCLI wusste nichts davon und
+  suchte an einem Ort, an dem es nicht liegt. Der Chat-Download selbst war davon nicht
+  betroffen, nur die anschließende Umwandlung in ein Video.
 - **Downloads von GitHub schlugen vollständig fehl.** Jeder Versuch, eine Datei aus einem
   GitHub-Release zu laden, endete mit „Ziel nicht erlaubt" — betroffen waren sowohl die
   externen Werkzeuge als auch das Selbst-Update von MortysDLP. Ursache: GitHub liefert
@@ -189,6 +199,19 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
   sich aufgehängt, obwohl im Hintergrund alles ordnungsgemäß weiterlief. Das Fenster zeigt jetzt
   für jeden dieser Abschnitte einen eigenen Text und einen pulsierenden statt eingefrorenen
   Balken.
+- **Der Fortschrittsbalken beim Herunterladen sprang mehrfach von vorn los.** Lädt yt-dlp
+  Video und Audio als getrennte Spuren, meldete jede für sich 0–100 % — der Balken lief
+  einmal voll, sprang zurück auf 0, lief erneut voll, und bei aktivierter
+  H.264-Nachbearbeitung ein drittes Mal. Bei einer Playlist wiederholte sich das für jedes
+  Video. Der Balken läuft jetzt einmal über den gesamten Vorgang durch, auch über mehrere
+  Videos einer Playlist hinweg.
+- **Geschwindigkeit und Restzeit beim Herunterladen sprangen wild und wechselten zu
+  schnell zum Lesen.** yt-dlp meldet beides pro Netzwerk-Fragment neu, wodurch die
+  Anzeige zwischen sehr niedrigen und sehr hohen Werten hin- und hersprang und
+  zwischendurch auch mal leer blieb, obwohl der Download normal weiterlief. Die
+  Geschwindigkeit wird jetzt selbst aus dem tatsächlichen Byte-Zuwachs über die Zeit
+  geglättet berechnet, die Restzeit daraus abgeleitet. Der Balken bewegt sich weiterhin
+  bei jeder Meldung, der Text darunter aktualisiert sich höchstens einmal pro Sekunde.
 - Für yt-dlp wird kein Update mehr angeboten, wenn die installierte Fassung **neuer** ist als
   die veröffentlichte — etwa nach einem Zwischenbuild. Bisher genügte es, dass sich die beiden
   Versionsangaben unterschieden, und das Angebot war dann ein Rückschritt. Ebenso erscheint

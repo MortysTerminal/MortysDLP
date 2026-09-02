@@ -275,12 +275,13 @@ Die Varianten-Kürzel machen verschiedene Fassungen desselben Videos unterscheid
 Beispiel: `mein-video_q1080_mp4_x264_dQw4w9WgXcQ.mp4`
 
 ### Fortschritt und Status
-Ein Balken mit Prozent und Geschwindigkeit, ein Statustext („Lädt…", „Zusammenführen…",
-„Audio extrahieren…", „Prüfe Video-Codec…", „Konvertiere zu H.264…") und ein Statussymbol,
-das nach Abschluss den Zielordner öffnet.
-
-> **Bekannte Einschränkung:** Bei getrennten Video-/Audio-Streams läuft der Balken zweimal von
-> 0 auf 100 %.
+Ein Balken mit Prozent, Geschwindigkeit und geschätzter Restzeit, ein Statustext („Lädt…",
+„Zusammenführen…", „Audio extrahieren…", „Prüfe Video-Codec…", „Konvertiere zu H.264…") und
+ein Statussymbol, das nach Abschluss den Zielordner öffnet. Die Restzeit verschwindet, sobald
+sie nicht mehr bekannt ist oder der Download abgeschlossen ist. Werden Video und Audio als
+getrennte Spuren geladen, läuft der Balken einmal durch statt zweimal neu bei 0 zu beginnen —
+dasselbe gilt für eine anschließende H.264-Nachbearbeitung und, bei einer Playlist, über alle
+enthaltenen Videos hinweg.
 
 ### Debug-Ausgabe
 Nur sichtbar, wenn in den Einstellungen der Debug-Modus aktiv ist. Zeigt die vollständige

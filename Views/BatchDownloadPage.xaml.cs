@@ -69,8 +69,7 @@ namespace MortysDLP.Views
         private bool _initialized = false;
         private string _lastDownloadPath = "";
         private bool _downloadRunning = false;
-        private Process? _currentBatchYtDlpProcess;
-        private volatile bool _batchBandwidthKillPending = false;
+        private readonly YtDlpRunner _ytDlpRunner = new();
 
         private readonly LogBuffer _log;
 
@@ -603,61 +602,54 @@ namespace MortysDLP.Views
             string videoQualityTag, string videoFormat,
             CancellationToken token)
         {
-            var args = new List<string>();
-
-            if (audioOnly)
+            // Format-Selektoren bewusst weiterhin hier gebaut, nicht über
+            // YtDlpArgumentBuilder.BuildYtDlpVideoFormatSelector (das ist DownloadPages
+            // Strategie): Im x264-Modus filtert die Batch-Seite hier - anders als
+            // DownloadPage - schon beim Download nach Codec (vcodec^=avc1), nicht erst über
+            // die Container-Endung. YtDlpJob.FormatSelector ist genau für so einen fertig
+            // gebauten, aufrufer-eigenen Selektor gedacht.
+            string? formatSelector = null;
+            string? mergeOutputFormat = null;
+            if (!audioOnly)
             {
-                args.Add("-x");
-                args.Add("--audio-format");
-                args.Add(audioFormat);
-                if (!isHighestAbr)
+                if (useX264)
                 {
-                    args.Add("--audio-quality");
-                    args.Add(audioBitrate.ToUpperInvariant());
+                    formatSelector = videoQualityTag == "best"
+                        ? "bestvideo[vcodec^=avc1]+bestaudio[ext=m4a]/bestvideo+bestaudio/best"
+                        : $"bestvideo[vcodec^=avc1][height<={videoQualityTag}]+bestaudio[ext=m4a]/bestvideo[height<={videoQualityTag}]+bestaudio/best[height<={videoQualityTag}]";
+                    mergeOutputFormat = "mp4";
+                }
+                else
+                {
+                    formatSelector = videoQualityTag == "best"
+                        ? $"bestvideo[ext={videoFormat}]+bestaudio/bestvideo+bestaudio/best"
+                        : $"bestvideo[ext={videoFormat}][height<={videoQualityTag}]+bestaudio/bestvideo[height<={videoQualityTag}]+bestaudio/best[height<={videoQualityTag}]";
+                    mergeOutputFormat = videoFormat;
                 }
             }
-            else if (useX264)
-            {
-                string fSelector = videoQualityTag == "best"
-                    ? "bestvideo[vcodec^=avc1]+bestaudio[ext=m4a]/bestvideo+bestaudio/best"
-                    : $"bestvideo[vcodec^=avc1][height<={videoQualityTag}]+bestaudio[ext=m4a]/bestvideo[height<={videoQualityTag}]+bestaudio/best[height<={videoQualityTag}]";
-                args.Add("-f");
-                args.Add(fSelector);
-                args.Add("--merge-output-format");
-                args.Add("mp4");
-                args.Add("--postprocessor-args");
-                args.Add("Merger:-c copy -movflags +faststart");
-            }
-            else
-            {
-                string fSelector = videoQualityTag == "best"
-                    ? $"bestvideo[ext={videoFormat}]+bestaudio/bestvideo+bestaudio/best"
-                    : $"bestvideo[ext={videoFormat}][height<={videoQualityTag}]+bestaudio/bestvideo[height<={videoQualityTag}]+bestaudio/best[height<={videoQualityTag}]";
-                args.Add("-f");
-                args.Add(fSelector);
-                args.Add("--merge-output-format");
-                args.Add(videoFormat);
-            }
 
-            args.Add("-o");
-            args.Add($"{downloadPath}\\%(title)s_%(id)s.%(ext)s");
-            double bwLimit = Properties.Settings.Default.DownloadBandwidthMBps;
-            if (bwLimit > 0)
+            var job = new YtDlpJob
             {
-                args.Add("--limit-rate");
-                args.Add($"{bwLimit.ToString(System.Globalization.CultureInfo.InvariantCulture)}M");
-            }
-            args.Add("--continue");
-            args.Add("--no-check-certificates");
-            args.Add("--no-mtime");
-            args.Add("--newline");
-            args.Add("--no-playlist");
-            args.Add(entry.Url);
+                Url = entry.Url,
+                OutputTemplate = $"{downloadPath}\\%(title)s_%(id)s.%(ext)s",
+                IsAudioOnly = audioOnly,
+                FormatSelector = formatSelector,
+                MergeOutputFormat = mergeOutputFormat,
+                // Nur im x264-Modus gesetzt (unverändertes Verhalten) - im normalen
+                // Video-Modus setzte die Batch-Seite dieses Postprocessor-Flag schon vorher
+                // nicht, auch nicht bei mp4/mov, anders als DownloadPage.
+                MergeStreamCopyFastStart = useX264,
+                AudioFormat = audioOnly ? audioFormat : null,
+                AudioBitrate = audioOnly && !isHighestAbr ? audioBitrate : null,
+                BandwidthLimitMBps = Properties.Settings.Default.DownloadBandwidthMBps,
+            };
 
             AppendDebug($"[START] {entry.Url}");
-            AppendDebug($"ARGS: {string.Join(' ', args)}");
+            AppendDebug("ARGS: " + string.Join(' ', YtDlpArgumentBuilder.Build(job)));
 
             string? lastOutputFile = null;
+            var speedEstimator = new DownloadSpeedEstimator();
+            var speedClock = Stopwatch.StartNew();
 
             void OnStdOut(string line)
             {
@@ -670,13 +662,35 @@ namespace MortysDLP.Views
                     if (m.Success) lastOutputFile = m.Groups[1].Value;
                 }
                 else if (line.StartsWith("[download] Destination: "))
+                {
                     lastOutputFile = line["[download] Destination: ".Length..].Trim();
+                    speedEstimator.Reset();
+                    speedClock.Restart();
+                }
 
                 // Phase erkennen → entry.Status
                 var phase = DetectBatchStage(line);
                 if (phase != null) entry.Status = phase;
 
-                // Fortschritt + Geschwindigkeit
+                // Maschinenlesbare Vorlagen-Zeile (siehe YtDlpArgumentBuilder.Build) hat
+                // Vorrang, derselbe Rückfall wie auf der Download-Seite (siehe dort für die
+                // Begründung). Geschwindigkeit wird wie dort selbst aus dem Byte-Zuwachs
+                // geglättet statt yt-dlps eigene, pro Fragment schwankende Momentanangabe zu
+                // übernehmen - sonst hätte die Batch-Seite dieselbe unruhige Anzeige, die auf
+                // der Download-Seite behoben wurde.
+                if (YtDlpProgressParser.TryParse(line, out var templateProgress))
+                {
+                    if (templateProgress.Fraction.HasValue)
+                    {
+                        double? smoothedSpeed = templateProgress.DownloadedBytes.HasValue
+                            ? speedEstimator.Update(templateProgress.DownloadedBytes.Value, speedClock.Elapsed.TotalSeconds)
+                            : null;
+                        entry.Progress = templateProgress.Fraction.Value * 100;
+                        UpdateCurrentSpeed(smoothedSpeed / (1024.0 * 1024.0));
+                    }
+                    return;
+                }
+
                 var (pct, speed) = ParseBatchProgress(line);
                 if (pct.HasValue)
                 {
@@ -685,32 +699,14 @@ namespace MortysDLP.Views
                 }
             }
 
-            try
-            {
-                var result = await ProcessRunner.RunStreamingAsync(
-                    ytDlpPath, args,
-                    onStdOut: OnStdOut,
-                    onStdErr: line => AppendDebug($"[ERR] {line}"),
-                    timeout: null,
-                    idleTimeout: TimeSpan.FromSeconds(120),
-                    onStarted: p => _currentBatchYtDlpProcess = p,
-                    ct: token);
+            bool needsRestart = await _ytDlpRunner.RunAsync(
+                ytDlpPath, job,
+                onStdOut: OnStdOut,
+                onStdErr: line => AppendDebug($"[ERR] {line}"),
+                idleTimeout: TimeSpan.FromSeconds(120),
+                ct: token);
 
-                // Absichtlicher Kill wegen Limit-Änderung → kein Fehler, Neustart nötig
-                if (_batchBandwidthKillPending)
-                {
-                    _batchBandwidthKillPending = false;
-                    token.ThrowIfCancellationRequested();
-                    return true;
-                }
-
-                token.ThrowIfCancellationRequested();
-                if (!result.Success) throw new InvalidOperationException($"yt-dlp exit code {result.ExitCode}");
-            }
-            finally
-            {
-                _currentBatchYtDlpProcess = null;
-            }
+            if (needsRestart) return true;
 
             // x264-Nachbearbeitung mit eigenem Fortschritt
             if (useX264 && !audioOnly && lastOutputFile != null && System.IO.File.Exists(lastOutputFile))
@@ -915,12 +911,8 @@ namespace MortysDLP.Views
         /// <summary>Wird von SettingsPage aufgerufen wenn das Bandbreiten-Limit geändert wird.</summary>
         public void ApplyBandwidthChange()
         {
-            if (_currentBatchYtDlpProcess != null && !_currentBatchYtDlpProcess.HasExited)
-            {
-                _batchBandwidthKillPending = true;
-                AppendDebug($"[LIMIT] Bandbreite geändert – yt-dlp wird mit --continue neu gestartet");
-                try { _currentBatchYtDlpProcess.Kill(entireProcessTree: true); } catch { }
-            }
+            if (_ytDlpRunner.RequestRestart())
+                AppendDebug("[LIMIT] Bandbreite geändert – yt-dlp wird mit --continue neu gestartet");
         }
     }
 }

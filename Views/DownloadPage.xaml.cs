@@ -24,11 +24,30 @@ namespace MortysDLP.Views
         private Task? _downloadTask;
         private string _lastDownloadPath = "";
         private double _lastProgress = 0;
-        private Process? _ytDlpProcess;
         private bool _initialized = false;
         private string? _lastOutputFilePath;
-        private volatile bool _bandwidthKillPending = false;
+        private readonly YtDlpRunner _ytDlpRunner = new();
         private readonly LogBuffer _log;
+
+        // Für die Fortschrittsgewichtung (DownloadProgressWeighting) - je Video (nicht je
+        // Prozess-Neustart nach einem Limitwechsel) zurückgesetzt, siehe
+        // BeginDownloadProgressTracking.
+        private int _streamIndex = -1;
+        private int _streamCount = 1;
+        private bool _reservePostConversion;
+        private int _playlistVideoIndex;
+        private int _playlistVideoCount;
+
+        // yt-dlp meldet über --progress-template deutlich häufiger als der Mensch lesen kann;
+        // der Balken selbst soll trotzdem bei jeder Zeile springen (glatte Bewegung), nur der
+        // Text (Prozent/Geschwindigkeit/Restzeit) wird gedrosselt aktualisiert.
+        private readonly Stopwatch _progressTextThrottle = Stopwatch.StartNew();
+        private static readonly TimeSpan ProgressTextUpdateInterval = TimeSpan.FromSeconds(1);
+
+        // Eigene, geglättete Geschwindigkeit statt der von yt-dlp pro Fragment gemeldeten
+        // Momentanangabe (siehe DownloadSpeedEstimator) - je Stream zurückgesetzt.
+        private readonly DownloadSpeedEstimator _speedEstimator = new();
+        private readonly Stopwatch _speedEstimatorClock = new();
 
         public enum iaStatusIconType { None, Loading, Success, Error }
 
@@ -193,8 +212,12 @@ namespace MortysDLP.Views
         private void btnDownloadCancel_Click(object sender, RoutedEventArgs e)
         {
             txtDownloadStatus.Text = UITextDictionary.Get("DownloadPage.Status.Canceling");
+
+            // Kein eigener Kill mehr nötig: ProcessRunner registriert für den jeweils
+            // laufenden Prozess (yt-dlp oder ffmpeg, je nach Phase) bereits selbst einen
+            // Kill auf diesem Token (siehe ProcessRunner.RunStreamingAsync) - Cancel() löst
+            // ihn synchron aus.
             _downloadCancellationTokenSource?.Cancel();
-            _ytDlpProcess?.Kill(true);
             UpdateProgress(0);
         }
 
@@ -504,36 +527,7 @@ namespace MortysDLP.Views
             return "192k";
         }
 
-        /// <summary>Baut den yt-dlp Format-Selector aus dem Tag-Wert (sprachunabhängig).
-        /// Container-Kompatibilität:
-        ///   mp4 – ISOBMFF: H.264/H.265/AV1 + AAC. Filter: [ext=mp4]+[ext=m4a] (AV1 in mp4 ist gültig)
-        ///   mov – QuickTime: H.264/H.265 + AAC. Kein AV1! Filter: [vcodec^=avc1]+[ext=m4a]
-        ///   avi – RIFF: nur H.264 + AAC/MP3 praxistauglich. Kein AV1/VP9! Filter: [vcodec^=avc1]+[ext=m4a]
-        ///   mkv – Matroska: universell, akzeptiert alle Codecs → kein Filter nötig</summary>
-        internal static string BuildYtDlpVideoFormatSelector(string qualityTag, string container)
-        {
-            bool isMp4 = container.Equals("mp4", StringComparison.OrdinalIgnoreCase);
-            bool needsH264 = container.Equals("mov", StringComparison.OrdinalIgnoreCase)
-                          || container.Equals("avi", StringComparison.OrdinalIgnoreCase);
-
-            // mov/avi: Codec-Filter (H.264 = avc1), da AV1 in diesen Containern nicht funktioniert
-            // mp4:     Container-Filter reicht (mp4 unterstützt AV1 nativ)
-            // mkv:     kein Filter nötig
-            string vFilter = needsH264 ? "[vcodec^=avc1]" : (isMp4 ? "[ext=mp4]" : "");
-            string aFilter = (needsH264 || isMp4) ? "[ext=m4a]" : "";
-
-            return qualityTag switch
-            {
-                "best" or "" =>
-                    $"bestvideo{vFilter}+bestaudio{aFilter}/bestvideo+bestaudio/best",
-                _ when int.TryParse(qualityTag, out int h) && h > 0 =>
-                    $"bestvideo{vFilter}[height<={h}]+bestaudio{aFilter}/bestvideo[height<={h}]+bestaudio/best[height<={h}]",
-                _ =>
-                    $"bestvideo{vFilter}+bestaudio{aFilter}/bestvideo+bestaudio/best"
-            };
-        }
-
-        private List<string> BuildYTDLPArguments(int? sourceAsr, int? sourceChannels, string urlOverride)
+        private YtDlpJob BuildYtDlpJob(int? sourceAsr, int? sourceChannels, string urlOverride)
         {
             string url = urlOverride;
             string timespanFrom = "";
@@ -586,8 +580,14 @@ namespace MortysDLP.Views
                 return cleaned.ToLowerInvariant();
             }
 
-            var args = new List<string>();
             bool isHighestAbr = string.Equals(abitrate, "höchste", StringComparison.OrdinalIgnoreCase);
+
+            string? formatSelector = null;
+            string? mergeOutputFormat = null;
+            bool mergeStreamCopyFastStart = false;
+            string? audioFormat = null;
+            string? audioBitrate = null;
+            bool audioForceReencode = false;
 
             if (isAudioOnly)
             {
@@ -595,65 +595,37 @@ namespace MortysDLP.Views
                                    (sourceAsr.HasValue && sourceAsr.Value < 44100) ||
                                    (sourceChannels.HasValue && sourceChannels.Value == 1);
 
-                args.Add("-x");
-                args.Add("--audio-format");
-                args.Add(selectedAudioFormat);
+                audioFormat = selectedAudioFormat;
+                audioBitrate = isHighestAbr ? null : abitrate;
+                audioForceReencode = needEnhance;
 
                 if (!isHighestAbr)
-                {
-                    args.Add("--audio-quality");
-                    args.Add(abitrate.ToUpperInvariant());
                     AppendOutput($"[AUDIO-ONLY] Ziel-Bitrate: {abitrate}");
-                }
                 else
-                {
                     AppendOutput("[AUDIO-ONLY] Audio-Bitrate: Höchste (keine feste Bitrate erzwungen)");
-                }
 
                 if (needEnhance)
-                {
-                    args.Add("--postprocessor-args");
-                    args.Add("ffmpeg:-ar 48000 -ac 2");
                     AppendOutput($"[AUDIO-ONLY] Reencode erzwungen (asr={(sourceAsr?.ToString() ?? "NA")}, ch={(sourceChannels?.ToString() ?? "NA")}) -> 48kHz Stereo");
-                }
                 else
-                {
                     AppendOutput($"[AUDIO-ONLY] Kein SR/Channel-Reencode nötig (asr={sourceAsr} Hz, ch={sourceChannels})");
-                }
             }
             else
             {
                 // Schnittmodus benötigt immer H.264 -> MP4-native Streams bevorzugen, damit der Re-Encode schneller geht
-                var fSelector = BuildYtDlpVideoFormatSelector(vqTag, isVideoformat ? "mp4" : vfContainer);
-                args.Add("-f");
-                args.Add(fSelector);
+                // yt-dlp's --recode-video prüft nur den Container, nicht den Codec → AV1-in-MP4 wird übersprungen
+                formatSelector = YtDlpArgumentBuilder.BuildYtDlpVideoFormatSelector(vqTag, isVideoformat ? "mp4" : vfContainer);
+                mergeOutputFormat = isVideoformat ? "mp4" : vfContainer;
+                // --merge-output-format statt --recode-video: FFmpeg remuxed nur (Stream-Copy), kein Re-Encode -> sehr schnell
+                mergeStreamCopyFastStart = mergeOutputFormat.Equals("mp4", StringComparison.OrdinalIgnoreCase)
+                                          || mergeOutputFormat.Equals("mov", StringComparison.OrdinalIgnoreCase);
 
                 if (isVideoformat)
-                {
-                    // Schnittmodus: nur in MP4 mergen (Stream-Copy), H.264-Konvertierung erfolgt nach dem Download per ffmpeg
-                    // yt-dlp's --recode-video prüft nur den Container, nicht den Codec → AV1-in-MP4 wird übersprungen
                     AppendOutput($"[VIDEO] Schnittmodus aktiv -> mp4 + x264, VQ={vqLabel}");
-                    args.Add("--merge-output-format");
-                    args.Add("mp4");
-                    args.Add("--postprocessor-args");
-                    args.Add("Merger:-c copy -movflags +faststart");
-                }
                 else
-                {
-                    // --merge-output-format statt --recode-video: FFmpeg remuxed nur (Stream-Copy), kein Re-Encode -> sehr schnell
                     AppendOutput($"[VIDEO] Merge in Container: {vfContainer}, VQ={vqLabel}");
-                    args.Add("--merge-output-format");
-                    args.Add(vfContainer);
-                    if (vfContainer.Equals("mp4", StringComparison.OrdinalIgnoreCase)
-                        || vfContainer.Equals("mov", StringComparison.OrdinalIgnoreCase))
-                    {
-                        args.Add("--postprocessor-args");
-                        args.Add("Merger:-c copy -movflags +faststart");
-                    }
-                }
             }
 
-            var tags = new System.Collections.Generic.List<string>();
+            var tags = new List<string>();
 
             if (isTimespan)
                 tags.Add($"t{SanitizeSegment(timespanFrom)}-{SanitizeSegment(timespanTo)}");
@@ -687,39 +659,26 @@ namespace MortysDLP.Views
             }
 
             string outputPattern = $"{fileBase}{variantSuffix}_%(id)s.%(ext)s";
-            args.Add("-o");
-            args.Add($"{downloadPath}\\{outputPattern}");
 
-            if (isTimespan)
+            var job = new YtDlpJob
             {
-                args.Add("--download-sections");
-                args.Add($"*{timespanFrom}-{timespanTo}");
-            }
+                Url = url,
+                OutputTemplate = $"{downloadPath}\\{outputPattern}",
+                IsAudioOnly = isAudioOnly,
+                FormatSelector = formatSelector,
+                MergeOutputFormat = mergeOutputFormat,
+                MergeStreamCopyFastStart = mergeStreamCopyFastStart,
+                AudioFormat = audioFormat,
+                AudioBitrate = audioBitrate,
+                AudioForceReencode = audioForceReencode,
+                Timespan = isTimespan ? (timespanFrom, timespanTo) : null,
+                FirstSecondsDuration = isFirstSeconds ? firstSeconds : null,
+                FirstSecondsFfmpegPath = isFirstSeconds ? ffmpegPath : null,
+                BandwidthLimitMBps = Properties.Settings.Default.DownloadBandwidthMBps,
+            };
 
-            if (isFirstSeconds)
-            {
-                args.Add("--downloader");
-                args.Add(ffmpegPath);
-                args.Add("--downloader-args");
-                args.Add($"ffmpeg:-t {firstSeconds}");
-            }
-
-            // --newline: Progress-Updates als separate Zeilen (statt \r), verbessert Parsing
-            // --no-playlist: verhindert, dass yt-dlp eigenständig eine Playlist expandiert
-            double bwLimit = Properties.Settings.Default.DownloadBandwidthMBps;
-            if (bwLimit > 0)
-            {
-                args.Add("--limit-rate");
-                args.Add($"{bwLimit.ToString(System.Globalization.CultureInfo.InvariantCulture)}M");
-            }
-            args.Add("--no-check-certificates");
-            args.Add("--no-mtime");
-            args.Add("--newline");
-            args.Add("--no-playlist");
-            args.Add(url);
-
-            AppendOutput("ARGS: " + string.Join(' ', args));
-            return args;
+            AppendOutput("ARGS: " + string.Join(' ', YtDlpArgumentBuilder.Build(job)));
+            return job;
         }
 
         private void cbAudioOnlyCheck(object sender, RoutedEventArgs e) => AudioOnlyAdjustments();
@@ -830,15 +789,6 @@ namespace MortysDLP.Views
             return null;
         }
 
-        private double? ParseYtDlpProgress(string line, out double? speedMBs)
-        {
-            var (progress, speed) = ParseYtDlpDownloadProgress(line);
-            speedMBs = speed;
-            return progress;
-        }
-
-        // ─── Neue, performante Hilfsmethoden ────────────────────────────────────────
-
         /// <summary>Parst eine yt-dlp Ausgabezeile auf Fortschritt und Geschwindigkeit.
         /// Unterstützt KiB/s, MiB/s und GiB/s.</summary>
         private static (double? Progress, double? SpeedMBs) ParseYtDlpDownloadProgress(string line)
@@ -882,10 +832,21 @@ namespace MortysDLP.Views
                 {
                     var m = System.Text.RegularExpressions.Regex.Match(line, @"\[Merger\] Merging formats into ""(.+)""");
                     if (m.Success) _lastOutputFilePath = m.Groups[1].Value;
+
+                    // yt-dlp meldet für das Zusammenführen selbst keinen Prozentsatz - der
+                    // Balken springt deshalb einmal auf die für diesen Abschnitt vorgesehene
+                    // Obergrenze (siehe DownloadProgressWeighting), statt stehen zu bleiben.
+                    UpdateProgress(ApplyPlaylistScale(DownloadProgressWeighting.ForMerge(_reservePostConversion)));
                 }
                 else if (line.StartsWith("[download] Destination: "))
                 {
                     _lastOutputFilePath = line["[download] Destination: ".Length..].Trim();
+                    _streamIndex++;
+
+                    // Der neue Stream zählt seine Bytes wieder ab 0 - ohne Rücksetzung würde
+                    // dieser Sprung als (negative, auf 0 geklammerte) Geschwindigkeit gewertet.
+                    _speedEstimator.Reset();
+                    _speedEstimatorClock.Restart();
                 }
                 else if (line.StartsWith("[download] ") && line.EndsWith(" has already been downloaded"))
                 {
@@ -894,10 +855,37 @@ namespace MortysDLP.Views
                 }
             }
 
+            // Maschinenlesbare Vorlagen-Zeile (siehe YtDlpArgumentBuilder.Build) hat Vorrang - nur
+            // wenn sie aus irgendeinem Grund nicht kommt (z. B. eine sehr alte yt-dlp-Fassung
+            // ohne --progress-template), greift der bisherige Zeilen-Parser als Rückfall.
+            // Beide Wege bekommen dieselbe Gewichtung, damit der Balken auch im Rückfall
+            // nicht pro Stream neu bei 0 beginnt.
+            if (YtDlpProgressParser.TryParse(line, out var templateProgress))
+            {
+                if (templateProgress.Fraction.HasValue)
+                {
+                    // Eigene, geglättete Geschwindigkeit/Restzeit statt der von yt-dlp pro
+                    // Fragment gemeldeten Momentanwerte - siehe DownloadSpeedEstimator dazu,
+                    // warum diese sonst binnen Sekundenbruchteilen zwischen leer und
+                    // widersinnigen Ausschlägen springen.
+                    double? smoothedSpeed = templateProgress.DownloadedBytes.HasValue
+                        ? _speedEstimator.Update(templateProgress.DownloadedBytes.Value, _speedEstimatorClock.Elapsed.TotalSeconds)
+                        : null;
+                    double? speedMBs = smoothedSpeed / (1024.0 * 1024.0);
+                    TimeSpan? eta = DownloadSpeedEstimator.EstimateEta(templateProgress.RemainingBytes, smoothedSpeed);
+                    double overall = DownloadProgressWeighting.ForStream(
+                        templateProgress.Fraction.Value * 100, Math.Max(_streamIndex, 0), _streamCount, _reservePostConversion);
+                    UpdateProgress(ApplyPlaylistScale(overall), false, speedMBs, eta);
+                }
+                return;
+            }
+
             var (progress, speed) = ParseYtDlpDownloadProgress(line);
             if (progress.HasValue)
             {
-                UpdateProgress(progress.Value, false, speed);
+                double overall = DownloadProgressWeighting.ForStream(
+                    progress.Value, Math.Max(_streamIndex, 0), _streamCount, _reservePostConversion);
+                UpdateProgress(ApplyPlaylistScale(overall), false, speed);
                 return;
             }
 
@@ -926,11 +914,8 @@ namespace MortysDLP.Views
                 _ => null
             };
 
-        private async Task<bool> RunYtDlpAsync(string ytDlpPath, List<string> arguments, CancellationToken token)
+        private async Task<bool> RunYtDlpAsync(string ytDlpPath, YtDlpJob job, CancellationToken token)
         {
-            // --continue sicherstellen (für Neustart nach Limit-Wechsel)
-            List<string> args = arguments.Contains("--continue") ? arguments : ["--continue", .. arguments];
-
             _lastOutputFilePath = null;
             string timespanTo = string.Empty;
             string timespanFrom = string.Empty;
@@ -942,38 +927,13 @@ namespace MortysDLP.Views
                 isTimespanChecked = cbTimespan.IsChecked == true;
             });
 
-            try
-            {
-                var result = await ProcessRunner.RunStreamingAsync(
-                    ytDlpPath, args,
-                    onStdOut: line => ProcessYtDlpOutputLine(line, timespanFrom, timespanTo, isTimespanChecked, isError: false),
-                    onStdErr: line => ProcessYtDlpOutputLine(line, timespanFrom, timespanTo, isTimespanChecked, isError: true),
-                    timeout: null,
-                    idleTimeout: TimeSpan.FromSeconds(120),
-                    onStarted: p => _ytDlpProcess = p,
-                    ct: token);
-
-                // Absichtlicher Kill wegen Limit-Änderung → kein Fehler, Neustart nötig
-                if (_bandwidthKillPending)
-                {
-                    _bandwidthKillPending = false;
-                    token.ThrowIfCancellationRequested();
-                    return true;
-                }
-
-                token.ThrowIfCancellationRequested();
-
-                AppendOutput($"[yt-dlp] Beendet mit Exit-Code: {result.ExitCode}");
-
-                if (!result.Success)
-                    throw new InvalidOperationException($"yt-dlp beendet mit Exit-Code {result.ExitCode}");
-            }
-            finally
-            {
-                _ytDlpProcess = null;
-            }
-
-            return false;
+            return await _ytDlpRunner.RunAsync(
+                ytDlpPath, job,
+                onStdOut: line => ProcessYtDlpOutputLine(line, timespanFrom, timespanTo, isTimespanChecked, isError: false),
+                onStdErr: line => ProcessYtDlpOutputLine(line, timespanFrom, timespanTo, isTimespanChecked, isError: true),
+                idleTimeout: TimeSpan.FromSeconds(120),
+                ct: token,
+                onExitCode: exitCode => AppendOutput($"[yt-dlp] Beendet mit Exit-Code: {exitCode}"));
         }
 
         // ─── Post-Download Codec-Garantie (Schnittmodus) ────────────────────────────
@@ -1085,6 +1045,11 @@ namespace MortysDLP.Views
                                || codec.StartsWith("avc", StringComparison.OrdinalIgnoreCase)))
             {
                 AppendOutput($"[SCHNITT] Video-Codec ist bereits H.264 ({codec}, {videoWidth}x{videoHeight}) – keine Konvertierung nötig.");
+
+                // Ohne diesen Schritt bliebe der Balken bei der für eine mögliche
+                // Nachkonvertierung reservierten Obergrenze stehen (siehe
+                // DownloadProgressWeighting), obwohl der gesamte Vorgang bereits fertig ist.
+                UpdateProgress(ApplyPlaylistScale(100));
                 return;
             }
 
@@ -1095,16 +1060,18 @@ namespace MortysDLP.Views
             string encoder = await HwAccelHelper.DetectBestH264EncoderAsync(ffmpegPath, videoWidth, videoHeight);
             AppendOutput($"[SCHNITT] Encoder: {HwAccelHelper.GetEncoderDisplayName(encoder)}");
 
-            // 3. Konvertierung starten
+            // 3. Konvertierung starten - der Balken läuft von dort weiter, wo der Download
+            // ihn gelassen hat (kein UpdateProgress(0), siehe
+            // DownloadProgressWeighting.ForPostConversion).
             Dispatcher.Invoke(() => txtDownloadStatus.Text = UITextDictionary.Get("DownloadPage.Status.ConvertingH264"));
-            UpdateProgress(0);
 
             string dir = System.IO.Path.GetDirectoryName(filePath)!;
             string tempPath = System.IO.Path.Combine(dir,
                 System.IO.Path.GetFileNameWithoutExtension(filePath) + "_h264_tmp" + System.IO.Path.GetExtension(filePath));
 
             List<string> args = HwAccelHelper.BuildH264Args(encoder, filePath, tempPath);
-            await RunFfmpegConvertAsync(ffmpegPath, args, filePath, token);
+            await RunFfmpegConvertAsync(ffmpegPath, args, filePath, token,
+                onProgress: rawPercent => UpdateProgress(ApplyPlaylistScale(DownloadProgressWeighting.ForPostConversion(rawPercent))));
 
             // 4. Original durch konvertierte Datei ersetzen
             if (System.IO.File.Exists(tempPath))
@@ -1164,8 +1131,16 @@ namespace MortysDLP.Views
             return 0;
         }
 
-        /// <summary>Führt ffmpeg-Konvertierung aus und zeigt Fortschritt basierend auf der Quelldatei-Dauer.</summary>
-        private async Task RunFfmpegConvertAsync(string ffmpegPath, List<string> arguments, string inputFile, CancellationToken token)
+        /// <summary>Führt ffmpeg-Konvertierung aus und zeigt Fortschritt basierend auf der
+        /// Quelldatei-Dauer. <paramref name="onProgress"/> bekommt den rohen Anteil (0–100)
+        /// dieser Konvertierung allein — ohne Angabe wird er direkt an <see cref="UpdateProgress"/>
+        /// gereicht (z. B. für die GIF-Erstellung, ein eigener, unabhängiger 0–100-Vorgang).
+        /// Für die H.264-Nachkonvertierung übergibt der Aufrufer stattdessen eine Gewichtung
+        /// (<see cref="DownloadProgressWeighting.ForPostConversion"/>), damit der Balken vom
+        /// Ende des Downloads aus weiterläuft, statt bei 0 neu zu beginnen.</summary>
+        private async Task RunFfmpegConvertAsync(
+            string ffmpegPath, List<string> arguments, string inputFile, CancellationToken token,
+            Action<double>? onProgress = null)
         {
             string ffprobePath = AppPaths.Ffprobe;
             double totalSeconds = await GetMediaDurationAsync(ffprobePath, inputFile);
@@ -1181,8 +1156,9 @@ namespace MortysDLP.Views
                     var m = System.Text.RegularExpressions.Regex.Match(line, @"time=(\d{2}:\d{2}:\d{2}\.\d{2})");
                     if (m.Success && TimeSpan.TryParse(m.Groups[1].Value, out var current))
                     {
-                        double pct = (current.TotalSeconds / totalSeconds) * 100.0;
-                        UpdateProgress(Math.Max(0, Math.Min(100, pct)));
+                        double pct = Math.Max(0, Math.Min(100, (current.TotalSeconds / totalSeconds) * 100.0));
+                        if (onProgress != null) onProgress(pct);
+                        else UpdateProgress(pct);
                     }
                 }
             }
@@ -1444,6 +1420,7 @@ namespace MortysDLP.Views
             int? sourceChannels = null;
             bool needsMeta = false;
             bool isVideoformat = false;
+            bool isAudioOnly = false;
             string url = urlOverride;
             string ytDlpPath = AppPaths.YtDlp;
 
@@ -1453,7 +1430,10 @@ namespace MortysDLP.Views
                 bool audioOnly = cbAudioOnly.IsChecked == true;
                 needsMeta = videoformat || audioOnly;
                 isVideoformat = videoformat;
+                isAudioOnly = audioOnly;
             });
+
+            BeginDownloadProgressTracking(isAudioOnly, isVideoformat);
 
             if (needsMeta)
             {
@@ -1465,8 +1445,8 @@ namespace MortysDLP.Views
             // Neustart-Schleife: bei Limit-Änderung während des Downloads neu starten
             while (true)
             {
-                List<string> args = BuildYTDLPArguments(sourceAsr, sourceChannels, url);
-                bool needsRestart = await RunYtDlpAsync(ytDlpPath, args, token);
+                YtDlpJob job = BuildYtDlpJob(sourceAsr, sourceChannels, url);
+                bool needsRestart = await RunYtDlpAsync(ytDlpPath, job, token);
                 if (!needsRestart) break;
             }
 
@@ -1537,13 +1517,47 @@ namespace MortysDLP.Views
             // ── Prüfen ob Metadaten benötigt werden ──
             bool needsMeta = false;
             bool isVideoformat = false;
+            bool isAudioOnly = false;
             Dispatcher.Invoke(() =>
             {
                 bool videoformat = cbVideoformat.IsChecked == true && cbAudioOnly.IsChecked != true;
                 bool audioOnly = cbAudioOnly.IsChecked == true;
                 needsMeta = videoformat || audioOnly;
                 isVideoformat = videoformat;
+                isAudioOnly = audioOnly;
             });
+
+            // Gesamtfortschritt über die ganze Playlist statt je Video neu bei 0 - im finally
+            // wieder aufgehoben, auch bei Abbruch oder Fehlschlag, damit ein danach gestarteter
+            // Einzel-Download nicht versehentlich noch skaliert wird.
+            _playlistVideoCount = totalVideos;
+            try
+            {
+                await RunPlaylistVideosAsync(ytDlpPath, videoIds, needsMeta, isVideoformat, isAudioOnly, token);
+            }
+            finally
+            {
+                _playlistVideoCount = 0;
+            }
+
+            string doneMsg = string.Format(T("DownloadPage.Playlist.Done"), totalVideos);
+            AppendOutput(doneMsg);
+            Dispatcher.Invoke(() =>
+            {
+                txtPlaylistProgress.Text = doneMsg;
+            });
+        }
+
+        /// <summary>Lädt jedes Video einer aufgelösten Playlist nacheinander — ausgelagert
+        /// aus <see cref="StartPlaylistDownloadAsync"/>, damit dort ein einzelnes
+        /// <c>try/finally</c> die Playlist-Fortschrittsskalierung zuverlässig wieder aufhebt,
+        /// auch bei Abbruch oder Fehlschlag mitten in der Liste.</summary>
+        private async Task RunPlaylistVideosAsync(
+            string ytDlpPath, List<string> videoIds, bool needsMeta, bool isVideoformat, bool isAudioOnly,
+            CancellationToken token)
+        {
+            var T = UITextDictionary.Get;
+            int totalVideos = videoIds.Count;
 
             // ── Phase 2: Pipeline – Probe(n+1) parallel zu Download(n) ──
             Task<(int? SampleRate, int? Channels)>? nextProbeTask = null;
@@ -1599,13 +1613,15 @@ namespace MortysDLP.Views
 
                 // Download für aktuelles Video
                 AppendOutput(string.Format(T("DownloadPage.Playlist.Downloading"), videoNum, totalVideos, videoUrl));
-                UpdateProgress(0);
+                _playlistVideoIndex = i;
+                BeginDownloadProgressTracking(isAudioOnly, isVideoformat);
+                UpdateProgress(ApplyPlaylistScale(0));
                 Dispatcher.Invoke(() => txtDownloadStatus.Text = T("DownloadPage.Status.Loading"));
 
                 while (true)
                 {
-                    List<string> args = BuildYTDLPArguments(sourceAsr, sourceChannels, videoUrl);
-                    bool needsRestart = await RunYtDlpAsync(ytDlpPath, args, token);
+                    YtDlpJob job = BuildYtDlpJob(sourceAsr, sourceChannels, videoUrl);
+                    bool needsRestart = await RunYtDlpAsync(ytDlpPath, job, token);
                     if (!needsRestart) break;
                 }
 
@@ -1625,13 +1641,6 @@ namespace MortysDLP.Views
 
                 AppendOutput($"[PLAYLIST] Video {videoNum}/{totalVideos} abgeschlossen.");
             }
-
-            string doneMsg = string.Format(T("DownloadPage.Playlist.Done"), totalVideos);
-            AppendOutput(doneMsg);
-            Dispatcher.Invoke(() =>
-            {
-                txtPlaylistProgress.Text = doneMsg;
-            });
         }
 
         private void tbFirstSecondsSeconds_TextChanged(object sender, TextChangedEventArgs e) => ValidateDownloadButton();
@@ -1786,16 +1795,48 @@ namespace MortysDLP.Views
             return TimeSpan.TryParse(input, out result);
         }
 
-        private void UpdateProgress(double percent, bool isError = false, double? speedMBs = null)
+        /// <summary>Setzt die Fortschrittsgewichtung für ein Video zurück — bei jedem neuen
+        /// Video (auch innerhalb einer Playlist), nicht bei jedem Prozess-Neustart nach einem
+        /// Bandbreitenwechsel: Der läuft mit <c>--continue</c> am selben Stream weiter, der
+        /// Stream-Zähler darf dabei nicht erneut auf „noch keiner gesehen" springen.</summary>
+        private void BeginDownloadProgressTracking(bool isAudioOnly, bool reservePostConversion)
+        {
+            _streamIndex = -1;
+            _streamCount = isAudioOnly ? 1 : 2;
+            _reservePostConversion = reservePostConversion;
+            _speedEstimator.Reset();
+            _speedEstimatorClock.Restart();
+        }
+
+        /// <summary>Bildet einen Fortschritt für **ein** Video auf den Gesamtfortschritt der
+        /// laufenden Playlist ab — außerhalb einer Playlist (<see cref="_playlistVideoCount"/>
+        /// ist dann 0) unverändert.</summary>
+        private double ApplyPlaylistScale(double perVideoPercent) =>
+            _playlistVideoCount > 0
+                ? DownloadProgressWeighting.ForPlaylist(perVideoPercent, _playlistVideoIndex, _playlistVideoCount)
+                : perVideoPercent;
+
+        private void UpdateProgress(double percent, bool isError = false, double? speedMBs = null, TimeSpan? eta = null)
         {
             Dispatcher.Invoke(() =>
             {
                 _lastProgress = percent;
                 pbDownload.Value = percent;
+
+                // Bei Fehler, Abschluss oder Rücksetzung auf 0 (neue Phase/neues Playlist-Video)
+                // sofort aktualisieren - sonst bliebe eine veraltete Anzeige bis zu 500 ms stehen.
+                bool forceTextUpdate = isError || percent <= 0 || percent >= 100;
+                if (!forceTextUpdate && _progressTextThrottle.Elapsed < ProgressTextUpdateInterval)
+                {
+                    return;
+                }
+                _progressTextThrottle.Restart();
+
                 if (isError)
                 {
                     pbDownload.Foreground = new SolidColorBrush(Colors.Red);
                     txtDownloadProgress.Text = "";
+                    txtDownloadEta.Text = "";
                 }
                 else
                 {
@@ -1814,9 +1855,24 @@ namespace MortysDLP.Views
                     {
                         txtDownloadProgress.Text = "";
                     }
+
+                    // Bei Abschluss (100 %) oder ohne bekannte Restzeit keine veraltete Angabe
+                    // stehen lassen. Kein string.Format für einen einzelnen Platzhalter, der
+                    // bei jeder Fortschrittszeile neu ausgewertet wird (CA1863) - ein einfaches
+                    // Replace reicht und spart das wiederholte Parsen der Formatvorlage.
+                    txtDownloadEta.Text = eta.HasValue && percent < 100
+                        ? UITextDictionary.Get("DownloadPage.Eta").Replace("{0}", FormatEta(eta.Value), StringComparison.Ordinal)
+                        : "";
                 }
             });
         }
+
+        /// <summary>Formatiert eine Restzeit als <c>mm:ss</c>, oder <c>h:mm:ss</c> ab einer
+        /// Stunde — Sekunden allein wären bei längeren Downloads unübersichtlich.</summary>
+        private static string FormatEta(TimeSpan eta) =>
+            eta.TotalHours >= 1
+                ? $"{(int)eta.TotalHours}:{eta.Minutes:D2}:{eta.Seconds:D2}"
+                : $"{eta.Minutes:D2}:{eta.Seconds:D2}";
 
         private void ValidateDownloadButton()
         {
@@ -1867,12 +1923,8 @@ namespace MortysDLP.Views
         /// <summary>Wird von SettingsPage aufgerufen wenn das Bandbreiten-Limit geändert wird.</summary>
         public void ApplyBandwidthChange()
         {
-            if (_ytDlpProcess != null && !_ytDlpProcess.HasExited)
-            {
-                _bandwidthKillPending = true;
-                AppendOutput($"[LIMIT] Bandbreite geändert – yt-dlp wird mit --continue neu gestartet");
-                try { _ytDlpProcess.Kill(entireProcessTree: true); } catch { }
-            }
+            if (_ytDlpRunner.RequestRestart())
+                AppendOutput("[LIMIT] Bandbreite geändert – yt-dlp wird mit --continue neu gestartet");
         }
     }
 }

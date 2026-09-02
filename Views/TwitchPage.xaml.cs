@@ -23,9 +23,8 @@ namespace MortysDLP.Views
         private bool _initialized = false;
         private readonly TwitchDownloaderTool _tool = new();
         private readonly ToolCatalog _catalog = new();
-        private Process? _currentYtDlpProcess;
+        private readonly YtDlpRunner _ytDlpRunner = new();
         private double   _activeRateLimitMBps = 0;
-        private volatile bool _bandwidthKillPending = false;
 
         private readonly LogBuffer _log;
 
@@ -595,33 +594,61 @@ namespace MortysDLP.Views
                     string outputTemplate = $"{outputDir}\\{safeTitleForTemplate}{presetSuffix}_%(id)s.%(ext)s";
                     string formatArg = "best[ext=mp4]/bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best";
 
+                    // Eigene, geglättete Geschwindigkeit statt yt-dlps pro Fragment schwankender
+                    // Momentanangabe - dieselbe Begründung wie auf der Download-/Batch-Seite
+                    // (DownloadSpeedEstimator). Läuft bewusst über einen Bandbreiten-bedingten
+                    // Neustart hinweg weiter (kein Reset in der Schleife unten), weil --continue
+                    // an derselben Byte-Position fortsetzt - kein echter Sprung.
+                    var ytDlpSpeedEstimator = new DownloadSpeedEstimator();
+                    var ytDlpSpeedClock = Stopwatch.StartNew();
+
+                    void ProcessYtDlpLine(string line, bool isError)
+                    {
+                        // Maschinenlesbare Vorlagen-Zeile hat Vorrang, wie auf den anderen
+                        // beiden Seiten - Rückfall (auch für stderr) ist die schon vorhandene,
+                        // generische Zeilenauswertung, die auch TwitchDownloaderCLI-Zeilen
+                        // versteht, für eine sehr alte yt-dlp-Fassung ohne --progress-template.
+                        if (YtDlpProgressParser.TryParse(line, out var templateProgress))
+                        {
+                            AppendDebug(isError ? $"[STDERR] {line}" : line);
+                            if (templateProgress.Fraction.HasValue)
+                            {
+                                double? smoothedSpeed = templateProgress.DownloadedBytes.HasValue
+                                    ? ytDlpSpeedEstimator.Update(templateProgress.DownloadedBytes.Value, ytDlpSpeedClock.Elapsed.TotalSeconds)
+                                    : null;
+                                Dispatcher.Invoke(() =>
+                                {
+                                    pbDownload.IsIndeterminate = false;
+                                    pbDownload.Value = Math.Min(100, templateProgress.Fraction.Value * 100);
+                                    if (smoothedSpeed.HasValue)
+                                        txtDownloadSpeed.Text = $"{smoothedSpeed.Value / (1024.0 * 1024.0):F2} MiB/s";
+                                });
+                            }
+                            return;
+                        }
+
+                        UpdateProgress(isError ? $"[STDERR] {line}" : line);
+                    }
+
                     // Neustart-Schleife: bei Kill durch ApplyBandwidthChange wird mit neuem Limit + --continue fortgesetzt
                     while (!_cts.Token.IsCancellationRequested)
                     {
                         double bwMbps = _activeRateLimitMBps;
 
-                        var args = new List<string> { "-f", formatArg };
-                        if (!isClip)
+                        var job = new YtDlpJob
                         {
-                            args.Add("--merge-output-format");
-                            args.Add("mp4");
-                        }
-                        if (bwMbps > 0)
-                        {
-                            args.Add("--limit-rate");
-                            args.Add($"{bwMbps.ToString(CultureInfo.InvariantCulture)}M");
-                        }
-                        args.Add("--no-check-certificates");
-                        args.Add("--no-mtime");
-                        args.Add("--newline");
-                        args.Add("--no-playlist");
-                        args.Add("-o");
-                        args.Add(outputTemplate);
-                        args.Add(rawInput);
+                            Url = rawInput,
+                            OutputTemplate = outputTemplate,
+                            FormatSelector = formatArg,
+                            MergeOutputFormat = isClip ? null : "mp4",
+                            BandwidthLimitMBps = bwMbps,
+                        };
 
-                        AppendDebug($"[VIDEO] yt-dlp starten{(bwMbps > 0 ? $" (Limit: {bwMbps} MB/s)" : "")}: {string.Join(' ', args)}");
+                        AppendDebug($"[VIDEO] yt-dlp starten{(bwMbps > 0 ? $" (Limit: {bwMbps} MB/s)" : "")}: {string.Join(' ', YtDlpArgumentBuilder.Build(job))}");
                         SetStatus(T("TwitchPage.Status.Downloading"), true);
-                        bool needsRestart = await RunYtDlpAsync(ytDlpPath, args, _cts.Token, progress);
+                        bool needsRestart = await RunYtDlpAsync(ytDlpPath, job, _cts.Token,
+                            onStdOut: line => ProcessYtDlpLine(line, isError: false),
+                            onStdErr: line => ProcessYtDlpLine(line, isError: true));
 
                         if (!needsRestart) break; // erfolgreich fertig oder abgebrochen
                     }
@@ -675,7 +702,6 @@ namespace MortysDLP.Views
             {
                 SetUiEnabled(true);
                 btnCancel.IsEnabled = false;
-                _currentYtDlpProcess = null;
                 _cts?.Dispose();
                 _cts = null;
             }
@@ -703,45 +729,14 @@ namespace MortysDLP.Views
         /// Führt yt-dlp aus. Gibt <c>true</c> zurück wenn ein Neustart mit neuem Limit nötig ist
         /// (Limit-Änderung während Download), <c>false</c> bei erfolgreichem Abschluss.
         /// </summary>
-        private async Task<bool> RunYtDlpAsync(string ytDlpPath, List<string> arguments, CancellationToken token,
-            IProgress<string>? progress = null)
-        {
-            List<string> args = arguments.Contains("--continue") ? arguments : ["--continue", .. arguments];
-
-            // Progress<T> marshallt in den Kontext, in dem es erzeugt wurde (UI-Thread) -
-            // ein zusätzliches Dispatcher.BeginInvoke(() => AppendDebug(...)) würde jede
-            // Zeile doppelt protokollieren. Ohne übergebenes Progress ginge die Ausgabe sonst
-            // verloren, deshalb hier ein Rückfall auf direktes Protokollieren.
-            IProgress<string> report = progress ?? new Progress<string>(AppendDebug);
-
-            void OnStdOut(string line) => report.Report(line);
-            void OnStdErr(string line) => report.Report($"[STDERR] {line}");
-
-            var result = await ProcessRunner.RunStreamingAsync(
-                ytDlpPath, args,
-                onStdOut: OnStdOut,
-                onStdErr: OnStdErr,
-                timeout: null,
+        private Task<bool> RunYtDlpAsync(string ytDlpPath, YtDlpJob job, CancellationToken token,
+            Action<string> onStdOut, Action<string> onStdErr) =>
+            _ytDlpRunner.RunAsync(
+                ytDlpPath, job,
+                onStdOut: onStdOut,
+                onStdErr: onStdErr,
                 idleTimeout: TimeSpan.FromSeconds(120),
-                onStarted: p => _currentYtDlpProcess = p,
                 ct: token);
-            _currentYtDlpProcess = null;
-
-            // Absichtlicher Kill wegen Limit-Änderung → kein Fehler, Neustart nötig
-            if (_bandwidthKillPending)
-            {
-                _bandwidthKillPending = false;
-                token.ThrowIfCancellationRequested();
-                return true;
-            }
-
-            token.ThrowIfCancellationRequested();
-
-            if (!result.Success)
-                throw new InvalidOperationException($"yt-dlp beendet mit Exit-Code {result.ExitCode}");
-
-            return false;
-        }
 
         /// <summary>
         /// Wird von der SettingsPage (oder intern) aufgerufen, wenn das Bandbreiten-Limit
@@ -756,12 +751,10 @@ namespace MortysDLP.Views
 
             _activeRateLimitMBps = newLimit;
 
-            if (_currentYtDlpProcess != null && !_currentYtDlpProcess.HasExited)
+            if (_ytDlpRunner.RequestRestart())
             {
-                _bandwidthKillPending = true;
                 Dispatcher.BeginInvoke(() =>
                     AppendDebug($"[LIMIT] Bandbreite auf {(newLimit > 0 ? $"{newLimit} MB/s" : "unbegrenzt")} geändert – yt-dlp wird mit --continue neu gestartet"));
-                try { _currentYtDlpProcess.Kill(entireProcessTree: true); } catch { }
             }
         }
 

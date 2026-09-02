@@ -70,6 +70,7 @@ namespace MortysDLP.UITexte
             ["DownloadPage.Status.DetectingEncoder"] = "Encoder wird ermittelt...",
             ["DownloadPage.Status.ConvertingH264"] = "Konvertiere zu H.264...",
             ["DownloadPage.Quality.Highest"] = "Höchste",
+            ["DownloadPage.Eta"] = "Rest: {0}",
 
             // Timeline Window
             ["Timeline.Title"] = "Zeitspanne auswählen",
@@ -680,6 +681,7 @@ namespace MortysDLP.UITexte
             ["DownloadPage.Status.DetectingEncoder"] = "Detecting encoder...",
             ["DownloadPage.Status.ConvertingH264"] = "Converting to H.264...",
             ["DownloadPage.Quality.Highest"] = "Highest",
+            ["DownloadPage.Eta"] = "Left: {0}",
 
             // Timeline Window
             ["Timeline.Title"] = "Select Time Range",

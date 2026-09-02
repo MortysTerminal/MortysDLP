@@ -1,8 +1,8 @@
-using MortysDLP.Views;
+using MortysDLP.Services;
 
 namespace MortysDLP.Tests;
 
-/// <summary>Hält das Ist-Verhalten von <see cref="DownloadPage.BuildYtDlpVideoFormatSelector"/> fest.
+/// <summary>Hält das Ist-Verhalten von <see cref="YtDlpArgumentBuilder.BuildYtDlpVideoFormatSelector"/> fest.
 /// Erwartungswerte sind 1:1 aus dem aktuellen Code abgeleitet, nicht aus einer Spezifikation.</summary>
 public class VideoFormatSelectorTests
 {
@@ -17,7 +17,7 @@ public class VideoFormatSelectorTests
     [InlineData("best", "mkv", "bestvideo+bestaudio/bestvideo+bestaudio/best")]
     public void Selektor_FiltertCodecsPassendZumContainer(string qualitaetsTag, string container, string erwartet)
     {
-        var ergebnis = DownloadPage.BuildYtDlpVideoFormatSelector(qualitaetsTag, container);
+        var ergebnis = YtDlpArgumentBuilder.BuildYtDlpVideoFormatSelector(qualitaetsTag, container);
 
         Assert.Equal(erwartet, ergebnis);
     }
@@ -28,7 +28,7 @@ public class VideoFormatSelectorTests
     [InlineData("480", "mov", "bestvideo[vcodec^=avc1][height<=480]+bestaudio[ext=m4a]/bestvideo[height<=480]+bestaudio/best[height<=480]")]
     public void Selektor_SetztHoehenbegrenzung(string qualitaetsTag, string container, string erwartet)
     {
-        var ergebnis = DownloadPage.BuildYtDlpVideoFormatSelector(qualitaetsTag, container);
+        var ergebnis = YtDlpArgumentBuilder.BuildYtDlpVideoFormatSelector(qualitaetsTag, container);
 
         Assert.Equal(erwartet, ergebnis);
     }
@@ -38,8 +38,8 @@ public class VideoFormatSelectorTests
     [InlineData("unbekannt", "mp4")]
     public void Selektor_BehandeltLeeresUndUngueltigesTagWieBest(string qualitaetsTag, string container)
     {
-        var ergebnis = DownloadPage.BuildYtDlpVideoFormatSelector(qualitaetsTag, container);
-        var erwartet = DownloadPage.BuildYtDlpVideoFormatSelector("best", container);
+        var ergebnis = YtDlpArgumentBuilder.BuildYtDlpVideoFormatSelector(qualitaetsTag, container);
+        var erwartet = YtDlpArgumentBuilder.BuildYtDlpVideoFormatSelector("best", container);
 
         Assert.Equal(erwartet, ergebnis);
     }
@@ -47,7 +47,7 @@ public class VideoFormatSelectorTests
     [Fact]
     public void Selektor_HatImmerEinenDreifachenRueckfall()
     {
-        var ergebnis = DownloadPage.BuildYtDlpVideoFormatSelector("best", "mp4");
+        var ergebnis = YtDlpArgumentBuilder.BuildYtDlpVideoFormatSelector("best", "mp4");
 
         // Jede Ausgabe muss zwei "/" enthalten, damit yt-dlp bei nicht
         // verfügbarem Format über zwei Stufen ausweichen kann.

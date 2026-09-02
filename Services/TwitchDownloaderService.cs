@@ -221,6 +221,14 @@ namespace MortysDLP.Services
             if (outline) args.Add("--outline");
             args.Add("--collision");
             args.Add("Overwrite");
+
+            // TwitchDownloaderCLI findet ffmpeg nicht selbst - es liegt bei uns unter
+            // %LOCALAPPDATA%\MortysDLP\Tools, nicht im PATH (siehe AppPaths.Ffmpeg). Ohne
+            // diesen Pfad bricht chatrender mit "Unable to find FFmpeg" ab, obwohl die
+            // Anwendung ffmpeg längst verwaltet und geprüft hat.
+            args.Add("--ffmpeg-path");
+            args.Add(AppPaths.Ffmpeg);
+
             args.Add("-o");
             args.Add(outputVideoPath);
             await RunCliAsync(args, progress, cancellationToken);
