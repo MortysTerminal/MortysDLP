@@ -55,8 +55,6 @@ namespace MortysDLP.Views
         {
             var T = UITextDictionary.Get;
 
-            txtSectionInfo.Text     = T("GifPage.Section.Info");
-            txtInfoText.Text        = T("GifPage.Info.Text");
             txtSectionInput.Text    = T("GifPage.Section.Input");
             lblInputFile.Content    = T("GifPage.Label.InputFile");
             txtBrowseInput.Text     = T("GifPage.Button.BrowseInput");
@@ -234,7 +232,7 @@ namespace MortysDLP.Views
         private void ShowResult(bool? success, string outputDir)
         {
             var T = UITextDictionary.Get;
-            pnlRunning.Visibility = Visibility.Hidden;
+            pnlRunning.Visibility = Visibility.Collapsed;
             pnlResult.Visibility  = Visibility.Visible;
 
             if (success == true)

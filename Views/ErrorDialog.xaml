@@ -86,7 +86,7 @@
                     <TextBox x:Name="DetailsBox"
                              IsReadOnly="True"
                              TextWrapping="Wrap"
-                             FontFamily="Consolas"
+                             FontFamily="{StaticResource MonoFontFamily}"
                              FontSize="11"
                              BorderThickness="0"
                              Background="Transparent"

@@ -42,7 +42,7 @@
                         Width="58"
                         Height="58"
                         CornerRadius="29"
-                        Background="#252831"
+                        Background="{DynamicResource ControlFillColorDefaultBrush}"
                         BorderBrush="{StaticResource BrandYellowBrush}"
                         BorderThickness="2"
                         HorizontalAlignment="Center"

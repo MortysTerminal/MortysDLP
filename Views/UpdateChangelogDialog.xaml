@@ -37,7 +37,7 @@
                 </Grid.ColumnDefinitions>
 
                 <Border Width="48" Height="48" CornerRadius="24"
-                        Background="#22e67e50"
+                        Background="#22F09346"
                         VerticalAlignment="Center"
                         Margin="0,0,16,0">
                     <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE895;"

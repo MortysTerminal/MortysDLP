@@ -7,83 +7,63 @@
         <StackPanel Margin="0">
 
             <!-- DOWNLOAD-PFADE -->
-            <Border CornerRadius="8" Padding="14,12" Margin="0,0,0,8"
-                    Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
-                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
-                    BorderThickness="1">
+            <Border Style="{StaticResource CardBorderStyle}">
                 <StackPanel>
-                    <TextBlock x:Name="txtSectionDownloadPaths" FontWeight="SemiBold" FontSize="11"
-                               Foreground="{StaticResource BrandOrangeBrush}" Margin="0,0,0,8"/>
+                    <TextBlock x:Name="txtSectionDownloadPaths" Style="{StaticResource SectionHeaderStyle}"/>
                     <Button x:Name="btnChangeDownloadPath" Click="btnChangeDownloadPath_Click"
-                            MinWidth="100" Padding="12,5" Style="{StaticResource PrimaryButtonStyle}" HorizontalAlignment="Left"/>
+                            MinWidth="100" Style="{StaticResource PrimaryButtonStyle}" HorizontalAlignment="Left"/>
                 </StackPanel>
             </Border>
 
             <!-- APP -->
-            <Border CornerRadius="8" Padding="14,12" Margin="0,0,0,8"
-                    Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
-                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
-                    BorderThickness="1">
+            <Border Style="{StaticResource CardBorderStyle}">
                 <StackPanel>
-                    <TextBlock x:Name="txtSectionApp" FontWeight="SemiBold" FontSize="11"
-                               Foreground="{StaticResource BrandOrangeBrush}" Margin="0,0,0,8"/>
+                    <TextBlock x:Name="txtSectionApp" Style="{StaticResource SectionHeaderStyle}"/>
                     <WrapPanel>
-                        <Button x:Name="btnGitHub" Click="btnGitHub_Click" MinWidth="100" Padding="12,5" Margin="0,0,8,0"/>
-                        <Button x:Name="btnClose" Click="btnClose_Click" MinWidth="100" Padding="12,5"/>
+                        <Button x:Name="btnGitHub" Click="btnGitHub_Click" MinWidth="100" Padding="12,4" Margin="0,0,8,0"/>
+                        <Button x:Name="btnClose" Click="btnClose_Click" MinWidth="100" Padding="12,4"/>
                     </WrapPanel>
                 </StackPanel>
             </Border>
 
             <!-- DEBUG -->
-            <Border CornerRadius="8" Padding="14,12" Margin="0,0,0,8"
-                    Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
-                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
-                    BorderThickness="1">
+            <Border Style="{StaticResource CardBorderStyle}">
                 <StackPanel>
-                    <TextBlock x:Name="txtSectionDebug" FontWeight="SemiBold" FontSize="11"
-                               Foreground="{StaticResource BrandOrangeBrush}" Margin="0,0,0,8"/>
+                    <TextBlock x:Name="txtSectionDebug" Style="{StaticResource SectionHeaderStyle}"/>
                     <CheckBox x:Name="cbDebugMode"
                               Checked="cbDebugMode_Changed" Unchecked="cbDebugMode_Changed"/>
                 </StackPanel>
             </Border>
 
             <!-- LANGUAGE -->
-            <Border CornerRadius="8" Padding="14,12" Margin="0,0,0,8"
-                    Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
-                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
-                    BorderThickness="1">
+            <Border Style="{StaticResource CardBorderStyle}">
                 <StackPanel>
-                    <TextBlock x:Name="txtSectionLanguage" FontWeight="SemiBold" FontSize="11"
-                               Foreground="{StaticResource BrandOrangeBrush}" Margin="0,0,0,8"/>
+                    <TextBlock x:Name="txtSectionLanguage" Style="{StaticResource SectionHeaderStyle}"/>
                     
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                        <Label x:Name="lblSelectLanguage" VerticalAlignment="Center" MinWidth="150"/>
+                        <Label x:Name="lblSelectLanguage" VerticalAlignment="Center" Style="{StaticResource FormLabelStyle}"/>
                         <ComboBox x:Name="cbLanguage" Width="200" SelectionChanged="cbLanguage_SelectionChanged"/>
                     </StackPanel>
                     
-                    <TextBlock x:Name="txtLanguageInfo" Opacity="0.7" Margin="0,5,0,0" TextWrapping="Wrap"/>
+                    <TextBlock x:Name="txtLanguageInfo" Opacity="0.7" Margin="0,8,0,0" TextWrapping="Wrap"/>
                 </StackPanel>
             </Border>
 
             <!-- DOWNLOAD-GESCHWINDIGKEIT -->
-            <Border CornerRadius="8" Padding="14,12" Margin="0,0,0,8"
-                    Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
-                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
-                    BorderThickness="1">
+            <Border Style="{StaticResource CardBorderStyle}">
                 <StackPanel>
-                    <TextBlock x:Name="txtSectionBandwidth" FontWeight="SemiBold" FontSize="11"
-                               Foreground="{StaticResource BrandOrangeBrush}" Margin="0,0,0,8"/>
-                    <TextBlock x:Name="txtBandwidthInfo" Opacity="0.7" Margin="0,0,0,10" TextWrapping="Wrap"/>
+                    <TextBlock x:Name="txtSectionBandwidth" Style="{StaticResource SectionHeaderStyle}"/>
+                    <TextBlock x:Name="txtBandwidthInfo" Opacity="0.7" Margin="0,0,0,8" TextWrapping="Wrap"/>
                     <CheckBox x:Name="cbBandwidthEnabled" Margin="0,0,0,8"
                               Checked="cbBandwidthEnabled_Changed" Unchecked="cbBandwidthEnabled_Changed"/>
                     <StackPanel Orientation="Horizontal">
-                        <Label x:Name="lblBandwidthLimit" VerticalAlignment="Center" MinWidth="200"/>
+                        <Label x:Name="lblBandwidthLimit" VerticalAlignment="Center" Style="{StaticResource FormLabelStyle}"/>
                         <TextBox x:Name="tbBandwidthLimit" Width="80" VerticalContentAlignment="Center"
-                                 Margin="7,0,0,0" MaxLength="6"
+                                 Margin="8,0,0,0" MaxLength="6"
                                  PreviewTextInput="tbBandwidthLimit_PreviewTextInput"
                                  TextChanged="tbBandwidthLimit_TextChanged"
                                  LostFocus="tbBandwidthLimit_LostFocus"/>
-                        <TextBlock x:Name="txtBandwidthUnit" VerticalAlignment="Center" Margin="6,0,0,0" Opacity="0.7"/>
+                        <TextBlock x:Name="txtBandwidthUnit" VerticalAlignment="Center" Margin="8,0,0,0" Opacity="0.7"/>
                     </StackPanel>
                 </StackPanel>
             </Border>

@@ -290,9 +290,9 @@ namespace MortysDLP
             txtNavBatchDownload.Text = T("MainWindow.Nav.BatchDownload");
             txtNavTools.Text = T("MainWindow.Nav.Tools");
 
-            // Version Label und Softwareinfo
+            // Version Label
             txtVersionLabel.Text = T("MainWindow.Version");
-            lblSoftwareinfo.Text = T("MainWindow.Softwareinfo");
+            btnHeaderInfo.ToolTip = T("Header.Info.Tooltip");
 
             // Credits-Button
             txtCreditsTitle.Text    = T("MainWindow.Credits.Title");
@@ -306,6 +306,13 @@ namespace MortysDLP
             RefreshSectionTitle();
         }
 
+        // Seiten-Namen in Navigationsreihenfolge - Basis fuer die Header-Textschluessel
+        // (Header.<Name>.Subtitle / Header.<Name>.Info).
+        private static readonly string[] MainNavPageNames =
+            { "Download", "Batch", "Convert", "Transcribe", "Gif", "Twitch" };
+        private static readonly string[] SettingsNavPageNames =
+            { "Tools", "Settings" };
+
         public void RefreshSectionTitle()
         {
             var T = UITextDictionary.Get;
@@ -314,18 +321,14 @@ namespace MortysDLP
             int settingsIdx = SettingsNavigationList.SelectedIndex;
             if (settingsIdx >= 0)
             {
-                var settingsSectionTitles = new[] {
-                    T("MainWindow.Nav.Tools"),
-                    T("MainWindow.Nav.Settings"),
-                };
-
-                if (settingsIdx < settingsSectionTitles.Length)
-                    txtSectionTitle.Text = settingsSectionTitles[settingsIdx];
+                if (settingsIdx < SettingsNavPageNames.Length)
+                    ApplyHeader(SettingsNavPageNames[settingsIdx],
+                        T(settingsIdx == 0 ? "MainWindow.Nav.Tools" : "MainWindow.Nav.Settings"));
                 return;
             }
 
             int idx = NavigationList.SelectedIndex;
-            if (idx < 0) return;
+            if (idx < 0 || idx >= MainNavPageNames.Length) return;
 
             var sectionTitles = new[] {
                 T("MainWindow.Nav.Download"),
@@ -336,8 +339,31 @@ namespace MortysDLP
                 T("MainWindow.Nav.TwitchDownload"),
             };
 
-            if (idx < sectionTitles.Length)
-                txtSectionTitle.Text = sectionTitles[idx];
+            ApplyHeader(MainNavPageNames[idx], sectionTitles[idx]);
+        }
+
+        /// <summary>Setzt Titel, Unterzeile und den Text des Info-Popups fuer die aktuelle
+        /// Seite. Der Kicker ist ein vorbereiteter Platz: solange der Schluessel
+        /// "Header.Kicker" leer ist, bleibt die Zeile ausgeblendet.</summary>
+        private void ApplyHeader(string pageName, string title)
+        {
+            var T = UITextDictionary.Get;
+
+            txtSectionTitle.Text   = title;
+            txtHeaderSubtitle.Text = T($"Header.{pageName}.Subtitle");
+            txtHeaderInfoBody.Text = T($"Header.{pageName}.Info");
+
+            string kicker = T("Header.Kicker");
+            txtHeaderKicker.Text = kicker;
+            txtHeaderKicker.Visibility = string.IsNullOrWhiteSpace(kicker)
+                ? Visibility.Collapsed : Visibility.Visible;
+
+            HeaderInfoPopup.IsOpen = false;
+        }
+
+        private void btnHeaderInfo_Click(object sender, RoutedEventArgs e)
+        {
+            HeaderInfoPopup.IsOpen = !HeaderInfoPopup.IsOpen;
         }
 
         private void NavigationList_SelectionChanged(object sender, SelectionChangedEventArgs e)

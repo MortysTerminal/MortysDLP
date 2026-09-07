@@ -75,6 +75,14 @@ namespace MortysDLP.Views
         private bool _downloadRunning = false;
         private readonly YtDlpRunner _ytDlpRunner = new();
 
+        /// <summary>Eintrag, dessen Fortschritt gerade in der oberen Zeile der Aktionsleiste
+        /// angezeigt wird. Nur ein Feld statt eines separaten Update-Aufrufs an jeder
+        /// Stelle, die <see cref="BatchDownloadEntry.Progress"/> setzt: Die Anzeige hängt sich
+        /// an <see cref="BatchDownloadEntry.PropertyChanged"/> und zeigt dadurch automatisch
+        /// jede Änderung, egal ob sie vom Download oder von der anschließenden
+        /// ffmpeg-Konvertierung kommt.</summary>
+        private BatchDownloadEntry? _activeEntry;
+
         private readonly LogBuffer _log;
 
         public BatchDownloadPage()
@@ -173,6 +181,8 @@ namespace MortysDLP.Views
 
             btnStartAll.Content            = T("BatchDownloadPage.Button.StartAll");
             btnCancelAll.Content           = T("BatchDownloadPage.Button.CancelAll");
+            txtCurrentEntryLabel.Text      = T("BatchDownloadPage.Label.CurrentEntry");
+            txtOverallLabel.Text           = T("BatchDownloadPage.Label.Overall");
             expDebug.Header                = T("DownloadPage.Section.Debug");
 
             // Bandwidth-Hinweis
@@ -513,6 +523,7 @@ namespace MortysDLP.Views
                 entry.Icon = "\uE896"; // Download loading
                 entry.IconColor = (System.Windows.Media.Brush)FindResource("RunningBrush");
                 entry.Progress = 0;
+                SetActiveEntry(entry);
                 UpdateOverall(completed, total, isRunning: true);
 
                 try
@@ -566,6 +577,7 @@ namespace MortysDLP.Views
             else
                 state = BatchFinishState.Done;
 
+            SetActiveEntry(null);
             UpdateOverall(completed - errors, total, isRunning: false, state);
             SetDownloadUILocked(false);
 
@@ -815,7 +827,7 @@ namespace MortysDLP.Views
             var result = await FfmpegRunner.RunAsync(
                 ffmpegPath, ffmpegArgs, totalSec,
                 onStdErrLine: line => AppendDebug($"[ffmpeg] {line}"),
-                onProgress: pct => { entry.Progress = pct; UpdateOverallBar(pct); },
+                onProgress: pct => entry.Progress = pct,
                 token);
 
             if (!result.Success) throw new InvalidOperationException($"ffmpeg exit code {result.ExitCode}");
@@ -828,13 +840,47 @@ namespace MortysDLP.Views
             }
         }
 
-        /// <summary>Aktualisiert nur den Gesamtfortschrittsbalken ohne die Zähler-Texte zu ändern (für ffmpeg-Phase).</summary>
-        private void UpdateOverallBar(double pct)
+        // ── Hilfsfunktionen ──────────────────────────────────────────────
+
+        /// <summary>Legt fest, welcher Eintrag gerade in der oberen Zeile der Aktionsleiste
+        /// gezeigt wird. <paramref name="entry"/> <c>null</c> blendet die Zeile aus
+        /// (Warteschlange fertig oder noch nicht gestartet).</summary>
+        private void SetActiveEntry(BatchDownloadEntry? entry)
         {
-            Dispatcher.Invoke(() => pbOverall.Value = pct);
+            if (_activeEntry != null)
+                _activeEntry.PropertyChanged -= ActiveEntry_PropertyChanged;
+
+            _activeEntry = entry;
+
+            if (_activeEntry != null)
+                _activeEntry.PropertyChanged += ActiveEntry_PropertyChanged;
+
+            RefreshActiveEntryDisplay();
         }
 
-        // ── Hilfsfunktionen ──────────────────────────────────────────────
+        private void ActiveEntry_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+            => Dispatcher.Invoke(RefreshActiveEntryDisplay);
+
+        /// <summary>Zeigt Titel, Status, Prozent und Balken von <see cref="_activeEntry"/> -
+        /// oder blendet die Zeile aus, wenn gerade kein Eintrag aktiv ist.</summary>
+        private void RefreshActiveEntryDisplay()
+        {
+            if (_activeEntry is null)
+            {
+                txtCurrentEntryTitle.Text  = "";
+                txtCurrentEntryStatus.Text = "";
+                txtCurrentEntryPercent.Text = "";
+                pbCurrentEntry.Value = 0;
+                return;
+            }
+
+            txtCurrentEntryTitle.Text   = string.IsNullOrWhiteSpace(_activeEntry.Title) || _activeEntry.Title == "..."
+                ? _activeEntry.Url
+                : _activeEntry.Title;
+            txtCurrentEntryStatus.Text  = _activeEntry.Status;
+            txtCurrentEntryPercent.Text = $"{Math.Round(_activeEntry.Progress)} %";
+            pbCurrentEntry.Value        = _activeEntry.Progress;
+        }
 
         private void UpdateOverall(int done, int total, bool isRunning = true,
                                     BatchFinishState state = BatchFinishState.Done)

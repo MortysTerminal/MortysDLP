@@ -36,11 +36,11 @@
         <!-- Zeitanzeigen über der Timeline -->
         <Grid Grid.Row="2" Margin="0,0,0,2">
             <TextBlock x:Name="txtStartLabel" HorizontalAlignment="Left"
-                       Foreground="{StaticResource BrandYellowBrush}" FontFamily="Consolas" FontSize="13"/>
+                       Foreground="{StaticResource BrandYellowBrush}" FontFamily="{StaticResource MonoFontFamily}" FontSize="13"/>
             <TextBlock x:Name="txtSelectionDuration" HorizontalAlignment="Center"
                        FontWeight="SemiBold" FontSize="13"/>
             <TextBlock x:Name="txtEndLabel" HorizontalAlignment="Right"
-                       Foreground="{StaticResource BrandYellowBrush}" FontFamily="Consolas" FontSize="13"/>
+                       Foreground="{StaticResource BrandYellowBrush}" FontFamily="{StaticResource MonoFontFamily}" FontSize="13"/>
         </Grid>
 
         <!-- Timeline-Track -->
@@ -86,11 +86,11 @@
                 BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="1">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                 <TextBlock x:Name="txtManualFrom" VerticalAlignment="Center" Margin="0,0,8,0" FontWeight="SemiBold"/>
-                <TextBox x:Name="tbManualStart" Width="110" FontFamily="Consolas" FontSize="13"
+                <TextBox x:Name="tbManualStart" Width="110" FontFamily="{StaticResource MonoFontFamily}" FontSize="13"
                          VerticalContentAlignment="Center" TextChanged="ManualTime_TextChanged"/>
                 <TextBlock Text="—" VerticalAlignment="Center" Margin="14,0" FontSize="14" Opacity="0.5"/>
                 <TextBlock x:Name="txtManualTo" VerticalAlignment="Center" Margin="0,0,8,0" FontWeight="SemiBold"/>
-                <TextBox x:Name="tbManualEnd" Width="110" FontFamily="Consolas" FontSize="13"
+                <TextBox x:Name="tbManualEnd" Width="110" FontFamily="{StaticResource MonoFontFamily}" FontSize="13"
                          VerticalContentAlignment="Center" TextChanged="ManualTime_TextChanged"/>
             </StackPanel>
         </Border>

@@ -59,8 +59,6 @@ namespace MortysDLP.Views
         {
             var T = UITextDictionary.Get;
 
-            txtSectionInfo.Text = T("ToolsPage.Section.Info");
-            txtInfoText.Text = T("ToolsPage.Info.Text");
             txtCheckAllHint.Text = T("ToolsPage.CheckAll.Hint");
             btnCheckAll.Content = T("ToolsPage.Button.CheckAll");
             txtSectionTools.Text = T("ToolsPage.Section.Tools");

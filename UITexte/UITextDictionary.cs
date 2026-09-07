@@ -58,6 +58,7 @@ namespace MortysDLP.UITexte
             ["DownloadPage.Tooltip.CustomFilename"] = "Wenn gesetzt, wird dieser Name als Basis für die Ausgabedatei verwendet. Ungültige Zeichen werden automatisch bereinigt.",
             ["DownloadPage.Tooltip.Timespan"] = "Gültige Formate: mm:ss oder hh:mm:ss. Beispiel: 01:23 oder 01:02:03. Die Angabe bedeutet Minuten:Sekunden oder Stunden:Minuten:Sekunden. Damit kannst du z.B. einen Ausschnitt von 00:01:30 bis 00:02:45 herunterladen.",
             ["DownloadPage.Status.Loading"] = "Lädt...",
+            ["DownloadPage.Status.FetchingInfo"] = "Videoinformationen werden abgerufen...",
             ["DownloadPage.Status.Success"] = "Abgeschlossen",
             ["DownloadPage.Status.Canceled"] = "Abgebrochen",
             ["DownloadPage.Status.Canceling"] = "Breche ab...",
@@ -164,7 +165,36 @@ namespace MortysDLP.UITexte
             ["MainWindow.AppSubtitle"] = "Dein Download-Gefährte",
             ["MainWindow.Version"] = "Version",
             ["MainWindow.Version.Unknown"] = "unbekannt",
-            ["MainWindow.Softwareinfo"] = "Video & Audio Downloader",
+
+            // Seitenkopf: die Subtitle-Zeile steht immer im Kopf, die Info-Texte liegen
+            // hinter dem Info-Knopf. "Header.Kicker" ist ein vorbereiteter, leerer Platz -
+            // ein Wert hier blendet die Kicker-Zeile auf allen Seiten wieder ein.
+            ["Header.Kicker"] = "",
+            ["Header.Info.Tooltip"] = "Was macht diese Seite?",
+
+            ["Header.Download.Subtitle"] = "Ein Link rein, die Datei landet im Zielordner.",
+            ["Header.Download.Info"] = "Hier lädst du ein einzelnes Video oder eine ganze Playlist. Du fügst den Link ein, stellst Container, Qualität und bei Bedarf einen Zeitausschnitt ein und drückst auf Start. yt-dlp holt die Daten, ffmpeg setzt Bild und Ton zusammen. Wenn du willst, wird direkt danach ein GIF aus dem Ergebnis erzeugt. Was du geladen hast, steht danach im Verlauf.",
+
+            ["Header.Batch.Subtitle"] = "Viele Links auf einmal, einer nach dem anderen.",
+            ["Header.Batch.Info"] = "Diese Seite ist für den Fall, dass du eine Liste von Videos hast. Du fügst die Links einzeln oder als Block ein, setzt die Optionen einmal für alle und startest die Warteschlange. Jeder Eintrag wird nacheinander geladen, du siehst den aktuellen Eintrag und den Gesamtfortschritt. Zeitausschnitt, eigener Dateiname und die Playlist-Abfrage gibt es hier nicht, dafür ist die Download-Seite da.",
+
+            ["Header.Convert.Subtitle"] = "Vorhandene Dateien in ein anderes Format bringen.",
+            ["Header.Convert.Info"] = "Hier wandelst du Dateien um, die schon auf deiner Platte liegen. Du ziehst sie in die Liste oder wählst sie aus, legst Zielformat und Qualität fest und startest. Mehrere Dateien laufen parallel, jede mit eigenem Fortschritt. Am Ende steht eine Zusammenfassung, welche geklappt haben und welche nicht. Eine schon vorhandene Zieldatei wird nicht überschrieben.",
+
+            ["Header.Transcribe.Subtitle"] = "Gesprochenes wird zu Text, komplett auf deinem Rechner.",
+            ["Header.Transcribe.Info"] = "MortysDLP lässt Whisper lokal laufen und schreibt aus einer Video- oder Audiodatei den gesprochenen Text heraus. Nichts davon geht ins Netz. Du wählst die Datei, ein Modell und die Sprache und legst fest, ob du reinen Text, SRT-Untertitel oder VTT willst. Größere Modelle sind genauer und langsamer. SRT-Dateien kannst du direkt in ein Schnittprogramm ziehen.",
+
+            ["Header.Gif.Subtitle"] = "Ein kurzer Ausschnitt wird zum GIF.",
+            ["Header.Gif.Info"] = "Hier machst du aus einem Video ein animiertes GIF, ohne Cloud und ohne Upload. Du wählst die Datei, grenzt bei Bedarf auf einen Zeitausschnitt ein und stellst die Qualität ein. ffmpeg erzeugt zuerst eine passende Farbpalette und dann das GIF, damit es bei kleiner Dateigröße noch ordentlich aussieht. Für Discord reicht die Web-Stufe.",
+
+            ["Header.Twitch.Subtitle"] = "VODs und Clips laden, Video und Chat getrennt oder zusammen.",
+            ["Header.Twitch.Info"] = "Diese Seite lädt Twitch-VODs und -Clips herunter. Das Video holt yt-dlp, es setzt bei einer Unterbrechung wieder an. Den Chat speichert TwitchDownloaderCLI als JSON oder rendert ihn als Video mit. Du fügst URL, VOD-ID oder Clip-Slug ein und hakst an, was du brauchst. TwitchDownloaderCLI wird nur für den Chat gebraucht, für das reine Video nicht.",
+
+            ["Header.Tools.Subtitle"] = "Der Zustand aller externen Werkzeuge auf einen Blick.",
+            ["Header.Tools.Info"] = "Hier siehst du yt-dlp, ffmpeg, whisper.cpp und TwitchDownloaderCLI mit Zustand, Version, Speicherort und Größe. Reparieren lädt ein Werkzeug neu und ersetzt es, auch wenn die Versionsnummer stimmt. Das ist der richtige Weg bei einer beschädigten oder leeren Datei. Alle prüfen fragt die Versionen ohne Zwischenspeicher neu ab. Ein eigener Bereich fasst den Stand der Whisper-Modelle zusammen.",
+
+            ["Header.Settings.Subtitle"] = "Pfade, Sprache, Bandbreite und der Debug-Modus.",
+            ["Header.Settings.Info"] = "Hier stellst du ein, wohin Downloads standardmäßig gehen, in welcher Sprache die Oberfläche läuft und ob die Downloadgeschwindigkeit begrenzt wird. Der Debug-Modus blendet auf jeder Seite einen Ausgabebereich ein, in dem die Roh-Ausgabe der Werkzeuge steht. Das Limit lässt sich auch während eines laufenden Downloads ändern, er startet dann nahtlos neu.",
 
             // Startup Window
             ["StartupWindow.Title"] = "MortysDLP wird vorbereitet...",
@@ -337,6 +367,8 @@ namespace MortysDLP.UITexte
             ["BatchDownloadPage.Section.Options"]   = "OPTIONEN",
             ["BatchDownloadPage.Button.StartAll"]   = "Alle herunterladen",
             ["BatchDownloadPage.Button.CancelAll"]  = "Abbrechen",
+            ["BatchDownloadPage.Label.CurrentEntry"] = "Aktueller Eintrag:",
+            ["BatchDownloadPage.Label.Overall"]     = "Gesamt:",
             ["BatchDownloadPage.Status.Ready"]      = "Bereit",
             ["BatchDownloadPage.Status.Waiting"]    = "Wartend",
             ["BatchDownloadPage.Status.Downloading"] = "Lädt...",
@@ -349,8 +381,6 @@ namespace MortysDLP.UITexte
             ["BatchDownloadPage.ClearList.Question"] = "Möchtest du wirklich alle URLs aus der Liste entfernen?",
 
             // Transcribe Page
-            ["TranscribePage.Section.Info"]          = "WAS IST TRANSKRIPTION?",
-            ["TranscribePage.Info.Text"]             = "Transkription wandelt gesprochene Sprache in Text um. MortysDLP verwendet dazu Whisper – ein quelloffenes KI-Modell von OpenAI, das komplett lokal auf deinem PC läuft. Es werden keine Daten ins Internet gesendet.\n\nDu kannst Video- und Audiodateien transkribieren und das Ergebnis als Textdatei (.txt), Untertitel-Datei (.srt) oder WebVTT-Datei (.vtt) speichern. SRT-Dateien können direkt in Schnittprogrammen wie DaVinci Resolve oder Premiere Pro verwendet werden.",
             ["TranscribePage.Section.Whisper"]       = "WHISPER-STATUS",
             ["TranscribePage.Whisper.NotInstalled"]  = "Whisper ist noch nicht installiert. Klicke auf 'Whisper installieren', um das Tool herunterzuladen.",
             ["TranscribePage.Whisper.Installed"]     = "Whisper ist installiert und einsatzbereit.",
@@ -442,8 +472,6 @@ namespace MortysDLP.UITexte
             ["WhisperModels.Info.ModelsDir"]         = "Modelle-Ordner: {0}",
 
             // GIF-Maker Page
-            ["GifPage.Section.Info"]             = "WAS IST DER GIF-MAKER?",
-            ["GifPage.Info.Text"]                = "Der GIF-Maker wandelt Videos in animierte GIFs um – direkt auf deinem PC, ohne Cloud. Perfekt für Discord, soziale Medien und das Web.\n\nDu kannst beliebige Video- oder Audiodateien auswählen, einen Zeitabschnitt festlegen und die Qualität steuern. Die GIFs werden mit FFmpeg und einem Zwei-Phasen-Algorithmus erstellt, der für maximale Qualität bei kleiner Dateigröße sorgt.",
             ["GifPage.Section.Input"]            = "EINGABEDATEI",
             ["GifPage.Label.InputFile"]          = "Datei auswählen:",
             ["GifPage.Button.BrowseInput"]       = "Durchsuchen...",
@@ -499,8 +527,6 @@ namespace MortysDLP.UITexte
             ["DownloadPage.Status.ExtractingChapters"] = "Kapitel werden extrahiert...",
 
             // Twitch VOD-Download Page
-            ["TwitchPage.Section.Info"]               = "TWITCH VOD & CLIP DOWNLOADER",
-            ["TwitchPage.Info.Text"]                  = "Lade Twitch VODs und Clips direkt herunter – Video und Chat separat oder kombiniert.\n\n• Video wird über yt-dlp geladen (beste Qualität, Fortsetzung bei Unterbrechung)\n• Chat wird über TwitchDownloaderCLI als .json gespeichert oder als Video gerendert\n\nTwitchDownloaderCLI ist nur für den Chat-Download/-Rendering erforderlich.",
             ["TwitchPage.Section.Tool"]               = "TWITCHDOWNLOADERCLI – CHAT-TOOL",
             ["TwitchPage.Tool.NotInstalled"]          = "TwitchDownloaderCLI ist noch nicht installiert. Klicke auf 'Installieren', um das Tool herunterzuladen.",
             ["TwitchPage.Tool.Installed"]             = "TwitchDownloaderCLI ist installiert und bereit.",
@@ -609,8 +635,6 @@ namespace MortysDLP.UITexte
             // Seite „Werkzeuge"
             ["MainWindow.Nav.Tools"]               = "Werkzeuge",
             ["ActiveWork.Label.Tools"]             = "Werkzeugverwaltung",
-            ["ToolsPage.Section.Info"]             = "INFO",
-            ["ToolsPage.Info.Text"]                = "Alle von MortysDLP verwalteten Werkzeuge an einer Stelle: Zustand, Version, Speicherort und Größe. \"Reparieren\" lädt ein Werkzeug neu und ersetzt es, auch wenn die Versionsnummer stimmt — der richtige Weg für eine beschädigte oder leere Datei.",
             ["ToolsPage.CheckAll.Hint"]            = "Prüft alle Werkzeuge erneut, ohne auf den Zwischenspeicher der letzten Prüfung zurückzugreifen.",
             ["ToolsPage.Button.CheckAll"]          = "Alle prüfen",
             ["ToolsPage.Section.Tools"]            = "WERKZEUGE",
@@ -669,6 +693,7 @@ namespace MortysDLP.UITexte
             ["DownloadPage.Tooltip.CustomFilename"] = "If set, this name will be used as the basis for the output file. Invalid characters will be automatically cleaned.",
             ["DownloadPage.Tooltip.Timespan"] = "Valid formats: mm:ss or hh:mm:ss. Example: 01:23 or 01:02:03. This means minutes:seconds or hours:minutes:seconds. You can download a clip from 00:01:30 to 00:02:45.",
             ["DownloadPage.Status.Loading"] = "Loading...",
+            ["DownloadPage.Status.FetchingInfo"] = "Fetching video info...",
             ["DownloadPage.Status.Success"] = "Completed",
             ["DownloadPage.Status.Canceled"] = "Canceled",
             ["DownloadPage.Status.Canceling"] = "Canceling...",
@@ -794,6 +819,8 @@ namespace MortysDLP.UITexte
             ["BatchDownloadPage.Section.Options"]    = "OPTIONS",
             ["BatchDownloadPage.Button.StartAll"]    = "Download All",
             ["BatchDownloadPage.Button.CancelAll"]   = "Cancel",
+            ["BatchDownloadPage.Label.CurrentEntry"] = "Current entry:",
+            ["BatchDownloadPage.Label.Overall"]      = "Overall:",
             ["BatchDownloadPage.Status.Ready"]       = "Ready",
             ["BatchDownloadPage.Status.Waiting"]     = "Waiting",
             ["BatchDownloadPage.Status.Downloading"] = "Downloading...",
@@ -814,7 +841,36 @@ namespace MortysDLP.UITexte
             ["MainWindow.AppSubtitle"] = "Your download companion",
             ["MainWindow.Version"] = "Version",
             ["MainWindow.Version.Unknown"] = "unknown",
-            ["MainWindow.Softwareinfo"] = "Video & Audio Downloader",
+
+            // Page header: the subtitle line always shows in the header, the info texts sit
+            // behind the info button. "Header.Kicker" is a prepared, empty slot - a value
+            // here brings the kicker line back on every page.
+            ["Header.Kicker"] = "",
+            ["Header.Info.Tooltip"] = "What does this page do?",
+
+            ["Header.Download.Subtitle"] = "Paste a link, the file lands in your target folder.",
+            ["Header.Download.Info"] = "Download a single video or a whole playlist here. Paste the link, pick container, quality and optionally a time range, then hit start. yt-dlp fetches the data, ffmpeg muxes video and audio. If you want, a GIF is made from the result right after. Whatever you download shows up in the history.",
+
+            ["Header.Batch.Subtitle"] = "Many links at once, worked through one by one.",
+            ["Header.Batch.Info"] = "This page is for when you have a list of videos. Paste the links one by one or as a block, set the options once for all of them and start the queue. Each entry downloads in turn, and you see the current entry plus overall progress. Time range, custom filename and the playlist prompt are not here, the Download page has those.",
+
+            ["Header.Convert.Subtitle"] = "Turn files you already have into another format.",
+            ["Header.Convert.Info"] = "Convert files that are already on your disk here. Drop them into the list or pick them, set target format and quality and start. Several files run in parallel, each with its own progress. At the end you get a summary of which worked and which did not. An existing target file is never overwritten.",
+
+            ["Header.Transcribe.Subtitle"] = "Spoken audio becomes text, entirely on your machine.",
+            ["Header.Transcribe.Info"] = "MortysDLP runs Whisper locally and writes out the spoken text from a video or audio file. None of it goes online. Pick the file, a model and the language, and choose whether you want plain text, SRT subtitles or VTT. Larger models are more accurate and slower. SRT files drop straight into a video editor.",
+
+            ["Header.Gif.Subtitle"] = "A short clip becomes a GIF.",
+            ["Header.Gif.Info"] = "Turn a video into an animated GIF here, no cloud and no upload. Pick the file, optionally limit it to a time range and set the quality. ffmpeg builds a matching color palette first and then the GIF, so it still looks decent at a small file size. The web setting is enough for Discord.",
+
+            ["Header.Twitch.Subtitle"] = "Download VODs and clips, video and chat separately or together.",
+            ["Header.Twitch.Info"] = "This page downloads Twitch VODs and clips. yt-dlp fetches the video and resumes after an interruption. TwitchDownloaderCLI saves the chat as JSON or renders it as a video. Paste a URL, VOD ID or clip slug and tick what you need. TwitchDownloaderCLI is only needed for the chat, not for the plain video.",
+
+            ["Header.Tools.Subtitle"] = "The state of every external tool at a glance.",
+            ["Header.Tools.Info"] = "This shows yt-dlp, ffmpeg, whisper.cpp and TwitchDownloaderCLI with state, version, location and size. Repair downloads a tool again and replaces it, even if the version number is fine. That is the right move for a damaged or empty file. Check all re-queries the versions without the cache. A separate section sums up the state of the Whisper models.",
+
+            ["Header.Settings.Subtitle"] = "Paths, language, bandwidth and the debug mode.",
+            ["Header.Settings.Info"] = "Set where downloads go by default, which language the interface uses and whether the download speed is capped. The debug mode adds an output area on every page showing the raw tool output. You can change the limit while a download runs, it restarts seamlessly.",
 
             // Startup Window
             ["StartupWindow.Title"] = "Preparing MortysDLP...",
@@ -960,8 +1016,6 @@ namespace MortysDLP.UITexte
             ["MainWindow.Nav.GifMaker"] = "GIF Maker",
 
             // Transcribe Page
-            ["TranscribePage.Section.Info"]          = "WHAT IS TRANSCRIPTION?",
-            ["TranscribePage.Info.Text"]             = "Transcription converts spoken language into text. MortysDLP uses Whisper – an open-source AI model by OpenAI that runs entirely locally on your PC. No data is sent to the internet.\n\nYou can transcribe video and audio files and save the result as a text file (.txt), subtitle file (.srt) or WebVTT file (.vtt). SRT files can be used directly in video editors like DaVinci Resolve or Premiere Pro.",
             ["TranscribePage.Section.Whisper"]       = "WHISPER STATUS",
             ["TranscribePage.Whisper.NotInstalled"]  = "Whisper is not yet installed. Click 'Install Whisper' to download the tool.",
             ["TranscribePage.Whisper.Installed"]     = "Whisper is installed and ready.",
@@ -1053,8 +1107,6 @@ namespace MortysDLP.UITexte
             ["WhisperModels.Info.ModelsDir"]         = "Models folder: {0}",
 
             // GIF-Maker Page
-            ["GifPage.Section.Info"]             = "WHAT IS GIF MAKER?",
-            ["GifPage.Info.Text"]                = "GIF Maker converts videos to animated GIFs – directly on your PC, no cloud required. Perfect for Discord, social media and the web.\n\nYou can select any video file, define a time range and control the quality. GIFs are created with FFmpeg using a two-phase algorithm for maximum quality at small file size.",
             ["GifPage.Section.Input"]            = "INPUT FILE",
             ["GifPage.Label.InputFile"]          = "Select file:",
             ["GifPage.Button.BrowseInput"]       = "Browse...",
@@ -1110,8 +1162,6 @@ namespace MortysDLP.UITexte
             ["DownloadPage.Status.ExtractingChapters"] = "Extracting chapters...",
 
             // Twitch VOD-Download Page
-            ["TwitchPage.Section.Info"]               = "TWITCH VOD & CLIP DOWNLOADER",
-            ["TwitchPage.Info.Text"]                  = "Download Twitch VODs and clips directly – video and chat separately or combined.\n\n• Video is downloaded via yt-dlp (best quality, resume on interruption)\n• Chat is downloaded via TwitchDownloaderCLI as .json or rendered as a video\n\nTwitchDownloaderCLI is only required for chat download / rendering.",
             ["TwitchPage.Section.Tool"]               = "TWITCHDOWNLOADERCLI – CHAT TOOL",
             ["TwitchPage.Tool.NotInstalled"]          = "TwitchDownloaderCLI is not yet installed. Click 'Install' to download the tool.",
             ["TwitchPage.Tool.Installed"]             = "TwitchDownloaderCLI is installed and ready.",
@@ -1219,8 +1269,6 @@ namespace MortysDLP.UITexte
             // Tools page
             ["MainWindow.Nav.Tools"]               = "Tools",
             ["ActiveWork.Label.Tools"]             = "Tool management",
-            ["ToolsPage.Section.Info"]             = "INFO",
-            ["ToolsPage.Info.Text"]                = "All tools managed by MortysDLP in one place: state, version, location and size. \"Repair\" downloads a tool again and replaces it, even if the version number is correct — the right fix for a damaged or empty file.",
             ["ToolsPage.CheckAll.Hint"]            = "Checks all tools again, bypassing the cache from the last check.",
             ["ToolsPage.Button.CheckAll"]          = "Check all",
             ["ToolsPage.Section.Tools"]            = "TOOLS",

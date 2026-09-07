@@ -25,7 +25,7 @@ namespace MortysDLP.Services
             ("SuccessBrush", "#0F7B0F", "#6CCB5F"),
             ("WarningBrush", "#9D5D00", "#FCE100"),
             ("ErrorBrush",   "#C42B1C", "#FF99A4"),
-            ("RunningBrush", "#e67e50", "#ffe44e"), // BrandOrange (hell) / BrandYellow (dunkel)
+            ("RunningBrush", "#f09346", "#f5c07c"), // BrandOrange (hell) / BrandYellow (dunkel)
         ];
 
         /// <summary>Setzt die Statusfarben einmal auf den aktuellen Windows-Themazustand und

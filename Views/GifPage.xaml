@@ -3,32 +3,23 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       Title="GIF-Maker"
       Loaded="GifPage_Loaded">
-    <ScrollViewer VerticalScrollBarVisibility="Auto">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto">
         <StackPanel Margin="0">
 
-            <!-- INFO -->
-            <Border CornerRadius="8" Padding="14,12" Margin="0,0,0,8"
-                    Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
-                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="1">
-                <StackPanel>
-                    <TextBlock x:Name="txtSectionInfo" FontWeight="SemiBold" FontSize="11"
-                               Foreground="{StaticResource BrandOrangeBrush}" Margin="0,0,0,8"/>
-                    <TextBlock x:Name="txtInfoText" TextWrapping="Wrap" LineHeight="20" Opacity="0.9"/>
-                </StackPanel>
-            </Border>
-
             <!-- EINGABEDATEI -->
-            <Border CornerRadius="8" Padding="14,12" Margin="0,0,0,8"
-                    Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
-                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="1"
+            <Border Style="{StaticResource CardBorderStyle}"
                     AllowDrop="True" Drop="borderInput_Drop" DragOver="borderInput_DragOver">
                 <StackPanel>
-                    <TextBlock x:Name="txtSectionInput" FontWeight="SemiBold" FontSize="11"
-                               Foreground="{StaticResource BrandOrangeBrush}" Margin="0,0,0,8"/>
+                    <TextBlock x:Name="txtSectionInput" Style="{StaticResource SectionHeaderStyle}"/>
                     <StackPanel Orientation="Horizontal">
-                        <Label x:Name="lblInputFile" VerticalAlignment="Center" Padding="2" MinWidth="170"/>
+                        <Label x:Name="lblInputFile" VerticalAlignment="Center" Padding="0" Style="{StaticResource FormLabelStyle}"/>
                         <TextBox x:Name="tbInputFile" Width="430" IsReadOnly="True"
-                                 VerticalContentAlignment="Center" Margin="7,0,7,0"
+                                 VerticalContentAlignment="Center" Margin="8,0,8,0"
                                  ToolTip="{Binding ElementName=tbInputFile, Path=Text}">
                             <TextBox.Style>
                                 <Style TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
@@ -40,7 +31,7 @@
                                                      </Style>
                                                  </TextBox.Style>
                                              </TextBox>
-                                             <Button x:Name="btnBrowseInput" Click="btnBrowseInput_Click" MinWidth="100" Padding="12,5">
+                                             <Button x:Name="btnBrowseInput" Click="btnBrowseInput_Click" MinWidth="100" Padding="12,4">
                                                  <TextBlock x:Name="txtBrowseInput"/>
                                              </Button>
                                              <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="16"
@@ -54,17 +45,14 @@
             </Border>
 
             <!-- EINSTELLUNGEN -->
-            <Border CornerRadius="8" Padding="14,12" Margin="0,0,0,8"
-                    Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
-                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="1">
+            <Border Style="{StaticResource CardBorderStyle}">
                 <StackPanel>
-                    <TextBlock x:Name="txtSectionSettings" FontWeight="SemiBold" FontSize="11"
-                               Foreground="{StaticResource BrandOrangeBrush}" Margin="0,0,0,8"/>
+                    <TextBlock x:Name="txtSectionSettings" Style="{StaticResource SectionHeaderStyle}"/>
 
                     <!-- Qualität -->
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                        <Label x:Name="lblQuality" VerticalAlignment="Center" Padding="2" MinWidth="170"/>
-                        <ComboBox x:Name="combQuality" Width="240" Margin="7,0,0,0" VerticalContentAlignment="Center">
+                        <Label x:Name="lblQuality" VerticalAlignment="Center" Padding="0" Style="{StaticResource FormLabelStyle}"/>
+                        <ComboBox x:Name="combQuality" Width="240" Margin="8,0,0,0" VerticalContentAlignment="Center">
                             <ComboBoxItem x:Name="cbiQualityWeb" IsSelected="True"/>
                             <ComboBoxItem x:Name="cbiQualityLow"/>
                             <ComboBoxItem x:Name="cbiQualityMedium"/>
@@ -82,10 +70,10 @@
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,0">
                         <CheckBox x:Name="cbTimeRange" VerticalAlignment="Center" Margin="0,0,8,0"
                                   Checked="cbTimeRange_Check" Unchecked="cbTimeRange_Check"/>
-                        <Label x:Name="lblStartTime" VerticalAlignment="Center" Padding="2" MinWidth="100"/>
-                        <TextBox x:Name="tbStartTime" Width="100" IsEnabled="False" VerticalContentAlignment="Center" Margin="7,0,20,0"/>
-                        <Label x:Name="lblEndTime" VerticalAlignment="Center" Padding="2" MinWidth="80"/>
-                        <TextBox x:Name="tbEndTime" Width="100" IsEnabled="False" VerticalContentAlignment="Center" Margin="7,0,0,0"/>
+                        <Label x:Name="lblStartTime" VerticalAlignment="Center" Padding="0" Style="{StaticResource FormLabelShortStyle}"/>
+                        <TextBox x:Name="tbStartTime" Width="100" IsEnabled="False" VerticalContentAlignment="Center" Margin="8,0,24,0"/>
+                        <Label x:Name="lblEndTime" VerticalAlignment="Center" Padding="0" Style="{StaticResource FormLabelShortStyle}"/>
+                        <TextBox x:Name="tbEndTime" Width="100" IsEnabled="False" VerticalContentAlignment="Center" Margin="8,0,0,0"/>
                         <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="16"
                                    Text="&#xE946;" Opacity="0.8" VerticalAlignment="Center" Margin="8,0,0,0">
                             <TextBlock.ToolTip>
@@ -97,12 +85,9 @@
             </Border>
 
             <!-- AUSGABE -->
-            <Border CornerRadius="8" Padding="14,12" Margin="0,0,0,8"
-                    Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
-                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="1">
+            <Border Style="{StaticResource CardBorderStyle}">
                 <StackPanel>
-                    <TextBlock x:Name="txtSectionOutput" FontWeight="SemiBold" FontSize="11"
-                               Foreground="{StaticResource BrandOrangeBrush}" Margin="0,0,0,8"/>
+                    <TextBlock x:Name="txtSectionOutput" Style="{StaticResource SectionHeaderStyle}"/>
 
                     <!-- Ausgabeordner -->
                     <Grid Margin="0,0,0,8">
@@ -112,27 +97,27 @@
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <Label x:Name="lblOutputFolder" VerticalAlignment="Center" Padding="2"
-                               MinWidth="170" Grid.Column="0"/>
+                        <Label x:Name="lblOutputFolder" VerticalAlignment="Center" Padding="0"
+                               Style="{StaticResource FormLabelStyle}" Grid.Column="0"/>
                         <TextBox x:Name="tbOutputFolder" VerticalContentAlignment="Center"
-                                 Margin="7,0,0,0" Grid.Column="1"/>
+                                 Margin="8,0,0,0" Grid.Column="1"/>
                         <Button x:Name="btnBrowseOutput" Click="btnBrowseOutput_Click"
-                                MinWidth="100" Padding="12,5" Margin="7,0,0,0" Grid.Column="2">
+                                MinWidth="100" Padding="12,4" Margin="8,0,0,0" Grid.Column="2">
                             <TextBlock x:Name="txtBrowseOutput"/>
                         </Button>
                         <Button x:Name="btnOpenOutput" Click="btnOpenOutput_Click"
-                                MinWidth="100" Padding="12,5" Margin="7,0,0,0" Grid.Column="3">
+                                MinWidth="100" Padding="12,4" Margin="8,0,0,0" Grid.Column="3">
                             <TextBlock x:Name="txtOpenOutput"/>
                         </Button>
                     </Grid>
 
                     <!-- Pfad übernehmen -->
                     <Border BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
-                            BorderThickness="1" CornerRadius="5" Padding="10"
+                            BorderThickness="1" CornerRadius="4" Padding="12"
                             Background="{DynamicResource LayerFillColorDefaultBrush}"
                             Margin="0,0,0,8">
                         <StackPanel>
-                            <TextBlock x:Name="txtUsePath" FontWeight="SemiBold" Margin="0,0,0,6"/>
+                            <TextBlock x:Name="txtUsePath" FontWeight="SemiBold" Margin="0,0,0,8"/>
                             <StackPanel Orientation="Horizontal">
                                 <Button x:Name="btnUseDownloadPath" Click="btnUseDownloadPath_Click" Width="140">
                                     <TextBlock x:Name="txtUseDownloadPath"/>
@@ -143,10 +128,26 @@
                 </StackPanel>
             </Border>
 
-            <!-- STEUERUNG + STATUS -->
-            <Border CornerRadius="8" Padding="14,12" Margin="0,0,0,8"
-                    Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
-                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="1">
+            <!-- DEBUG -->
+            <DockPanel x:Name="borderDebug" Margin="0,4,0,0" Visibility="Collapsed">
+                <Expander x:Name="expDebug" IsExpanded="False">
+                    <TextBox x:Name="tbDebugOutput"
+                             VerticalScrollBarVisibility="Auto"
+                             HorizontalScrollBarVisibility="Auto"
+                             IsReadOnly="True"
+                             TextWrapping="NoWrap"
+                             FontFamily="{StaticResource MonoFontFamily}"
+                             FontSize="12"
+                             AcceptsReturn="True"
+                             MaxHeight="200"/>
+                </Expander>
+            </DockPanel>
+
+        </StackPanel>
+        </ScrollViewer>
+
+        <!-- STEUERUNG + STATUS - fixierte Fußzeile, scrollt nicht mit -->
+        <Border Grid.Row="1" Style="{StaticResource ActionBarStyle}">
                 <StackPanel Orientation="Horizontal">
                     <Button x:Name="btnStart" Click="btnStart_Click"
                             Style="{StaticResource PrimaryButtonStyle}" Margin="0,0,8,0">
@@ -157,7 +158,7 @@
                     </Button>
 
                     <!-- Fortschritt (läuft) -->
-                    <Border x:Name="pnlRunning" Padding="12,0,0,0" Visibility="Hidden">
+                    <Border x:Name="pnlRunning" Padding="12,0,0,0" Visibility="Collapsed">
                         <StackPanel VerticalAlignment="Center">
                             <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
                                 <TextBlock x:Name="txtStatus" FontWeight="Bold"/>
@@ -172,7 +173,7 @@
                     <Border x:Name="pnlResult" Padding="12,0,0,0" Visibility="Collapsed">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <TextBlock x:Name="txtResultIcon" FontFamily="Segoe MDL2 Assets" FontSize="20"
-                                       VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                       VerticalAlignment="Center" Margin="0,0,4,0"/>
                             <TextBlock x:Name="txtResultTitle" FontWeight="SemiBold" VerticalAlignment="Center"/>
                             <Button x:Name="btnOpenResult" Click="btnOpenResult_Click" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}"
                                     Background="Transparent" BorderThickness="0" Margin="12,0,0,0" Padding="0" Visibility="Collapsed">
@@ -182,23 +183,6 @@
                         </StackPanel>
                     </Border>
                 </StackPanel>
-            </Border>
-
-            <!-- DEBUG -->
-            <DockPanel x:Name="borderDebug" Margin="0,2,0,0" Visibility="Collapsed">
-                <Expander x:Name="expDebug" IsExpanded="False">
-                    <TextBox x:Name="tbDebugOutput"
-                             VerticalScrollBarVisibility="Auto"
-                             HorizontalScrollBarVisibility="Auto"
-                             IsReadOnly="True"
-                             TextWrapping="NoWrap"
-                             FontFamily="Consolas"
-                             FontSize="12"
-                             AcceptsReturn="True"
-                             MaxHeight="200"/>
-                </Expander>
-            </DockPanel>
-
-        </StackPanel>
-    </ScrollViewer>
+        </Border>
+    </Grid>
 </Page>

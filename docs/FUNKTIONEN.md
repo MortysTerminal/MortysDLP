@@ -34,10 +34,12 @@ grafische Oberfläche bedienbar macht. Sie ist portabel: kein Installer, keine
 Administratorrechte, Entpacken genügt. Benötigte Werkzeuge lädt sie beim ersten Start selbst
 nach.
 
-Die Oberfläche besteht aus einer Seitenleiste mit sechs Arbeitsbereichen plus Einstellungen,
-einer Kopfzeile mit Bereichstitel und Version sowie einem Update-Banner, das nur bei
-verfügbarem Update erscheint. Sprache: Deutsch oder Englisch, automatisch nach
-Windows-Sprache oder manuell. Helles und dunkles Design folgen der Windows-Einstellung.
+Die Oberfläche besteht aus einer Seitenleiste mit sechs Arbeitsbereichen plus Werkzeuge und
+Einstellungen, einer Kopfzeile und einem Update-Banner, das nur bei verfügbarem Update
+erscheint. Die Kopfzeile zeigt den Seitentitel, eine kurze Zeile dazu, was die Seite tut, und
+rechts die Version. Ein Info-Knopf neben dem Titel öffnet eine ausführlichere Erklärung der
+aktuellen Seite. Sprache: Deutsch oder Englisch, automatisch nach Windows-Sprache oder manuell.
+Helles und dunkles Design folgen der Windows-Einstellung.
 
 ---
 
@@ -275,9 +277,12 @@ Die Varianten-Kürzel machen verschiedene Fassungen desselben Videos unterscheid
 Beispiel: `mein-video_q1080_mp4_x264_dQw4w9WgXcQ.mp4`
 
 ### Fortschritt und Status
-Ein Balken mit Prozent, Geschwindigkeit und geschätzter Restzeit, ein Statustext („Lädt…",
+Ein Balken mit Prozent, Geschwindigkeit und geschätzter Restzeit, ein Statustext
+(„Videoinformationen werden abgerufen…", „Playlist wird aufgelöst…", „Lädt…",
 „Zusammenführen…", „Audio extrahieren…", „Prüfe Video-Codec…", „Konvertiere zu H.264…") und
-ein Statussymbol, das nach Abschluss den Zielordner öffnet. Die Restzeit verschwindet, sobald
+ein Statussymbol, das nach Abschluss den Zielordner öffnet. Während der Vorbereitungsphase
+(Titel, Playlist-Inhalt oder Tonspur-Kennwerte abrufen), bevor der eigentliche Download
+beginnt, läuft der Balken als unbestimmte Bewegung statt reglos auf 0 % zu stehen. Die Restzeit verschwindet, sobald
 sie nicht mehr bekannt ist oder der Download abgeschlossen ist. Werden Video und Audio als
 getrennte Spuren geladen, läuft der Balken einmal durch statt zweimal neu bei 0 zu beginnen —
 dasselbe gilt für eine anschließende H.264-Nachbearbeitung und, bei einer Playlist, über alle
@@ -304,8 +309,10 @@ Warteschlange für mehrere URLs.
   `Entf` entfernt die Auswahl.
 - **Optionen**: Nur Audio (Format + Bitrate), Videoqualität, Container, x264-Modus.
   *Zeitspanne, eigener Dateiname, GIF-Nachlauf und Playlist-Abfrage gibt es hier nicht.*
-- Abarbeitung streng nacheinander, mit Gesamtfortschritt (`erledigt/gesamt` und Prozent) und
-  aktueller Geschwindigkeit.
+- Abarbeitung streng nacheinander. Die Fortschrittsanzeige bleibt beim Scrollen sichtbar und
+  zeigt zwei Balken übereinander: oben der **aktuelle Eintrag** (Titel, Status, Prozent),
+  darunter der **Gesamtfortschritt** der Warteschlange (`erledigt/gesamt`, Prozent, aktuelle
+  Geschwindigkeit) — nach demselben Muster wie auf der Download-Seite.
 - Abschlusszustände: Fertig, Abgebrochen, Teilweise abgebrochen, Teilweise fehlerhaft.
 - Nach dem Lauf erscheint ein Knopf, der den Zielordner öffnet.
 

@@ -98,6 +98,48 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
   an, neben Fortschritt und Geschwindigkeit.
 
 ### Geändert
+- **Jede Seite hat jetzt oben eine kurze Zeile, die sagt, was sie tut.** Die ausführliche
+  Erklärung sitzt hinter dem Info-Knopf rechts neben dem Seitentitel und öffnet sich als
+  kleines Fenster darunter. Bisher standen auf einigen Seiten lange Erklärkästen mitten im
+  Inhalt, auf anderen fehlte jede Erklärung.
+- **Die Twitch-Seite zeigt den Download-Bereich erst, wenn TwitchDownloaderCLI installiert
+  ist.** Fehlt das Werkzeug, ist nur noch die Werkzeug-Karte mit „Installieren" zu sehen. So
+  fängt man nicht mit einer Eingabe an, die ohne das Werkzeug ohnehin nicht startet. Auf der
+  Transkriptions-Seite war es schon so.
+- **Die Start-/Abbrechen-Knöpfe unten stehen jetzt auf allen Seiten links.** Auf der
+  Konvertieren-Seite saßen sie als einzige rechts.
+- **Die Markenfarben sind wärmer und ruhiger geworden.** Das Gelb und das Orange an Knöpfen,
+  Fortschrittsbalken und der aktiven Navigationsmarkierung sind jetzt sanfter statt grell.
+  Zahlen und technische Ausgaben (Versionen, Debug-Bereich, Zeitwerte) laufen in einer
+  Monospace-Schrift.
+- **Der Fensterhintergrund ist jetzt ein flaches Dunkelgrau.** Bisher schimmerte das
+  Windows-Mica-Material durch und ließ den Hintergrund je nach Desktop bläulich wirken.
+  Vereinzelte blaue Akzente (Credits-Symbol, Links im Credits-Fenster) sind auf die
+  Markenfarben umgestellt.
+- **Die kleinste unterstützte Fenstergröße ist jetzt 1100 × 700 statt 1430 × 950.** Damit
+  passt MortysDLP auch auf kleinere Notebook-Bildschirme (z. B. 1366 × 768) und bei hoher
+  Windows-Skalierung (z. B. 150 % auf Full-HD) vollständig auf den Bildschirm — bisher ließ
+  sich das Fenster auf solchen Geräten nicht mehr vollständig anzeigen, und Bedienelemente
+  konnten dadurch unerreichbar werden. Einige Eingabezeilen mit festen Breiten wurden dafür
+  flexibel gemacht, damit bei kleinen Fenstergrößen kein Knopf mehr aus dem sichtbaren Bereich
+  rutscht.
+- **Der Update-Hinweis oben im Fenster passt sich jetzt dem hellen und dunklen Design an**
+  statt fest auf einen dunklen Hintergrund mit hellem Text eingestellt zu sein — im hellen
+  Design saß bisher ein fast schwarzer Balken auf heller Oberfläche.
+- **Die Fortschritts-/Aktionsleiste bleibt jetzt beim Scrollen sichtbar** — auf Download,
+  Warteschlange, Konvertieren, Transkription, GIF-Erstellung und Twitch. Wer während eines
+  laufenden Vorgangs nach oben scrollt, um eine Option nachzusehen, verliert den Fortschritt
+  nicht mehr aus dem Blick.
+- **Die Warteschlangen-Seite zeigt den Fortschritt jetzt wie die Download-Seite:** ein Balken
+  für den gerade laufenden Eintrag (Titel, Status, Prozent), darunter ein zweiter für den
+  Gesamtfortschritt der Warteschlange — statt eines einzelnen Balkens, der je nach Situation
+  zwei verschiedene Dinge zeigte.
+- Prozentangaben zeigen jetzt überall eine Ganzzahl statt mal ganzen, mal auf zwei
+  Nachkommastellen genauen Werten, die mehrmals pro Sekunde wechselten.
+- **Die Eingabefelder stehen jetzt auf allen Seiten an derselben Stelle.** Bisher hatte jede
+  Seite ihre eigene Beschriftungsbreite; beim Wechsel zwischen Tabs sprang die Eingabespalte
+  dadurch sichtbar hin und her. Betrifft Download, Warteschlange, Konvertieren, Transkription,
+  GIF-Erstellung, Twitch und Einstellungen — auf Deutsch und Englisch geprüft.
 - Knöpfe und Fortschrittsbalken nutzen jetzt die eingebauten Windows-11-Bedienelemente mit der
   Markenfarbe, statt eigens nachgebauter Vorlagen. Sichtbarer Nebeneffekt: Ein Knopf, der mit
   der Tastatur angesteuert wird, zeigt jetzt wieder einen Fokusrahmen.
@@ -106,6 +148,11 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
   bisher fünf unterschiedlicher Grün-, Rot- und Grautöne. Alle vier Farben sind außerdem in
   hellem und dunklem Design geprüft lesbar; bisher waren zwei davon auf dunklem Grund
   kontrastschwach.
+- **Abstände und Ränder folgen auf allen Seiten jetzt einem einheitlichen Raster.** Karten,
+  Beschriftungen, Eingabezeilen und Knöpfe sitzen durchgängig auf einem gemeinsamen Raster,
+  wodurch die Seiten ruhiger und gleichmäßiger wirken. Die kurzen Einleitungstexte auf der
+  Twitch-, GIF-, Transkriptions- und Werkzeuge-Seite stehen außerdem nicht mehr in einem
+  eigenen Rahmen mit Überschrift, sondern als schlichter Vorspann.
 - **Der Start wartet nicht mehr sekundenlang auf die yt-dlp-Prüfung.** Die installierte Version
   wird jetzt aus den Dateieigenschaften von `yt-dlp.exe` gelesen, statt das Programm dafür zu
   starten. Hintergrund: yt-dlp ist ein gebündeltes Python-Programm und fährt bei *jedem* Aufruf
@@ -173,6 +220,14 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
   verfügbar" zu melden.
 
 ### Behoben
+- **Auf der GIF-Seite blieb nach einer fertigen GIF ein leerer Streifen zurück**, wo während
+  der Erstellung der Fortschrittsbalken stand. Das Ergebnisfeld nimmt jetzt sofort den frei
+  gewordenen Platz ein — wie auf der Transkriptionsseite, wo es bereits so war.
+- **Die Download-Seite wirkte vor dem eigentlichen Download kurz wie eingefroren.** Solange
+  MortysDLP den Videotitel, den Playlist-Inhalt oder Tonspur-Kennwerte abruft (je nach
+  Optionen einige Sekunden), zeigt der Fortschrittsbalken jetzt eine laufende Bewegung und die
+  Statuszeile nennt den Schritt („Videoinformationen werden abgerufen…", „Playlist wird
+  aufgelöst…") — statt reglos auf 0 % zu stehen.
 - **Ein unbestimmter Fortschrittsbalken stand in manchen Ansichten voll da, statt zu laufen** —
   etwa beim reinen Herunterladen des Twitch-Chats oder während einer Transkription. Er läuft
   jetzt sichtbar, solange der Vorgang noch andauert.

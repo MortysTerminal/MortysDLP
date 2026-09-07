@@ -74,8 +74,6 @@ namespace MortysDLP.Views
         {
             var T = UITextDictionary.Get;
 
-            txtSectionInfo.Text = T("TranscribePage.Section.Info");
-            txtInfoText.Text = T("TranscribePage.Info.Text");
             txtSectionWhisper.Text = T("TranscribePage.Section.Whisper");
             btnInstallWhisper.Content = T("TranscribePage.Button.InstallWhisper");
             btnManageModels.Content = T("TranscribePage.Button.ManageModels");

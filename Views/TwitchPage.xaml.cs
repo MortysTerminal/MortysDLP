@@ -72,8 +72,6 @@ namespace MortysDLP.Views
         {
             var T = UITextDictionary.Get;
 
-            txtSectionInfo.Text        = T("TwitchPage.Section.Info");
-            txtInfoText.Text           = T("TwitchPage.Info.Text");
             txtSectionTool.Text        = T("TwitchPage.Section.Tool");
             btnInstall.Content         = T("TwitchPage.Button.Install");
             btnUpdateAction.Content    = T("TwitchPage.Button.CheckingUpdate");
@@ -157,7 +155,16 @@ namespace MortysDLP.Views
             btnUpdateAction.Visibility = installed ? Visibility.Visible   : Visibility.Collapsed;
             btnUninstall.Visibility    = installed ? Visibility.Visible   : Visibility.Collapsed;
 
-            borderDownload.IsEnabled   = installed;
+            // Fehlt das Werkzeug, gibt es hier nichts zu tun: den VOD-Download-Abschnitt und
+            // die Fußleiste ausblenden statt nur sperren. Sichtbar bleibt die Werkzeug-Karte
+            // mit dem Installieren-Knopf. Gleiches Muster wie die TranscribePage bei Whisper.
+            var work = installed ? Visibility.Visible : Visibility.Collapsed;
+            borderDownload.Visibility = work;
+            borderActions.Visibility  = work;
+
+            double bw = Properties.Settings.Default.DownloadBandwidthMBps;
+            borderBandwidthHint.Visibility = (installed && bw > 0)
+                ? Visibility.Visible : Visibility.Collapsed;
         }
 
         // ── Ausgabeordner ──────────────────────────────────────────────────────────

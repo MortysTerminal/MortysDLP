@@ -41,7 +41,7 @@
                  TextWrapping="NoWrap"
                  VerticalScrollBarVisibility="Auto"
                  HorizontalScrollBarVisibility="Auto"
-                 FontFamily="Consolas"
+                 FontFamily="{StaticResource MonoFontFamily}"
                  FontSize="13"
                  Padding="5"
                  TextChanged="txtUrls_TextChanged"/>

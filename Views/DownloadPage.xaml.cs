@@ -212,6 +212,7 @@ namespace MortysDLP.Views
         private void btnDownloadCancel_Click(object sender, RoutedEventArgs e)
         {
             txtDownloadStatus.Text = UITextDictionary.Get("DownloadPage.Status.Canceling");
+            pbDownload.IsIndeterminate = false;
 
             // Kein eigener Kill mehr nötig: ProcessRunner registriert für den jeweils
             // laufenden Prozess (yt-dlp oder ffmpeg, je nach Phase) bereits selbst einen
@@ -290,8 +291,14 @@ namespace MortysDLP.Views
             spLoadingbar.Visibility = Visibility.Visible;
 
             UpdateProgress(0);
+            // In der Vorbereitungsphase (Titel abrufen, Playlist auflösen, Audio-Metadaten
+            // prüfen) gibt es noch keinen echten Fortschrittswert - ein unbestimmter Balken
+            // statt eines toten 0 % zeigt, dass etwas passiert. UpdateProgress setzt
+            // IsIndeterminate wieder auf false, sobald der erste echte Wert (oder ein Fehler)
+            // eintrifft.
+            pbDownload.IsIndeterminate = true;
             SetiaStatusIcon(iaStatusIconType.Loading);
-            txtDownloadStatus.Text = UITextDictionary.Get("DownloadPage.Status.Loading");
+            txtDownloadStatus.Text = UITextDictionary.Get("DownloadPage.Status.FetchingInfo");
 
             _downloadCancellationTokenSource = new CancellationTokenSource();
             var token = _downloadCancellationTokenSource.Token;
@@ -1773,6 +1780,11 @@ namespace MortysDLP.Views
                 _lastProgress = percent;
                 pbDownload.Value = percent;
 
+                // Ein echter Fortschrittswert (oder ein Fehler) beendet die unbestimmte
+                // Anzeige aus der Vorbereitungsphase.
+                if (percent > 0 || isError)
+                    pbDownload.IsIndeterminate = false;
+
                 // Bei Fehler, Abschluss oder Rücksetzung auf 0 (neue Phase/neues Playlist-Video)
                 // sofort aktualisieren - sonst bliebe eine veraltete Anzeige bis zu 500 ms stehen.
                 bool forceTextUpdate = isError || percent <= 0 || percent >= 100;
@@ -1794,8 +1806,8 @@ namespace MortysDLP.Views
                     if (percent > 0)
                     {
                         txtDownloadProgress.Text = speedMBs.HasValue
-                            ? $"{percent:F2} % ({speedMBs.Value:F2} MB/s)"
-                            : $"{percent:F2} %";
+                            ? $"{percent:F0} % ({speedMBs.Value:F2} MB/s)"
+                            : $"{percent:F0} %";
                     }
                     else if (speedMBs.HasValue)
                     {

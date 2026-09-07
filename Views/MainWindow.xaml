@@ -5,7 +5,8 @@
         Title="MortysDLP"
         WindowStartupLocation="CenterScreen"
         Width="1430" Height="950"
-        MinWidth="1430" MinHeight="950">
+        MinWidth="1100" MinHeight="700"
+        Background="{DynamicResource SolidBackgroundFillColorBaseBrush}">
 
     <Window.Resources>
         <Style x:Key="NavItemStyle" TargetType="ListBoxItem">
@@ -87,7 +88,7 @@
                 <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,16">
                     <Border Width="38" Height="38" CornerRadius="19"
                             BorderBrush="{StaticResource BrandYellowBrush}" BorderThickness="1.5"
-                            Background="#252A35">
+                            Background="{DynamicResource ControlFillColorDefaultBrush}">
                         <Image Source="/Resources/Logos/globus.png" Width="24" Height="24"
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>
@@ -220,7 +221,7 @@
                     </Button.Style>
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="&#xE946;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                   Foreground="#5B9BD5" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
                         <StackPanel VerticalAlignment="Center">
                             <TextBlock x:Name="txtCreditsTitle" FontWeight="SemiBold" FontSize="12"/>
                             <TextBlock x:Name="txtCreditsSubtitle" FontSize="10" Opacity="0.6"/>
@@ -297,13 +298,8 @@
                     Visibility="Collapsed"
                     CornerRadius="8"
                     Margin="0,0,0,8"
-                    ClipToBounds="True">
-                <Border.Background>
-                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                        <GradientStop Color="#2A1E00" Offset="0"/>
-                        <GradientStop Color="#2A1000" Offset="1"/>
-                    </LinearGradientBrush>
-                </Border.Background>
+                    ClipToBounds="True"
+                    Background="{DynamicResource LayerFillColorDefaultBrush}">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="4"/>
@@ -337,10 +333,10 @@
                                             </Border>
                                             <ControlTemplate.Triggers>
                                                 <Trigger Property="IsMouseOver" Value="True">
-                                                    <Setter TargetName="bg" Property="Background" Value="#15ffffff"/>
+                                                    <Setter TargetName="bg" Property="Background" Value="{DynamicResource SubtleFillColorSecondaryBrush}"/>
                                                 </Trigger>
                                                 <Trigger Property="IsPressed" Value="True">
-                                                    <Setter TargetName="bg" Property="Background" Value="#25ffffff"/>
+                                                    <Setter TargetName="bg" Property="Background" Value="{DynamicResource SubtleFillColorTertiaryBrush}"/>
                                                 </Trigger>
                                             </ControlTemplate.Triggers>
                                         </ControlTemplate>
@@ -351,16 +347,14 @@
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE895;"
                                        FontSize="15"
-                                       Foreground="{StaticResource BrandYellowBrush}"
+                                       Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                                        VerticalAlignment="Center"
                                        Margin="0,0,10,0"/>
                             <StackPanel VerticalAlignment="Center">
                                 <TextBlock x:Name="txtUpdateBannerMain"
-                                           FontWeight="SemiBold" FontSize="13"
-                                           Foreground="{StaticResource BrandYellowBrush}"/>
+                                           FontWeight="SemiBold" FontSize="13"/>
                                 <TextBlock x:Name="txtUpdateBannerSub"
                                            FontSize="11" Opacity="0.7"
-                                           Foreground="{StaticResource BrandCreamBrush}"
                                            Margin="0,1,0,0"/>
                             </StackPanel>
                         </StackPanel>
@@ -392,7 +386,7 @@
                                             </Border>
                                             <ControlTemplate.Triggers>
                                                 <Trigger Property="IsMouseOver" Value="True">
-                                                    <Setter TargetName="bg" Property="Background" Value="#20ffffff"/>
+                                                    <Setter TargetName="bg" Property="Background" Value="{DynamicResource SubtleFillColorSecondaryBrush}"/>
                                                 </Trigger>
                                             </ControlTemplate.Triggers>
                                         </ControlTemplate>
@@ -402,36 +396,79 @@
                         </Button.Style>
                         <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE711;"
                                    FontSize="12"
-                                   Foreground="{StaticResource BrandCreamBrush}"
+                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                                    Opacity="0.7"/>
                     </Button>
                 </Grid>
             </Border>
 
-            <!-- Header-Leiste -->
-            <Border Grid.Row="1" CornerRadius="10" ClipToBounds="True" Margin="0,0,0,10"
+            <!-- Header-Leiste - Folien-Stil: (Kicker) / Titel / kurze Zeile / kurzer
+                 Verlaufs-Strich; Info-Knopf und Version rechts oben. -->
+            <Border Grid.Row="1" CornerRadius="10" Margin="0,0,0,12"
                     Background="{DynamicResource LayerFillColorDefaultBrush}">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="4"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-                    <Rectangle Grid.Row="0" Fill="{StaticResource BrandGradientBrush}"/>
-                    <DockPanel Grid.Row="1" Margin="14,9,14,11">
-                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal"
-                                    VerticalAlignment="Center" Opacity="0.45">
-                            <TextBlock x:Name="txtVersionLabel" FontStyle="Italic" VerticalAlignment="Center"/>
-                            <TextBlock Name="lblMainVersion" FontStyle="Italic" VerticalAlignment="Center"
-                                       Margin="4,0,0,0" Text="-"/>
+                <Grid Margin="16,12,14,14">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                        <!-- Kicker: vorbereiteter Platz, leer und ausgeblendet bis der
+                             Schluessel "Header.Kicker" gefuellt wird. -->
+                        <TextBlock x:Name="txtHeaderKicker" Visibility="Collapsed"
+                                   FontFamily="{StaticResource MonoFontFamily}"
+                                   FontSize="10" FontWeight="SemiBold"
+                                   Foreground="{StaticResource BrandOrangeBrush}"
+                                   Margin="0,0,0,4"/>
+                        <TextBlock x:Name="txtSectionTitle" FontWeight="Bold" FontSize="20"/>
+                        <TextBlock x:Name="txtHeaderSubtitle" FontSize="12" Opacity="0.65"
+                                   TextWrapping="Wrap" Margin="0,3,0,0"/>
+                        <Rectangle Height="2" Width="44" HorizontalAlignment="Left"
+                                   RadiusX="1" RadiusY="1" Margin="0,8,0,0"
+                                   Fill="{StaticResource BrandGradientBrush}"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button x:Name="btnHeaderInfo" Click="btnHeaderInfo_Click"
+                                Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}"
+                                Background="Transparent" BorderThickness="0" Padding="6" Cursor="Hand">
+                            <TextBlock x:Name="txtHeaderInfoIcon" Text="&#xE946;"
+                                       FontFamily="Segoe MDL2 Assets" FontSize="18"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                                       Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+                        </Button>
+                        <StackPanel Orientation="Horizontal" Opacity="0.45" Margin="10,0,0,0"
+                                    VerticalAlignment="Center">
+                            <TextBlock x:Name="txtVersionLabel"
+                                       FontFamily="{StaticResource MonoFontFamily}" FontSize="11"
+                                       VerticalAlignment="Center"/>
+                            <TextBlock x:Name="lblMainVersion"
+                                       FontFamily="{StaticResource MonoFontFamily}" FontSize="11"
+                                       VerticalAlignment="Center" Margin="6,0,0,0" Text="-"/>
                         </StackPanel>
-                        <StackPanel VerticalAlignment="Center">
-                            <TextBlock Name="txtSectionTitle"
-                                       FontWeight="Bold" FontSize="20"/>
-                            <TextBlock Name="lblSoftwareinfo" FontSize="12" Opacity="0.65" Margin="0,2,0,0"/>
-                        </StackPanel>
-                    </DockPanel>
+                    </StackPanel>
                 </Grid>
             </Border>
+
+            <!-- Erklaerung zur aktuellen Seite: dezent hinter dem Info-Knopf, unter dem Titel. -->
+            <Popup x:Name="HeaderInfoPopup"
+                   PlacementTarget="{Binding ElementName=txtSectionTitle}"
+                   Placement="Bottom" VerticalOffset="10"
+                   StaysOpen="False" AllowsTransparency="True" PopupAnimation="Fade">
+                <!-- Der Popup liegt ausserhalb des Fensters (AllowsTransparency); der
+                     durchscheinende Card-Pinsel waere hier unlesbar - deshalb der volldeckende
+                     Solid-Hintergrund. -->
+                <Border Background="{DynamicResource SolidBackgroundFillColorBaseBrush}"
+                        BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1" CornerRadius="8" Padding="16"
+                        MaxWidth="440" Margin="8">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="16" ShadowDepth="2" Direction="270" Opacity="0.28" Color="#000000"/>
+                    </Border.Effect>
+                    <TextBlock x:Name="txtHeaderInfoBody" TextWrapping="Wrap" LineHeight="20"
+                               Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
+                </Border>
+            </Popup>
 
             <!-- Seiten-Frame -->
             <Frame x:Name="MainFrame" Grid.Row="2"
