@@ -25,6 +25,75 @@ namespace MortysDLP.Helpers
         [GeneratedRegex(@"^[-*_]{3,}\s*$")]
         private static partial Regex HrRegex();
 
+        // ── HTML-Normalisierung ──────────────────────────────────────────────────
+        // GitHub-Release-Notizen enthalten oft HTML (von Hand eingefügt, aus einem
+        // WYSIWYG-Editor, oder GitHubs auto-generierte "What's Changed"-Blöcke). Der
+        // zeilenbasierte Parser unten versteht kein HTML und zeigte die Tags wörtlich an.
+        // Diese Vorstufe übersetzt die gängigen Block- und Inline-Tags nach Markdown und
+        // entfernt den Rest.
+        [GeneratedRegex(@"<\s*/?\s*(ul|ol|div|section|article|details|summary|blockquote|table|thead|tbody|tr|figure)\b[^>]*>", RegexOptions.IgnoreCase)]
+        private static partial Regex HtmlStripBlockRegex();
+
+        [GeneratedRegex(@"<\s*h([1-6])\b[^>]*>(.*?)<\s*/\s*h\1\s*>", RegexOptions.IgnoreCase | RegexOptions.Singleline)]
+        private static partial Regex HtmlHeadingRegex();
+
+        [GeneratedRegex(@"<\s*li\b[^>]*>(.*?)<\s*/\s*li\s*>", RegexOptions.IgnoreCase | RegexOptions.Singleline)]
+        private static partial Regex HtmlListItemRegex();
+
+        [GeneratedRegex(@"<\s*p\b[^>]*>(.*?)<\s*/\s*p\s*>", RegexOptions.IgnoreCase | RegexOptions.Singleline)]
+        private static partial Regex HtmlParagraphRegex();
+
+        [GeneratedRegex(@"<\s*a\b[^>]*>(.*?)<\s*/\s*a\s*>", RegexOptions.IgnoreCase | RegexOptions.Singleline)]
+        private static partial Regex HtmlLinkRegex();
+
+        [GeneratedRegex(@"<\s*br\s*/?\s*>", RegexOptions.IgnoreCase)]
+        private static partial Regex HtmlBreakRegex();
+
+        [GeneratedRegex(@"<\s*hr\s*/?\s*>", RegexOptions.IgnoreCase)]
+        private static partial Regex HtmlRuleRegex();
+
+        [GeneratedRegex(@"<\s*/?\s*(strong|b)\s*>", RegexOptions.IgnoreCase)]
+        private static partial Regex HtmlBoldRegex();
+
+        [GeneratedRegex(@"<\s*/?\s*(em|i)\s*>", RegexOptions.IgnoreCase)]
+        private static partial Regex HtmlItalicRegex();
+
+        [GeneratedRegex(@"<\s*/?\s*(code|kbd|samp|tt)\s*>", RegexOptions.IgnoreCase)]
+        private static partial Regex HtmlCodeRegex();
+
+        [GeneratedRegex(@"<[^>]+>")]
+        private static partial Regex HtmlAnyTagRegex();
+
+        [GeneratedRegex(@"\n{3,}")]
+        private static partial Regex ExcessBlankLinesRegex();
+
+        /// <summary>Übersetzt HTML-Auszeichnung in Markdown, damit der zeilenbasierte Parser sie
+        /// versteht. Ist kein <c>&lt;</c> im Text, wird er unverändert zurückgegeben.</summary>
+        internal static string NormalizeHtml(string text)
+        {
+            if (string.IsNullOrEmpty(text) || !text.Contains('<'))
+                return text;
+
+            text = HtmlHeadingRegex().Replace(text, m =>
+                "\n" + new string('#', m.Groups[1].Value[0] - '0') + " " + m.Groups[2].Value.Trim() + "\n");
+            text = HtmlListItemRegex().Replace(text, m => "\n- " + m.Groups[1].Value.Trim() + "\n");
+            text = HtmlParagraphRegex().Replace(text, m => "\n" + m.Groups[1].Value.Trim() + "\n\n");
+            text = HtmlLinkRegex().Replace(text, m => m.Groups[1].Value.Trim());
+            text = HtmlBreakRegex().Replace(text, "\n");
+            text = HtmlRuleRegex().Replace(text, "\n---\n");
+            text = HtmlBoldRegex().Replace(text, "**");
+            text = HtmlItalicRegex().Replace(text, "*");
+            text = HtmlCodeRegex().Replace(text, "`");
+            text = HtmlStripBlockRegex().Replace(text, "\n");
+            text = HtmlAnyTagRegex().Replace(text, string.Empty);   // alles Übrige raus
+
+            // Entities erst jetzt auflösen: so wird ein bewusst geschriebenes "&lt;code&gt;"
+            // nicht doch noch als Tag verarbeitet.
+            text = System.Net.WebUtility.HtmlDecode(text);
+
+            return ExcessBlankLinesRegex().Replace(text, "\n\n").Trim();
+        }
+
         // ── Public entry point ───────────────────────────────────────────────────
 
         public static FlowDocument ToFlowDocument(string markdown)
@@ -39,6 +108,8 @@ namespace MortysDLP.Helpers
 
             if (string.IsNullOrWhiteSpace(markdown))
                 return doc;
+
+            markdown = NormalizeHtml(markdown);
 
             var lines = markdown.Replace("\r\n", "\n").Replace("\r", "\n").Split('\n');
             int i = 0;
@@ -145,7 +216,7 @@ namespace MortysDLP.Helpers
             });
         }
 
-        private static Block BuildSeparator()
+        private static BlockUIContainer BuildSeparator()
         {
             return new BlockUIContainer(new Separator
             {

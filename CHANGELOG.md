@@ -25,6 +25,14 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
 
 ## [Unreleased]
 
+### Behoben
+- Der Hinweis auf ein verfügbares Update ist wieder deutlich sichtbar: Der Banner steht auf
+  vollem Markengelb mit dunkler, fetter Schrift, statt sich fast unsichtbar in die Oberfläche
+  einzufügen.
+- Das Änderungen-Fenster („Was ist neu" bzw. der Update-Hinweis) zeigt jetzt auch dann sauber
+  formatierte Überschriften, Listen und Hervorhebungen an, wenn die Release-Notiz HTML enthält.
+  Vorher standen die HTML-Auszeichnungen (`<h2>`, `<li>`, …) als Text im Fenster.
+
 ## [2026.09.07] – 2026-09-07
 
 Großes Reifungs-Release: der Schwerpunkt liegt auf Robustheit, einem verlässlichen
