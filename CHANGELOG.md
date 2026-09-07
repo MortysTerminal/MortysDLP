@@ -25,463 +25,120 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
 
 ## [Unreleased]
 
+## [2026.09.07] – 2026-09-07
+
+Großes Reifungs-Release: der Schwerpunkt liegt auf Robustheit, einem verlässlichen
+Selbst-Update, der Verwaltung der externen Werkzeuge und einer einheitlichen Oberfläche.
+
 ### Sicherheit
-- Der Download von yt-dlp wird jetzt gegen die Prüfsummenliste des jeweiligen Releases
-  geprüft, soweit sie vorliegt; fehlt sie, steht das ausdrücklich im Protokoll statt
-  unbemerkt zu bleiben. Damit dabei überhaupt eine Prüfsumme vorliegt, fragt MortysDLP vor
-  einer bestätigten Installation einmal frisch nach — der zwischengespeicherte Stand einer
-  Versionsprüfung führt die Dateiliste eines Releases nicht mit und hätte den Download eines
-  ausführbaren Programms ungeprüft gelassen. Beim ffmpeg-Paket werden vor dem Entpacken Anzahl der Einträge,
-  entpackte Größe und Kompressionsverhältnis gegen plausible Grenzen geprüft, und es werden
-  ausschließlich die beiden benötigten Programmdateien herausgeholt — Einträge, die aus dem
-  Zielordner ausbrechen wollen, können deshalb nichts ausrichten.
-- Heruntergeladene Update-Pakete werden jetzt vor der Installation gegen eine Prüfsumme und
-  die erwartete Größe geprüft — die Prüfung läuft mit, während die Datei geschrieben wird,
-  nicht erst hinterher. Stimmt etwas nicht, bricht das Update ab, die vorhandene Installation
-  bleibt unangetastet. Ist für ein Release ausnahmsweise keine Prüfsumme hinterlegt, bleibt
-  das Update möglich (nur die Größe wird geprüft) — mit einer deutlichen Zeile im Protokoll.
-- Härtung der Argumentübergabe an externe Werkzeuge (yt-dlp, ffmpeg, ffprobe,
-  TwitchDownloaderCLI, whisper.cpp). Kopierte URLs oder Videotitel mit ungewöhnlichen
-  Sonderzeichen können externen Werkzeugen nicht mehr zusätzliche, nicht beabsichtigte
-  Befehlszeilenargumente unterschieben.
-- MortysDLP entfernt bei Werkzeugen, die es selbst mit bestandener Prüfsumme geladen hat, die
-  Internet-Kennzeichnung (Mark-of-the-Web) — damit blockiert SmartScreen den ersten Start
-  nicht mehr ohne erkennbaren Grund. Ohne bestandene Prüfsumme bleibt die Kennzeichnung
-  bestehen.
+- Heruntergeladene Pakete (Anwendungs-Updates und yt-dlp) werden vor der Installation gegen
+  Prüfsumme und erwartete Größe geprüft; fehlt eine Prüfsumme, steht das im Protokoll statt
+  unbemerkt zu bleiben.
+- Das ffmpeg-Archiv wird beim Entpacken gegen präparierte Archive und „Zip-Bomben“ abgesichert;
+  es werden nur die beiden benötigten Programmdateien herausgeholt.
+- Härtung der Argumentübergabe an alle externen Werkzeuge: ungewöhnliche Sonderzeichen in URLs
+  oder Videotiteln können ihnen keine zusätzlichen Befehlszeilenargumente mehr unterschieben.
+- Netzwerkanfragen gehen nur noch an bekannte, verschlüsselte Adressen. Die Internet-
+  Kennzeichnung (Mark-of-the-Web) wird nur bei Werkzeugen entfernt, deren Prüfsumme gestimmt hat.
 
 ### Hinzugefügt
-- MortysDLP prüft jetzt vor jedem Update-Angebot, ob der Installationsordner ein Update
-  überhaupt zulässt. Liegt er in einem geschützten Systemordner, erscheint ein Hinweis mit der
-  Empfehlung, die Installation zu verschieben (inklusive des Hinweises, dass dabei alle
-  Einstellungen verloren gehen) — das Update lässt sich danach trotzdem versuchen, falls die
-  Berechtigungen im Einzelfall doch ausreichen. Ist der Ordner schreibgeschützt oder läuft
-  MortysDLP direkt aus einer ZIP-Vorschau, wird kein Download angeboten; der Banner sagt in
-  diesem Fall, dass es eine neue Version gibt und warum sie sich hier nicht einspielen lässt.
-- Nach einem erfolgreichen Update erscheint jetzt sofort nach dem Neustart eine Bestätigung
-  mit der Möglichkeit, die Änderungen der neuen Version anzusehen — einmalig, danach nicht
-  erneut.
-- MortysDLP fragt jetzt nach, bevor ein Update gestartet wird, während im Hintergrund noch
-  ein Download, eine Konvertierung oder eine Transkription läuft — bisher wurde ein solcher
-  Vorgang beim Update kommentarlos abgebrochen.
-- MortysDLP prüft nach einem Update beim nächsten Start, ob es tatsächlich gewirkt hat, und
-  meldet das Ergebnis: eine kurze Bestätigung bei Erfolg, oder ein verständlicher Hinweis mit
-  Protokollpfad, wenn die neue Version nicht läuft. Ein Update, das zweimal hintereinander
-  ohne Wirkung blieb, wird danach nicht mehr automatisch angeboten — ein Knopf „Trotzdem
-  erneut versuchen" bleibt verfügbar, falls doch gewünscht.
-- Der Update-Hinweis lässt sich jetzt im Dialog dauerhaft für eine bestimmte Version
-  überspringen („Diese Version überspringen") — der Banner erscheint erst wieder, wenn eine
-  **neuere** Version veröffentlicht wird. „Später" und das „X" am Banner blenden den Hinweis
-  weiterhin nur für die laufende Sitzung aus.
-- Anwendungs-Updates zeigen jetzt einen Fortschrittsbalken mit Prozentangabe und lassen sich
-  jederzeit abbrechen — bisher wirkte die Anwendung beim Herunterladen eines größeren Pakets
-  über eine langsame Leitung wie eingefroren. Ein Abbruch räumt sauber auf: keine
-  Reste im Temp-Ordner, die vorhandene Installation bleibt unangetastet.
-- MortysDLP erkennt beim Start, wenn es direkt aus der ZIP-Vorschau des Explorers gestartet
-  wurde (also aus einem temporären Ordner, der beim Schließen verschwindet) und zeigt dann
-  einen Hinweis mit der Möglichkeit, den Ordner zu öffnen oder trotzdem fortzufahren. So bleibt
-  nicht mehr unklar, warum heruntergeladene Werkzeuge nach jedem Neustart erneut fehlen.
-- Unerwartete Fehler beenden MortysDLP nicht mehr wortlos. Sie werden protokolliert
-  (`%LOCALAPPDATA%\MortysDLP\logs\`, 14 Tage bzw. 10 MB je Datei) und in einem Dialog mit
-  verständlichem Kurztext, ausklappbaren technischen Details, „Details kopieren" und
-  „Protokollordner öffnen" angezeigt. Bei Fehlern, die nur eine einzelne Aktion betreffen,
-  läuft die Anwendung danach normal weiter.
-- Neuer Tab „Werkzeuge" zeigt alle externen Werkzeuge (yt-dlp, ffmpeg, whisper.cpp,
-  TwitchDownloaderCLI) an einer Stelle: Zustand, installierte Version, Speicherort und
-  Größe. Von dort aus lässt sich jedes Werkzeug reparieren (neu laden und ersetzen, auch bei
-  richtiger Versionsnummer), aktualisieren, deinstallieren oder sein Ordner öffnen — mit
-  Rückfrage vor dem Deinstallieren, die bei yt-dlp und ffmpeg ausdrücklich nennt, welche
-  Funktionen danach fehlen. „Alle prüfen" stößt eine erneute Prüfung ohne Zwischenspeicher an.
-  Ein eigener Bereich zeigt zusammengefasst den Stand der Whisper-Modelle und verlinkt zu
-  deren Verwaltung. Eine weitere Zeile zeigt, wie viel Platz alle Werkzeuge und Modelle
-  zusammen belegen.
-- Die Download-Seite zeigt jetzt eine geschätzte Restzeit während eines laufenden Downloads
-  an, neben Fortschritt und Geschwindigkeit.
+- **Neuer Tab „Werkzeuge“:** Zustand, Version, Speicherort und Größe aller externen Werkzeuge
+  an einer Stelle, mit Reparieren, Aktualisieren, Deinstallieren und Ordner öffnen. Ein Bereich
+  fasst den Stand der Whisper-Modelle zusammen, eine Zeile den Gesamtplatzbedarf.
+- **Anwendungs-Updates** zeigen einen Fortschrittsbalken und lassen sich abbrechen; nach einem
+  erfolgreichen Update erscheint einmalig eine Bestätigung mit „Was ist neu“. Vor dem Angebot
+  wird geprüft, ob am Installationsort überhaupt aktualisiert werden kann (geschützter Ordner,
+  ZIP-Vorschau). Läuft gerade ein Download, eine Konvertierung oder eine Transkription, wird
+  nachgefragt.
+- **Erfolgskontrolle nach dem Update:** Beim nächsten Start prüft MortysDLP, ob es gewirkt hat,
+  und meldet das Ergebnis. Ein Update, das zweimal ohne Wirkung blieb, wird nicht mehr
+  automatisch angeboten („Trotzdem erneut versuchen“ bleibt).
+- Der Update-Hinweis lässt sich pro Version dauerhaft überspringen („Diese Version überspringen“).
+- Unerwartete Fehler beenden MortysDLP nicht mehr wortlos: Sie landen in einer Protokolldatei
+  (`%LOCALAPPDATA%\MortysDLP\logs\`) und in einem Dialog mit Details zum Kopieren.
+- Die Download-Seite zeigt jetzt eine geschätzte Restzeit.
+- Startet MortysDLP aus der ZIP-Vorschau des Explorers, erklärt ein Hinweis, warum
+  heruntergeladene Werkzeuge nach jedem Neustart fehlen.
+- Fehlt ein Werkzeug, das eine Seite zwingend braucht (yt-dlp oder ffmpeg), zeigt die Seite eine
+  Karte mit dem fehlenden Werkzeug und einem Knopf zur Werkzeuge-Seite, statt einen Vorgang zu
+  starten, der später abbricht.
 
 ### Geändert
-- **Jede Seite hat jetzt oben eine kurze Zeile, die sagt, was sie tut.** Die ausführliche
-  Erklärung sitzt hinter dem Info-Knopf rechts neben dem Seitentitel und öffnet sich als
-  kleines Fenster darunter. Bisher standen auf einigen Seiten lange Erklärkästen mitten im
-  Inhalt, auf anderen fehlte jede Erklärung.
-- **Die Twitch-Seite zeigt den Download-Bereich erst, wenn TwitchDownloaderCLI installiert
-  ist.** Fehlt das Werkzeug, ist nur noch die Werkzeug-Karte mit „Installieren" zu sehen. So
-  fängt man nicht mit einer Eingabe an, die ohne das Werkzeug ohnehin nicht startet. Auf der
-  Transkriptions-Seite war es schon so.
-- **Fehlt ein Werkzeug, das eine Seite zwingend braucht (yt-dlp oder ffmpeg), sagt die Seite
-  das jetzt sofort** und zeigt statt des Arbeitsbereichs eine Karte mit einem Knopf „Zu den
-  Werkzeugen". Betroffen sind Download, Warteschlange, Konvertieren, GIF-Erstellung, Twitch
-  und die Transkription. Bisher ließ sich ein Vorgang starten, der dann mitten in der Arbeit
-  mit einer technischen Meldung abbrach.
-- **Die Werkzeuge-Seite zeigt jetzt pro Werkzeug, ob es erforderlich ist und für welche
-  Funktionen es gebraucht wird** („Für: Download, Batch-Download, …"). Die Rückfrage vor dem
-  Deinstallieren nennt dieselben Funktionen.
-- **Die Start-/Abbrechen-Knöpfe unten stehen jetzt auf allen Seiten links.** Auf der
-  Konvertieren-Seite saßen sie als einzige rechts.
-- **Die Markenfarben sind wärmer und ruhiger geworden.** Das Gelb und das Orange an Knöpfen,
-  Fortschrittsbalken und der aktiven Navigationsmarkierung sind jetzt sanfter statt grell.
-- **MortysDLP bringt seine eigene Schrift mit** (Inter) und hängt nicht mehr von der
-  Systemschrift ab. Sie wird überall verwendet, in leicht enger laufender Form; nur die
-  Debug-Ausgabe bleibt bei einer Schreibmaschinen-Schrift.
-- **Der Fensterhintergrund ist jetzt ein flaches Dunkelgrau.** Bisher schimmerte das
-  Windows-Mica-Material durch und ließ den Hintergrund je nach Desktop bläulich wirken.
-  Vereinzelte blaue Akzente (Credits-Symbol, Links im Credits-Fenster) sind auf die
-  Markenfarben umgestellt.
-- **Die kleinste unterstützte Fenstergröße ist jetzt 1100 × 700 statt 1430 × 950.** Damit
-  passt MortysDLP auch auf kleinere Notebook-Bildschirme (z. B. 1366 × 768) und bei hoher
-  Windows-Skalierung (z. B. 150 % auf Full-HD) vollständig auf den Bildschirm — bisher ließ
-  sich das Fenster auf solchen Geräten nicht mehr vollständig anzeigen, und Bedienelemente
-  konnten dadurch unerreichbar werden. Einige Eingabezeilen mit festen Breiten wurden dafür
-  flexibel gemacht, damit bei kleinen Fenstergrößen kein Knopf mehr aus dem sichtbaren Bereich
-  rutscht.
-- **Der Update-Hinweis oben im Fenster passt sich jetzt dem hellen und dunklen Design an**
-  statt fest auf einen dunklen Hintergrund mit hellem Text eingestellt zu sein — im hellen
-  Design saß bisher ein fast schwarzer Balken auf heller Oberfläche.
-- **Die Fortschritts-/Aktionsleiste bleibt jetzt beim Scrollen sichtbar** — auf Download,
-  Warteschlange, Konvertieren, Transkription, GIF-Erstellung und Twitch. Wer während eines
-  laufenden Vorgangs nach oben scrollt, um eine Option nachzusehen, verliert den Fortschritt
-  nicht mehr aus dem Blick.
-- **Die Warteschlangen-Seite zeigt den Fortschritt jetzt wie die Download-Seite:** ein Balken
-  für den gerade laufenden Eintrag (Titel, Status, Prozent), darunter ein zweiter für den
-  Gesamtfortschritt der Warteschlange — statt eines einzelnen Balkens, der je nach Situation
-  zwei verschiedene Dinge zeigte.
-- Prozentangaben zeigen jetzt überall eine Ganzzahl statt mal ganzen, mal auf zwei
-  Nachkommastellen genauen Werten, die mehrmals pro Sekunde wechselten.
-- **Die Eingabefelder stehen jetzt auf allen Seiten an derselben Stelle.** Bisher hatte jede
-  Seite ihre eigene Beschriftungsbreite; beim Wechsel zwischen Tabs sprang die Eingabespalte
-  dadurch sichtbar hin und her. Betrifft Download, Warteschlange, Konvertieren, Transkription,
-  GIF-Erstellung, Twitch und Einstellungen — auf Deutsch und Englisch geprüft.
-- Knöpfe und Fortschrittsbalken nutzen jetzt die eingebauten Windows-11-Bedienelemente mit der
-  Markenfarbe, statt eigens nachgebauter Vorlagen. Sichtbarer Nebeneffekt: Ein Knopf, der mit
-  der Tastatur angesteuert wird, zeigt jetzt wieder einen Fokusrahmen.
-- **Statusanzeigen (Erfolg, Fehler, läuft, wartet) sehen jetzt auf allen Seiten gleich aus** —
-  Download, Warteschlange, GIF-Erstellung und Transkription verwenden dieselben vier Farben statt
-  bisher fünf unterschiedlicher Grün-, Rot- und Grautöne. Alle vier Farben sind außerdem in
-  hellem und dunklem Design geprüft lesbar; bisher waren zwei davon auf dunklem Grund
-  kontrastschwach.
-- **Abstände und Ränder folgen auf allen Seiten jetzt einem einheitlichen Raster.** Karten,
-  Beschriftungen, Eingabezeilen und Knöpfe sitzen durchgängig auf einem gemeinsamen Raster,
-  wodurch die Seiten ruhiger und gleichmäßiger wirken. Die kurzen Einleitungstexte auf der
-  Twitch-, GIF-, Transkriptions- und Werkzeuge-Seite stehen außerdem nicht mehr in einem
-  eigenen Rahmen mit Überschrift, sondern als schlichter Vorspann.
-- **Der Start wartet nicht mehr sekundenlang auf die yt-dlp-Prüfung.** Die installierte Version
-  wird jetzt aus den Dateieigenschaften von `yt-dlp.exe` gelesen, statt das Programm dafür zu
-  starten. Hintergrund: yt-dlp ist ein gebündeltes Python-Programm und fährt bei *jedem* Aufruf
-  einen vollständigen Interpreter hoch — auf einem Testrechner reproduzierbar rund 3,7 Sekunden
-  für die eine Zeile Versionsausgabe, und damit zwei Drittel der gesamten Startzeit. Aus der
-  Datei gelesen sind es wenige Millisekunden. Dieselben Dateieigenschaften weisen das Programm
-  auch aus, sodass ein fremdes Programm unter diesem Namen jetzt erkannt und abgelehnt wird,
-  **ohne es überhaupt zu starten**. Trägt eine Datei keine oder keine brauchbare Angabe (etwa
-  eine selbst gebaute Fassung), wird wie bisher das Programm gefragt; welcher Weg gegriffen hat,
-  steht im Protokoll. Für ffmpeg und ffprobe bleibt es beim Programmaufruf — ihre Dateien tragen
-  keine solche Angabe, und mit rund 60 Millisekunden fallen sie ohnehin nicht auf.
-- **Der Start wartet nicht mehr auf die Frage „gibt es eine neuere Werkzeugversion?".** Ob
-  yt-dlp und ffmpeg vorhanden und einsatzbereit sind, wird weiterhin sofort geprüft — jetzt für
-  beide gleichzeitig statt nacheinander. Ob es eine neuere Version gibt, prüft MortysDLP für
-  alle Werkzeuge erst, nachdem das Hauptfenster bereits offen ist, genau wie schon beim
-  Update der Anwendung selbst. Ein Update wird dabei nicht mehr automatisch angeboten — wer
-  ein Werkzeug aktualisieren will, sieht den aktuellen Stand jetzt auf der Seite „Werkzeuge"
-  und stößt es dort an.
-- Werkzeug-Updates (yt-dlp, ffmpeg, ffprobe) sichern die vorhandene Fassung jetzt, bevor sie
-  ersetzt wird, und rufen das Werkzeug danach einmal auf. Antwortet es nicht mehr brauchbar,
-  wird die vorherige Fassung automatisch wiederhergestellt und der Vorgang als fehlgeschlagen
-  gemeldet — das Werkzeug ist danach unverändert einsatzbereit. Bisher war ein Update, das die
-  Datei ersetzte, aber ein unbrauchbares Werkzeug hinterließ, von einem erfolgreichen nicht zu
-  unterscheiden. Jeder Schritt steht einzeln im Protokoll: gesichert, eingesetzt, geprüft,
-  Sicherung entfernt — nicht nur die Fehlschläge.
-- ffmpeg und ffprobe werden jetzt gemeinsam behandelt: Sie kommen aus demselben Paket und
-  werden gemeinsam ersetzt oder gemeinsam zurückgeholt. Ein neues ffmpeg neben einem alten
-  ffprobe kann dadurch nicht mehr entstehen. Ein ffmpeg-Update wird ausschließlich angeboten,
-  nie ohne Zutun eingespielt.
-- Die Versionsprüfung für yt-dlp nutzt jetzt mehrere voneinander unabhängige Quellen (unter
-  anderem den Python-Paketindex, der ohne GitHub auskommt) und wird höchstens alle zwölf
-  Stunden über das Netz erneuert. Ist GitHub nicht erreichbar oder das stündliche
-  Anfragekontingent erschöpft, liefert eine der Ausweichquellen die Versionsnummer, statt dass
-  die Prüfung ergebnislos bleibt.
-- Aus dem ffmpeg-Paket werden jetzt nur noch `ffmpeg.exe` und `ffprobe.exe` herausgeholt,
-  statt das gesamte Archiv in ein temporäres Verzeichnis zu entpacken. Das temporäre Paket
-  wird nach dem Vorgang in jedem Fall gelöscht, und das Entpacken blockiert die Oberfläche
-  nicht mehr.
-- Die Suche nach einer neuen MortysDLP-Version hält den Start nicht mehr auf: Sie läuft jetzt
-  im Hintergrund, nachdem das Hauptfenster bereits offen ist, und meldet ein gefundenes Update
-  nachträglich über den gewohnten Banner. War diese Prüfung bisher langsam oder nicht erreichbar,
-  ließ das den Start spürbar länger warten oder sogar hängen — beides kann jetzt nicht mehr
-  passieren. Die Prüfung der externen Werkzeuge (yt-dlp, ffmpeg, ffprobe) bleibt vorerst vor dem
-  Fenster und ist auf den meisten Rechnern weiterhin der größte Anteil der Startzeit.
-- Externe Werkzeuge (yt-dlp, ffmpeg, ffprobe, whisper.cpp, TwitchDownloaderCLI, Whisper-Modelle)
-  liegen jetzt im Nutzerprofil statt im Programmordner. Wer MortysDLP nach
-  `C:\Program Files` entpackt, kann seine Werkzeuge dadurch trotzdem aktualisieren — bisher
-  scheiterte das, weil der Programmordner dort schreibgeschützt ist. Vorhandene Werkzeuge
-  einer älteren Installation werden beim ersten Start automatisch in den neuen Ordner
-  übernommen; das Protokoll hält jede übernommene Datei fest. Wer MortysDLP von einem
-  USB-Stick betreibt, muss die Werkzeuge dadurch pro Rechner einmalig neu laden — sie liegen
-  nicht mehr auf dem Stick.
-- Der Installations-Updater, der ein Update im Hintergrund einspielt, ist jetzt vollständig
-  quelloffen und wird bei jedem Release neu gebaut — bisher wurde eine ältere, nicht mehr
-  nachvollziehbare Programmdatei ausgeliefert.
-- Die Suche nach einer neuen MortysDLP-Version läuft nicht mehr bei jedem Start online: Das
-  Ergebnis wird zwischengespeichert und höchstens alle 6 Stunden erneuert. Ist gar keine
-  Internetverbindung da, verwendet MortysDLP einfach den zuletzt bekannten Stand, statt zu
-  hängen oder „kein Update" zu melden.
-- Netzabfragen (Update-Prüfung, Werkzeug-Versionsprüfung, Downloads) melden Störungen jetzt
-  verständlich statt lautlos zu scheitern: Vorübergehende Fehler werden automatisch mit
-  steigender Wartezeit wiederholt, dauerhafte Fehler (z. B. „nicht gefunden") sofort gemeldet
-  statt erst nach mehreren nutzlosen Versuchen. Ist das stündliche Anfragekontingent von
-  GitHub erschöpft, erkennt MortysDLP das jetzt als solches, statt fälschlich „kein Update
-  verfügbar" zu melden.
+- **Einheitliche Oberfläche über alle Tabs:** gemeinsames Raster für Abstände, gleiche Position
+  der Eingabefelder, dieselben vier Statusfarben (hell und dunkel geprüft),
+  Windows-11-Bedienelemente mit der Markenfarbe (der Tastatur-Fokusrahmen ist zurück).
+- **Neues Branding:** wärmere, ruhigere Marken-Akzentfarben, eine mitgelieferte Schrift (Inter)
+  statt der Systemschrift, ein flacher dunkelgrauer Fensterhintergrund statt des
+  durchschimmernden Mica-Materials.
+- Jede Seite hat oben eine kurze Zeile, die sagt, was sie tut; die ausführliche Erklärung sitzt
+  hinter einem Info-Knopf. Die Start-/Abbrechen-Knöpfe stehen überall links.
+- Die Fortschritts-/Aktionsleiste bleibt beim Scrollen sichtbar. Die Warteschlangen-Seite zeigt
+  den Fortschritt jetzt mit zwei Balken wie die Download-Seite. Prozentangaben sind überall
+  ganzzahlig.
+- Die kleinste unterstützte Fenstergröße ist jetzt 1100 × 700 (passt auf 1366 × 768 und bei
+  150 % Skalierung).
+- **Externe Werkzeuge liegen jetzt im Nutzerprofil** statt im Programmordner. So lassen sie
+  sich auch aktualisieren, wenn MortysDLP in `C:\Program Files` liegt. Vorhandene Werkzeuge
+  einer älteren Installation werden beim ersten Start übernommen.
+- **Der Start ist deutlich schneller:** Die yt-dlp-Version wird aus den Dateieigenschaften
+  gelesen statt das Programm zu starten (spart mehrere Sekunden), Werkzeuge werden parallel
+  geprüft, und alle Versions- und Update-Prüfungen laufen erst im Hintergrund, nachdem das
+  Fenster offen ist.
+- **Die Update-Prüfung** nutzt fünf voneinander unabhängige Quellen als Ausweichkette, prüft
+  höchstens alle 6 Stunden online und verwendet ohne Internet den zuletzt bekannten Stand. Der
+  Versionsvergleich erkennt jetzt auch Hotfix- und Vorab-Tags korrekt.
+- **Werkzeug-Updates** sichern die alte Fassung, prüfen die neue nach dem Einsetzen und stellen
+  bei einem Fehlschlag automatisch die alte wieder her. ffmpeg und ffprobe werden gemeinsam
+  behandelt. Ein ffmpeg-Update wird nur angeboten, nie erzwungen; ein Downgrade oder ein
+  dauerhaftes Angebot durch abweichende Schreibweisen kann nicht mehr entstehen.
+- Der Installations-Updater ist jetzt vollständig quelloffen und wird bei jedem Release neu
+  gebaut.
+- Netzabfragen laufen über eine gemeinsame Verwaltung mit Wiederholstrategie; ein erschöpftes
+  GitHub-Kontingent wird als solches erkannt statt als „kein Update“.
+- Die Twitch-Seite zeigt den Download-Bereich erst, wenn TwitchDownloaderCLI installiert ist.
+  Die Werkzeuge-Seite kennzeichnet erforderliche Werkzeuge und nennt die Funktionen, die sie
+  brauchen.
 
 ### Behoben
-- **Schlägt nur die Nachkonvertierung nach H.264 fehl, steht am Fortschritt jetzt „Fehler beim
-  Konvertieren zu H.264"** statt pauschal „Fehler beim Download". Fehlt dabei ffmpeg ganz,
-  wird das ausdrücklich als fehlendes Werkzeug gemeldet und zur Werkzeuge-Seite geführt.
-- **Der Fortschrittsbalken war bei manchen Downloads nicht zu gebrauchen** (auf der Download-
-  und der Warteschlangen-Seite): Er stand entweder die ganze Zeit still — mit der Statuszeile
-  dauerhaft auf „Videoinformationen werden abgerufen…" — oder er zuckte vor und zurück. Das
-  traf Downloads, bei denen yt-dlp die Gesamtgröße nur schätzen kann (zum Beispiel
-  YouTube-Videos, die als Fragment-Stream geladen werden); die Schätzung schwankt dabei stark.
-  Der Balken läuft jetzt gleichmäßig und nur vorwärts, mit Geschwindigkeit und Restzeit, und
-  die Statuszeile wechselt, sobald der Download beginnt.
-- **Auf der GIF-Seite blieb nach einer fertigen GIF ein leerer Streifen zurück**, wo während
-  der Erstellung der Fortschrittsbalken stand. Das Ergebnisfeld nimmt jetzt sofort den frei
-  gewordenen Platz ein — wie auf der Transkriptionsseite, wo es bereits so war.
-- **Die Download-Seite wirkte vor dem eigentlichen Download kurz wie eingefroren.** Solange
-  MortysDLP den Videotitel, den Playlist-Inhalt oder Tonspur-Kennwerte abruft (je nach
-  Optionen einige Sekunden), zeigt der Fortschrittsbalken jetzt eine laufende Bewegung und die
-  Statuszeile nennt den Schritt („Videoinformationen werden abgerufen…", „Playlist wird
-  aufgelöst…") — statt reglos auf 0 % zu stehen.
-- **Ein unbestimmter Fortschrittsbalken stand in manchen Ansichten voll da, statt zu laufen** —
-  etwa beim reinen Herunterladen des Twitch-Chats oder während einer Transkription. Er läuft
-  jetzt sichtbar, solange der Vorgang noch andauert.
-- **Das Ändern des Bandbreitenlimits konnte MortysDLP mit einer Fehlermeldung beenden.** Traf
-  die Änderung genau den Moment, in dem ein Download ohnehin gerade fertig wurde oder
-  abgebrochen wurde, endete der Vorgang in einem unbehandelten Fehler statt still ins Leere zu
-  laufen. Das Zeitfenster war klein, aber jeder Treffer beendete die Anwendung.
-- **Die Geschwindigkeitsanzeige auf der Twitch-Seite wechselte zu schnell zum Lesen.** Sie wird
-  jetzt wie auf der Download-Seite höchstens einmal pro Sekunde neu geschrieben; der Balken
-  bewegt sich weiterhin bei jeder Meldung. Lädt Twitch Bild und Ton als getrennte Spuren,
-  bricht die Anzeige beim Wechsel außerdem nicht mehr kurz auf 0 ein.
-- **Der Fortschrittsbalken sprang, wenn das Bandbreitenlimit während eines Downloads geändert
-  wurde.** MortysDLP setzt den Download dabei mit dem neuen Limit fort, ohne bereits geladene
-  Daten zu verwerfen. Der Balken deutete diesen Neustart bislang als Beginn der nächsten Spur:
-  Er sprang erst nach vorn und beim tatsächlichen Wechsel von Video- auf Tonspur wieder zurück.
-  Jetzt läuft er auch über einen Limitwechsel hinweg gleichmäßig weiter; die
-  Geschwindigkeitsanzeige bricht dabei nicht mehr kurzzeitig ein.
-- **Ein Video-Download im Schnittmodus (x264) startete unnötig langsam.** Vor dem eigentlichen
-  Download fragte die Anwendung nebenbei Audio-Kennwerte ab, die für einen Video-Download gar
-  nicht gebraucht werden — bei einer Playlist im Schnittmodus für jedes einzelne Video. Dieser
-  überflüssige Zwischenschritt entfällt jetzt.
-- **Die Geschwindigkeitsanzeige der Warteschlangen-Seite (Batch) und der Twitch-Seite sprang
-  genauso unruhig wie zuvor auf der Download-Seite.** Dieselbe Ursache, dieselbe Lösung: Die
-  Geschwindigkeit wird jetzt auch hier aus dem tatsächlichen Byte-Zuwachs über die Zeit
-  geglättet berechnet.
-- **Das Rendern des Twitch-Chats als Video brach immer mit „Unable to find FFmpeg" ab.**
-  MortysDLP verwaltet ein eigenes ffmpeg, aber TwitchDownloaderCLI wusste nichts davon und
-  suchte an einem Ort, an dem es nicht liegt. Der Chat-Download selbst war davon nicht
-  betroffen, nur die anschließende Umwandlung in ein Video.
-- **Downloads von GitHub schlugen vollständig fehl.** Jeder Versuch, eine Datei aus einem
-  GitHub-Release zu laden, endete mit „Ziel nicht erlaubt" — betroffen waren sowohl die
-  externen Werkzeuge als auch das Selbst-Update von MortysDLP. Ursache: GitHub liefert
-  Release-Dateien inzwischen über einen anderen Server aus als früher, und dieser Server stand
-  nicht auf der Liste der zugelassenen Ziele. Die Liste gilt jetzt für die gesamte Domäne, über
-  die GitHub seine Release-Dateien ausliefert, statt für einzelne Servernamen — ein weiterer
-  Namenswechsel bricht damit nichts mehr.
-- **Ein fremdes oder beschädigtes Programm unter dem Namen eines Werkzeugs wird jetzt
-  erkannt.** Bisher genügte eine Datei mit dem richtigen Namen: Wer eine beliebige EXE in
-  `yt-dlp.exe` umbenannte, konnte MortysDLP damit starten — und jeder Download wäre danach
-  fehlgeschlagen, ohne erkennbaren Grund. MortysDLP fragt jetzt jedes Werkzeug beim Start, ob
-  es das ist, was es zu sein vorgibt: yt-dlp muss eine Datumsversion melden, ffmpeg und
-  ffprobe müssen sich jeweils mit ihrem eigenen Namen melden. Passt die Antwort nicht, gilt das
-  Werkzeug als nicht einsatzbereit — mit einem Dialog, der den Unterschied zu „fehlt" benennt
-  und das erneute Herunterladen anbietet. Dasselbe gilt für eine vorhandene, aber nicht mehr
-  startfähige Datei.
-- Im Fortschrittsfenster eines Downloads lag der Knopf „Abbrechen" bei größerer
-  Anzeigeskalierung außerhalb des Fensters und war damit nicht erreichbar. Das Fenster richtet
-  seine Höhe jetzt nach dem Inhalt, und ein langer Text bricht um statt zu verdrängen.
-- **Das Fortschrittsfenster beim Herunterladen eines Werkzeugs sah nach 100 % eingefroren
-  aus.** Nach dem eigentlichen Download laufen im Hintergrund noch das Entpacken, das
-  Einsetzen und eine Erfolgskontrolle — bislang ohne jede sichtbare Rückmeldung im Fenster, das
-  bei vollem Balken einfach stehen blieb. Das konnte den Eindruck erwecken, die Anwendung habe
-  sich aufgehängt, obwohl im Hintergrund alles ordnungsgemäß weiterlief. Das Fenster zeigt jetzt
-  für jeden dieser Abschnitte einen eigenen Text und einen pulsierenden statt eingefrorenen
-  Balken.
-- **Der Fortschrittsbalken beim Herunterladen sprang mehrfach von vorn los.** Lädt yt-dlp
-  Video und Audio als getrennte Spuren, meldete jede für sich 0–100 % — der Balken lief
-  einmal voll, sprang zurück auf 0, lief erneut voll, und bei aktivierter
-  H.264-Nachbearbeitung ein drittes Mal. Bei einer Playlist wiederholte sich das für jedes
-  Video. Der Balken läuft jetzt einmal über den gesamten Vorgang durch, auch über mehrere
-  Videos einer Playlist hinweg.
-- **Geschwindigkeit und Restzeit beim Herunterladen sprangen wild und wechselten zu
-  schnell zum Lesen.** yt-dlp meldet beides pro Netzwerk-Fragment neu, wodurch die
-  Anzeige zwischen sehr niedrigen und sehr hohen Werten hin- und hersprang und
-  zwischendurch auch mal leer blieb, obwohl der Download normal weiterlief. Die
-  Geschwindigkeit wird jetzt selbst aus dem tatsächlichen Byte-Zuwachs über die Zeit
-  geglättet berechnet, die Restzeit daraus abgeleitet. Der Balken bewegt sich weiterhin
-  bei jeder Meldung, der Text darunter aktualisiert sich höchstens einmal pro Sekunde.
-- Für yt-dlp wird kein Update mehr angeboten, wenn die installierte Fassung **neuer** ist als
-  die veröffentlichte — etwa nach einem Zwischenbuild. Bisher genügte es, dass sich die beiden
-  Versionsangaben unterschieden, und das Angebot war dann ein Rückschritt. Ebenso erscheint
-  kein Angebot mehr, wenn yt-dlp auf die Versionsfrage überhaupt nicht geantwortet hat; das
-  Nicht-Antworten steht stattdessen im Protokoll.
-- Für ffmpeg kann kein dauerhaftes Update-Angebot mehr entstehen. Die installierte Fassung
-  nennt ihre Version anders geschrieben als die Bezugsquelle sie meldet (mit angehängter
-  Build-Bezeichnung gegenüber der reinen Nummer). Beides wird jetzt als dieselbe Ausgabe
-  erkannt, sodass ein Angebot nur noch bei einer tatsächlich anderen Ausgabe erscheint.
-- Schlägt ein Update fehl, nennt die Meldung jetzt das Protokoll des Installations-Updaters —
-  dort steht der Grund. Bisher verwies sie auf das Protokoll der Anwendung, das genau an der
-  Stelle endet, an der das Update beginnt.
-- Startet MortysDLP nach einem Update neu, ohne dass sich die Version tatsächlich geändert
-  hat, erscheint keine Erfolgsmeldung mehr, sondern das Update gilt korrekt als
-  fehlgeschlagen.
-- Enthält ein Release mehr als eine Datei (z. B. zusätzlich eine Prüfsummenliste), lädt
-  MortysDLP jetzt zuverlässig das richtige Update-Paket — unabhängig davon, in welcher
-  Reihenfolge GitHub die Anhänge nennt. Sind mehrere Pakete gleichermaßen passend und keines
-  eindeutig das richtige, bricht MortysDLP mit einer verständlichen Meldung ab, statt zu raten.
-- Nach der Installation eines Updates zeigt MortysDLP jetzt die neue Versionsnummer an, und
-  der Update-Hinweis erscheint nicht mehr wiederholt, obwohl das Update längst installiert
-  ist. Gespeicherte Einstellungen (Download-Pfad, Sprache, Bandbreitenlimit usw.) bleiben
-  dabei erhalten. Auch die Dateieigenschaften der EXE zeigen jetzt die echte Version statt
-  „1.0.0.0".
-- Externe Werkzeuge (yt-dlp, ffmpeg, ffprobe, Whisper, TwitchDownloaderCLI) werden jetzt
-  zuverlässig gefunden, unabhängig davon, wie MortysDLP gestartet wird — etwa über eine
-  Verknüpfung mit abweichendem Arbeitsverzeichnis, als Administrator oder über die
-  Aufgabenplanung. Bisher konnte es dabei zu „nicht gefunden"-Meldungen kommen, obwohl das
-  Werkzeug vorhanden war.
-- Der Download-Verlauf liegt jetzt an einem festen, vom Startort unabhängigen Ort
-  (`%LOCALAPPDATA%\MortysDLP\`). Ein vorhandener Verlauf wird beim ersten Start nach dem
-  Update automatisch übernommen.
-- Dateinamen mit reservierten Windows-Namen (z. B. `NUL`, `CON`) oder abschließenden Punkten
-  bzw. Leerzeichen führen nicht mehr zu Dateien, die sich nicht anlegen lassen.
-- Einstellungen liegen jetzt einheitlich unter `%LOCALAPPDATA%\MortysDLP\` statt in einem
-  abweichend benannten Ordner. Bereits gespeicherte Einstellungen aus früheren Versionen
-  gehen dadurch einmalig verloren und werden beim nächsten Start neu mit den Standardwerten
-  angelegt.
-- Alle Aufrufe externer Werkzeuge haben jetzt ein Zeitlimit bzw. einen Leerlauf-Abbruch und
-  verwenden durchgehend UTF-8 — vereinzelte hängende Vorgänge und kaputte Umlaute/CJK-Zeichen
-  in Videotiteln bei bestimmten Abläufen sind damit ausgeschlossen. Beim Abbrechen wird jetzt
-  überall auch der komplette Prozessbaum beendet, sodass ffmpeg nicht mehr im Hintergrund
-  weiterlaufen und die Zieldatei gesperrt halten kann.
-- Eine beschädigte, gesperrte oder aus einem schreibgeschützten Ordner geladene Verlaufsdatei
-  lässt den Download-Verlauf nicht mehr abstürzen. Er öffnet stattdessen leer, eine defekte
-  Datei wird zur Rettung als Sicherung abgelegt statt verworfen, und das Schreiben erfolgt
-  jetzt so, dass ein Abbruch mittendrin nie eine bestehende, gültige Datei beschädigt.
-- Die Debug-Ausgabe (Download-, Batch-, Twitch-, GIF- und Konvertieren-Seite) wächst nicht
-  mehr unbegrenzt und bremst die Oberfläche bei langen Vorgängen (z. B. großen Playlists)
-  nicht mehr spürbar aus. Scrollt man während einer laufenden Ausgabe nach oben, um etwas
-  nachzulesen, reißt eine neue Zeile die Ansicht jetzt nicht mehr nach unten.
-- Auf der Konvertieren-Seite bleiben Auswahl und Scrollposition der Dateiliste jetzt während
-  einer laufenden Konvertierung erhalten. Bisher baute sich die gesamte Liste bei jeder
-  Fortschrittszeile neu auf, wodurch die Auswahl verloren ging und die Ansicht bei mehreren
-  gleichzeitigen Konvertierungen sichtbar flackerte.
-- Auf der Twitch-Seite erschien jede Zeile der yt-dlp-Ausgabe doppelt im Debug-Protokoll.
-  Jetzt erscheint sie genau einmal, stderr-Zeilen weiterhin erkennbar markiert.
-- Beim Installieren von whisper.cpp reagiert die Oberfläche jetzt auch während des Entpackens
-  und zeigt dafür eine eigene Statuszeile („Entpacke whisper.cpp …"). Bisher blieb die Anzeige
-  für die gesamte Dauer des Entpackens unverändert auf „Lade herunter" stehen, ohne dass
-  erkennbar war, dass noch etwas passiert.
-- Ein abgebrochener oder unterbrochener Whisper-Modell-Download gilt nicht mehr als
-  installiertes Modell. Bisher blieb eine unvollständige Datei liegen, erschien in der Liste
-  als vorhanden und ließ die Transkription erst mittendrin fehlschlagen. Die Modell-Liste zeigt
-  jetzt drei Zustände (nicht vorhanden, unvollständig, vollständig) statt zwei, ein
-  unvollständiges Modell lässt sich erneut laden oder löschen, und auf der Transkriptionsseite
-  ist es nicht auswählbar. Ist HuggingFace nicht erreichbar, wird automatisch eine
-  Ausweichadresse versucht.
+- **Ein installiertes Update wurde nach dem Neustart nicht erkannt:** Die alte Versionsnummer
+  blieb stehen und der Update-Banner erschien endlos wieder. Behoben; gespeicherte Einstellungen
+  bleiben über ein Update erhalten.
+- **Downloads von GitHub schlugen vollständig fehl** („Ziel nicht erlaubt“). Betroffen waren
+  Werkzeuge und das Selbst-Update. GitHub hatte den Auslieferungsserver gewechselt.
+- **Der Fortschrittsbalken beim Herunterladen** sprang mehrfach von 0 los, blieb bei manchen
+  Downloads ganz stehen, zuckte vor und zurück oder sprang bei einem Bandbreitenwechsel. Er
+  läuft jetzt einmal gleichmäßig über den gesamten Vorgang, auch über eine ganze Playlist.
+  Geschwindigkeit und Restzeit werden geglättet und höchstens einmal pro Sekunde aktualisiert.
+- **Das Rendern des Twitch-Chats als Video** brach immer mit „Unable to find FFmpeg“ ab.
+  TwitchDownloaderCLI wusste nichts vom mitgelieferten ffmpeg.
+- Eine fremde oder beschädigte Datei unter dem Namen eines Werkzeugs wird jetzt erkannt und
+  abgelehnt, statt zu unerklärlichen Fehlschlägen zu führen.
+- Externe Werkzeuge und der Download-Verlauf werden jetzt unabhängig vom Startort zuverlässig
+  gefunden (Verknüpfung mit anderem Arbeitsverzeichnis, Administrator, Aufgabenplanung); beide
+  liegen an einem festen Ort unter `%LOCALAPPDATA%\MortysDLP\`.
+- Ein abgebrochener Whisper-Modell-Download zählt nicht mehr als installiertes Modell; die Liste
+  zeigt jetzt „nicht vorhanden / unvollständig / vollständig“.
+- Auf der Konvertieren-Seite bleiben Auswahl und Scrollposition während einer laufenden
+  Konvertierung erhalten. Auf der Twitch-Seite erscheint jede Ausgabezeile nur noch einmal im
+  Protokoll. Die Debug-Ausgaben wachsen nicht mehr unbegrenzt.
+- Alle Werkzeugaufrufe haben jetzt ein Zeitlimit und verwenden UTF-8; beim Abbrechen wird der
+  gesamte Prozessbaum beendet (kein ffmpeg mehr im Hintergrund, keine kaputten Umlaute).
+- Dateinamen mit reservierten Windows-Namen (`NUL`, `CON`) oder abschließenden Punkten führen
+  nicht mehr zu Fehlern. Eine beschädigte Verlaufsdatei lässt den Verlauf nicht mehr abstürzen.
+- Schlägt nur die H.264-Nachkonvertierung fehl, nennt die Statuszeile diesen Schritt statt
+  pauschal „Fehler beim Download“. Das Fortschrittsfenster friert bei 100 % nicht mehr scheinbar
+  ein, und der Abbrechen-Knopf ist bei großer Anzeigeskalierung wieder erreichbar.
+- Ein Video-Download im Schnittmodus (x264) startete unnötig langsam durch eine überflüssige
+  Audio-Abfrage.
 
 ### Intern
-- Die Prüfung auf neue Versionen ist jetzt so gebaut, dass sie sich für beliebige externe
-  Werkzeuge wiederverwenden lässt, nicht nur für MortysDLP selbst — Grundlage für künftige
-  automatische Werkzeug-Updates. Für Nutzer ändert sich dadurch noch nichts.
-- Aufräumende Vorgänge in der Update-Kette protokollieren jetzt auch ihren Erfolg, nicht nur
-  einen Fehlschlag: geleerter Update-Zwischenspeicher, gelöschter Update-Zustand, gelöschte
-  alte Protokolldateien. Der Installations-Updater bekommt außerdem erstmals eine eigene
-  Rotation für seine Protokolldateien (Alter über 180 Tage oder mehr als 50 Dateien).
-- Der neue Installations-Updater lässt eigene Werkzeuge (`Tools\`) und den Download-Verlauf
-  jetzt grundsätzlich unangetastet, selbst wenn ein Release-Paket zufällig Dateien an
-  denselben Pfaden enthält — die Programm-Konfigurationsdatei (`MortysDLP.dll.config`) wird
-  davon ausdrücklich ausgenommen und weiterhin bei jedem Update ersetzt.
-- Der neue Installations-Updater sichert jetzt jede zu ersetzende Datei, bevor er sie
-  austauscht, und ersetzt sie atomar. Scheitert das Update mittendrin (z. B. weil eine Datei
-  gesperrt ist), werden alle bereits ersetzten Dateien automatisch aus der Sicherung
-  zurückgespielt — die vorhandene Installation bleibt in jedem Fall lauffähig. Sicherungen
-  älterer, erfolgreicher Updates werden nach 7 Tagen automatisch entfernt.
-- Der neue Installations-Updater prüft das heruntergeladene Update-Paket jetzt vollständig,
-  bevor auch nur eine Datei entpackt wird: kein Eintrag kann das Zielverzeichnis verlassen
-  (Schutz vor präparierten Archiven), keine absoluten Pfade, und eine Obergrenze für
-  Eintragsanzahl, Gesamtgröße und Kompressionsverhältnis schützt vor einer „Zip-Bombe".
-- Der neue Installations-Updater wartet jetzt geordnet darauf, dass sich MortysDLP selbst
-  beendet, bevor Dateien getauscht werden — und bricht kontrolliert ab, statt die Anwendung
-  jemals zwangsweise zu beenden, falls sie nicht rechtzeitig reagiert. Vorher wird außerdem
-  geprüft, ob der Installationsordner beschreibbar ist und genug freier Speicherplatz zur
-  Verfügung steht.
-- Der Installations-Updater hat einen eigenen, vollständigen Quellcode (bislang ein Binary
-  ohne Quellcode) und läuft auf derselben .NET-Version wie die Hauptanwendung: benannte
-  Kommandozeilenargumente, eigenes Protokoll, klare Rückgabewerte.
-- Ein beschädigtes oder unvollständiges Update-Paket lässt den Installations-Updater nicht
-  mehr abstürzen, sondern führt zu einer regulären Fehlermeldung im Protokoll — die
-  vorhandene Installation bleibt unangetastet.
-- Der Installations-Updater lässt Werkzeuge und Verlauf auch dann in Ruhe, wenn ein
-  Paket denselben Pfad in einer abweichenden Schreibweise enthält.
-- Ein Update prüft jetzt vor dem Start, ob auf **beiden** beteiligten Datenträgern genug Platz
-  ist — dem der Installation und dem der Sicherungskopie. Liegen sie auf verschiedenen
-  Laufwerken, wurde bisher nur eines davon geprüft.
-- Alle Netzabfragen laufen jetzt über eine gemeinsame Verbindungsverwaltung statt über fünf
-  getrennte, jeweils eigene Verbindungen aufbauende Instanzen. Mit umfangreicher
-  Testabdeckung für die Wiederholstrategie und die GitHub-Kontingent-Auswertung.
-- Ein neuer, toleranterer Versionsvergleich ist als Grundbaustein vorbereitet (noch nicht im
-  Update-Ablauf eingesetzt). Er erkennt künftig auch Hotfix-Tags am selben Tag
-  (`2026.06.01.1`) und Vorab-Versionen (`2026.09.01-dev.1`) korrekt als neuer bzw. älter, statt
-  Update-Hinweise für solche Tags stillschweigend zu unterdrücken. Mit umfangreicher
-  Testabdeckung, auch unter fremdsprachigen Systemeinstellungen.
-- Liegt MortysDLP auf einem Netzlaufwerk, das über einen UNC-Pfad (`\\server\share\…`)
-  angesprochen wird, weist die Startprotokollzeile zum Installationsort dies jetzt als
-  `Network` aus. Bisher fehlte diese Angabe ausgerechnet beim Installationsort, der am
-  häufigsten Probleme macht.
-- Die Update-Prüfung nutzt jetzt fünf voneinander unabhängige Wege, mit denen sich die neueste
-  verfügbare Version ermitteln lässt (u. a. über die GitHub-Veröffentlichungsseite, einen
-  Nachrichten-Feed und eine kleine, von Hand gepflegte Datei im Projekt-Repository), zu einer
-  Ausweichkette verbunden: Fällt ein Weg aus oder ist erschöpft, übernimmt automatisch der
-  nächste, und eine Quelle, die erkennbar veraltete Angaben liefert (z. B. über einen
-  Zwischenspeicher-Dienst oder eine vergessene Pflege), kann ein tatsächlich vorhandenes
-  Update nicht verdecken. Dazu eine Zielprüfung für Netzwerkanfragen, die nur bekannte,
-  verschlüsselte Adressen zulässt. Mit umfangreicher Testabdeckung, ohne echten Netzzugriff.
-- Toten, nie verwendeten Code eines älteren Zwischenspeicher-Ansatzes für die Startprüfungen
-  entfernt; eine dabei zurückbleibende, bedeutungslose Datei wird beim nächsten Start
-  automatisch aufgeräumt.
-- Testabdeckung für die Grundbausteine (Pfad-/Dateinamensbehandlung, Protokollierung,
-  Debug-Puffer, Installationsort-Erkennung, Prozessausführung) erweitert und gegen die
-  wichtigsten Randfälle abgesichert.
-- Einen gelegentlich fehlschlagenden Test in der Protokollierung stabilisiert.
-- `CHANGELOG.md` und `docs/FUNKTIONEN.md` eingeführt. Ab jetzt wird jede Änderung
-  fortlaufend dokumentiert, und `docs/FUNKTIONEN.md` beschreibt jederzeit den tatsächlichen
-  Funktionsumfang der Anwendung.
-- `.gitignore` ergänzt (Werkzeug- und Verlaufsdateien werden nie versioniert) und
-  `.editorconfig` angelegt, damit alle Werkzeuge Code einheitlich formatieren.
-- Gemeinsame Projekteinstellungen (`Directory.Build.props`) eingeführt und .NET-Analyzer
-  aktiviert, damit mögliche Fehler früher auffallen. Ungenutzte Paketabhängigkeit
-  `System.Configuration.ConfigurationManager` entfernt.
-- Testprojekt eingeführt: `dotnet test` prüft jetzt automatisch die Auswahl von
-  Video-Qualität und -Codec beim Download. Erste zehn Testfälle decken das bestehende
-  Verhalten ab.
-- Vier bestehende Compilerwarnungen behoben (mögliche Nullzugriffe in den
-  Twitch-Häkchen und ein ungenutztes Ereignis im Whisper-Modellfenster). Verhalten für
-  Nutzer unverändert. Mögliche Nullzugriffe lösen jetzt projektweit einen Build-Fehler
-  statt nur einer Warnung aus, damit neue Fälle sofort auffallen.
-- whisper.cpp und TwitchDownloaderCLI laufen jetzt über dieselbe Werkzeugverwaltung wie
-  yt-dlp und ffmpeg: derselbe Identitätsnachweis (eine umbenannte oder beschädigte Datei gilt
-  nicht mehr als installiertes Werkzeug), dieselbe Rückfallebene, falls ein Ersetzen
-  fehlschlägt, und dieselbe Erfolgskontrolle danach. Die beiden bisherigen, eigenen Wege dafür
-  sind entfernt.
-- Die Beschaffung einer Prüfsumme aus einem Release-Anhang läuft jetzt an einer gemeinsamen
-  Stelle statt an zwei nahezu gleichen Kopien.
-- Whisper-Modelle werden jetzt über dieselbe geprüfte Download-Stelle geladen wie Werkzeuge
-  (Zwischendatei, Prüfsumme wo bekannt, Größenabgleich, Umbenennen erst nach bestandener
-  Prüfung) statt über einen eigenen, ungeprüften Downloadpfad. Der Fortschritt bei großen
-  Downloads (mehrere Gigabyte) wird jetzt gedrosselt gemeldet, statt bei jedem gelesenen
-  Datenblock — das betrifft auch Werkzeug-Downloads, die dieselbe Stelle nutzen.
-- Ein Aufräumdurchgang beim Start entfernt jetzt automatisch, was die Werkzeugverwaltung über
-  die Zeit hinterlassen kann: abgebrochene Downloads nach 24 Stunden, Sicherungen eines
-  Werkzeug-Updates nach 7 Tagen, eigene Temp-Reste nach 24 Stunden, und überzählige
-  Sicherungen einer defekten Verlaufsdatei (die drei jüngsten bleiben). Läuft erst nach dem
-  Anzeigen des Hauptfensters und hält es nicht auf; jede Löschung steht im Protokoll. Eine
-  bereits vorhandene, aber seit einem früheren Umbau wirkungslose Aufräumfunktion für
-  Werkzeug-Downloads ist dabei durch diesen einheitlichen Durchgang ersetzt worden.
+- Wiederkehrende Abläufe stecken jetzt in gemeinsamen Bausteinen: Prozessausführung,
+  Netzwerkverwaltung, Versionsvergleich, geprüfter Download, Werkzeug-Abstraktion. .NET-Analyzer
+  aktiviert, mögliche Nullzugriffe sind projektweit ein Build-Fehler.
+- Deutlich erweiterte Testabdeckung (Update-Kette, Werkzeugverwaltung, Fortschritt,
+  Versionsvergleich, Prozess- und Netzschicht), überwiegend ohne echten Netzzugriff.
+- Der Installations-Updater hat einen eigenen, vollständigen Quellcode mit eigenem Protokoll,
+  Backup/Rollback, Zip-Prüfung und geordnetem Warten auf das Ende der Anwendung.
 
 ---
 
@@ -522,7 +179,8 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
 > Ältere Einträge wurden nicht rückwirkend erfasst. Die vollständige Historie steht in den
 > [GitHub-Releases](https://github.com/MortysTerminal/MortysDLP/releases).
 
-[Unreleased]: https://github.com/MortysTerminal/MortysDLP/compare/2026.06.01...HEAD
+[Unreleased]: https://github.com/MortysTerminal/MortysDLP/compare/2026.09.07...HEAD
+[2026.09.07]: https://github.com/MortysTerminal/MortysDLP/compare/2026.06.01...2026.09.07
 [2026.06.01]: https://github.com/MortysTerminal/MortysDLP/releases/tag/2026.06.01
 [2026.05.13]: https://github.com/MortysTerminal/MortysDLP/releases/tag/2026.05.13
 [2026.05.11]: https://github.com/MortysTerminal/MortysDLP/releases/tag/2026.05.11

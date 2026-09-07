@@ -4,7 +4,7 @@
 geplant ist. Bekannte Einschränkungen sind bewusst mit aufgeführt; sie werden nach und nach
 behoben.
 
-**Stand:** 2026-09-01 · beschreibt Version `2026.06.01`
+**Stand:** 2026-09-07 · beschreibt Version `2026.09.07`
 
 ---
 
@@ -80,8 +80,10 @@ Ablauf beim Start (`App.OnStartup`):
    Bedienung unterbricht: Das Ergebnis landet nur im Zwischenspeicher und im Protokoll. Wer
    ein Werkzeug aktualisieren will, sieht das und tut das auf der Seite „Werkzeuge"
    (Abschnitt 10).
-8. Ebenfalls im Hintergrund werden alte Temp-Dateien früherer Downloads aufgeräumt
-   (`ffmpeg_download_*.zip`, `extract_*`).
+8. Ebenfalls im Hintergrund läuft ein Aufräumdurchgang: abgebrochene Werkzeug-Downloads nach
+   24 Stunden, Sicherungen eines Werkzeug-Updates nach 7 Tagen, eigene Temp-Reste nach
+   24 Stunden und überzählige Sicherungen einer defekten Verlaufsdatei (die drei jüngsten
+   bleiben). Jede Löschung steht im Protokoll; das Hauptfenster wird nicht aufgehalten.
 
 **Fehlerbehandlung:** Ein unerwarteter Fehler beendet MortysDLP nicht mehr wortlos. Er wird in
 einer Protokolldatei festgehalten (siehe Abschnitt 14) und in einem Dialog mit verständlichem
@@ -348,9 +350,8 @@ Wandelt lokale Dateien um.
 - **Parallelisierung**: gleichzeitig laufen `Prozessorkerne / 2`, höchstens 4 Konvertierungen.
 - Fortschritt pro Datei; am Ende eine Zusammenfassung (erfolgreich / fehlgeschlagen /
   abgebrochen) in der Debug-Ausgabe.
-
-> **Bekannte Einschränkung:** Die Liste wird bei jeder Fortschrittsmeldung komplett neu aufgebaut;
-> Auswahl und Scrollposition gehen dabei verloren.
+- Auswahl und Scrollposition der Dateiliste bleiben während einer laufenden Konvertierung
+  erhalten.
 
 ---
 
@@ -441,8 +442,6 @@ Wandelt Videos in animierte GIFs.
 - Der Dateiname stammt aus dem echten Titel, der über die Twitch-GQL-Schnittstelle geholt
   wird; schlägt das fehl, dient die ID als Name.
 - Mindestens Video **oder** Chat muss aktiv sein — die Oberfläche erzwingt das.
-
-> **Bekannte Einschränkung:** Jede Ausgabezeile erscheint doppelt im Protokoll.
 
 ---
 

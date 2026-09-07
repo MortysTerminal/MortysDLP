@@ -11,7 +11,7 @@
     <ApplicationIcon>Resources\Icons\mw_globe_32px.ico</ApplicationIcon>
 
     <!-- EINZIGE manuell gepflegte Versionsangabe. Muss dem GitHub-Tag entsprechen. -->
-    <ReleaseVersion>2026.06.01</ReleaseVersion>
+    <ReleaseVersion>2026.09.07</ReleaseVersion>
 
     <!-- Numerische Assembly-Version: führende Nullen sind dort verboten (2026.06.01 -> 2026.6.1) -->
     <Version>$([System.Text.RegularExpressions.Regex]::Replace($(ReleaseVersion), '\.0(\d)', '.$1'))</Version>
