@@ -10,6 +10,7 @@
         ShowInTaskbar="True"
         Topmost="True"
         WindowStartupLocation="CenterOwner"
+        FontFamily="{StaticResource AppFontFamily}"
         Background="{DynamicResource SolidBackgroundFillColorBaseBrush}">
 
     <Grid>
@@ -86,7 +87,7 @@
                     <TextBox x:Name="DetailsBox"
                              IsReadOnly="True"
                              TextWrapping="Wrap"
-                             FontFamily="{StaticResource MonoFontFamily}"
+                             FontFamily="Consolas"
                              FontSize="11"
                              BorderThickness="0"
                              Background="Transparent"

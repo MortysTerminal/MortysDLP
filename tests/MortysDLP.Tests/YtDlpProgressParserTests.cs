@@ -66,6 +66,34 @@ public class YtDlpProgressParserTests
     }
 
     [Fact]
+    public void TryParse_SchaetzungAlsGleitkommazahl_LiestAnteilTrotzdem()
+    {
+        // Echte Zeile aus einem YouTube-HLS-Download ohne JS-Laufzeit (yt-dlp 2026.08.19):
+        // total_bytes = "NA", total_bytes_estimate als Float "90185145.0". Vor dem Fix blieb
+        // der Balken stehen, weil "90185145.0" nicht als Ganzzahl parste.
+        string line = "MDLPPROGRESS|6014391|NA|90185145.0|NA|7018121.705020526|downloading";
+
+        bool ok = YtDlpProgressParser.TryParse(line, out var progress);
+
+        Assert.True(ok);
+        Assert.NotNull(progress.Fraction);
+        Assert.Equal(6014391.0 / 90185145.0, progress.Fraction!.Value, precision: 6);
+        Assert.Equal(6014391L, progress.DownloadedBytes);
+        Assert.Equal(90185145L - 6014391L, progress.RemainingBytes);
+    }
+
+    [Fact]
+    public void TryParse_EtaAlsGleitkommazahl_LiestRestzeit()
+    {
+        string line = "MDLPPROGRESS|500|1000|NA|12.0|100|downloading";
+
+        bool ok = YtDlpProgressParser.TryParse(line, out var progress);
+
+        Assert.True(ok);
+        Assert.Equal(TimeSpan.FromSeconds(12), progress.Eta);
+    }
+
+    [Fact]
     public void TryParse_WederGesamtgroesseNochSchaetzungBekannt_FractionIstNull()
     {
         string line = "MDLPPROGRESS|500|NA|NA|5|100|downloading";

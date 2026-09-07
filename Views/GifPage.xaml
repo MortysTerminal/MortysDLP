@@ -1,6 +1,7 @@
 <Page x:Class="MortysDLP.Views.GifPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:v="clr-namespace:MortysDLP.Views"
       Title="GIF-Maker"
       Loaded="GifPage_Loaded">
     <Grid>
@@ -10,6 +11,10 @@
         </Grid.RowDefinitions>
         <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto">
         <StackPanel Margin="0">
+
+            <!-- Sperr-Karte: sichtbar, wenn ffmpeg/ffprobe fehlt. -->
+            <v:ToolMissingNotice x:Name="toolNotice"/>
+            <StackPanel x:Name="pnlWork">
 
             <!-- EINGABEDATEI -->
             <Border Style="{StaticResource CardBorderStyle}"
@@ -136,13 +141,14 @@
                              HorizontalScrollBarVisibility="Auto"
                              IsReadOnly="True"
                              TextWrapping="NoWrap"
-                             FontFamily="{StaticResource MonoFontFamily}"
+                             FontFamily="Consolas"
                              FontSize="12"
                              AcceptsReturn="True"
                              MaxHeight="200"/>
                 </Expander>
             </DockPanel>
 
+            </StackPanel>
         </StackPanel>
         </ScrollViewer>
 
@@ -160,7 +166,7 @@
                     <!-- Fortschritt (läuft) -->
                     <Border x:Name="pnlRunning" Padding="12,0,0,0" Visibility="Collapsed">
                         <StackPanel VerticalAlignment="Center">
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,2">
                                 <TextBlock x:Name="txtStatus" FontWeight="Bold"/>
                             </StackPanel>
                             <ProgressBar x:Name="pbProgress"

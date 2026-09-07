@@ -9,6 +9,7 @@
         Height="500"
         ShowInTaskbar="False"
         WindowStartupLocation="CenterOwner"
+        FontFamily="{StaticResource AppFontFamily}"
         Background="{DynamicResource SolidBackgroundFillColorBaseBrush}">
 
     <Grid>

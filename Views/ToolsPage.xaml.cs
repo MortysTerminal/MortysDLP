@@ -66,7 +66,10 @@ namespace MortysDLP.Views
             btnManageModels.Content = T("ToolsPage.Button.ManageModels");
 
             foreach (var row in _rows)
+            {
                 ApplyButtonTexts(row);
+                ApplyFeatureTexts(row);
+            }
 
             RefreshModelsDisplay();
         }
@@ -83,12 +86,24 @@ namespace MortysDLP.Views
                     RequiredForOperation = tool.RequiredForOperation,
                 };
                 ApplyButtonTexts(row);
+                ApplyFeatureTexts(row);
 
                 _rows.Add(row);
                 _rowByToolId[tool.Id] = row;
             }
 
             icTools.ItemsSource = _rows;
+        }
+
+        /// <summary>„Erforderlich"-Abzeichen und die „Für: …"-Zeile — die Zuordnung Werkzeug →
+        /// Funktionen kommt aus <see cref="ToolFeatureMap"/>, damit sie nicht mehrfach
+        /// hartkodiert gepflegt werden muss.</summary>
+        private static void ApplyFeatureTexts(ToolRowItem row)
+        {
+            var T = UITextDictionary.Get;
+            row.RequiredBadgeText = T("ToolsPage.Badge.Required");
+            row.UsedForText = string.Format(CultureInfo.CurrentCulture,
+                T("ToolsPage.Row.UsedFor"), ToolFeatureMap.Describe(row.ToolId, T));
         }
 
         private static void ApplyButtonTexts(ToolRowItem row)
@@ -319,21 +334,21 @@ namespace MortysDLP.Views
         }
 
         /// <summary>Nennt bei einem für den Betrieb erforderlichen Werkzeug ausdrücklich, welche
-        /// Funktionen danach nicht mehr verfügbar sind — dieselbe Zuordnung wie in
-        /// <c>StartupWindow.BuildRequiredMessage</c>, hier für die Rückfrage statt für den
-        /// Startablauf.</summary>
+        /// Funktionen danach nicht mehr verfügbar sind — die Zuordnung kommt aus
+        /// <see cref="ToolFeatureMap"/>, dieselbe Quelle wie „Für: …" in der Zeile und der
+        /// Hinweis im Startablauf.</summary>
         private static string BuildUninstallMessage(IManagedTool tool, Func<string, string> T)
         {
             string question = string.Format(CultureInfo.CurrentCulture, T("ToolsPage.Uninstall.Question"), tool.DisplayName);
 
-            string? consequence = tool.Id switch
-            {
-                "yt-dlp" => T("ToolsPage.Uninstall.Consequence.YtDlp"),
-                "ffmpeg" => T("ToolsPage.Uninstall.Consequence.Ffmpeg"),
-                _ => null,
-            };
+            if (!tool.RequiredForOperation)
+                return question;
 
-            return consequence is null ? question : question + "\n\n" + consequence;
+            string consequence = string.Format(CultureInfo.CurrentCulture,
+                T("ToolsPage.Uninstall.Consequence"),
+                tool.DisplayName, ToolFeatureMap.Describe(tool.Id, T));
+
+            return question + "\n\n" + consequence;
         }
 
         // ── Speicherort öffnen ───────────────────────────────────────────────────────

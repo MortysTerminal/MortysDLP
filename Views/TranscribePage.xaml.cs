@@ -117,9 +117,18 @@ namespace MortysDLP.Views
             var T = UITextDictionary.Get;
             bool whisperInstalled = WhisperService.IsWhisperInstalled();
             bool hasModels = WhisperService.GetInstalledModels().Any();
-            bool fullyReady = whisperInstalled && hasModels;
+            bool whisperReady = whisperInstalled && hasModels;
 
-            // Alle Arbeits-Sektionen nur zeigen wenn Whisper vollständig eingerichtet ist
+            // ffmpeg/ffprobe brauchen wir für die Audio-Extraktion aus Video-Eingaben. Fehlt
+            // eines, erscheint die Sperr-Karte mit Weiterleitung zur Werkzeuge-Seite - das
+            // Whisper-Setup-Panel bleibt davon unberührt.
+            bool ffmpegOk = toolNotice.Evaluate(
+                ("ffmpeg", AppPaths.Ffmpeg),
+                ("ffmpeg", AppPaths.Ffprobe));
+
+            bool fullyReady = whisperReady && ffmpegOk;
+
+            // Alle Arbeits-Sektionen nur zeigen wenn alles eingerichtet ist
             var workVisibility = fullyReady ? Visibility.Visible : Visibility.Collapsed;
             borderInput.Visibility    = workVisibility;
             borderSettings.Visibility = workVisibility;
@@ -130,11 +139,11 @@ namespace MortysDLP.Views
             dockLog.Visibility = (fullyReady && Properties.Settings.Default.DebugMode)
                 ? Visibility.Visible : Visibility.Collapsed;
 
-            // Setup-Panel: zeige wenn nicht vollständig eingerichtet
-            pnlSetup.Visibility = fullyReady ? Visibility.Collapsed : Visibility.Visible;
-            txtWhisperStatus.Visibility = fullyReady ? Visibility.Visible : Visibility.Collapsed;
+            // Setup-Panel: zeigt die Whisper-Einrichtung - nicht anzeigen, wenn nur ffmpeg fehlt
+            pnlSetup.Visibility = whisperReady ? Visibility.Collapsed : Visibility.Visible;
+            txtWhisperStatus.Visibility = whisperReady ? Visibility.Visible : Visibility.Collapsed;
 
-            if (fullyReady)
+            if (whisperReady)
             {
                 txtWhisperStatus.Text = T("TranscribePage.Whisper.Installed");
             }
@@ -152,7 +161,7 @@ namespace MortysDLP.Views
             }
 
             // Setup-Sektion immer korrekt benennen
-            txtSectionWhisper.Text = fullyReady
+            txtSectionWhisper.Text = whisperReady
                 ? T("TranscribePage.Section.Whisper")
                 : T("TranscribePage.Setup.Title");
 

@@ -106,12 +106,21 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
   ist.** Fehlt das Werkzeug, ist nur noch die Werkzeug-Karte mit „Installieren" zu sehen. So
   fängt man nicht mit einer Eingabe an, die ohne das Werkzeug ohnehin nicht startet. Auf der
   Transkriptions-Seite war es schon so.
+- **Fehlt ein Werkzeug, das eine Seite zwingend braucht (yt-dlp oder ffmpeg), sagt die Seite
+  das jetzt sofort** und zeigt statt des Arbeitsbereichs eine Karte mit einem Knopf „Zu den
+  Werkzeugen". Betroffen sind Download, Warteschlange, Konvertieren, GIF-Erstellung, Twitch
+  und die Transkription. Bisher ließ sich ein Vorgang starten, der dann mitten in der Arbeit
+  mit einer technischen Meldung abbrach.
+- **Die Werkzeuge-Seite zeigt jetzt pro Werkzeug, ob es erforderlich ist und für welche
+  Funktionen es gebraucht wird** („Für: Download, Batch-Download, …"). Die Rückfrage vor dem
+  Deinstallieren nennt dieselben Funktionen.
 - **Die Start-/Abbrechen-Knöpfe unten stehen jetzt auf allen Seiten links.** Auf der
   Konvertieren-Seite saßen sie als einzige rechts.
 - **Die Markenfarben sind wärmer und ruhiger geworden.** Das Gelb und das Orange an Knöpfen,
   Fortschrittsbalken und der aktiven Navigationsmarkierung sind jetzt sanfter statt grell.
-  Zahlen und technische Ausgaben (Versionen, Debug-Bereich, Zeitwerte) laufen in einer
-  Monospace-Schrift.
+- **MortysDLP bringt seine eigene Schrift mit** (Inter) und hängt nicht mehr von der
+  Systemschrift ab. Sie wird überall verwendet, in leicht enger laufender Form; nur die
+  Debug-Ausgabe bleibt bei einer Schreibmaschinen-Schrift.
 - **Der Fensterhintergrund ist jetzt ein flaches Dunkelgrau.** Bisher schimmerte das
   Windows-Mica-Material durch und ließ den Hintergrund je nach Desktop bläulich wirken.
   Vereinzelte blaue Akzente (Credits-Symbol, Links im Credits-Fenster) sind auf die
@@ -220,6 +229,16 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
   verfügbar" zu melden.
 
 ### Behoben
+- **Schlägt nur die Nachkonvertierung nach H.264 fehl, steht am Fortschritt jetzt „Fehler beim
+  Konvertieren zu H.264"** statt pauschal „Fehler beim Download". Fehlt dabei ffmpeg ganz,
+  wird das ausdrücklich als fehlendes Werkzeug gemeldet und zur Werkzeuge-Seite geführt.
+- **Der Fortschrittsbalken war bei manchen Downloads nicht zu gebrauchen** (auf der Download-
+  und der Warteschlangen-Seite): Er stand entweder die ganze Zeit still — mit der Statuszeile
+  dauerhaft auf „Videoinformationen werden abgerufen…" — oder er zuckte vor und zurück. Das
+  traf Downloads, bei denen yt-dlp die Gesamtgröße nur schätzen kann (zum Beispiel
+  YouTube-Videos, die als Fragment-Stream geladen werden); die Schätzung schwankt dabei stark.
+  Der Balken läuft jetzt gleichmäßig und nur vorwärts, mit Geschwindigkeit und Restzeit, und
+  die Statuszeile wechselt, sobald der Download beginnt.
 - **Auf der GIF-Seite blieb nach einer fertigen GIF ein leerer Streifen zurück**, wo während
   der Erstellung der Fortschrittsbalken stand. Das Ergebnisfeld nimmt jetzt sofort den frei
   gewordenen Platz ein — wie auf der Transkriptionsseite, wo es bereits so war.

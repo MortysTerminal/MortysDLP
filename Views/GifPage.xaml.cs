@@ -41,6 +41,8 @@ namespace MortysDLP.Views
 
         private void GifPage_Loaded(object sender, RoutedEventArgs e)
         {
+            EnsureRequiredTools();
+
             if (_initialized)
             {
                 SetUITexts();
@@ -49,6 +51,17 @@ namespace MortysDLP.Views
             _initialized = true;
             SetUITexts();
             tbOutputFolder.Text = Properties.Settings.Default.DownloadPath;
+        }
+
+        /// <summary>Blendet die Sperr-Karte ein und den Arbeitsbereich aus, wenn ffmpeg/ffprobe
+        /// fehlt. Rückgabe: true, wenn alles vorhanden ist.</summary>
+        private bool EnsureRequiredTools()
+        {
+            bool ok = toolNotice.Evaluate(
+                ("ffmpeg", AppPaths.Ffmpeg),
+                ("ffmpeg", AppPaths.Ffprobe));
+            pnlWork.Visibility = ok ? Visibility.Visible : Visibility.Collapsed;
+            return ok;
         }
 
         public void SetUITexts()
@@ -171,11 +184,8 @@ namespace MortysDLP.Views
                 FluentMessageBox.Show(T("GifPage.Error.NoOutput"), icon: MessageBoxImage.Warning);
                 return;
             }
-            if (string.IsNullOrWhiteSpace(ffmpegPath) || !File.Exists(ffmpegPath))
-            {
-                FluentMessageBox.Show(T("GifPage.Error.FfmpegMissing"), icon: MessageBoxImage.Error);
+            if (!EnsureRequiredTools())
                 return;
-            }
 
             if (!Directory.Exists(outputDir))
             {
@@ -216,6 +226,7 @@ namespace MortysDLP.Views
                 DeletePartialGif();
                 AppendDebug($"[ERROR] {ex.Message}");
                 ShowResult(false, string.Empty);
+                if (ex is ToolMissingException) EnsureRequiredTools();
             }
             finally
             {

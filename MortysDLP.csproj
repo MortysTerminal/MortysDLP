@@ -99,6 +99,20 @@
     </Resource>
   </ItemGroup>
 
+  <!--
+    Mitgelieferte Schrift: Inter / Inter Tight (SIL Open Font License 1.1). Als Resource in
+    die Assembly eingebettet, Zugriff ueber pack://application:,,,/Resources/Fonts/#Inter Tight.
+    OFL.txt wandert mit in die Ausgabe, weil die Lizenz das Mitliefern des Lizenztextes
+    verlangt.
+  -->
+  <ItemGroup>
+    <None Remove="Resources\Fonts\*.ttf" />
+    <Resource Include="Resources\Fonts\*.ttf" />
+    <Content Include="Resources\Fonts\OFL.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
   <ItemGroup>
     <Compile Update="Properties\Resources.Designer.cs">
       <DesignTime>True</DesignTime>

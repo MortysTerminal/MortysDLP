@@ -155,15 +155,23 @@ namespace MortysDLP.Views
             btnUpdateAction.Visibility = installed ? Visibility.Visible   : Visibility.Collapsed;
             btnUninstall.Visibility    = installed ? Visibility.Visible   : Visibility.Collapsed;
 
-            // Fehlt das Werkzeug, gibt es hier nichts zu tun: den VOD-Download-Abschnitt und
-            // die Fußleiste ausblenden statt nur sperren. Sichtbar bleibt die Werkzeug-Karte
-            // mit dem Installieren-Knopf. Gleiches Muster wie die TranscribePage bei Whisper.
-            var work = installed ? Visibility.Visible : Visibility.Collapsed;
+            // Für den VOD-Download (Video) sind yt-dlp und ffmpeg zwingend. Fehlt eines,
+            // erscheint die Sperr-Karte mit Weiterleitung zur Werkzeuge-Seite.
+            bool requiredOk = toolNotice.Evaluate(
+                ("yt-dlp", AppPaths.YtDlp),
+                ("ffmpeg", AppPaths.Ffmpeg),
+                ("ffmpeg", AppPaths.Ffprobe));
+
+            // Fehlt TwitchDownloaderCLI, gibt es hier ohnehin nichts zu tun: den
+            // VOD-Download-Abschnitt und die Fußleiste ausblenden statt nur sperren. Sichtbar
+            // bleibt die Werkzeug-Karte mit dem Installieren-Knopf. Gleiches Muster wie die
+            // TranscribePage bei Whisper.
+            var work = (installed && requiredOk) ? Visibility.Visible : Visibility.Collapsed;
             borderDownload.Visibility = work;
             borderActions.Visibility  = work;
 
             double bw = Properties.Settings.Default.DownloadBandwidthMBps;
-            borderBandwidthHint.Visibility = (installed && bw > 0)
+            borderBandwidthHint.Visibility = (installed && requiredOk && bw > 0)
                 ? Visibility.Visible : Visibility.Collapsed;
         }
 
@@ -620,6 +628,10 @@ namespace MortysDLP.Views
                     // Byte-Stand läuft weiter. Siehe DownloadStreamTracker.
                     var ytDlpStreamTracker = new DownloadStreamTracker();
 
+                    // Glättet den Balken, wenn yt-dlp die Gesamtgröße nur schätzt (dann
+                    // zittert der rohe Anteil vor und zurück) - je Stream zurückgesetzt.
+                    var barProgress = new MonotonicProgress();
+
                     // Der Balken darf bei jeder Meldung springen (glatte Bewegung); der Text
                     // daneben wird gedrosselt, sonst wechselt er mehrfach pro Sekunde und ist
                     // nicht lesbar - dieselbe Behebung wie auf der Download-Seite.
@@ -645,10 +657,14 @@ namespace MortysDLP.Views
                                 if (zeigeGeschwindigkeit)
                                     speedTextThrottle.Restart();
 
+                                double shown = templateProgress.FractionIsEstimate
+                                    ? barProgress.Advance(templateProgress.Fraction.Value)
+                                    : barProgress.Advance(templateProgress.Fraction.Value, alpha: 1.0, maxStep: 1.0);
+
                                 Dispatcher.Invoke(() =>
                                 {
                                     pbDownload.IsIndeterminate = false;
-                                    pbDownload.Value = Math.Min(100, templateProgress.Fraction.Value * 100);
+                                    pbDownload.Value = Math.Min(100, shown * 100);
                                     if (zeigeGeschwindigkeit)
                                         txtDownloadSpeed.Text = $"{smoothedSpeed!.Value / (1024.0 * 1024.0):F2} MiB/s";
                                 });
@@ -663,6 +679,7 @@ namespace MortysDLP.Views
                             {
                                 ytDlpSpeedEstimator.Reset();
                                 ytDlpSpeedClock.Restart();
+                                barProgress.Reset();
                             }
                             else
                             {
@@ -730,6 +747,12 @@ namespace MortysDLP.Views
                 SetStatus(T("TwitchPage.Status.Canceled"), false);
                 Dispatcher.Invoke(() => txtDownloadSpeed.Text = "");
                 AppendDebug("[ABBRUCH] Download wurde abgebrochen.");
+            }
+            catch (ToolMissingException ex)
+            {
+                SetStatus(T("TwitchPage.Status.Error"), false);
+                AppendDebug($"[FEHLER] {ex.Message}");
+                Dispatcher.Invoke(RefreshToolStatus); // blendet die Sperr-Karte ein
             }
             catch (Exception ex)
             {

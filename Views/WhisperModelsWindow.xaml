@@ -5,6 +5,7 @@
         Width="760" Height="600"
         MinWidth="680" MinHeight="480"
         WindowStartupLocation="CenterOwner"
+        FontFamily="{StaticResource AppFontFamily}"
         ShowInTaskbar="False">
 
     <Grid Margin="20,16,20,16">

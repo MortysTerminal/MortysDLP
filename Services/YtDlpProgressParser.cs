@@ -18,12 +18,17 @@ namespace MortysDLP.Services
     /// <c>null</c>, wenn yt-dlp keinen Byte-Stand angibt.</param>
     /// <param name="RemainingBytes">Noch ausstehende Bytes bis zur (ggf. geschätzten)
     /// Gesamtgröße. <c>null</c>, wenn sich das nicht berechnen lässt.</param>
+    /// <param name="FractionIsEstimate"><c>true</c>, wenn <see cref="Fraction"/> aus
+    /// <c>total_bytes_estimate</c> stammt (die genaue Gesamtgröße war „NA"). Die Schätzung
+    /// schwankt stark — die Anzeige muss den Anteil dann glätten, statt ihn direkt zu
+    /// übernehmen.</param>
     internal readonly record struct YtDlpProgress(
         double? Fraction,
         TimeSpan? Eta,
         double? SpeedBytesPerSecond,
         long? DownloadedBytes,
-        long? RemainingBytes);
+        long? RemainingBytes,
+        bool FractionIsEstimate = false);
 
     /// <summary>
     /// Liest den Fortschritt aus einer fest vorgegebenen <c>--progress-template</c>-Zeile —
@@ -74,10 +79,19 @@ namespace MortysDLP.Services
             long? totalEstimate = ParseLong(fields[2]);
             int? etaSeconds = ParseInt(fields[3]);
             double? speed = ParseDouble(fields[4]);
+
+            // yt-dlp gibt gerade total_bytes_estimate (und je nach Format auch total_bytes/eta)
+            // als Gleitkommazahl aus - "90185145.0", nicht "90185145". Bei einem HLS-/
+            // Fragment-Download (z. B. YouTube ohne JS-Laufzeit) ist total_bytes dann "NA" und
+            // nur die Schätzung da; ohne diese Nachsicht bliebe der Balken stehen.
+            total ??= RoundToLong(fields[1]);
+            totalEstimate ??= RoundToLong(fields[2]);
+            etaSeconds ??= RoundToInt(fields[3]);
             // fields[5] (Status) wird aktuell nicht ausgewertet - für einen künftigen
             // Bedarf (z. B. "finished" von "downloading" unterscheiden) bereits mitgeführt.
 
             long? denominator = total ?? totalEstimate;
+            bool fractionIsEstimate = total is not > 0 && totalEstimate is > 0;
             double? fraction = downloaded.HasValue && denominator is > 0
                 ? Math.Clamp((double)downloaded.Value / denominator.Value, 0.0, 1.0)
                 : null;
@@ -88,7 +102,7 @@ namespace MortysDLP.Services
                 ? Math.Max(0, denominator.Value - downloaded.Value)
                 : null;
 
-            progress = new YtDlpProgress(fraction, eta, speed, downloaded, remaining);
+            progress = new YtDlpProgress(fraction, eta, speed, downloaded, remaining, fractionIsEstimate);
             return true;
         }
 
@@ -100,5 +114,19 @@ namespace MortysDLP.Services
 
         private static double? ParseDouble(string s) =>
             double.TryParse(s, NumberStyles.Float, CultureInfo.InvariantCulture, out double v) ? v : null;
+
+        /// <summary>Liest eine Zahl, die yt-dlp als Gleitkommawert schreibt ("90185145.0"),
+        /// und rundet sie auf einen ganzzahligen Byte-/Sekundenwert. <c>null</c> bei "NA" oder
+        /// ungültiger Eingabe.</summary>
+        private static long? RoundToLong(string s) =>
+            double.TryParse(s, NumberStyles.Float, CultureInfo.InvariantCulture, out double v) && v >= 0
+                ? (long)Math.Round(v)
+                : null;
+
+        private static int? RoundToInt(string s)
+        {
+            long? l = RoundToLong(s);
+            return l is >= 0 and <= int.MaxValue ? (int)l.Value : null;
+        }
     }
 }

@@ -1,6 +1,7 @@
 <Page x:Class="MortysDLP.Views.TwitchPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:v="clr-namespace:MortysDLP.Views"
       Title="Twitch VOD-Download"
       Loaded="TwitchPage_Loaded">
     <Grid>
@@ -44,6 +45,9 @@
                     </StackPanel>
                 </StackPanel>
             </Border>
+
+            <!-- Sperr-Karte: sichtbar, wenn yt-dlp oder ffmpeg für den VOD-Download fehlt. -->
+            <v:ToolMissingNotice x:Name="toolNotice"/>
 
             <!-- VOD-DOWNLOAD -->
             <Border x:Name="borderDownload" Style="{StaticResource CardBorderStyle}">
@@ -186,7 +190,7 @@
                 <Expander x:Name="expDebug" IsExpanded="False">
                     <TextBox x:Name="tbDebugOutput" VerticalScrollBarVisibility="Auto"
                              HorizontalScrollBarVisibility="Auto" IsReadOnly="True" TextWrapping="NoWrap"
-                             FontFamily="{StaticResource MonoFontFamily}" FontSize="12" AcceptsReturn="True" AcceptsTab="True"
+                             FontFamily="Consolas" FontSize="12" AcceptsReturn="True" AcceptsTab="True"
                              MaxHeight="200"/>
                 </Expander>
             </DockPanel>
@@ -204,7 +208,7 @@
                             VerticalAlignment="Center" Margin="8,0,0,0"/>
                     <Border Padding="12,0,0,0">
                         <StackPanel x:Name="spLoadingbar" Visibility="Hidden" Orientation="Vertical" HorizontalAlignment="Center">
-                            <StackPanel Orientation="Horizontal" Margin="4,0,4,4">
+                            <StackPanel Orientation="Horizontal" Margin="4,0,4,2">
                                 <TextBlock x:Name="txtDownloadStatus" FontWeight="Bold"/>
                                 <TextBlock x:Name="txtDownloadSpeed" Margin="8,0,0,0" Opacity="0.7" FontSize="12"/>
                             </StackPanel>

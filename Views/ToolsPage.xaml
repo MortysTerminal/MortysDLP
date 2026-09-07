@@ -46,7 +46,7 @@
                                     <StackPanel>
                                         <Grid>
                                             <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="150"/>
+                                                <ColumnDefinition Width="200"/>
                                                 <ColumnDefinition Width="120"/>
                                                 <ColumnDefinition Width="110"/>
                                                 <ColumnDefinition Width="*"/>
@@ -54,9 +54,20 @@
                                                 <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
 
-                                            <TextBlock Grid.Column="0" Text="{Binding DisplayName}"
-                                                       FontWeight="SemiBold" VerticalAlignment="Center"
-                                                       Margin="0,0,8,0" TextWrapping="Wrap"/>
+                                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,8,0">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="{Binding DisplayName}"
+                                                               FontWeight="SemiBold" TextWrapping="Wrap"/>
+                                                    <Border Visibility="{Binding RequiredForOperation, Converter={StaticResource BoolToVis}}"
+                                                            Background="{DynamicResource SubtleFillColorSecondaryBrush}"
+                                                            CornerRadius="3" Padding="5,1" Margin="8,0,0,0" VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding RequiredBadgeText}" FontSize="10"
+                                                                   FontWeight="SemiBold" Opacity="0.8"/>
+                                                    </Border>
+                                                </StackPanel>
+                                                <TextBlock Text="{Binding UsedForText}" FontSize="11" Opacity="0.6"
+                                                           TextWrapping="Wrap" Margin="0,2,0,0"/>
+                                            </StackPanel>
 
                                             <TextBlock Grid.Column="1" Text="{Binding StateText}"
                                                        Foreground="{Binding StateColor}" FontWeight="SemiBold"

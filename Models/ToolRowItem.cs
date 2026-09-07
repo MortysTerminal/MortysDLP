@@ -88,6 +88,16 @@ namespace MortysDLP.Models
         private bool _requiredForOperation;
         public bool RequiredForOperation { get => _requiredForOperation; set => SetField(ref _requiredForOperation, value); }
 
+        /// <summary>Fertige Anzeigezeile „Für: Download, Stapel-Download, …" (aus
+        /// <see cref="Services.Tools.ToolFeatureMap"/>). Nur zur Anzeige.</summary>
+        private string _usedForText = "";
+        public string UsedForText { get => _usedForText; set => SetField(ref _usedForText, value); }
+
+        /// <summary>Beschriftung des „Erforderlich"-Abzeichens — sichtbar nur bei
+        /// <see cref="RequiredForOperation"/>.</summary>
+        private string _requiredBadgeText = "";
+        public string RequiredBadgeText { get => _requiredBadgeText; set => SetField(ref _requiredBadgeText, value); }
+
         private ToolRowState _state;
         public ToolRowState State { get => _state; set => SetField(ref _state, value); }
 

@@ -54,6 +54,12 @@ namespace MortysDLP.Views
                 "WPF-Bibliothek mit modernem Fluent-Design (Windows 11-Stil). Stellt Farbpaletten, Schriften und UI-Designressourcen bereit, die das Erscheinungsbild von MortysDLP prägen.",
                 "MIT",
                 "https://github.com/lepoco/wpfui"),
+
+            new(
+                "Inter / Inter Tight",
+                "Die Schrift der gesamten Oberfläche. Inter von Rasmus Andersson, für Bildschirme gezeichnet; Inter Tight ist die etwas enger laufende Schwester. Beide werden mitgeliefert, der Lizenztext liegt als OFL.txt neben der Anwendung.",
+                "SIL Open Font License 1.1",
+                "https://github.com/rsms/inter"),
         ];
 
         public CreditsWindow()

@@ -26,6 +26,18 @@ namespace MortysDLP.Views
         private double _lastProgress = 0;
         private bool _initialized = false;
         private string? _lastOutputFilePath;
+
+        // true, solange vor dem eigentlichen Download noch Titel/Playlist/Tonspur-Daten
+        // geholt werden. Die erste echte Fortschrittszeile beendet die Phase (Statustext von
+        // "Videoinformationen werden abgerufen…" auf "Lädt…", unbestimmter Balken bleibt nur,
+        // wenn yt-dlp keine Größe kennt). Je Video zurückgesetzt.
+        private bool _inPreparationPhase = true;
+
+        // Grobe Phase des laufenden Vorgangs - entscheidet im Fehlerfall, ob der Status
+        // "Fehler beim Download" oder "Fehler beim Konvertieren" lautet. Je Download neu gesetzt.
+        private enum DownloadStage { Preparing, Downloading, Converting }
+        private DownloadStage _stage = DownloadStage.Preparing;
+
         private readonly YtDlpRunner _ytDlpRunner = new();
         private readonly LogBuffer _log;
 
@@ -33,6 +45,10 @@ namespace MortysDLP.Views
         // Prozess-Neustart nach einem Limitwechsel) zurückgesetzt, siehe
         // BeginDownloadProgressTracking.
         private readonly DownloadStreamTracker _streamTracker = new();
+        // Glättet den angezeigten Anteil, wenn yt-dlp die Gesamtgröße nur schätzt (HLS/
+        // Fragment) - der rohe Anteil zittert sonst vor und zurück. Je Stream/Video
+        // zurückgesetzt.
+        private readonly MonotonicProgress _barProgress = new();
         private int _streamCount = 1;
         private bool _reservePostConversion;
         private int _playlistVideoIndex;
@@ -60,7 +76,11 @@ namespace MortysDLP.Views
 
         private void DownloadPage_Loaded(object sender, RoutedEventArgs e)
         {
-            if (_initialized) 
+            // Bei jeder Navigation zur Seite prüfen - ein Werkzeug kann zwischenzeitlich über
+            // die Werkzeuge-Seite oder von außen entfernt worden sein.
+            EnsureRequiredTools();
+
+            if (_initialized)
             {
                 // Bei erneutem Laden (z.B. nach Sprachumschaltung) nur UI-Texte aktualisieren
                 SetUITexts();
@@ -77,6 +97,18 @@ namespace MortysDLP.Views
             CustomFilenameAdjustments();
             ValidateDownloadButton();
             ApplyDebugMode();
+        }
+
+        /// <summary>Blendet die Sperr-Karte ein und den Arbeitsbereich aus, wenn yt-dlp oder
+        /// ffmpeg/ffprobe fehlt. Rückgabe: true, wenn alles vorhanden ist.</summary>
+        private bool EnsureRequiredTools()
+        {
+            bool ok = toolNotice.Evaluate(
+                ("yt-dlp", AppPaths.YtDlp),
+                ("ffmpeg", AppPaths.Ffmpeg),
+                ("ffmpeg", AppPaths.Ffprobe));
+            pnlWork.Visibility = ok ? Visibility.Visible : Visibility.Collapsed;
+            return ok;
         }
 
         internal void RefreshPaths()
@@ -278,6 +310,11 @@ namespace MortysDLP.Views
 
         private async void btnDownloadStart_Click(object sender, RoutedEventArgs e)
         {
+            // Fängt auch den Fall ab, dass ein Werkzeug gelöscht wurde, während die Seite offen war.
+            if (!EnsureRequiredTools())
+                return;
+
+            _stage = DownloadStage.Preparing;
             _log.Clear();
             Dispatcher.Invoke(() =>
             {
@@ -293,9 +330,10 @@ namespace MortysDLP.Views
             UpdateProgress(0);
             // In der Vorbereitungsphase (Titel abrufen, Playlist auflösen, Audio-Metadaten
             // prüfen) gibt es noch keinen echten Fortschrittswert - ein unbestimmter Balken
-            // statt eines toten 0 % zeigt, dass etwas passiert. UpdateProgress setzt
-            // IsIndeterminate wieder auf false, sobald der erste echte Wert (oder ein Fehler)
-            // eintrifft.
+            // statt eines toten 0 % zeigt, dass etwas passiert. Die erste Fortschrittszeile
+            // beendet die Phase (LeavePreparationPhase), UpdateProgress raeumt den
+            // unbestimmten Balken bei einem echten Wert oder einem Fehler ab.
+            _inPreparationPhase = true;
             pbDownload.IsIndeterminate = true;
             SetiaStatusIcon(iaStatusIconType.Loading);
             txtDownloadStatus.Text = UITextDictionary.Get("DownloadPage.Status.FetchingInfo");
@@ -418,12 +456,22 @@ namespace MortysDLP.Views
                 UpdateProgress(_lastProgress, isError: true);
                 txtDownloadStatus.Text = UITextDictionary.Get("DownloadPage.Status.Canceled");
             }
+            catch (ToolMissingException ex)
+            {
+                AppendOutput($"[ERROR] {ex.Message}");
+                SetiaStatusIcon(iaStatusIconType.Error);
+                UpdateProgress(_lastProgress, isError: true);
+                txtDownloadStatus.Text = UITextDictionary.Get("DownloadPage.Status.ErrorToolMissing");
+                EnsureRequiredTools(); // blendet die Sperr-Karte mit dem fehlenden Werkzeug ein
+            }
             catch (Exception ex)
             {
                 AppendOutput($"[ERROR] {ex.Message}");
                 SetiaStatusIcon(iaStatusIconType.Error);
                 UpdateProgress(_lastProgress, isError: true);
-                txtDownloadStatus.Text = UITextDictionary.Get("DownloadPage.Status.Error");
+                txtDownloadStatus.Text = UITextDictionary.Get(_stage == DownloadStage.Converting
+                    ? "DownloadPage.Status.ErrorConverting"
+                    : "DownloadPage.Status.Error");
             }
             finally
             {
@@ -856,6 +904,7 @@ namespace MortysDLP.Views
                         // dieser Sprung als (negative, auf 0 geklammerte) Geschwindigkeit gewertet.
                         _speedEstimator.Reset();
                         _speedEstimatorClock.Restart();
+                        _barProgress.Reset();
                     }
                     else
                     {
@@ -880,6 +929,11 @@ namespace MortysDLP.Views
             // nicht pro Stream neu bei 0 beginnt.
             if (YtDlpProgressParser.TryParse(line, out var templateProgress))
             {
+                // Der eigentliche Download läuft: der Statustext der Vorbereitungsphase
+                // ("Videoinformationen werden abgerufen…") muss jetzt weg, egal ob yt-dlp
+                // schon einen Anteil kennt.
+                LeavePreparationPhase();
+
                 if (templateProgress.Fraction.HasValue)
                 {
                     // Eigene, geglättete Geschwindigkeit/Restzeit statt der von yt-dlp pro
@@ -891,9 +945,31 @@ namespace MortysDLP.Views
                         : null;
                     double? speedMBs = smoothedSpeed / (1024.0 * 1024.0);
                     TimeSpan? eta = DownloadSpeedEstimator.EstimateEta(templateProgress.RemainingBytes, smoothedSpeed);
+
+                    // Bei geschätzter Gesamtgröße (HLS/Fragment) zittert der rohe Anteil vor
+                    // und zurück - dann geglättet und nur vorwärts. Bei bekannter Größe direkt
+                    // (alpha/maxStep so hoch, dass nur die Rückwärts-Sperre wirkt).
+                    double streamFraction = templateProgress.FractionIsEstimate
+                        ? _barProgress.Advance(templateProgress.Fraction.Value)
+                        : _barProgress.Advance(templateProgress.Fraction.Value, alpha: 1.0, maxStep: 1.0);
+
                     double overall = DownloadProgressWeighting.ForStream(
-                        templateProgress.Fraction.Value * 100, Math.Max(_streamTracker.StreamIndex, 0), _streamCount, _reservePostConversion);
+                        streamFraction * 100, Math.Max(_streamTracker.StreamIndex, 0), _streamCount, _reservePostConversion);
                     UpdateProgress(ApplyPlaylistScale(overall), false, speedMBs, eta);
+                }
+                else if (templateProgress.DownloadedBytes.HasValue)
+                {
+                    // Gesamtgröße unbekannt (echter Livestream ohne Schätzung): kein Anteil,
+                    // aber der Balken soll laufen statt bei 0 zu stehen, und die
+                    // Geschwindigkeit anzeigen.
+                    double? smoothedSpeed = _speedEstimator.Update(
+                        templateProgress.DownloadedBytes.Value, _speedEstimatorClock.Elapsed.TotalSeconds);
+                    Dispatcher.Invoke(() =>
+                    {
+                        pbDownload.IsIndeterminate = true;
+                        if (smoothedSpeed is > 0)
+                            txtDownloadProgress.Text = $"{smoothedSpeed.Value / (1024.0 * 1024.0):F2} MB/s";
+                    });
                 }
                 return;
             }
@@ -914,7 +990,23 @@ namespace MortysDLP.Views
             }
 
             var stage = DetectDownloadStage(line);
-            if (stage != null) Dispatcher.Invoke(() => txtDownloadStatus.Text = stage);
+            if (stage != null)
+            {
+                _inPreparationPhase = false;
+                if (_stage == DownloadStage.Preparing) _stage = DownloadStage.Downloading;
+                Dispatcher.Invoke(() => txtDownloadStatus.Text = stage);
+            }
+        }
+
+        /// <summary>Beendet die Vorbereitungsphase: Statustext von "Videoinformationen werden
+        /// abgerufen…" auf "Lädt…". Idempotent - läuft nur beim ersten Aufruf je Video.</summary>
+        private void LeavePreparationPhase()
+        {
+            if (!_inPreparationPhase) return;
+            _inPreparationPhase = false;
+            if (_stage == DownloadStage.Preparing) _stage = DownloadStage.Downloading;
+            Dispatcher.Invoke(() =>
+                txtDownloadStatus.Text = UITextDictionary.Get("DownloadPage.Status.Loading"));
         }
 
         /// <summary>Erkennt die aktuelle yt-dlp Verarbeitungsphase aus der Ausgabezeile.</summary>
@@ -1072,6 +1164,7 @@ namespace MortysDLP.Views
             }
 
             AppendOutput($"[SCHNITT] Video-Codec ist {codec ?? "unbekannt"} ({videoWidth}x{videoHeight}) – Konvertierung zu H.264 erforderlich.");
+            _stage = DownloadStage.Converting;
 
             // 2. Besten Encoder ermitteln (GPU > CPU, auflösungsabhängig)
             Dispatcher.Invoke(() => txtDownloadStatus.Text = UITextDictionary.Get("DownloadPage.Status.DetectingEncoder"));
@@ -1573,6 +1666,7 @@ namespace MortysDLP.Views
                 _playlistVideoIndex = i;
                 BeginDownloadProgressTracking(isAudioOnly, isVideoformat);
                 UpdateProgress(ApplyPlaylistScale(0));
+                _inPreparationPhase = false;
                 Dispatcher.Invoke(() => txtDownloadStatus.Text = T("DownloadPage.Status.Loading"));
 
                 while (true)
@@ -1759,6 +1853,8 @@ namespace MortysDLP.Views
         private void BeginDownloadProgressTracking(bool isAudioOnly, bool reservePostConversion)
         {
             _streamTracker.Reset();
+            _barProgress.Reset();
+            if (_stage == DownloadStage.Converting) _stage = DownloadStage.Downloading; // neues Video in einer Playlist
             _streamCount = isAudioOnly ? 1 : 2;
             _reservePostConversion = reservePostConversion;
             _speedEstimator.Reset();

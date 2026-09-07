@@ -6,6 +6,7 @@
         WindowStartupLocation="CenterScreen"
         Width="1430" Height="950"
         MinWidth="1100" MinHeight="700"
+        FontFamily="{StaticResource AppFontFamily}"
         Background="{DynamicResource SolidBackgroundFillColorBaseBrush}">
 
     <Window.Resources>
@@ -416,7 +417,6 @@
                         <!-- Kicker: vorbereiteter Platz, leer und ausgeblendet bis der
                              Schluessel "Header.Kicker" gefuellt wird. -->
                         <TextBlock x:Name="txtHeaderKicker" Visibility="Collapsed"
-                                   FontFamily="{StaticResource MonoFontFamily}"
                                    FontSize="10" FontWeight="SemiBold"
                                    Foreground="{StaticResource BrandOrangeBrush}"
                                    Margin="0,0,0,4"/>
@@ -439,11 +439,9 @@
                         </Button>
                         <StackPanel Orientation="Horizontal" Opacity="0.45" Margin="10,0,0,0"
                                     VerticalAlignment="Center">
-                            <TextBlock x:Name="txtVersionLabel"
-                                       FontFamily="{StaticResource MonoFontFamily}" FontSize="11"
+                            <TextBlock x:Name="txtVersionLabel" FontSize="11"
                                        VerticalAlignment="Center"/>
-                            <TextBlock x:Name="lblMainVersion"
-                                       FontFamily="{StaticResource MonoFontFamily}" FontSize="11"
+                            <TextBlock x:Name="lblMainVersion" FontSize="11"
                                        VerticalAlignment="Center" Margin="6,0,0,0" Text="-"/>
                         </StackPanel>
                     </StackPanel>

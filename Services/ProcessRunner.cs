@@ -80,6 +80,14 @@ namespace MortysDLP.Services
             Func<int, TimeSpan, ProcessResult> buildResult,
             CancellationToken ct)
         {
+            // Fehlt die Datei, liefert Process.Start nur einen nackten Win32Exception ("Das
+            // System kann die angegebene Datei nicht finden"). Für einen absoluten Pfad wissen
+            // wir es vorher besser und werfen einen eindeutigen, fangbaren Typ - die
+            // aufrufende Seite kann dann zur Werkzeuge-Seite weiterleiten. PATH-basierte
+            // Aufrufe (kein Wurzelpfad) bleiben unangetastet.
+            if (Path.IsPathRooted(exePath) && !File.Exists(exePath))
+                throw new ToolMissingException(exePath);
+
             var psi = new ProcessStartInfo
             {
                 FileName = exePath,

@@ -12,6 +12,7 @@
         SizeToContent="Height"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"
+        FontFamily="{StaticResource AppFontFamily}"
         WindowStyle="ToolWindow">
     <!-- SizeToContent="Height" statt einer festen Höhe: Bei 125 % und 150 % Skalierung wuchsen
          Titelleiste und Text über die 175 DIP hinaus, und der Abbrechen-Knopf lag außerhalb des

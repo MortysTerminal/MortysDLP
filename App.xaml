@@ -29,10 +29,11 @@
                 <GradientStop Color="#F09346" Offset="1"/>
             </LinearGradientBrush>
 
-            <!-- Monospace-Familie fuer Zahlen, technische Angaben und den (vorbereiteten)
-                 Kicker. JetBrains Mono ist noch nicht mitgeliefert; bis dahin traegt der
-                 Fallback (Cascadia Mono / Consolas). -->
-            <FontFamily x:Key="MonoFontFamily">JetBrains Mono, Cascadia Mono, Consolas</FontFamily>
+            <!-- Mitgelieferte Schrift (SIL OFL 1.1). "Inter Tight" ist Inter, vom Gestalter
+                 selbst etwas enger gezeichnet - kein Kniff, dieselbe Schrift. Wird global
+                 verwendet; Segoe UI als Rueckfall, falls die eingebettete Datei nicht laedt.
+                 Nur die Debug-/Protokollausgabe bleibt bewusst bei Consolas. -->
+            <FontFamily x:Key="AppFontFamily">pack://application:,,,/Resources/Fonts/#Inter Tight, Segoe UI Variable, Segoe UI</FontFamily>
 
             <!-- Akzentfarben des Fluent-Themes auf die Marke legen. Vier Schlüssel allein
                  reichen nicht - zusätzlich braucht es die eigenen
@@ -69,6 +70,7 @@
 
             <!-- Global TextBlock style for adaptive Light/Dark text -->
             <Style TargetType="TextBlock">
+                <Setter Property="FontFamily" Value="{StaticResource AppFontFamily}"/>
                 <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}"/>
                 <Style.Triggers>
                     <Trigger Property="IsEnabled" Value="False">
@@ -80,6 +82,7 @@
 
             <!-- Global Label style for adaptive Light/Dark text -->
             <Style TargetType="Label">
+                <Setter Property="FontFamily" Value="{StaticResource AppFontFamily}"/>
                 <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}"/>
                 <Style.Triggers>
                     <Trigger Property="IsEnabled" Value="False">

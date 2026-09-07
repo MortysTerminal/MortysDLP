@@ -465,15 +465,20 @@ namespace MortysDLP
 
         private string BuildRequiredMessage(IManagedTool tool, Func<string, string> T)
         {
+            string features = ToolFeatureMap.Describe(tool.Id, T);
+            string affected = string.IsNullOrEmpty(features)
+                ? ""
+                : "\n\n" + Fmt(T("StartupWindow.Tool.AffectedFeatures"), features);
+
             switch (tool.Id)
             {
                 case "yt-dlp":
                     return Fmt(T("StartupWindow.YtDlp.Required"),
-                        tool.DisplayName, Properties.Settings.Default.MortysDLPGitHubURL);
+                        tool.DisplayName, Properties.Settings.Default.MortysDLPGitHubURL) + affected;
 
                 case "ffmpeg":
                     return Fmt(T("StartupWindow.Ffmpeg.Required"),
-                        Properties.Settings.Default.MortysDLPGitHubURL);
+                        Properties.Settings.Default.MortysDLPGitHubURL) + affected;
 
                 default:
                     Log.Warn($"[{tool.Id}] Für dieses Werkzeug gibt es noch keinen Hinweistext zur " +

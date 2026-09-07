@@ -115,11 +115,21 @@ public class ProcessRunnerTests : IDisposable
     }
 
     [Fact]
-    public async Task RunAsync_UngueltigerPfad_Wirft()
+    public async Task RunAsync_AbsoluterPfadOhneDatei_WirftToolMissingException()
     {
         string fakePath = Path.Combine(Path.GetTempPath(), $"does-not-exist_{Guid.NewGuid():N}.exe");
 
-        await Assert.ThrowsAnyAsync<Exception>(() => ProcessRunner.RunAsync(fakePath, []));
+        var ex = await Assert.ThrowsAsync<ToolMissingException>(() => ProcessRunner.RunAsync(fakePath, []));
+        Assert.Equal(fakePath, ex.ExecutablePath);
+    }
+
+    [Fact]
+    public async Task RunAsync_RelativerName_KeinToolMissingException()
+    {
+        // Ein nicht-absoluter Name wird über PATH aufgelöst - der Vorab-Wächter greift dort
+        // bewusst nicht. Fehlt das Programm, kommt weiterhin die Win32Exception von Process.Start.
+        await Assert.ThrowsAsync<System.ComponentModel.Win32Exception>(() =>
+            ProcessRunner.RunAsync($"does-not-exist_{Guid.NewGuid():N}", []));
     }
 
     [Fact]

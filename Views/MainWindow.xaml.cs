@@ -404,6 +404,17 @@ namespace MortysDLP
             }
         }
 
+        /// <summary>Springt zur Werkzeuge-Seite. Aufgerufen von der Sperr-Karte
+        /// (<see cref="Views.ToolMissingNotice"/>), wenn einer Funktionsseite ein erforderliches
+        /// Werkzeug fehlt.</summary>
+        public void NavigateToTools()
+        {
+            if (SettingsNavigationList.SelectedIndex == 0)
+                MainFrame.Navigate(_toolsPage);
+            else
+                SettingsNavigationList.SelectedIndex = 0; // löst SettingsNavigationList_SelectionChanged aus
+        }
+
         private void SettingsNavigationList_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             int idx = SettingsNavigationList.SelectedIndex;

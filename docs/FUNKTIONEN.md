@@ -145,6 +145,18 @@ ablehnt — dieselbe Behandlung wie bei einem fehlenden Werkzeug.
 Derselbe Ausweis ist auch die Erfolgskontrolle nach einem Update (Schritt 6 unten): Ein Update,
 nach dem sich das Werkzeug nicht mehr ausweisen kann, gilt als fehlgeschlagen.
 
+### Wenn ein Pflicht-Werkzeug zur Laufzeit fehlt
+
+Wird yt-dlp oder ffmpeg nach dem Start entfernt — über die Deinstallieren-Schaltfläche auf der
+Seite „Werkzeuge" oder von außen (Virenscanner, manuelles Löschen) —, zeigt jede betroffene
+Seite statt ihres Arbeitsbereichs eine Karte: Sie nennt das fehlende Werkzeug, listet die
+Funktionen, die davon abhängen, und führt mit einem Knopf direkt zur Seite „Werkzeuge". Das
+gilt für Download, Batch-Download, Konvertieren, GIF-Maker, Twitch (Video) und die Transkription
+(dort für die Audio-Extraktion). Sobald das Werkzeug wieder installiert ist, verschwindet die
+Karte beim nächsten Öffnen der Seite. Scheitert erst ein Zwischenschritt an einem fehlenden
+Werkzeug (etwa die Nachkonvertierung nach H.264), nennt die Statuszeile diesen Schritt, nicht
+pauschal „Fehler beim Download".
+
 ### Wie ein Werkzeug-Update abläuft
 
 Für alle vier Werkzeuge gilt derselbe Ablauf, auch wenn er an unterschiedlichen Stellen ausgelöst
@@ -443,6 +455,9 @@ lassen.
 - Je Werkzeug eine Zeile mit **Zustand** (fehlt / unvollständig / installiert / Update
   verfügbar), **installierter Version**, **Speicherort** und **Dateigröße** — sowie, wie viel
   Platz alle Werkzeuge und Modelle zusammen belegen.
+- Ist ein Werkzeug für den Betrieb erforderlich, trägt seine Zeile das Abzeichen
+  **„Erforderlich"**. Darunter steht **„Für: …"** mit den Funktionen, die das Werkzeug
+  brauchen (z. B. „Für: Download, Batch-Download, Konvertieren, …").
 - **Reparieren** lädt ein Werkzeug neu und ersetzt es — auch wenn die Versionsnummer stimmt.
   Das ist der richtige Weg für eine beschädigte oder leere Datei, die sonst nicht ohne
   manuelles Löschen wieder in Ordnung zu bringen wäre.

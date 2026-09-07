@@ -55,6 +55,18 @@ namespace MortysDLP.Views
         private void ConvertPage_Loaded(object sender, RoutedEventArgs e)
         {
             SetUITexts();
+            EnsureRequiredTools();
+        }
+
+        /// <summary>Blendet die Sperr-Karte ein und den Arbeitsbereich aus, wenn ffmpeg/ffprobe
+        /// fehlt. Rückgabe: true, wenn alles vorhanden ist.</summary>
+        private bool EnsureRequiredTools()
+        {
+            bool ok = toolNotice.Evaluate(
+                ("ffmpeg", AppPaths.Ffmpeg),
+                ("ffmpeg", AppPaths.Ffprobe));
+            pnlWork.Visibility = ok ? Visibility.Visible : Visibility.Collapsed;
+            return ok;
         }
 
         public void SetUITexts()
@@ -135,6 +147,9 @@ namespace MortysDLP.Views
 
         private async void btnConvertStart_Click(object sender, RoutedEventArgs e)
         {
+            if (!EnsureRequiredTools())
+                return;
+
             _log.Clear();
             btnConvertStart.IsEnabled = false;
             btnConvertCancel.IsEnabled = true;
@@ -293,6 +308,12 @@ namespace MortysDLP.Views
             catch (OperationCanceledException)
             {
                 file.Status = UITextDictionary.Get("ConvertPage.Status.Canceled");
+            }
+            catch (ToolMissingException ex)
+            {
+                file.Status = UITextDictionary.Get("ConvertPage.Status.Error");
+                AppendDebugOutput($"[{file.Name}] Fehler: {ex.Message}");
+                Dispatcher.Invoke(() => EnsureRequiredTools());
             }
             catch (Exception ex)
             {

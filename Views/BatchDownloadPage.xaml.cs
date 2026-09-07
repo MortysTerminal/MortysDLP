@@ -95,6 +95,8 @@ namespace MortysDLP.Views
 
         private void BatchDownloadPage_Loaded(object sender, RoutedEventArgs e)
         {
+            EnsureRequiredTools();
+
             if (_initialized)
             {
                 SetUITexts();
@@ -118,6 +120,18 @@ namespace MortysDLP.Views
             btnClearList.IsEnabled = !_downloadRunning && hasEntries;
             btnRequeueDone.IsEnabled = !_downloadRunning && hasEntries && hasSelection;
             btnRemoveSelected.IsEnabled = !_downloadRunning && hasEntries && hasSelection;
+        }
+
+        /// <summary>Blendet die Sperr-Karte ein und den Arbeitsbereich aus, wenn yt-dlp oder
+        /// ffmpeg/ffprobe fehlt. Rückgabe: true, wenn alles vorhanden ist.</summary>
+        private bool EnsureRequiredTools()
+        {
+            bool ok = toolNotice.Evaluate(
+                ("yt-dlp", AppPaths.YtDlp),
+                ("ffmpeg", AppPaths.Ffmpeg),
+                ("ffmpeg", AppPaths.Ffprobe));
+            pnlWork.Visibility = ok ? Visibility.Visible : Visibility.Collapsed;
+            return ok;
         }
 
         internal void RefreshPaths()
@@ -466,6 +480,9 @@ namespace MortysDLP.Views
 
         private async void btnStartAll_Click(object sender, RoutedEventArgs e)
         {
+            if (!EnsureRequiredTools())
+                return;
+
             // Nur Einträge die noch nicht fertig sind starten; wenn alle fertig → alle nochmal
             var toRun = _entries
                 .Where(en => en.Status == UITextDictionary.Get("BatchDownloadPage.Status.Waiting")
@@ -559,11 +576,19 @@ namespace MortysDLP.Views
                 {
                     errors++;
                     completed++;
-                    entry.Status   = UITextDictionary.Get("BatchDownloadPage.Status.Error");
+                    // Phase aus dem zuletzt gesetzten Eintrags-Status ablesen: Vor der
+                    // Nachkonvertierung steht dort "Konvertiere zu H.264" (:841). Fehlt ein
+                    // Werkzeug, sagt die Meldung das statt "Fehler".
+                    bool wasConverting = entry.Status == UITextDictionary.Get("DownloadPage.Status.ConvertingH264");
+                    entry.Status = UITextDictionary.Get(
+                        ex is ToolMissingException ? "BatchDownloadPage.Status.ErrorToolMissing"
+                        : wasConverting            ? "BatchDownloadPage.Status.ErrorConverting"
+                        :                            "BatchDownloadPage.Status.Error");
                     entry.Progress = 0;
                     entry.Icon = "\uEA39"; // Error/Warning
                     entry.IconColor = (System.Windows.Media.Brush)FindResource("ErrorBrush");
                     AppendDebug($"[ERROR] {entry.Url}: {ex.Message}");
+                    if (ex is ToolMissingException) Dispatcher.Invoke(() => EnsureRequiredTools());
                 }
             }
 
@@ -670,6 +695,11 @@ namespace MortysDLP.Views
             string? lastOutputFile = null;
             var speedEstimator = new DownloadSpeedEstimator();
             var speedClock = Stopwatch.StartNew();
+            // Glättet den Balken bei geschätzter Gesamtgröße (HLS/Fragment - der rohe Anteil
+            // zittert sonst vor und zurück). Nur bei einem echten Streamwechsel zurücksetzen,
+            // nicht bei einer wiederholten Destination-Zeile (--continue nach Limitwechsel).
+            var barProgress = new MonotonicProgress();
+            var barStreamTracker = new DownloadStreamTracker();
 
             void OnStdOut(string line)
             {
@@ -686,6 +716,8 @@ namespace MortysDLP.Views
                     lastOutputFile = line["[download] Destination: ".Length..].Trim();
                     speedEstimator.Reset();
                     speedClock.Restart();
+                    if (barStreamTracker.RegisterDestination(lastOutputFile))
+                        barProgress.Reset();
                 }
 
                 // Phase erkennen → entry.Status
@@ -705,7 +737,10 @@ namespace MortysDLP.Views
                         double? smoothedSpeed = templateProgress.DownloadedBytes.HasValue
                             ? speedEstimator.Update(templateProgress.DownloadedBytes.Value, speedClock.Elapsed.TotalSeconds)
                             : null;
-                        entry.Progress = templateProgress.Fraction.Value * 100;
+                        double shown = templateProgress.FractionIsEstimate
+                            ? barProgress.Advance(templateProgress.Fraction.Value)
+                            : barProgress.Advance(templateProgress.Fraction.Value, alpha: 1.0, maxStep: 1.0);
+                        entry.Progress = shown * 100;
                         UpdateCurrentSpeed(smoothedSpeed / (1024.0 * 1024.0));
                     }
                     return;

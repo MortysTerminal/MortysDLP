@@ -62,6 +62,7 @@ public class StartupToolTextsTests : IDisposable
         "StartupWindow.Tool.BrokenQuestion",
         "StartupWindow.Tool.InstallSuccess",
         "StartupWindow.Tool.InstallFailed",
+        "StartupWindow.Tool.AffectedFeatures",
         "StartupWindow.ToolUpdate.RolledBack",
         "StartupWindow.Title.Error",
         "StartupWindow.Title.DownloadComplete",

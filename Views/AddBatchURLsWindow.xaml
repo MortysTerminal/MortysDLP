@@ -9,6 +9,7 @@
         Height="500" Width="700"
         MinHeight="400" MinWidth="500"
         WindowStartupLocation="CenterOwner"
+        FontFamily="{StaticResource AppFontFamily}"
         ShowInTaskbar="False">
     <Grid Margin="15">
         <Grid.RowDefinitions>
@@ -41,7 +42,7 @@
                  TextWrapping="NoWrap"
                  VerticalScrollBarVisibility="Auto"
                  HorizontalScrollBarVisibility="Auto"
-                 FontFamily="{StaticResource MonoFontFamily}"
+                 FontFamily="Consolas"
                  FontSize="13"
                  Padding="5"
                  TextChanged="txtUrls_TextChanged"/>
