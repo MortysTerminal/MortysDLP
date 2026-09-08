@@ -200,7 +200,7 @@ namespace MortysDLP.Views
             double bw = Properties.Settings.Default.DownloadBandwidthMBps;
             if (bw > 0)
             {
-                txtBandwidthHint.Text = string.Format(T("Global.BandwidthHint"), bw.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                txtBandwidthHint.Text = UITextDictionary.Format("Global.BandwidthHint", bw.ToString(System.Globalization.CultureInfo.InvariantCulture));
                 borderBandwidthHint.Visibility = Visibility.Visible;
             }
             else
@@ -529,7 +529,7 @@ namespace MortysDLP.Views
                         ch = cVal;
                 }
 
-                AppendOutput($"[META] SampleRate={(sr?.ToString() ?? "?")} Hz, Channels={(ch?.ToString() ?? "?")}");
+                AppendOutput($"[META] SampleRate={(sr?.ToString(CultureInfo.InvariantCulture) ?? "?")} Hz, Channels={(ch?.ToString(CultureInfo.InvariantCulture) ?? "?")}");
                 return (sr, ch);
             }
             catch (OperationCanceledException) { throw; }
@@ -660,7 +660,7 @@ namespace MortysDLP.Views
                     AppendOutput("[AUDIO-ONLY] Audio-Bitrate: Höchste (keine feste Bitrate erzwungen)");
 
                 if (needEnhance)
-                    AppendOutput($"[AUDIO-ONLY] Reencode erzwungen (asr={(sourceAsr?.ToString() ?? "NA")}, ch={(sourceChannels?.ToString() ?? "NA")}) -> 48kHz Stereo");
+                    AppendOutput($"[AUDIO-ONLY] Reencode erzwungen (asr={(sourceAsr?.ToString(CultureInfo.InvariantCulture) ?? "NA")}, ch={(sourceChannels?.ToString(CultureInfo.InvariantCulture) ?? "NA")}) -> 48kHz Stereo");
                 else
                     AppendOutput($"[AUDIO-ONLY] Kein SR/Channel-Reencode nötig (asr={sourceAsr} Hz, ch={sourceChannels})");
             }
@@ -806,7 +806,7 @@ namespace MortysDLP.Views
             else
             {
                 FluentMessageBox.Show(
-                    string.Format(UITexte.UITexte.MainWindow_Label_Click_DownloadPathNotFound, path),
+                    string.Format(CultureInfo.CurrentCulture, UITexte.UITexte.MainWindow_Label_Click_DownloadPathNotFound, path),
                     icon: MessageBoxImage.Error);
             }
         }
@@ -1590,7 +1590,7 @@ namespace MortysDLP.Views
                 _playlistVideoCount = 0;
             }
 
-            string doneMsg = string.Format(T("DownloadPage.Playlist.Done"), totalVideos);
+            string doneMsg = UITextDictionary.Format("DownloadPage.Playlist.Done", totalVideos);
             AppendOutput(doneMsg);
             Dispatcher.Invoke(() =>
             {
@@ -1622,7 +1622,7 @@ namespace MortysDLP.Views
                 // Fortschritt aktualisieren
                 Dispatcher.Invoke(() =>
                 {
-                    txtPlaylistProgress.Text = string.Format(T("DownloadPage.Playlist.VideoProgress"), videoNum, totalVideos);
+                    txtPlaylistProgress.Text = UITextDictionary.Format("DownloadPage.Playlist.VideoProgress", videoNum, totalVideos);
                     txtPlaylistProgress.Visibility = Visibility.Visible;
                 });
 
@@ -1641,7 +1641,7 @@ namespace MortysDLP.Views
                     else
                     {
                         // Erste Probe (kein Prefetch vorhanden)
-                        AppendOutput(string.Format(T("DownloadPage.Playlist.ProbingNext"), videoNum, totalVideos));
+                        AppendOutput(UITextDictionary.Format("DownloadPage.Playlist.ProbingNext", videoNum, totalVideos));
                         var meta = await GetSourceAudioMetadataAsync(ytDlpPath, videoUrl, token);
                         sourceAsr = meta.SampleRate;
                         sourceChannels = meta.Channels;
@@ -1652,7 +1652,7 @@ namespace MortysDLP.Views
                     {
                         string nextVideoUrl = PlaylistHelper.BuildVideoUrl(videoIds[i + 1]);
                         int nextNum = i + 2;
-                        AppendOutput(string.Format(T("DownloadPage.Playlist.ProbingNext"), nextNum, totalVideos));
+                        AppendOutput(UITextDictionary.Format("DownloadPage.Playlist.ProbingNext", nextNum, totalVideos));
                         nextProbeTask = GetSourceAudioMetadataAsync(ytDlpPath, nextVideoUrl, token);
                     }
                     else
@@ -1662,7 +1662,7 @@ namespace MortysDLP.Views
                 }
 
                 // Download für aktuelles Video
-                AppendOutput(string.Format(T("DownloadPage.Playlist.Downloading"), videoNum, totalVideos, videoUrl));
+                AppendOutput(UITextDictionary.Format("DownloadPage.Playlist.Downloading", videoNum, totalVideos, videoUrl));
                 _playlistVideoIndex = i;
                 BeginDownloadProgressTracking(isAudioOnly, isVideoformat);
                 UpdateProgress(ApplyPlaylistScale(0));
@@ -1760,8 +1760,8 @@ namespace MortysDLP.Views
 
                 if (timeline.ShowDialog() == true && timeline.Confirmed)
                 {
-                    tbTimespanFrom.Text = timeline.SelectedStart.ToString(@"hh\:mm\:ss");
-                    tbTimespanTo.Text = timeline.SelectedEnd.ToString(@"hh\:mm\:ss");
+                    tbTimespanFrom.Text = timeline.SelectedStart.ToString(@"hh\:mm\:ss", CultureInfo.InvariantCulture);
+                    tbTimespanTo.Text = timeline.SelectedEnd.ToString(@"hh\:mm\:ss", CultureInfo.InvariantCulture);
                 }
             }
             catch (OperationCanceledException)

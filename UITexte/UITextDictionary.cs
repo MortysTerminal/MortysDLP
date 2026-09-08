@@ -1371,5 +1371,13 @@ namespace MortysDLP.UITexte
         {
             return _currentTexts.TryGetValue(key, out var value) ? value : $"[{key}]";
         }
+
+        /// <summary>Holt den Text zu <paramref name="key"/> und setzt die Platzhalter ein.
+        /// Formatiert in der Kultur des Nutzers - das ist Anzeigetext, also ausdruecklich
+        /// statt implizit (CA1305).</summary>
+        public static string Format(string key, params object?[] args)
+        {
+            return string.Format(System.Globalization.CultureInfo.CurrentCulture, Get(key), args);
+        }
     }
 }

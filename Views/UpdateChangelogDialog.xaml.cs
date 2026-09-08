@@ -51,7 +51,7 @@ namespace MortysDLP.Views
                 btnSkip.Content        = T("UpdateBannerDialog.Button.Skip");
                 btnSkip.ToolTip        = T("UpdateBannerDialog.Button.Skip.Tooltip");
             }
-            txtSubtitle.Text = string.Format(subtitleTemplate, version);
+            txtSubtitle.Text = string.Format(System.Globalization.CultureInfo.CurrentCulture, subtitleTemplate, version);
 
             txtChangelogLabel.Text = T("UpdateBannerDialog.ChangelogLabel");
 

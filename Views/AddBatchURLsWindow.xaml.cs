@@ -47,8 +47,8 @@ namespace MortysDLP.Views
 
             if (invalidCount > 0)
             {
-                var message = string.Format(
-                    T("AddBatchUrlsWindow.Confirm.Message"),
+                var message = UITextDictionary.Format(
+                    "AddBatchUrlsWindow.Confirm.Message",
                     valid.Count,
                     invalidCount);
 

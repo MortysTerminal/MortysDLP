@@ -203,7 +203,7 @@ namespace MortysDLP.Views
             double bw = Properties.Settings.Default.DownloadBandwidthMBps;
             if (bw > 0)
             {
-                txtBandwidthHint.Text = string.Format(T("Global.BandwidthHint"), bw.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                txtBandwidthHint.Text = UITextDictionary.Format("Global.BandwidthHint", bw.ToString(System.Globalization.CultureInfo.InvariantCulture));
                 borderBandwidthHint.Visibility = Visibility.Visible;
             }
             else
@@ -229,7 +229,7 @@ namespace MortysDLP.Views
                 Process.Start(new ProcessStartInfo { FileName = path, UseShellExecute = true });
             else
                 FluentMessageBox.Show(
-                    string.Format(UITexte.UITexte.MainWindow_Label_Click_DownloadPathNotFound, path),
+                    string.Format(System.Globalization.CultureInfo.CurrentCulture, UITexte.UITexte.MainWindow_Label_Click_DownloadPathNotFound, path),
                     icon: MessageBoxImage.Error);
         }
 

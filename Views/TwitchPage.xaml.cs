@@ -110,7 +110,7 @@ namespace MortysDLP.Views
             double bw = Properties.Settings.Default.DownloadBandwidthMBps;
             if (bw > 0)
             {
-                txtBandwidthHint.Text = string.Format(T("Global.BandwidthHint"), bw.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                txtBandwidthHint.Text = UITextDictionary.Format("Global.BandwidthHint", bw.ToString(CultureInfo.InvariantCulture));
                 borderBandwidthHint.Visibility = System.Windows.Visibility.Visible;
             }
             else
@@ -140,7 +140,7 @@ namespace MortysDLP.Views
             double? sizeMb = TwitchDownloaderService.GetFileSizeMB();
             if (sizeMb.HasValue)
             {
-                txtFileSize.Text       = string.Format(T("TwitchPage.Tool.FileSize"), sizeMb.Value);
+                txtFileSize.Text       = UITextDictionary.Format("TwitchPage.Tool.FileSize", sizeMb.Value);
                 txtFileSize.Visibility = Visibility.Visible;
             }
             else
@@ -337,7 +337,7 @@ namespace MortysDLP.Views
             catch (Exception ex)
             {
                 FluentMessageBox.Show(
-                    string.Format(T("TwitchPage.Uninstall.Failed"), ex.Message),
+                    UITextDictionary.Format("TwitchPage.Uninstall.Failed", ex.Message),
                     T("TwitchPage.Uninstall.Title"),
                     MessageBoxButton.OK, MessageBoxImage.Error,
                     owner: Window.GetWindow(this));
@@ -377,8 +377,8 @@ namespace MortysDLP.Views
                     if (result.Status != ToolInstallStatus.Canceled)
                     {
                         string message = result.Status == ToolInstallStatus.RolledBack
-                            ? string.Format(T("StartupWindow.ToolUpdate.RolledBack"), _tool.DisplayName)
-                            : string.Format(T("StartupWindow.Tool.InstallFailed"), _tool.DisplayName);
+                            ? UITextDictionary.Format("StartupWindow.ToolUpdate.RolledBack", _tool.DisplayName)
+                            : UITextDictionary.Format("StartupWindow.Tool.InstallFailed", _tool.DisplayName);
 
                         FluentMessageBox.Show(
                             message,
@@ -400,7 +400,7 @@ namespace MortysDLP.Views
                 AppendDebug($"[SETUP] Fehler: {ex.Message}");
                 SetStatus(T("TwitchPage.Status.Error"), false);
                 FluentMessageBox.Show(
-                    string.Format(T("TwitchPage.Error.InstallFailed"), ex.Message),
+                    UITextDictionary.Format("TwitchPage.Error.InstallFailed", ex.Message),
                     T("TwitchPage.UpdateCheck.Title"),
                     MessageBoxButton.OK, MessageBoxImage.Error,
                     owner: Window.GetWindow(this));
@@ -416,7 +416,7 @@ namespace MortysDLP.Views
         }
 
         private static string StageText(ToolInstallStage stage, string displayName, Func<string, string> T) =>
-            string.Format(stage switch
+            string.Format(CultureInfo.CurrentCulture, stage switch
             {
                 ToolInstallStage.Downloading => T("StartupWindow.Status.Downloading"),
                 ToolInstallStage.Extracting => T("StartupWindow.Status.Extracting"),
@@ -442,11 +442,11 @@ namespace MortysDLP.Views
                 if (outcome.Verdict.Offer)
                 {
                     // Update verfügbar → Button in Primärfarbe orange
-                    btnUpdateAction.Content   = string.Format(T("TwitchPage.Button.UpdateAvailable"), outcome.RemoteVersion);
+                    btnUpdateAction.Content   = UITextDictionary.Format("TwitchPage.Button.UpdateAvailable", outcome.RemoteVersion);
                     btnUpdateAction.IsEnabled = true;
                     btnUpdateAction.Tag       = "update";
                     SetButtonStyle(btnUpdateAction, primary: true);
-                    txtUpdateHint.Text       = string.Format(T("TwitchPage.Tool.UpdateAvailable"), outcome.RemoteVersion);
+                    txtUpdateHint.Text       = UITextDictionary.Format("TwitchPage.Tool.UpdateAvailable", outcome.RemoteVersion);
                     pnlUpdateHint.Visibility = Visibility.Visible;
                 }
                 else

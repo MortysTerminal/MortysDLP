@@ -37,8 +37,8 @@ namespace MortysDLP.Views
 
             bool whisperInstalled = WhisperService.IsWhisperInstalled();
             string statusKey = whisperInstalled ? "WhisperModels.Whisper.Installed" : "WhisperModels.Whisper.NotInstalled";
-            txtWhisperEngineStatus.Text = string.Format(T("WhisperModels.Whisper.Status"), T(statusKey));
-            txtModelsDir.Text = string.Format(T("WhisperModels.Info.ModelsDir"),
+            txtWhisperEngineStatus.Text = UITextDictionary.Format("WhisperModels.Whisper.Status", T(statusKey));
+            txtModelsDir.Text = UITextDictionary.Format("WhisperModels.Info.ModelsDir",
                 Path.GetFullPath(WhisperService.ModelsDirectory));
             btnUninstall.Visibility = whisperInstalled ? Visibility.Visible : Visibility.Collapsed;
         }
@@ -86,7 +86,7 @@ namespace MortysDLP.Views
             scrollModels.Visibility = (whisperInstalled || hasAnyModel) ? Visibility.Visible : Visibility.Collapsed;
 
             string statusKey = whisperInstalled ? "WhisperModels.Whisper.Installed" : "WhisperModels.Whisper.NotInstalled";
-            txtWhisperEngineStatus.Text = string.Format(T("WhisperModels.Whisper.Status"), T(statusKey));
+            txtWhisperEngineStatus.Text = UITextDictionary.Format("WhisperModels.Whisper.Status", T(statusKey));
             btnUninstall.Visibility = whisperInstalled ? Visibility.Visible : Visibility.Collapsed;
         }
 
@@ -131,12 +131,12 @@ namespace MortysDLP.Views
                     // wissen muss (02-BEST-PRACTICES.md, Abschnitt 6).
                     if (result.Status == ToolInstallStatus.RolledBack)
                     {
-                        FluentMessageBox.Show(string.Format(T("StartupWindow.ToolUpdate.RolledBack"), tool.DisplayName),
+                        FluentMessageBox.Show(UITextDictionary.Format("StartupWindow.ToolUpdate.RolledBack", tool.DisplayName),
                             icon: MessageBoxImage.Warning, owner: this);
                     }
                     else if (result.Status != ToolInstallStatus.Canceled)
                     {
-                        FluentMessageBox.Show(string.Format(T("StartupWindow.Tool.InstallFailed"), tool.DisplayName),
+                        FluentMessageBox.Show(UITextDictionary.Format("StartupWindow.Tool.InstallFailed", tool.DisplayName),
                             icon: MessageBoxImage.Error, owner: this);
                     }
                     return;
@@ -149,7 +149,7 @@ namespace MortysDLP.Views
             catch (OperationCanceledException) { }
             catch (Exception ex)
             {
-                FluentMessageBox.Show(string.Format(T("WhisperModels.Error.Install"), ex.Message),
+                FluentMessageBox.Show(UITextDictionary.Format("WhisperModels.Error.Install", ex.Message),
                     icon: MessageBoxImage.Error, owner: this);
             }
             finally
@@ -159,7 +159,7 @@ namespace MortysDLP.Views
         }
 
         private static string StageText(ToolInstallStage stage, string displayName, Func<string, string> T) =>
-            string.Format(stage switch
+            string.Format(System.Globalization.CultureInfo.CurrentCulture, stage switch
             {
                 ToolInstallStage.Downloading => T("StartupWindow.Status.Downloading"),
                 ToolInstallStage.Extracting => T("StartupWindow.Status.Extracting"),
@@ -184,7 +184,7 @@ namespace MortysDLP.Views
             if (model == null) return;
 
             var T = UITextDictionary.Get;
-            SetBusy(true, string.Format(T("WhisperModels.Downloading"), model.GetDisplayName(UITextDictionary.CurrentLanguage)));
+            SetBusy(true, UITextDictionary.Format("WhisperModels.Downloading", model.GetDisplayName(UITextDictionary.CurrentLanguage)));
 
             _cts = new CancellationTokenSource();
 
@@ -199,14 +199,14 @@ namespace MortysDLP.Views
                 await WhisperModelStore.DownloadAsync(model, WhisperService.ModelsDirectory, progress, _cts.Token);
 
                 FluentMessageBox.Show(
-                    string.Format(T("WhisperModels.Success.Download"),
+                    UITextDictionary.Format("WhisperModels.Success.Download",
                         model.GetDisplayName(UITextDictionary.CurrentLanguage)),
                     icon: MessageBoxImage.Information, owner: this);
             }
             catch (OperationCanceledException) { }
             catch (Exception ex)
             {
-                FluentMessageBox.Show(string.Format(T("WhisperModels.Error.Download"), ex.Message),
+                FluentMessageBox.Show(UITextDictionary.Format("WhisperModels.Error.Download", ex.Message),
                     icon: MessageBoxImage.Error, owner: this);
             }
             finally
@@ -229,7 +229,7 @@ namespace MortysDLP.Views
             var lang = UITextDictionary.CurrentLanguage;
 
             var result = FluentMessageBox.Show(
-                string.Format(T("WhisperModels.Delete.Question"), model.GetDisplayName(lang)),
+                UITextDictionary.Format("WhisperModels.Delete.Question", model.GetDisplayName(lang)),
                 T("WhisperModels.Delete.Title"),
                 MessageBoxButton.YesNo, MessageBoxImage.Warning, this);
 
@@ -242,7 +242,7 @@ namespace MortysDLP.Views
             }
             catch (Exception ex)
             {
-                FluentMessageBox.Show(string.Format(T("WhisperModels.Error.Delete"), ex.Message),
+                FluentMessageBox.Show(UITextDictionary.Format("WhisperModels.Error.Delete", ex.Message),
                     icon: MessageBoxImage.Error, owner: this);
             }
         }
@@ -276,7 +276,7 @@ namespace MortysDLP.Views
             }
             catch (Exception ex)
             {
-                FluentMessageBox.Show(string.Format(T("WhisperModels.Uninstall.Error"), ex.Message),
+                FluentMessageBox.Show(UITextDictionary.Format("WhisperModels.Uninstall.Error", ex.Message),
                     icon: MessageBoxImage.Error, owner: this);
             }
             finally

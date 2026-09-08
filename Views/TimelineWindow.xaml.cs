@@ -43,7 +43,7 @@ namespace MortysDLP.Views
         {
             var T = UITextDictionary.Get;
             txtHeaderTitle.Text = T("Timeline.Title");
-            txtVideoDuration.Text = string.Format(T("Timeline.TotalDuration"), FormatTime(_totalDuration));
+            txtVideoDuration.Text = UITextDictionary.Format("Timeline.TotalDuration", FormatTime(_totalDuration));
             txtManualFrom.Text = T("Timeline.From");
             txtManualTo.Text = T("Timeline.To");
             btnApply.Content = T("Timeline.Apply");
@@ -100,7 +100,7 @@ namespace MortysDLP.Views
 
             txtStartLabel.Text = $"▶ {FormatTime(start)}";
             txtEndLabel.Text = $"{FormatTime(end)} ◀";
-            txtSelectionDuration.Text = string.Format(UITextDictionary.Get("Timeline.Selection"), FormatTime(duration));
+            txtSelectionDuration.Text = UITextDictionary.Format("Timeline.Selection", FormatTime(duration));
 
             UpdateSelectedRangeVisual();
         }
@@ -244,8 +244,8 @@ namespace MortysDLP.Views
 
         private static string FormatTime(TimeSpan ts)
             => ts.TotalHours >= 1
-                ? ts.ToString(@"hh\:mm\:ss")
-                : ts.ToString(@"mm\:ss");
+                ? ts.ToString(@"hh\:mm\:ss", CultureInfo.InvariantCulture)
+                : ts.ToString(@"mm\:ss", CultureInfo.InvariantCulture);
 
         private static bool TryParseTime(string input, out TimeSpan result)
         {

@@ -161,7 +161,7 @@ namespace MortysDLP
         {
             var T = UITextDictionary.Get;
             _blockedUpdateReasonKey  = null;
-            txtUpdateBannerMain.Text = string.Format(T("UpdateBanner.Text"), version);
+            txtUpdateBannerMain.Text = UITextDictionary.Format("UpdateBanner.Text", version);
             txtUpdateBannerSub.Text  = installKind == InstallKind.NeedsElevation
                 ? T("UpdateBanner.SubText.NeedsElevation")
                 : T("UpdateBanner.SubText");

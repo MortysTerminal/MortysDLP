@@ -193,7 +193,7 @@ namespace MortysDLP.Views
                 catch (Exception ex)
                 {
                     FluentMessageBox.Show(
-                        string.Format(T("ConvertPage.Message.CannotCreateFolder"), ex.Message),
+                        UITextDictionary.Format("ConvertPage.Message.CannotCreateFolder", ex.Message),
                         icon: MessageBoxImage.Error);
                     return;
                 }

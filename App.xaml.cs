@@ -8,6 +8,7 @@ using MortysDLP.UITexte;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -921,7 +922,7 @@ namespace MortysDLP
             {
                 Log.Error("Update fehlgeschlagen", ex);
                 MessageBox.Show(
-                    string.Format(UITexte.UITexte.Error_UpdateFailed, ex.Message),
+                    string.Format(CultureInfo.CurrentCulture, UITexte.UITexte.Error_UpdateFailed, ex.Message),
                     UITexte.UITexte.Error,
                     MessageBoxButton.OK, MessageBoxImage.Error);
             }
@@ -940,7 +941,7 @@ namespace MortysDLP
         {
             if (!Directory.Exists(sourceDir))
                 throw new DirectoryNotFoundException(
-                    string.Format(UITexte.UITexte.Error_DirectoryNotFound, sourceDir));
+                    string.Format(CultureInfo.CurrentCulture, UITexte.UITexte.Error_DirectoryNotFound, sourceDir));
 
             Directory.CreateDirectory(targetDir);
             foreach (var file in Directory.GetFiles(sourceDir))

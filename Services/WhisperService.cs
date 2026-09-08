@@ -258,7 +258,7 @@ namespace MortysDLP.Services
 
                     string start = FormatSeconds(startTime);
                     string end   = FormatSeconds(endTime);
-                    sb.AppendLine($"{idx:D2}. [{start} - {end}] {title}");
+                    sb.AppendLine(System.FormattableString.Invariant($"{idx:D2}. [{start} - {end}] {title}"));
                     idx++;
                 }
 

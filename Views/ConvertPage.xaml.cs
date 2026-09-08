@@ -167,8 +167,8 @@ namespace MortysDLP.Views
                 try { Directory.CreateDirectory(targetFolder); }
                 catch (Exception ex)
                 {
-                    MessageBox.Show(string.Format(UITextDictionary.Get("ConvertPage.Message.CannotCreateFolder"), ex.Message), 
-                        UITextDictionary.Get("Common.Error"), 
+                    MessageBox.Show(UITextDictionary.Format("ConvertPage.Message.CannotCreateFolder", ex.Message),
+                        UITextDictionary.Get("Common.Error"),
                         MessageBoxButton.OK, MessageBoxImage.Error);
                     btnConvertStart.IsEnabled = true;
                     btnConvertCancel.IsEnabled = false;
@@ -219,9 +219,9 @@ namespace MortysDLP.Views
 
             var T = UITextDictionary.Get;
             AppendDebugOutput(T("ConvertPage.Debug.Summary"));
-            AppendDebugOutput(string.Format(T("ConvertPage.Debug.Successful"), successCount));
-            AppendDebugOutput(string.Format(T("ConvertPage.Debug.Failed"), failCount));
-            AppendDebugOutput(string.Format(T("ConvertPage.Debug.Canceled"), canceledCount));
+            AppendDebugOutput(UITextDictionary.Format("ConvertPage.Debug.Successful", successCount));
+            AppendDebugOutput(UITextDictionary.Format("ConvertPage.Debug.Failed", failCount));
+            AppendDebugOutput(UITextDictionary.Format("ConvertPage.Debug.Canceled", canceledCount));
 
             btnConvertStart.IsEnabled = true;
         }
@@ -278,7 +278,8 @@ namespace MortysDLP.Views
             var meta = await _audioMetaCache.GetOrAdd(file.SourcePath, async _ =>
             {
                 var m = await GetAudioStreamInfoAsync(ffprobePath, file.SourcePath);
-                AppendDebugOutput($"[{file.Name}] Quelle Audio: SR={m.sr?.ToString() ?? "?"}Hz Ch={m.ch?.ToString() ?? "?"} BR={m.brKbps?.ToString() ?? "?"}kbps");
+                var inv = System.Globalization.CultureInfo.InvariantCulture;
+                AppendDebugOutput($"[{file.Name}] Quelle Audio: SR={m.sr?.ToString(inv) ?? "?"}Hz Ch={m.ch?.ToString(inv) ?? "?"} BR={m.brKbps?.ToString(inv) ?? "?"}kbps");
                 return m;
             });
 
@@ -632,8 +633,8 @@ namespace MortysDLP.Views
                     if (files.Length > mediaFiles.Count)
                     {
                         var T = UITextDictionary.Get;
-                        MessageBox.Show(string.Format(T("ConvertPage.Message.IgnoredFiles"), files.Length - mediaFiles.Count), 
-                            T("ConvertPage.Message.Info"), 
+                        MessageBox.Show(UITextDictionary.Format("ConvertPage.Message.IgnoredFiles", files.Length - mediaFiles.Count),
+                            T("ConvertPage.Message.Info"),
                             MessageBoxButton.OK, MessageBoxImage.Information);
                     }
                 }
