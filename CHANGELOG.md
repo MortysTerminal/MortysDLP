@@ -40,6 +40,11 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
   formatierte Überschriften, Listen und Hervorhebungen an, wenn die Release-Notiz HTML enthält.
   Vorher standen die HTML-Auszeichnungen (`<h2>`, `<li>`, …) als Text im Fenster.
 
+### Intern
+- Alle Analyzer-Warnungen aus dem Build beseitigt (Ausgangspunkt: 158). Explizite Kultur bei
+  String-Vergleichen und Zahlen-Formatierung, aufgeräumte Hilfsmethoden, neuer Helfer
+  `UITextDictionary.Format`. Kein Verhaltenswechsel. Der Build ist jetzt warnungsfrei.
+
 ## [2026.09.07] – 2026-09-07
 
 Großes Reifungs-Release: der Schwerpunkt liegt auf Robustheit, einem verlässlichen

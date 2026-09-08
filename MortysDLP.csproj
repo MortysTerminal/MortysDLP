@@ -10,6 +10,10 @@
     <UseWPF>true</UseWPF>
     <ApplicationIcon>Resources\Icons\mw_globe_32px.ico</ApplicationIcon>
 
+    <!-- Neutrale resx (UITexte.resx, Resources.resx) sind deutsch; Englisch liegt als
+         Satellit daneben. Damit sucht der ResourceManager fuer "de" keinen Satelliten (CA1824). -->
+    <NeutralLanguage>de</NeutralLanguage>
+
     <!-- EINZIGE manuell gepflegte Versionsangabe. Muss dem GitHub-Tag entsprechen. -->
     <ReleaseVersion>2026.09.07</ReleaseVersion>
 
