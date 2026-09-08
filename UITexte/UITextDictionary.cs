@@ -155,13 +155,15 @@ namespace MortysDLP.UITexte
             ["SettingsPage.Section.FontAppearance"] = "SCHRIFT",
             ["SettingsPage.Label.FontAppearance"] = "Schrift:",
             ["SettingsPage.FontAppearance.Info"] = "Wirkt sofort und wird gespeichert. Inter kompakt läuft enger, Inter luftig gibt den Zeilen mehr Platz.",
-            ["FontAppearance.Inter"] = "Inter (empfohlen)",
+            ["FontAppearance.Arial"] = "Arial (empfohlen)",
+            ["FontAppearance.Inter"] = "Inter",
             ["FontAppearance.Compact"] = "Inter kompakt",
             ["FontAppearance.Airy"] = "Inter luftig",
             ["FontAppearance.Segoe"] = "Segoe UI (Windows)",
             ["FontAppearance.Verdana"] = "Verdana",
             ["FontAppearance.Georgia"] = "Georgia (Serifen)",
             ["FontAppearance.Tahoma"] = "Tahoma",
+            ["FontAppearance.Comicsans"] = "Comic Sans MS",
 
             // Main Window
             ["MainWindow.Nav.Download"] = "Download",
@@ -818,13 +820,15 @@ namespace MortysDLP.UITexte
             ["SettingsPage.Section.FontAppearance"] = "FONT",
             ["SettingsPage.Label.FontAppearance"] = "Font:",
             ["SettingsPage.FontAppearance.Info"] = "Takes effect immediately and is saved. Inter compact is tighter, Inter airy gives lines more room.",
-            ["FontAppearance.Inter"] = "Inter (recommended)",
+            ["FontAppearance.Arial"] = "Arial (recommended)",
+            ["FontAppearance.Inter"] = "Inter",
             ["FontAppearance.Compact"] = "Inter compact",
             ["FontAppearance.Airy"] = "Inter airy",
             ["FontAppearance.Segoe"] = "Segoe UI (Windows)",
             ["FontAppearance.Verdana"] = "Verdana",
             ["FontAppearance.Georgia"] = "Georgia (serif)",
             ["FontAppearance.Tahoma"] = "Tahoma",
+            ["FontAppearance.Comicsans"] = "Comic Sans MS",
 
             // Main Window
             ["MainWindow.Nav.Download"] = "Download",

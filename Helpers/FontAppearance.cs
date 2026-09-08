@@ -30,6 +30,7 @@ namespace MortysDLP.Helpers
 
         private static readonly Option[] Options =
         [
+            new("arial",       "Font.Arial",      double.NaN),
             new("inter",       "Font.Inter",      double.NaN),
             new("compact",     "Font.InterTight", double.NaN),
             new("airy",        "Font.Inter",      19.0),
@@ -37,15 +38,16 @@ namespace MortysDLP.Helpers
             new("verdana",     "Font.Verdana",    double.NaN),
             new("georgia",     "Font.Georgia",    double.NaN),
             new("tahoma",      "Font.Tahoma",     double.NaN),
+            new("comicsans",   "Font.ComicSans",  double.NaN),
         ];
 
         // Frühere Werte, die es vor 2026-09-08 gab.
         private static readonly Dictionary<string, string> LegacyAliases = new()
         {
-            ["standard"] = "inter",
+            ["standard"] = "arial",
         };
 
-        private const string DefaultKey = "inter";
+        private const string DefaultKey = "arial";
 
         /// <summary>Alle Varianten in Anzeigereihenfolge.</summary>
         public static IReadOnlyList<string> All { get; } = Options.Select(o => o.Key).ToArray();

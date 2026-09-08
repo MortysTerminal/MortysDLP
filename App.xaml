@@ -36,17 +36,19 @@
                  Schlüssel AppFontFamily zugewiesen. Inter/Inter Tight sind mitgeliefert
                  (SIL OFL 1.1, Resources/Fonts/), der Rest ist auf Windows 11 immer vorhanden.
                  Segoe UI als Rückfall überall. -->
+            <FontFamily x:Key="Font.Arial">Arial, Segoe UI</FontFamily>
             <FontFamily x:Key="Font.Inter">pack://application:,,,/Resources/Fonts/#Inter, Segoe UI Variable, Segoe UI</FontFamily>
             <FontFamily x:Key="Font.InterTight">pack://application:,,,/Resources/Fonts/#Inter Tight, Segoe UI Variable, Segoe UI</FontFamily>
             <FontFamily x:Key="Font.Segoe">Segoe UI Variable, Segoe UI</FontFamily>
             <FontFamily x:Key="Font.Verdana">Verdana, Segoe UI</FontFamily>
             <FontFamily x:Key="Font.Georgia">Georgia, Cambria, Segoe UI</FontFamily>
             <FontFamily x:Key="Font.Tahoma">Tahoma, Segoe UI</FontFamily>
+            <FontFamily x:Key="Font.ComicSans">Comic Sans MS, Segoe UI</FontFamily>
 
             <!-- Startwert (bevor FontAppearance.ApplyFromSettings() im OnStartup läuft) und
                  aktiver Wert zur Laufzeit. ALLE Schrift-Verweise in XAML hängen an
                  DynamicResource, damit die Umschaltung sofort greift. -->
-            <FontFamily x:Key="AppFontFamily">pack://application:,,,/Resources/Fonts/#Inter, Segoe UI Variable, Segoe UI</FontFamily>
+            <FontFamily x:Key="AppFontFamily">Arial, Segoe UI Variable, Segoe UI</FontFamily>
 
             <!-- Mindest-Zeilenhöhe für Fließtext. NaN = natürliche Höhe der Schrift; die
                  Variante "Inter luftig" setzt einen festen Wert. LineStackingStrategy bleibt

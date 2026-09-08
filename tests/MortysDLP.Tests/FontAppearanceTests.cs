@@ -5,12 +5,13 @@ namespace MortysDLP.Tests;
 public class FontAppearanceTests
 {
     [Fact]
-    public void All_EnthaeltInterAlsErstenUndMehrereVarianten()
+    public void All_ArialZuerst_InterUndComicSansDrin()
     {
-        Assert.Equal("inter", FontAppearance.All[0]);
+        Assert.Equal("arial", FontAppearance.All[0]);
+        Assert.Contains("inter", FontAppearance.All);
         Assert.Contains("compact", FontAppearance.All);
-        Assert.Contains("airy", FontAppearance.All);
-        Assert.True(FontAppearance.All.Count >= 5);
+        Assert.Contains("comicsans", FontAppearance.All);
+        Assert.True(FontAppearance.All.Count >= 8);
     }
 
     [Fact]
@@ -23,10 +24,12 @@ public class FontAppearanceTests
     [InlineData("compact", "compact")]
     [InlineData("airy", "airy")]
     [InlineData("verdana", "verdana")]
-    [InlineData("standard", "inter")]   // Alt-Wert von vor 2026-09-08
-    [InlineData("gibt-es-nicht", "inter")]
-    [InlineData("", "inter")]
-    [InlineData(null, "inter")]
+    [InlineData("inter", "inter")]
+    [InlineData("comicsans", "comicsans")]
+    [InlineData("standard", "arial")]   // Alt-Wert von vor 2026-09-08
+    [InlineData("gibt-es-nicht", "arial")]
+    [InlineData("", "arial")]
+    [InlineData(null, "arial")]
     public void Current_NormalisiertUndBildetAltwerteAb(string? stored, string expected)
     {
         string original = MortysDLP.Properties.Settings.Default.FontAppearance;
