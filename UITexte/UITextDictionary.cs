@@ -4,6 +4,8 @@ using System.Collections.Generic;
 
 namespace MortysDLP.UITexte
 {
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "CA1711:Identifiers should not have incorrect suffix",
+        Justification = "Der Typ ist tatsächlich ein Wörterbuch von UI-Texten; die Endung beschreibt genau das.")]
     public static class UITextDictionary
     {
         private static Dictionary<string, string> _currentTexts = new();

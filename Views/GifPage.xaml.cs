@@ -17,7 +17,7 @@ namespace MortysDLP.Views
         void ICancellableWork.RequestCancel() => btnCancel_Click(this, new RoutedEventArgs());
 
         private CancellationTokenSource? _cts;
-        private bool _initialized = false;
+        private bool _initialized;
         private string _lastOutputDir = string.Empty;
         private string _currentOutputFile = string.Empty;
 
@@ -365,7 +365,7 @@ namespace MortysDLP.Views
             return outputFile;
         }
 
-        private async Task<double> GetMediaDurationAsync(
+        private static async Task<double> GetMediaDurationAsync(
             string ffmpegPath,
             string inputFile,
             string startTime,

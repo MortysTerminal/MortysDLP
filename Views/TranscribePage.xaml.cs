@@ -17,7 +17,7 @@ namespace MortysDLP.Views
         void ICancellableWork.RequestCancel() => btnCancel_Click(this, new RoutedEventArgs());
 
         private CancellationTokenSource? _cts;
-        private bool _initialized = false;
+        private bool _initialized;
 
         // Sprach-Einträge: (Code, Anzeigename)
         private static readonly (string Code, string NameDe, string NameEn)[] Languages = new[]
@@ -194,7 +194,7 @@ namespace MortysDLP.Views
 
             combModel.Items.Clear();
 
-            if (!installed.Any())
+            if (installed.Count == 0)
             {
                 combModel.Items.Add(new ComboBoxItem
                 {

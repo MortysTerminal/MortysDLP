@@ -13,7 +13,7 @@ namespace MortysDLP.Views
     public partial class WhisperModelsWindow : Window
     {
         private CancellationTokenSource? _cts;
-        private bool _busy = false;
+        private bool _busy;
 
         public WhisperModelsWindow()
         {

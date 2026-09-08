@@ -18,7 +18,7 @@ namespace MortysDLP.Views
         private string _url = "";
         private string _title = "";
         private string _status = "";
-        private double _progress = 0;
+        private double _progress;
         private string _icon = "\uE73E"; // Default: MDL2 Wait Icon (or empty depends on your preference)
         // BatchDownloadEntry wird ausschließlich aus laufendem Seiten-Code heraus angelegt
         // (nie zur Entwurfszeit oder aus Tests) - Application.Current.Resources ist an dieser
@@ -70,9 +70,9 @@ namespace MortysDLP.Views
 
         private readonly ObservableCollection<BatchDownloadEntry> _entries = new();
         private CancellationTokenSource? _cts;
-        private bool _initialized = false;
+        private bool _initialized;
         private string _lastDownloadPath = "";
-        private bool _downloadRunning = false;
+        private bool _downloadRunning;
         private readonly YtDlpRunner _ytDlpRunner = new();
 
         /// <summary>Eintrag, dessen Fortschritt gerade in der oberen Zeile der Aktionsleiste
@@ -324,7 +324,7 @@ namespace MortysDLP.Views
                 string.Equals(e.Url?.Trim(), url, StringComparison.OrdinalIgnoreCase));
         }
 
-        private async Task FetchTitleAsync(BatchDownloadEntry entry)
+        private static async Task FetchTitleAsync(BatchDownloadEntry entry)
         {
             try
             {
@@ -773,7 +773,7 @@ namespace MortysDLP.Views
         }
 
         /// <summary>Erkennt die aktuelle yt-dlp Verarbeitungsphase für Batch-Einträge.</summary>
-        private string? DetectBatchStage(string line) =>
+        private static string? DetectBatchStage(string line) =>
             line switch
             {
                 _ when line.StartsWith("[Merger]")

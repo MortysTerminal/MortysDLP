@@ -63,10 +63,8 @@ namespace MortysDLP
         internal (string Version, InstallKind Kind, string ReasonKey)? BlockedUpdateInfo
         { get; private set; }
 
-        /*
-         * DEBUG
-         * */
-        private int DebugSleepTimer = 0; // 1000 = 1 Sekunde
+        // Nur zum Entwickeln: auf z. B. 1000 setzen, um jeden Splash-Schritt sichtbar zu machen.
+        private const int DebugSleepTimer = 0;
 
         protected override async void OnStartup(StartupEventArgs e)
         {
@@ -929,7 +927,7 @@ namespace MortysDLP
             }
         }
 
-        private async Task SetStatusTextAndWaitAsync(StartupWindow windowWithText, string statusText, int delay)
+        private static async Task SetStatusTextAndWaitAsync(StartupWindow windowWithText, string statusText, int delay)
         {
             windowWithText.SetStatus(statusText);
             if (delay > 0)

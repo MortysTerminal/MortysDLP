@@ -8,7 +8,7 @@ namespace MortysDLP.Views
 {
     public partial class SettingsPage : Page
     {
-        private bool _isInitializing = false;
+        private bool _isInitializing;
 
         public SettingsPage()
         {
@@ -68,7 +68,7 @@ namespace MortysDLP.Views
             SetUITexts();
         }
 
-        private string GetLanguageDisplayName(string code, bool isAuto)
+        private static string GetLanguageDisplayName(string code, bool isAuto)
         {
             var T = UITextDictionary.Get;
             

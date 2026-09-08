@@ -82,6 +82,7 @@ namespace MortysDLP
             try { _cts.Cancel(); } catch { }
             try { Close(); } catch { }
             _cts.Dispose();
+            GC.SuppressFinalize(this);
         }
     }
 }

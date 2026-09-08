@@ -20,11 +20,11 @@ namespace MortysDLP.Views
         void ICancellableWork.RequestCancel() => btnCancel_Click(this, new RoutedEventArgs());
 
         private CancellationTokenSource? _cts;
-        private bool _initialized = false;
+        private bool _initialized;
         private readonly TwitchDownloaderTool _tool = new();
         private readonly ToolCatalog _catalog = new();
         private readonly YtDlpRunner _ytDlpRunner = new();
-        private double   _activeRateLimitMBps = 0;
+        private double   _activeRateLimitMBps;
 
         /// <summary>Wie oft der Geschwindigkeitstext neben dem Balken höchstens neu
         /// geschrieben wird. Gleicher Wert wie auf der Download-Seite.</summary>

@@ -38,10 +38,8 @@ namespace MortysDLP.Views
             _log = new LogBuffer(tbDebugOutput);
             dgFiles.ItemsSource = _fileList;
 
-            cbTargetFormat.ItemsSource = Enum.GetValues(typeof(VideoFormat))
-                .Cast<VideoFormat>().Select(v => v.ToString().ToLower())
-                .Concat(Enum.GetValues(typeof(AudioFormat))
-                    .Cast<AudioFormat>()
+            cbTargetFormat.ItemsSource = Enum.GetValues<VideoFormat>().Select(v => v.ToString().ToLower())
+                .Concat(Enum.GetValues<AudioFormat>()
                     .Select(a => a.ToString().ToLower()))
                 .OrderBy(v => v)
                 .ToList();
@@ -322,7 +320,7 @@ namespace MortysDLP.Views
             }
         }
 
-        private List<string> BuildFfmpegArguments(
+        private static List<string> BuildFfmpegArguments(
             string sourcePath,
             string destPath,
             bool isVideoTarget,
@@ -374,7 +372,7 @@ namespace MortysDLP.Views
             return ["-vf", $"scale=-2:{h}", "-c:v", "libx264", "-preset", "medium", "-crf", "20"];
         }
 
-        private List<string> BuildAudioArgs(
+        private static List<string> BuildAudioArgs(
             (int? sr, int? ch, int? brKbps) meta,
             string targetExt,
             string uiQuality)
@@ -397,7 +395,7 @@ namespace MortysDLP.Views
             return BuildAudioEncodingLine(targetExt, uiQuality, forceStereo, upsample);
         }
 
-        private List<string> BuildAudioArgsForVideoContainer(
+        private static List<string> BuildAudioArgsForVideoContainer(
             (int? sr, int? ch, int? brKbps) meta,
             string uiQuality,
             string containerExt)
@@ -421,7 +419,7 @@ namespace MortysDLP.Views
             return args;
         }
 
-        private List<string> BuildAudioEncodingLine(
+        private static List<string> BuildAudioEncodingLine(
             string targetExt,
             string uiQuality,
             bool forceStereo,
@@ -477,7 +475,7 @@ namespace MortysDLP.Views
             return args;
         }
 
-        private string ResolveBitrate(string uiValue, string fallback)
+        private static string ResolveBitrate(string uiValue, string fallback)
         {
             if (string.IsNullOrWhiteSpace(uiValue) ||
                 uiValue.Equals("Original", StringComparison.OrdinalIgnoreCase))
@@ -625,7 +623,7 @@ namespace MortysDLP.Views
                     var mediaExtensions = new[] { ".mov", ".mp4", ".mkv", ".avi", ".mp3", ".aac", ".wav", ".flac", ".opus" };
                     var mediaFiles = files.Where(f => mediaExtensions.Contains(Path.GetExtension(f).ToLower())).ToList();
                     
-                    if (mediaFiles.Any())
+                    if (mediaFiles.Count > 0)
                     {
                         AddFilesToList(mediaFiles);
                         UpdateFileButtonsState();

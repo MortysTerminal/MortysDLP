@@ -463,7 +463,7 @@ namespace MortysDLP
             }
         }
 
-        private string BuildRequiredMessage(IManagedTool tool, Func<string, string> T)
+        private static string BuildRequiredMessage(IManagedTool tool, Func<string, string> T)
         {
             string features = ToolFeatureMap.Describe(tool.Id, T);
             string affected = string.IsNullOrEmpty(features)

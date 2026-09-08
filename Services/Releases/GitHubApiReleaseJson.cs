@@ -49,7 +49,7 @@ namespace MortysDLP.Services.Releases
             return new ReleaseInfo(version, null, changelog, null, null, sourceName, ExtractAssets(release), etag);
         }
 
-        private static IReadOnlyList<ReleaseAsset> ExtractAssets(JsonElement release)
+        private static List<ReleaseAsset> ExtractAssets(JsonElement release)
         {
             if (!release.TryGetProperty("assets", out var assetsProp) || assetsProp.ValueKind != JsonValueKind.Array)
                 return [];

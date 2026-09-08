@@ -23,8 +23,8 @@ namespace MortysDLP.Views
         private CancellationTokenSource? _downloadCancellationTokenSource;
         private Task? _downloadTask;
         private string _lastDownloadPath = "";
-        private double _lastProgress = 0;
-        private bool _initialized = false;
+        private double _lastProgress;
+        private bool _initialized;
         private string? _lastOutputFilePath;
 
         // true, solange vor dem eigentlichen Download noch Titel/Playlist/Tonspur-Daten
@@ -818,7 +818,7 @@ namespace MortysDLP.Views
                 RefreshPaths();
         }
 
-        private double? ParseFfmpegTimeProgress(string line, string timespanFrom, string timespanTo, out double? secondsCurrent, out double? secondsTotal)
+        private static double? ParseFfmpegTimeProgress(string line, string timespanFrom, string timespanTo, out double? secondsCurrent, out double? secondsTotal)
         {
             secondsCurrent = null;
             secondsTotal = null;
@@ -1010,7 +1010,7 @@ namespace MortysDLP.Views
         }
 
         /// <summary>Erkennt die aktuelle yt-dlp Verarbeitungsphase aus der Ausgabezeile.</summary>
-        private string? DetectDownloadStage(string line) =>
+        private static string? DetectDownloadStage(string line) =>
             line switch
             {
                 _ when line.StartsWith("[Merger]")
@@ -1300,7 +1300,7 @@ namespace MortysDLP.Views
             }
         }
 
-        private void SelectComboByContent(ComboBox combo, string desired, string fallback)
+        private static void SelectComboByContent(ComboBox combo, string desired, string fallback)
         {
             if (string.IsNullOrWhiteSpace(desired)) desired = fallback;
             foreach (ComboBoxItem item in combo.Items)
@@ -1321,7 +1321,7 @@ namespace MortysDLP.Views
             }
         }
 
-        private void SetAudioDownloadPathInSettings()
+        private static void SetAudioDownloadPathInSettings()
         {
             string savedAudioPath = Properties.Settings.Default.DownloadAudioOnlyPath;
             if (string.IsNullOrEmpty(savedAudioPath) || !System.IO.Directory.Exists(savedAudioPath))
@@ -1332,7 +1332,7 @@ namespace MortysDLP.Views
             }
         }
 
-        private void SetDownloadPathInSettings()
+        private static void SetDownloadPathInSettings()
         {
             string savedPath = Properties.Settings.Default.DownloadPath;
             if (string.IsNullOrEmpty(savedPath) || !System.IO.Directory.Exists(savedPath))
@@ -1373,7 +1373,7 @@ namespace MortysDLP.Views
             });
         }
 
-        private void StartIconRotation(TextBlock icon)
+        private static void StartIconRotation(TextBlock icon)
         {
             var rotateTransform = new RotateTransform();
             icon.RenderTransform = rotateTransform;
@@ -1389,7 +1389,7 @@ namespace MortysDLP.Views
             rotateTransform.BeginAnimation(RotateTransform.AngleProperty, animation);
         }
 
-        private void StopIconRotation(TextBlock icon)
+        private static void StopIconRotation(TextBlock icon)
         {
             if (icon.RenderTransform is RotateTransform rotateTransform)
             {
@@ -1835,7 +1835,7 @@ namespace MortysDLP.Views
             ValidateDownloadButton();
         }
 
-        private bool TryParseFlexibleTime(string input, out TimeSpan result)
+        private static bool TryParseFlexibleTime(string input, out TimeSpan result)
         {
             string[] formats = { @"hh\:mm\:ss\.ff", @"hh\:mm\:ss", @"mm\:ss\.ff", @"mm\:ss" };
             foreach (var format in formats)
