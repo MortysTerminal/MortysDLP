@@ -5,32 +5,35 @@ namespace MortysDLP.Tests;
 public class FontAppearanceTests
 {
     [Fact]
-    public void All_EnthaeltGenauDieDreiWerte()
+    public void All_EnthaeltInterAlsErstenUndMehrereVarianten()
     {
-        Assert.Equal(
-            new[] { FontAppearance.Compact, FontAppearance.Standard, FontAppearance.Airy },
-            FontAppearance.All);
+        Assert.Equal("inter", FontAppearance.All[0]);
+        Assert.Contains("compact", FontAppearance.All);
+        Assert.Contains("airy", FontAppearance.All);
+        Assert.True(FontAppearance.All.Count >= 5);
     }
 
     [Fact]
-    public void Konstanten_SindKleingeschriebeneStrings()
+    public void All_EnthaeltKeineDoppelten()
     {
-        Assert.Equal("compact", FontAppearance.Compact);
-        Assert.Equal("standard", FontAppearance.Standard);
-        Assert.Equal("airy", FontAppearance.Airy);
+        Assert.Equal(FontAppearance.All.Count, FontAppearance.All.Distinct().Count());
     }
 
-    [Fact]
-    public void Current_UnbekannterWert_WirdZuStandard()
+    [Theory]
+    [InlineData("compact", "compact")]
+    [InlineData("airy", "airy")]
+    [InlineData("verdana", "verdana")]
+    [InlineData("standard", "inter")]   // Alt-Wert von vor 2026-09-08
+    [InlineData("gibt-es-nicht", "inter")]
+    [InlineData("", "inter")]
+    [InlineData(null, "inter")]
+    public void Current_NormalisiertUndBildetAltwerteAb(string? stored, string expected)
     {
         string original = MortysDLP.Properties.Settings.Default.FontAppearance;
         try
         {
-            MortysDLP.Properties.Settings.Default.FontAppearance = "gibt-es-nicht";
-            Assert.Equal(FontAppearance.Standard, FontAppearance.Current);
-
-            MortysDLP.Properties.Settings.Default.FontAppearance = FontAppearance.Airy;
-            Assert.Equal(FontAppearance.Airy, FontAppearance.Current);
+            MortysDLP.Properties.Settings.Default.FontAppearance = stored;
+            Assert.Equal(expected, FontAppearance.Current);
         }
         finally
         {
@@ -42,7 +45,7 @@ public class FontAppearanceTests
     public void Apply_OhneApplication_WirftNicht()
     {
         // In der Testumgebung gibt es keine WPF-Application - Apply muss das still hinnehmen.
-        var ex = Record.Exception(() => FontAppearance.Apply(FontAppearance.Airy));
-        Assert.Null(ex);
+        Assert.Null(Record.Exception(() => FontAppearance.Apply("verdana")));
+        Assert.Null(Record.Exception(() => FontAppearance.Apply("gibt-es-nicht")));
     }
 }

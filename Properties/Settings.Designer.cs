@@ -265,7 +265,7 @@ namespace MortysDLP.Properties {
 
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("standard")]
+        [global::System.Configuration.DefaultSettingValueAttribute("inter")]
         public string FontAppearance {
             get {
                 return ((string)(this["FontAppearance"]));

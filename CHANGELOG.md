@@ -26,11 +26,11 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
 ## [Unreleased]
 
 ### Hinzugefügt
-- Neue Einstellung **Schriftbild** (Kompakt / Standard / Luftig): Die Oberfläche kann jetzt in
-  der normal laufenden Inter oder der enger gezeichneten Inter Tight dargestellt werden,
-  „Luftig" gibt den Zeilen zusätzlich etwas mehr Platz. Wirkt sofort, ohne Neustart.
-  Standard ist ab jetzt die normal laufende Inter — die bisher fest verwendete enge Variante
-  war für manche schwerer zu lesen.
+- Neue Einstellung **Schrift**: Die Oberflächenschrift lässt sich jetzt auswählen — Inter
+  (Standard, mitgeliefert), Inter kompakt (enger), Inter luftig (mehr Zeilenabstand), sowie
+  Segoe UI, Verdana, Georgia und Tahoma vom System. Wirkt sofort ohne Neustart und wird
+  dauerhaft gespeichert. Standard ist ab jetzt die normal laufende Inter — die bisher fest
+  verwendete enge Variante (Inter Tight) war für manche schwerer zu lesen.
 
 ### Behoben
 - Der Hinweis auf ein verfügbares Update ist wieder deutlich sichtbar: Der Banner steht auf

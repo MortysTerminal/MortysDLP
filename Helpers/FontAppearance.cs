@@ -1,70 +1,91 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using System.Windows.Media;
 
 namespace MortysDLP.Helpers
 {
     /// <summary>
-    /// Steuert das „Schriftbild" der Oberfläche über die Einstellung
+    /// Steuert die Schrift der gesamten Oberfläche über die Einstellung
     /// <c>Settings.Default.FontAppearance</c>. WPF hat keine Eigenschaft für den
-    /// Buchstabenabstand — der einzige echte Hebel ist die Wahl zwischen den beiden
-    /// eingebetteten Inter-Schnitten (Inter, normal laufend; Inter Tight, enger gezeichnet),
-    /// dazu die Mindest-Zeilenhöhe für mehr vertikale Luft.
+    /// Buchstabenabstand — „enger/weiter" geht nur über die Wahl des Schnitts (Inter vs
+    /// Inter Tight) plus <see cref="System.Windows.Controls.TextBlock.LineHeight"/> für
+    /// vertikale Luft. Zusätzlich stehen ein paar Windows-Systemschriften zur Auswahl.
     ///
-    /// <para>Wirkt zur Laufzeit: <see cref="Apply"/> tauscht die beiden App-weiten Ressourcen
-    /// <c>AppFontFamily</c> und <c>AppLineHeight</c> aus. Alle Verweise in XAML hängen an
-    /// <c>DynamicResource</c>, deshalb ändert sich die gesamte offene Oberfläche sofort — wie
-    /// bei der Sprachumschaltung.</para>
+    /// <para>Wirkt zur Laufzeit: <see cref="Apply"/> zeigt die App-weiten Ressourcen
+    /// <c>AppFontFamily</c> und <c>AppLineHeight</c> auf die gewählte Variante. Alle
+    /// XAML-Verweise hängen an <c>DynamicResource</c>, deshalb ändert sich die gesamte offene
+    /// Oberfläche sofort — wie bei der Sprachumschaltung. Die <see cref="FontFamily"/>-Objekte
+    /// selbst kommen aus <c>App.xaml</c> (Schlüssel <c>Font.*</c>), damit der
+    /// <c>pack://</c>-URI der eingebetteten Schriften zuverlässig auflöst.</para>
     /// </summary>
     internal static class FontAppearance
     {
-        public const string Compact = "compact";
-        public const string Standard = "standard";
-        public const string Airy = "airy";
+        /// <summary>Eine wählbare Schrift-Variante.</summary>
+        /// <param name="Key">Wert in der Einstellung. Stabil, nie ändern.</param>
+        /// <param name="FontResourceKey">Schlüssel der <see cref="FontFamily"/> in <c>App.xaml</c>.</param>
+        /// <param name="LineHeight">Mindest-Zeilenhöhe; <see cref="double.NaN"/> = natürlich.</param>
+        internal sealed record Option(string Key, string FontResourceKey, double LineHeight);
 
-        /// <summary>Die drei Werte in Anzeigereihenfolge.</summary>
-        public static IReadOnlyList<string> All { get; } = new[] { Compact, Standard, Airy };
+        private static readonly Option[] Options =
+        [
+            new("inter",       "Font.Inter",      double.NaN),
+            new("compact",     "Font.InterTight", double.NaN),
+            new("airy",        "Font.Inter",      19.0),
+            new("segoe",       "Font.Segoe",      double.NaN),
+            new("verdana",     "Font.Verdana",    double.NaN),
+            new("georgia",     "Font.Georgia",    double.NaN),
+            new("tahoma",      "Font.Tahoma",     double.NaN),
+        ];
 
-        private const string InterTight = "pack://application:,,,/Resources/Fonts/#Inter Tight, Segoe UI Variable, Segoe UI";
-        private const string Inter = "pack://application:,,,/Resources/Fonts/#Inter, Segoe UI Variable, Segoe UI";
-
-        // Mindest-Zeilenhöhe für "Luftig". LineStackingStrategy bleibt auf "MaxHeight", der Wert
-        // klippt also nie — er hebt nur kleine Textzeilen (11–13 px) auf mehr Höhe an, während
-        // Überschriften ihre natürliche Höhe behalten.
-        private const double AiryLineHeight = 19.0;
-
-        /// <summary>Der aktuell eingestellte Wert, auf einen der drei gültigen normalisiert.</summary>
-        public static string Current
+        // Frühere Werte, die es vor 2026-09-08 gab.
+        private static readonly Dictionary<string, string> LegacyAliases = new()
         {
-            get
-            {
-                string value = Properties.Settings.Default.FontAppearance;
-                return value is Compact or Standard or Airy ? value : Standard;
-            }
+            ["standard"] = "inter",
+        };
+
+        private const string DefaultKey = "inter";
+
+        /// <summary>Alle Varianten in Anzeigereihenfolge.</summary>
+        public static IReadOnlyList<string> All { get; } = Options.Select(o => o.Key).ToArray();
+
+        /// <summary>Der aktuell eingestellte Wert, normalisiert auf eine gültige Variante.</summary>
+        public static string Current => Normalize(Properties.Settings.Default.FontAppearance);
+
+        private static string Normalize(string? value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+                return DefaultKey;
+            if (LegacyAliases.TryGetValue(value, out string? mapped))
+                return mapped;
+            return Options.Any(o => o.Key == value) ? value : DefaultKey;
         }
 
-        /// <summary>Wendet ein Schriftbild an, ohne die Einstellung zu schreiben (das macht der
-        /// Aufrufer). Muss auf dem UI-Thread laufen.</summary>
+        /// <summary>Wendet eine Variante an, ohne die Einstellung zu schreiben. UI-Thread.</summary>
         public static void Apply(string appearance)
         {
             var resources = Application.Current?.Resources;
             if (resources is null)
                 return;
 
-            (string family, double lineHeight) = appearance switch
-            {
-                Compact => (InterTight, double.NaN),
-                Airy => (Inter, AiryLineHeight),
-                _ => (Inter, double.NaN),
-            };
+            Option option = Options.FirstOrDefault(o => o.Key == Normalize(appearance)) ?? Options[0];
 
-            resources["AppFontFamily"] = new FontFamily(family);
-            resources["AppLineHeight"] = lineHeight;
+            if (resources[option.FontResourceKey] is FontFamily family)
+            {
+                resources["AppFontFamily"] = family;
+                resources["AppLineHeight"] = option.LineHeight;
+                Log.Info($"Schrift angewandt: '{option.Key}' ({family.Source}), Zeilenhöhe " +
+                    (double.IsNaN(option.LineHeight) ? "natürlich" : option.LineHeight.ToString(System.Globalization.CultureInfo.InvariantCulture)));
+            }
+            else
+            {
+                Log.Warn($"Schrift-Ressource '{option.FontResourceKey}' nicht gefunden - Schrift nicht umgestellt.");
+            }
         }
 
-        /// <summary>Wendet das in den Einstellungen hinterlegte Schriftbild an. Beim Start
-        /// aufrufen, bevor das erste Fenster erzeugt wird.</summary>
+        /// <summary>Wendet die gespeicherte Variante an. Beim Start aufrufen, bevor das erste
+        /// Fenster erzeugt wird.</summary>
         public static void ApplyFromSettings() => Apply(Current);
     }
 }

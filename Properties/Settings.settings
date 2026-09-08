@@ -63,7 +63,7 @@
       <Value Profile="(Default)">auto</Value>
     </Setting>
     <Setting Name="FontAppearance" Type="System.String" Scope="User">
-      <Value Profile="(Default)">standard</Value>
+      <Value Profile="(Default)">inter</Value>
     </Setting>
     <Setting Name="DownloadHistoryFileMaxEntries" Type="System.Int16" Scope="User">
       <Value Profile="(Default)">30</Value>
