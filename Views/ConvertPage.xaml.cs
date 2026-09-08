@@ -38,9 +38,9 @@ namespace MortysDLP.Views
             _log = new LogBuffer(tbDebugOutput);
             dgFiles.ItemsSource = _fileList;
 
-            cbTargetFormat.ItemsSource = Enum.GetValues<VideoFormat>().Select(v => v.ToString().ToLower())
+            cbTargetFormat.ItemsSource = Enum.GetValues<VideoFormat>().Select(v => v.ToString().ToLowerInvariant())
                 .Concat(Enum.GetValues<AudioFormat>()
-                    .Select(a => a.ToString().ToLower()))
+                    .Select(a => a.ToString().ToLowerInvariant()))
                 .OrderBy(v => v)
                 .ToList();
 
@@ -179,7 +179,7 @@ namespace MortysDLP.Views
             _convertCancellationTokenSource = new CancellationTokenSource();
             var token = _convertCancellationTokenSource.Token;
 
-            string selectedFormatStr = cbTargetFormat.SelectedItem?.ToString()?.ToLower() ?? "mp3";
+            string selectedFormatStr = cbTargetFormat.SelectedItem?.ToString()?.ToLowerInvariant() ?? "mp3";
             string ffmpegPath = AppPaths.Ffmpeg;
             string ffprobePath = AppPaths.Ffprobe;
 
@@ -258,7 +258,7 @@ namespace MortysDLP.Views
                 qualitySuffix = $"_{audioQuality}";
             }
 
-            string extension = isVideoTarget ? videoFormat.ToString().ToLower() : audioFormat.ToString().ToLower();
+            string extension = isVideoTarget ? videoFormat.ToString().ToLowerInvariant() : audioFormat.ToString().ToLowerInvariant();
             string destPath = Path.Combine(
                 targetFolder,
                 AppPaths.SanitizeFileName(Path.GetFileNameWithoutExtension(file.SourcePath)) + qualitySuffix + "." + extension
@@ -360,7 +360,7 @@ namespace MortysDLP.Views
             }
 
             // Erwartetes Format z.B. "1080p"
-            string h = videoQuality.ToLower().Replace("p", "").Trim();
+            string h = videoQuality.ToLowerInvariant().Replace("p", "", StringComparison.Ordinal).Trim();
             if (!int.TryParse(h, out _))
             {
                 // Fallback: copy
@@ -483,9 +483,9 @@ namespace MortysDLP.Views
 
             if (uiValue.EndsWith("k", StringComparison.OrdinalIgnoreCase) &&
                 int.TryParse(uiValue[..^1], out _))
-                return uiValue.ToLower();
+                return uiValue.ToLowerInvariant();
 
-            return uiValue.ToLower() switch
+            return uiValue.ToLowerInvariant() switch
             {
                 "low" => "96k",
                 "medium" => "160k",
@@ -544,7 +544,7 @@ namespace MortysDLP.Views
 
         private void cbTargetFormat_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            var selected = cbTargetFormat.SelectedItem?.ToString()?.ToLower();
+            var selected = cbTargetFormat.SelectedItem?.ToString()?.ToLowerInvariant();
             cbVideoQuality.IsEnabled = Enum.TryParse<VideoFormat>(selected, true, out _);
             // Audio-Qualität (cbAudioQuality) bleibt unverändert aktiviert (falls vorhanden)
         }
@@ -621,7 +621,7 @@ namespace MortysDLP.Views
                 if (files != null && files.Length > 0)
                 {
                     var mediaExtensions = new[] { ".mov", ".mp4", ".mkv", ".avi", ".mp3", ".aac", ".wav", ".flac", ".opus" };
-                    var mediaFiles = files.Where(f => mediaExtensions.Contains(Path.GetExtension(f).ToLower())).ToList();
+                    var mediaFiles = files.Where(f => mediaExtensions.Contains(Path.GetExtension(f).ToLowerInvariant())).ToList();
                     
                     if (mediaFiles.Count > 0)
                     {

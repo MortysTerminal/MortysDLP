@@ -88,7 +88,7 @@ namespace MortysDLP.Views
                 return T("Language.English");
             }
             
-            return code.ToUpper();
+            return code.ToUpperInvariant();
         }
 
         public void SetUITexts()

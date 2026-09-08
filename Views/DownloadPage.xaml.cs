@@ -848,7 +848,7 @@ namespace MortysDLP.Views
         /// Unterstützt KiB/s, MiB/s und GiB/s.</summary>
         private static (double? Progress, double? SpeedMBs) ParseYtDlpDownloadProgress(string line)
         {
-            if (!line.StartsWith("[download]")) return (null, null);
+            if (!line.StartsWith("[download]", StringComparison.Ordinal)) return (null, null);
 
             double? speed = null;
             var speedMatch = System.Text.RegularExpressions.Regex.Match(
@@ -883,7 +883,7 @@ namespace MortysDLP.Views
             // Ausgabedatei-Pfad tracken (für Post-Processing / Schnittmodus)
             if (!isError)
             {
-                if (line.StartsWith("[Merger] Merging formats into \""))
+                if (line.StartsWith("[Merger] Merging formats into \"", StringComparison.Ordinal))
                 {
                     var m = System.Text.RegularExpressions.Regex.Match(line, @"\[Merger\] Merging formats into ""(.+)""");
                     if (m.Success) _lastOutputFilePath = m.Groups[1].Value;
@@ -893,7 +893,7 @@ namespace MortysDLP.Views
                     // Obergrenze (siehe DownloadProgressWeighting), statt stehen zu bleiben.
                     UpdateProgress(ApplyPlaylistScale(DownloadProgressWeighting.ForMerge(_reservePostConversion)));
                 }
-                else if (line.StartsWith("[download] Destination: "))
+                else if (line.StartsWith("[download] Destination: ", StringComparison.Ordinal))
                 {
                     string destination = line["[download] Destination: ".Length..].Trim();
                     _lastOutputFilePath = destination;
@@ -915,7 +915,7 @@ namespace MortysDLP.Views
                         _speedEstimator.Resync();
                     }
                 }
-                else if (line.StartsWith("[download] ") && line.EndsWith(" has already been downloaded"))
+                else if (line.StartsWith("[download] ", StringComparison.Ordinal) && line.EndsWith(" has already been downloaded", StringComparison.Ordinal))
                 {
                     const string suffix = " has already been downloaded";
                     _lastOutputFilePath = line["[download] ".Length..^suffix.Length].Trim();
@@ -983,7 +983,7 @@ namespace MortysDLP.Views
                 return;
             }
 
-            if (isTimespan || line.StartsWith("[ffmpeg]"))
+            if (isTimespan || line.StartsWith("[ffmpeg]", StringComparison.Ordinal))
             {
                 var pct = ParseFfmpegTimeProgress(line, timespanFrom, timespanTo, out _, out _);
                 if (pct.HasValue) UpdateProgress(pct.Value, false, null);
@@ -1013,13 +1013,13 @@ namespace MortysDLP.Views
         private static string? DetectDownloadStage(string line) =>
             line switch
             {
-                _ when line.StartsWith("[Merger]")
+                _ when line.StartsWith("[Merger]", StringComparison.Ordinal)
                     => UITextDictionary.Get("DownloadPage.Status.Merging"),
-                _ when line.StartsWith("[ExtractAudio]")
+                _ when line.StartsWith("[ExtractAudio]", StringComparison.Ordinal)
                     => UITextDictionary.Get("DownloadPage.Status.ExtractingAudio"),
-                _ when line.StartsWith("[VideoConvertor]") || line.StartsWith("[VideoRemuxer]")
+                _ when line.StartsWith("[VideoConvertor]", StringComparison.Ordinal) || line.StartsWith("[VideoRemuxer]", StringComparison.Ordinal)
                     => UITextDictionary.Get("DownloadPage.Status.Converting"),
-                _ when line.StartsWith("[ffmpeg]") && !line.Contains("time=")
+                _ when line.StartsWith("[ffmpeg]", StringComparison.Ordinal) && !line.Contains("time=")
                     => UITextDictionary.Get("DownloadPage.Status.Processing"),
                 _ => null
             };

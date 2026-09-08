@@ -1358,7 +1358,7 @@ namespace MortysDLP.UITexte
         public static void SetLanguage(string language)
         {
             Log.Debug($"SetLanguage called with: {language}");
-            _currentLanguage = language.ToLower();
+            _currentLanguage = language.ToLowerInvariant();
             _currentTexts = _currentLanguage switch
             {
                 "de" or "german" => German,

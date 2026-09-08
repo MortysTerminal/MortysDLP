@@ -706,12 +706,12 @@ namespace MortysDLP.Views
                 AppendDebug(line);
 
                 // Ausgabedatei tracken
-                if (line.StartsWith("[Merger] Merging formats into \""))
+                if (line.StartsWith("[Merger] Merging formats into \"", StringComparison.Ordinal))
                 {
                     var m = System.Text.RegularExpressions.Regex.Match(line, @"\[Merger\] Merging formats into ""(.+)""");
                     if (m.Success) lastOutputFile = m.Groups[1].Value;
                 }
-                else if (line.StartsWith("[download] Destination: "))
+                else if (line.StartsWith("[download] Destination: ", StringComparison.Ordinal))
                 {
                     lastOutputFile = line["[download] Destination: ".Length..].Trim();
                     speedEstimator.Reset();
@@ -776,13 +776,13 @@ namespace MortysDLP.Views
         private static string? DetectBatchStage(string line) =>
             line switch
             {
-                _ when line.StartsWith("[Merger]")
+                _ when line.StartsWith("[Merger]", StringComparison.Ordinal)
                     => UITextDictionary.Get("DownloadPage.Status.Merging"),
-                _ when line.StartsWith("[ExtractAudio]")
+                _ when line.StartsWith("[ExtractAudio]", StringComparison.Ordinal)
                     => UITextDictionary.Get("DownloadPage.Status.ExtractingAudio"),
-                _ when line.StartsWith("[VideoConvertor]") || line.StartsWith("[VideoRemuxer]")
+                _ when line.StartsWith("[VideoConvertor]", StringComparison.Ordinal) || line.StartsWith("[VideoRemuxer]", StringComparison.Ordinal)
                     => UITextDictionary.Get("DownloadPage.Status.Converting"),
-                _ when line.StartsWith("[download]") && line.Contains('%')
+                _ when line.StartsWith("[download]", StringComparison.Ordinal) && line.Contains('%')
                     => UITextDictionary.Get("BatchDownloadPage.Status.Downloading"),
                 _ => null
             };
@@ -790,7 +790,7 @@ namespace MortysDLP.Views
         /// <summary>Parst Fortschritt (%) und Geschwindigkeit aus einer yt-dlp Ausgabezeile.</summary>
         private static (double? Progress, double? SpeedMBs) ParseBatchProgress(string line)
         {
-            if (!line.StartsWith("[download]")) return (null, null);
+            if (!line.StartsWith("[download]", StringComparison.Ordinal)) return (null, null);
 
             double? speed = null;
             var speedMatch = System.Text.RegularExpressions.Regex.Match(line, @"at\s+([\d.]+)(KiB|MiB|GiB)/s");
