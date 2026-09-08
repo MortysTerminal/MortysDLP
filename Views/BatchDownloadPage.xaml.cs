@@ -834,7 +834,7 @@ namespace MortysDLP.Views
             UpdateCurrentSpeed(null);
 
             // Codec prüfen
-            var (codec, w, h) = await MediaProbe.GetVideoStreamInfoAsync(ffprobePath, filePath);
+            var (codec, w, h) = await MediaProbe.GetVideoStreamInfoAsync(ffprobePath, filePath, token);
             if (codec != null && (codec.StartsWith("h264", StringComparison.OrdinalIgnoreCase)
                                || codec.StartsWith("avc",  StringComparison.OrdinalIgnoreCase)))
             {

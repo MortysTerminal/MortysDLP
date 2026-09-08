@@ -19,6 +19,8 @@ namespace MortysDLP.Views
         private CancellationTokenSource? _cts;
         private bool _initialized;
         private string _lastOutputDir = string.Empty;
+
+        private static readonly string[] TimeParseFormats = [@"hh\:mm\:ss", @"mm\:ss", @"h\:mm\:ss"];
         private string _currentOutputFile = string.Empty;
 
         // Quality preset: (fps, width, bayerScale)
@@ -409,7 +411,7 @@ namespace MortysDLP.Views
         {
             result = TimeSpan.Zero;
             if (string.IsNullOrWhiteSpace(input)) return false;
-            if (TimeSpan.TryParseExact(input.Trim(), new[] { @"hh\:mm\:ss", @"mm\:ss", @"h\:mm\:ss" },
+            if (TimeSpan.TryParseExact(input.Trim(), TimeParseFormats,
                 CultureInfo.InvariantCulture, out result))
                 return true;
             if (TimeSpan.TryParse(input.Trim(), CultureInfo.InvariantCulture, out result))

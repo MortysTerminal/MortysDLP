@@ -13,6 +13,18 @@ csharp_new_line_before_open_brace = all
 csharp_style_namespace_declarations = block_scoped:silent
 dotnet_sort_system_directives_first = true
 
+# CA1863: CompositeFormat zwischenspeichern. Rein eine Mikro-Optimierung fuer heisse
+# Formatier-Pfade. Alle string.Format-Aufrufe hier sitzen auf kalten Wegen (Fehlerdialoge,
+# einmalige Statuszeilen), da faellt das Neu-Parsen der Vorlage nicht ins Gewicht.
+dotnet_diagnostic.CA1863.severity = none
+
+[Views/*.xaml.cs]
+# CA1001: Typ mit verwerfbaren Feldern ist nicht IDisposable. Greift hier fuer WPF-Seiten
+# und -Fenster - die verwaltet das Framework, ein Dispose-Aufruf kommt nie. Die
+# CancellationTokenSource-Felder werden pro Vorgang neu angelegt und tragen weder Timer
+# noch Registrierungen, die GC verlaesslich einsammelt.
+dotnet_diagnostic.CA1001.severity = none
+
 [*.{xaml,xml,csproj,props,targets,config,resx}]
 indent_style = space
 indent_size = 2

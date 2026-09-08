@@ -14,6 +14,8 @@ namespace MortysDLP.Views
         /// </summary>
         public List<string> ValidUrls { get; private set; } = new List<string>();
 
+        private static readonly char[] NewlineChars = ['\r', '\n'];
+
         public AddBatchURLsWindow()
         {
             InitializeComponent();
@@ -80,7 +82,7 @@ namespace MortysDLP.Views
                 return new List<string>();
 
             return text
-                .Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                .Split(NewlineChars, StringSplitOptions.RemoveEmptyEntries)
                 .Select(l => l.Trim())
                 .Where(l => !string.IsNullOrWhiteSpace(l))
                 .ToList();

@@ -27,6 +27,8 @@ namespace MortysDLP.Views
         private bool _initialized;
         private string? _lastOutputFilePath;
 
+        private static readonly char[] NewlineChars = ['\r', '\n'];
+
         // true, solange vor dem eigentlichen Download noch Titel/Playlist/Tonspur-Daten
         // geholt werden. Die erste echte Fortschrittszeile beendet die Phase (Statustext von
         // "Videoinformationen werden abgerufen…" auf "Lädt…", unbestimmter Balken bleibt nur,
@@ -403,7 +405,7 @@ namespace MortysDLP.Views
                         _downloadTask = StartPlaylistDownloadAsync(ytDlpPath, url, token);
                         await _downloadTask;
 
-                        if (token.IsCancellationRequested) throw new OperationCanceledException(token);
+                        token.ThrowIfCancellationRequested();
 
                         AppendOutput(UITexte.UITexte.MainWindow_DebugOutput_DownloadSuccess);
                         SetiaStatusIcon(iaStatusIconType.Success);
@@ -442,7 +444,7 @@ namespace MortysDLP.Views
 
                 if (titleTask != null) await titleTask;
 
-                if (token.IsCancellationRequested) throw new OperationCanceledException(token);
+                token.ThrowIfCancellationRequested();
 
                 AppendOutput(UITexte.UITexte.MainWindow_DebugOutput_DownloadSuccess);
                 SetiaStatusIcon(iaStatusIconType.Success);
@@ -516,7 +518,7 @@ namespace MortysDLP.Views
                     timeout: TimeSpan.FromSeconds(15),
                     ct: token);
 
-                var line = result.StdOut.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? "";
+                var line = result.StdOut.Split(NewlineChars, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? "";
                 int? sr = null;
                 int? ch = null;
 
@@ -1748,8 +1750,10 @@ namespace MortysDLP.Views
 
                 var totalDuration = TimeSpan.FromSeconds(durationSec);
 
-                TryParseFlexibleTime(tbTimespanFrom.Text, out var currentStart);
-                TryParseFlexibleTime(tbTimespanTo.Text, out var currentEnd);
+                // Rückgabewert bewusst verworfen: schlägt das Parsen fehl, bleibt der out-Wert
+                // TimeSpan.Zero und wird unten per "> TimeSpan.Zero" ohnehin als "nicht gesetzt" behandelt.
+                _ = TryParseFlexibleTime(tbTimespanFrom.Text, out var currentStart);
+                _ = TryParseFlexibleTime(tbTimespanTo.Text, out var currentEnd);
 
                 var timeline = new TimelineWindow(
                     totalDuration,

@@ -38,8 +38,8 @@ namespace MortysDLP.Services
             Action<string>? onStdOut = null,
             Action<string>? onStdErr = null,
             TimeSpan? idleTimeout = null,
-            CancellationToken ct = default,
-            Action<int>? onExitCode = null) =>
+            Action<int>? onExitCode = null,
+            CancellationToken ct = default) =>
             RunCoreAsync(ytDlpPath, YtDlpArgumentBuilder.Build(job), onStdOut, onStdErr, idleTimeout, ct, onExitCode);
 
         /// <summary>Der eigentliche Ausführungs- und Neustart-Kern, unabhängig von der

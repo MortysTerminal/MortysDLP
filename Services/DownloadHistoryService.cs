@@ -15,6 +15,8 @@ namespace MortysDLP.Services
 
         private static readonly SemaphoreSlim _lock = new(1, 1);
 
+        private static readonly JsonSerializerOptions _jsonOptions = new() { WriteIndented = true };
+
         public static async Task ClearAsync()
         {
             await _lock.WaitAsync();
@@ -105,7 +107,7 @@ namespace MortysDLP.Services
         private static async Task SaveInternalAsync(List<DownloadHistoryEntry> entries)
         {
             var trimmed = entries.OrderByDescending(e => e.DownloadedAt).Take(MaxEntries).ToList();
-            var json = JsonSerializer.Serialize(trimmed, new JsonSerializerOptions { WriteIndented = true });
+            var json = JsonSerializer.Serialize(trimmed, _jsonOptions);
             await WriteAtomicAsync(json);
         }
 

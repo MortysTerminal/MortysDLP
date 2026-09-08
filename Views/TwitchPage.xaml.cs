@@ -706,9 +706,10 @@ namespace MortysDLP.Views
 
                         AppendDebug($"[VIDEO] yt-dlp starten{(bwMbps > 0 ? $" (Limit: {bwMbps} MB/s)" : "")}: {string.Join(' ', YtDlpArgumentBuilder.Build(job))}");
                         SetStatus(T("TwitchPage.Status.Downloading"), true);
-                        bool needsRestart = await RunYtDlpAsync(ytDlpPath, job, _cts.Token,
+                        bool needsRestart = await RunYtDlpAsync(ytDlpPath, job,
                             onStdOut: line => ProcessYtDlpLine(line, isError: false),
-                            onStdErr: line => ProcessYtDlpLine(line, isError: true));
+                            onStdErr: line => ProcessYtDlpLine(line, isError: true),
+                            token: _cts.Token);
 
                         if (!needsRestart) break; // erfolgreich fertig oder abgebrochen
                     }
@@ -795,8 +796,8 @@ namespace MortysDLP.Views
         /// Führt yt-dlp aus. Gibt <c>true</c> zurück wenn ein Neustart mit neuem Limit nötig ist
         /// (Limit-Änderung während Download), <c>false</c> bei erfolgreichem Abschluss.
         /// </summary>
-        private Task<bool> RunYtDlpAsync(string ytDlpPath, YtDlpJob job, CancellationToken token,
-            Action<string> onStdOut, Action<string> onStdErr) =>
+        private Task<bool> RunYtDlpAsync(string ytDlpPath, YtDlpJob job,
+            Action<string> onStdOut, Action<string> onStdErr, CancellationToken token) =>
             _ytDlpRunner.RunAsync(
                 ytDlpPath, job,
                 onStdOut: onStdOut,

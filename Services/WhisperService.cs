@@ -132,8 +132,8 @@ namespace MortysDLP.Services
             string outputDir,
             string outputPrefix,       // Ausgabe-Dateiname ohne Endung
             IProgress<string>? progress = null,
-            CancellationToken cancellationToken = default,
-            IProgress<double>? numericProgress = null)
+            IProgress<double>? numericProgress = null,
+            CancellationToken cancellationToken = default)
         {
             if (!File.Exists(whisperExe))
                 throw new FileNotFoundException("Whisper-Executable nicht gefunden.", whisperExe);

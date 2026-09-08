@@ -392,7 +392,7 @@ namespace MortysDLP.Views
                     inputFile, modelPath, language,
                     outTxt, outSrt, outVtt,
                     outputDir, prefix,
-                    progress, token, numericProgress);
+                    progress, numericProgress, token);
 
                 // Erfolg: Inline anzeigen, keine MessageBox
                 Dispatcher.Invoke(() => ShowResult(success: true,
