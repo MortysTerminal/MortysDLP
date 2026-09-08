@@ -6,7 +6,7 @@
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"
         ShowInTaskbar="False"
-        FontFamily="{StaticResource AppFontFamily}"
+        FontFamily="{DynamicResource AppFontFamily}"
         Background="{DynamicResource SolidBackgroundFillColorBaseBrush}">
 
     <Window.Resources>

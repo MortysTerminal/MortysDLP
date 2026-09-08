@@ -25,6 +25,13 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
 
 ## [Unreleased]
 
+### Hinzugefügt
+- Neue Einstellung **Schriftbild** (Kompakt / Standard / Luftig): Die Oberfläche kann jetzt in
+  der normal laufenden Inter oder der enger gezeichneten Inter Tight dargestellt werden,
+  „Luftig" gibt den Zeilen zusätzlich etwas mehr Platz. Wirkt sofort, ohne Neustart.
+  Standard ist ab jetzt die normal laufende Inter — die bisher fest verwendete enge Variante
+  war für manche schwerer zu lesen.
+
 ### Behoben
 - Der Hinweis auf ein verfügbares Update ist wieder deutlich sichtbar: Der Banner steht auf
   vollem Markengelb mit dunkler, fetter Schrift, statt sich fast unsichtbar in die Oberfläche

@@ -10,7 +10,7 @@
         ShowInTaskbar="True"
         Topmost="True"
         WindowStartupLocation="CenterOwner"
-        FontFamily="{StaticResource AppFontFamily}"
+        FontFamily="{DynamicResource AppFontFamily}"
         Background="{DynamicResource SolidBackgroundFillColorBaseBrush}">
 
     <Grid>

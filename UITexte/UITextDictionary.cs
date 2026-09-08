@@ -152,7 +152,13 @@ namespace MortysDLP.UITexte
             ["SettingsPage.Checkbox.ForceEnglish"] = "Englisch erzwingen",
             ["SettingsPage.Label.LanguageInfo"] = "Deine Auswahl wird automatisch gespeichert.",
             ["SettingsPage.Label.SelectLanguage"] = "Sprache auswählen:",
-            
+            ["SettingsPage.Section.FontAppearance"] = "SCHRIFTBILD",
+            ["SettingsPage.Label.FontAppearance"] = "Schrift:",
+            ["SettingsPage.FontAppearance.Info"] = "Kompakt läuft enger, Luftig gibt den Zeilen mehr Platz. Wirkt sofort.",
+            ["FontAppearance.Compact"] = "Kompakt",
+            ["FontAppearance.Standard"] = "Standard",
+            ["FontAppearance.Airy"] = "Luftig",
+
             // Main Window
             ["MainWindow.Nav.Download"] = "Download",
             ["MainWindow.Nav.Convert"] = "Konvertieren",
@@ -805,7 +811,13 @@ namespace MortysDLP.UITexte
             ["SettingsPage.Checkbox.ForceEnglish"] = "Force English",
             ["SettingsPage.Label.LanguageInfo"] = "Your selection will be saved automatically.",
             ["SettingsPage.Label.SelectLanguage"] = "Select Language:",
-            
+            ["SettingsPage.Section.FontAppearance"] = "TEXT APPEARANCE",
+            ["SettingsPage.Label.FontAppearance"] = "Font:",
+            ["SettingsPage.FontAppearance.Info"] = "Compact is tighter, Airy gives lines more room. Takes effect immediately.",
+            ["FontAppearance.Compact"] = "Compact",
+            ["FontAppearance.Standard"] = "Standard",
+            ["FontAppearance.Airy"] = "Airy",
+
             // Main Window
             ["MainWindow.Nav.Download"] = "Download",
             ["MainWindow.Nav.Convert"] = "Convert",

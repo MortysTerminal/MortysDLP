@@ -2,6 +2,7 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:MortysDLP"
+             xmlns:sys="clr-namespace:System;assembly=System.Runtime"
              ThemeMode="System">
     <Application.Resources>
         <ResourceDictionary>
@@ -29,11 +30,21 @@
                 <GradientStop Color="#F09346" Offset="1"/>
             </LinearGradientBrush>
 
-            <!-- Mitgelieferte Schrift (SIL OFL 1.1). "Inter Tight" ist Inter, vom Gestalter
-                 selbst etwas enger gezeichnet - kein Kniff, dieselbe Schrift. Wird global
-                 verwendet; Segoe UI als Rueckfall, falls die eingebettete Datei nicht laedt.
-                 Nur die Debug-/Protokollausgabe bleibt bewusst bei Consolas. -->
-            <FontFamily x:Key="AppFontFamily">pack://application:,,,/Resources/Fonts/#Inter Tight, Segoe UI Variable, Segoe UI</FontFamily>
+            <!-- Mitgelieferte Schrift (SIL OFL 1.1): Inter und die enger gezeichnete Schwester
+                 Inter Tight, beide eingebettet. Welche verwendet wird, steuert die Einstellung
+                 "Schriftbild" (Kompakt = Inter Tight, Standard/Luftig = Inter) über
+                 Helpers/FontAppearance.cs zur Laufzeit - deshalb hängen alle Verweise an
+                 DynamicResource, nicht StaticResource. Die Werte hier sind nur der Startwert,
+                 bis FontAppearance.ApplyFromSettings() im OnStartup läuft. Segoe UI als
+                 Rückfall, falls die eingebettete Datei nicht lädt. Debug-/Protokollausgabe
+                 bleibt bewusst bei Consolas. -->
+            <FontFamily x:Key="AppFontFamily">pack://application:,,,/Resources/Fonts/#Inter, Segoe UI Variable, Segoe UI</FontFamily>
+
+            <!-- Mindest-Zeilenhöhe für Fließtext. NaN = natürliche Höhe der Schrift
+                 (Kompakt/Standard); "Luftig" setzt einen festen Wert. LineStackingStrategy
+                 bleibt auf dem Standard "MaxHeight", der Wert klippt also nie, er kann nur
+                 mehr Luft geben. -->
+            <sys:Double x:Key="AppLineHeight">NaN</sys:Double>
 
             <!-- Akzentfarben des Fluent-Themes auf die Marke legen. Vier Schlüssel allein
                  reichen nicht - zusätzlich braucht es die eigenen
@@ -70,7 +81,8 @@
 
             <!-- Global TextBlock style for adaptive Light/Dark text -->
             <Style TargetType="TextBlock">
-                <Setter Property="FontFamily" Value="{StaticResource AppFontFamily}"/>
+                <Setter Property="FontFamily" Value="{DynamicResource AppFontFamily}"/>
+                <Setter Property="LineHeight" Value="{DynamicResource AppLineHeight}"/>
                 <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}"/>
                 <Style.Triggers>
                     <Trigger Property="IsEnabled" Value="False">
@@ -82,7 +94,7 @@
 
             <!-- Global Label style for adaptive Light/Dark text -->
             <Style TargetType="Label">
-                <Setter Property="FontFamily" Value="{StaticResource AppFontFamily}"/>
+                <Setter Property="FontFamily" Value="{DynamicResource AppFontFamily}"/>
                 <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}"/>
                 <Style.Triggers>
                     <Trigger Property="IsEnabled" Value="False">

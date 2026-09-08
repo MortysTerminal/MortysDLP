@@ -57,7 +57,7 @@ namespace MortysDLP.Views
 
             new(
                 "Inter / Inter Tight",
-                "Die Schrift der gesamten Oberfläche. Inter von Rasmus Andersson, für Bildschirme gezeichnet; Inter Tight ist die etwas enger laufende Schwester. Beide werden mitgeliefert, der Lizenztext liegt als OFL.txt neben der Anwendung.",
+                "Die Schrift der Oberfläche. Inter von Rasmus Andersson, für Bildschirme gezeichnet; Inter Tight ist die etwas enger laufende Schwester. Welche verwendet wird, stellst du in den Einstellungen unter Schriftbild ein. Beide werden mitgeliefert, der Lizenztext liegt als OFL.txt neben der Anwendung.",
                 "SIL Open Font License 1.1",
                 "https://github.com/rsms/inter"),
         ];

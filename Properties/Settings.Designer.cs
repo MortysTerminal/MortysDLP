@@ -262,6 +262,18 @@ namespace MortysDLP.Properties {
                 this["SelectedLanguage"] = value;
             }
         }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("standard")]
+        public string FontAppearance {
+            get {
+                return ((string)(this["FontAppearance"]));
+            }
+            set {
+                this["FontAppearance"] = value;
+            }
+        }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]

@@ -6,7 +6,7 @@
         WindowStartupLocation="CenterScreen"
         Width="1430" Height="950"
         MinWidth="1100" MinHeight="700"
-        FontFamily="{StaticResource AppFontFamily}"
+        FontFamily="{DynamicResource AppFontFamily}"
         Background="{DynamicResource SolidBackgroundFillColorBaseBrush}">
 
     <Window.Resources>

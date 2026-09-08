@@ -6,7 +6,7 @@
         Width="720" SizeToContent="Height"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"
-        FontFamily="{StaticResource AppFontFamily}"
+        FontFamily="{DynamicResource AppFontFamily}"
         Background="{DynamicResource SolidBackgroundFillColorBaseBrush}">
 
     <Grid Margin="24,20,24,24">

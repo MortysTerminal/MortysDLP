@@ -86,6 +86,10 @@ namespace MortysDLP
             // Übernahme stünde der Nutzer nach jedem Update vor Standardeinstellungen.
             ApplySettingsUpgradeIfNeeded();
 
+            // Schriftbild (Kompakt/Standard/Luftig) setzen, bevor das erste Fenster erscheint -
+            // sonst blitzt kurz die Standardschrift auf.
+            FontAppearance.ApplyFromSettings();
+
             LogEnvironmentInfo();
 
             try

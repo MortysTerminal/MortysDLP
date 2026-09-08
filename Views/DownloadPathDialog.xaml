@@ -9,7 +9,7 @@
         Width="600" Height="auto"
         SizeToContent="Height"
         Background="{DynamicResource SolidBackgroundFillColorBaseBrush}"
-        FontFamily="{StaticResource AppFontFamily}"
+        FontFamily="{DynamicResource AppFontFamily}"
         Closing="Window_Closing">
     
     <Grid Margin="20">

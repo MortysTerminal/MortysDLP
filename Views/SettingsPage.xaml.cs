@@ -52,7 +52,18 @@ namespace MortysDLP.Views
                     cbLanguage.SelectedItem = item;
                 }
             }
-            
+
+            // Schriftbild
+            cbFontAppearance.Items.Clear();
+            string savedAppearance = FontAppearance.Current;
+            foreach (string value in FontAppearance.All)
+            {
+                var item = new ComboBoxItem { Tag = value };
+                cbFontAppearance.Items.Add(item);
+                if (value == savedAppearance)
+                    cbFontAppearance.SelectedItem = item;
+            }
+
             _isInitializing = false;
             SetUITexts();
         }
@@ -103,6 +114,16 @@ namespace MortysDLP.Views
             txtSectionLanguage.Text = T("SettingsPage.Section.Language");
             lblSelectLanguage.Content = T("SettingsPage.Label.SelectLanguage");
             txtLanguageInfo.Text = T("SettingsPage.Label.LanguageInfo");
+
+            // Font appearance Section
+            txtSectionFontAppearance.Text = T("SettingsPage.Section.FontAppearance");
+            lblFontAppearance.Content = T("SettingsPage.Label.FontAppearance");
+            txtFontAppearanceInfo.Text = T("SettingsPage.FontAppearance.Info");
+            foreach (ComboBoxItem item in cbFontAppearance.Items)
+            {
+                string v = (string)item.Tag;
+                item.Content = T($"FontAppearance.{char.ToUpperInvariant(v[0])}{v[1..]}");
+            }
 
             // Bandwidth Section
             txtSectionBandwidth.Text  = T("SettingsPage.Section.Bandwidth");
@@ -256,6 +277,18 @@ namespace MortysDLP.Views
                 
                 // Hotload: Aktualisiere alle UI-Texte
                 RefreshAllUITexts();
+            }
+        }
+
+        private void cbFontAppearance_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isInitializing) return;
+
+            if (cbFontAppearance.SelectedItem is ComboBoxItem item && item.Tag is string value)
+            {
+                Properties.Settings.Default.FontAppearance = value;
+                Properties.Settings.Default.Save();
+                FontAppearance.Apply(value);
             }
         }
 

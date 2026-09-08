@@ -49,6 +49,20 @@
                 </StackPanel>
             </Border>
 
+            <!-- SCHRIFTBILD -->
+            <Border Style="{StaticResource CardBorderStyle}">
+                <StackPanel>
+                    <TextBlock x:Name="txtSectionFontAppearance" Style="{StaticResource SectionHeaderStyle}"/>
+
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                        <Label x:Name="lblFontAppearance" VerticalAlignment="Center" Style="{StaticResource FormLabelStyle}"/>
+                        <ComboBox x:Name="cbFontAppearance" Width="200" SelectionChanged="cbFontAppearance_SelectionChanged"/>
+                    </StackPanel>
+
+                    <TextBlock x:Name="txtFontAppearanceInfo" Opacity="0.7" Margin="0,8,0,0" TextWrapping="Wrap"/>
+                </StackPanel>
+            </Border>
+
             <!-- DOWNLOAD-GESCHWINDIGKEIT -->
             <Border Style="{StaticResource CardBorderStyle}">
                 <StackPanel>

@@ -10,7 +10,7 @@
         MaxWidth="640"
         ShowInTaskbar="False"
         WindowStartupLocation="CenterOwner"
-        FontFamily="{StaticResource AppFontFamily}"
+        FontFamily="{DynamicResource AppFontFamily}"
         Background="{DynamicResource SolidBackgroundFillColorBaseBrush}">
 
     <Grid>
