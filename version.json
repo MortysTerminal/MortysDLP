@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
   "stable": {
-    "version": "2026.09.07",
-    "url": "https://github.com/MortysTerminal/MortysDLP/releases/download/2026.09.07/MortysDLP.zip",
-    "sha256": "0464858d33c511cb397bd7048838467d0dfc77d2a93784e1f13acb33b471ba73",
-    "size": 757672,
+    "version": "2026.09.09",
+    "url": "https://github.com/MortysTerminal/MortysDLP/releases/download/2026.09.09/MortysDLP.zip",
+    "sha256": "e15cade65ce99bbdbef977131a47a75c1ec29677d6a25b3bfabc1a1a4cdbf1b6",
+    "size": 726181,
     "requiresDotnet": "10.0"
   }
 }
