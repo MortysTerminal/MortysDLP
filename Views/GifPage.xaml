@@ -134,7 +134,7 @@
             </Border>
 
             <!-- DEBUG -->
-            <DockPanel x:Name="borderDebug" Margin="0,4,0,0" Visibility="Collapsed">
+            <DockPanel x:Name="dockDebug" Margin="0,4,0,0" Visibility="Collapsed">
                 <Expander x:Name="expDebug" IsExpanded="False">
                     <TextBox x:Name="tbDebugOutput"
                              VerticalScrollBarVisibility="Auto"
@@ -144,6 +144,7 @@
                              FontFamily="Consolas"
                              FontSize="12"
                              AcceptsReturn="True"
+                             AcceptsTab="True"
                              MaxHeight="200"/>
                 </Expander>
             </DockPanel>
@@ -167,7 +168,7 @@
                     <Border x:Name="pnlRunning" Padding="12,0,0,0" Visibility="Collapsed">
                         <StackPanel VerticalAlignment="Center">
                             <StackPanel Orientation="Horizontal" Margin="0,0,0,2">
-                                <TextBlock x:Name="txtStatus" FontWeight="Bold"/>
+                                <TextBlock x:Name="txtStatus" FontWeight="SemiBold"/>
                             </StackPanel>
                             <ProgressBar x:Name="pbProgress"
                                          Width="220" Height="8"

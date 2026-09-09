@@ -14,7 +14,7 @@ using System.Windows.Controls;
 
 namespace MortysDLP.Views
 {
-    public partial class ConvertPage : Page, ICancellableWork
+    public partial class ConvertPage : Page, ICancellableWork, IDebugModeAware
     {
         bool ICancellableWork.IsBusy => btnConvertCancel.IsEnabled;
         string ICancellableWork.BusyLabel => UITextDictionary.Get("ActiveWork.Label.Convert");
@@ -104,12 +104,12 @@ namespace MortysDLP.Views
             btnConvertCancel.Content = T("ConvertPage.Button.CancelConversion");
             
             // Section 5
-            expDebug.Header = T("ConvertPage.Section.Debug");
+            expDebug.Header = T("Common.Section.Debug");
         }
 
         public void ApplyDebugMode()
         {
-            borderDebug.Visibility = Properties.Settings.Default.DebugMode ? Visibility.Visible : Visibility.Collapsed;
+            dockDebug.Visibility = Properties.Settings.Default.DebugMode ? Visibility.Visible : Visibility.Collapsed;
         }
 
         private void btnAddFiles_Click(object sender, RoutedEventArgs e)
@@ -155,9 +155,9 @@ namespace MortysDLP.Views
             string targetFolder = tbTargetFolder.Text;
             if (string.IsNullOrWhiteSpace(targetFolder) || !_fileList.Any())
             {
-                MessageBox.Show(UITextDictionary.Get("ConvertPage.Message.NoTargetOrFiles"), 
-                    UITextDictionary.Get("Common.Error"), 
-                    MessageBoxButton.OK, MessageBoxImage.Error);
+                FluentMessageBox.Show(UITextDictionary.Get("ConvertPage.Message.NoTargetOrFiles"),
+                    UITextDictionary.Get("Common.Error"),
+                    MessageBoxButton.OK, MessageBoxImage.Error, Window.GetWindow(this));
                 UpdateFileButtonsState();
                 btnConvertCancel.IsEnabled = false;
                 return;
@@ -167,9 +167,9 @@ namespace MortysDLP.Views
                 try { Directory.CreateDirectory(targetFolder); }
                 catch (Exception ex)
                 {
-                    MessageBox.Show(UITextDictionary.Format("ConvertPage.Message.CannotCreateFolder", ex.Message),
+                    FluentMessageBox.Show(UITextDictionary.Format("ConvertPage.Message.CannotCreateFolder", ex.Message),
                         UITextDictionary.Get("Common.Error"),
-                        MessageBoxButton.OK, MessageBoxImage.Error);
+                        MessageBoxButton.OK, MessageBoxImage.Error, Window.GetWindow(this));
                     btnConvertStart.IsEnabled = true;
                     btnConvertCancel.IsEnabled = false;
                     return;
@@ -562,14 +562,15 @@ namespace MortysDLP.Views
 
         private void btnBrowseTargetFolder_Click(object sender, RoutedEventArgs e)
         {
-            var dialog = new Ookii.Dialogs.Wpf.VistaFolderBrowserDialog
+            var dialog = new OpenFolderDialog
             {
-                Description = UITextDictionary.Get("ConvertPage.Dialog.FolderBrowser"),
-                SelectedPath = tbTargetFolder.Text,
-                UseDescriptionForTitle = true
+                Title = UITextDictionary.Get("ConvertPage.Dialog.FolderBrowser")
             };
+            if (!string.IsNullOrWhiteSpace(tbTargetFolder.Text) && Directory.Exists(tbTargetFolder.Text))
+                dialog.InitialDirectory = tbTargetFolder.Text;
+
             if (dialog.ShowDialog(Window.GetWindow(this)) == true)
-                tbTargetFolder.Text = dialog.SelectedPath;
+                tbTargetFolder.Text = dialog.FolderName;
         }
 
         private void btnUseSavedDownloadpath_Click(object sender, RoutedEventArgs e)
@@ -595,9 +596,9 @@ namespace MortysDLP.Views
             }
             else
             {
-                MessageBox.Show(UITextDictionary.Get("ConvertPage.Message.FolderNotExists"), 
-                    UITextDictionary.Get("Common.Error"), 
-                    MessageBoxButton.OK, MessageBoxImage.Error);
+                FluentMessageBox.Show(UITextDictionary.Get("ConvertPage.Message.FolderNotExists"),
+                    UITextDictionary.Get("Common.Error"),
+                    MessageBoxButton.OK, MessageBoxImage.Error, Window.GetWindow(this));
             }
         }
 
@@ -633,9 +634,9 @@ namespace MortysDLP.Views
                     if (files.Length > mediaFiles.Count)
                     {
                         var T = UITextDictionary.Get;
-                        MessageBox.Show(UITextDictionary.Format("ConvertPage.Message.IgnoredFiles", files.Length - mediaFiles.Count),
+                        FluentMessageBox.Show(UITextDictionary.Format("ConvertPage.Message.IgnoredFiles", files.Length - mediaFiles.Count),
                             T("ConvertPage.Message.Info"),
-                            MessageBoxButton.OK, MessageBoxImage.Information);
+                            MessageBoxButton.OK, MessageBoxImage.Information, Window.GetWindow(this));
                     }
                 }
             }

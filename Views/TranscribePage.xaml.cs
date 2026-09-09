@@ -10,7 +10,7 @@ using System.Windows.Controls;
 
 namespace MortysDLP.Views
 {
-    public partial class TranscribePage : Page, ICancellableWork
+    public partial class TranscribePage : Page, ICancellableWork, IDebugModeAware
     {
         bool ICancellableWork.IsBusy => btnCancel.IsEnabled;
         string ICancellableWork.BusyLabel => UITextDictionary.Get("ActiveWork.Label.Transcribe");
@@ -97,7 +97,7 @@ namespace MortysDLP.Views
             txtOpenOutput.Text = T("TranscribePage.Button.OpenOutput");
             btnStart.Content = T("TranscribePage.Button.Start");
             btnCancel.Content = T("TranscribePage.Button.Cancel");
-            expLog.Header = T("DownloadPage.Section.Debug");
+            expDebug.Header = T("Common.Section.Debug");
 
             ApplyDebugMode();
             RefreshWhisperStatus();
@@ -108,7 +108,7 @@ namespace MortysDLP.Views
         public void ApplyDebugMode()
         {
             bool fullyReady = WhisperService.IsWhisperInstalled() && WhisperService.GetInstalledModels().Any();
-            dockLog.Visibility = (fullyReady && Properties.Settings.Default.DebugMode)
+            dockDebug.Visibility = (fullyReady && Properties.Settings.Default.DebugMode)
                 ? Visibility.Visible : Visibility.Collapsed;
         }
 
@@ -136,7 +136,7 @@ namespace MortysDLP.Views
             borderActions.Visibility  = workVisibility;
 
             // Debug-Log: nur wenn bereit UND DebugMode aktiviert
-            dockLog.Visibility = (fullyReady && Properties.Settings.Default.DebugMode)
+            dockDebug.Visibility = (fullyReady && Properties.Settings.Default.DebugMode)
                 ? Visibility.Visible : Visibility.Collapsed;
 
             // Setup-Panel: zeigt die Whisper-Einrichtung - nicht anzeigen, wenn nur ffmpeg fehlt
@@ -272,14 +272,15 @@ namespace MortysDLP.Views
 
         private void btnBrowseOutput_Click(object sender, RoutedEventArgs e)
         {
-            var dlg = new System.Windows.Forms.FolderBrowserDialog
+            var dlg = new OpenFolderDialog
             {
-                Description = UITextDictionary.Get("TranscribePage.Label.OutputDir"),
-                SelectedPath = tbOutputDir.Text,
-                UseDescriptionForTitle = true
+                Title = UITextDictionary.Get("TranscribePage.Dialog.OutputFolder")
             };
-            if (dlg.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-                tbOutputDir.Text = dlg.SelectedPath;
+            if (!string.IsNullOrWhiteSpace(tbOutputDir.Text) && Directory.Exists(tbOutputDir.Text))
+                dlg.InitialDirectory = tbOutputDir.Text;
+
+            if (dlg.ShowDialog() == true)
+                tbOutputDir.Text = dlg.FolderName;
         }
 
         private void btnOpenOutput_Click(object sender, RoutedEventArgs e)
@@ -348,7 +349,7 @@ namespace MortysDLP.Views
             if (string.IsNullOrWhiteSpace(outputDir))
                 outputDir = Path.GetDirectoryName(tbInputFile.Text) ?? "";
 
-            tbLog.Clear();
+            tbDebugOutput.Clear();
             SetUiRunning(true);
             txtStatus.Text = T("TranscribePage.Status.ExtractingAudio");
 
@@ -496,20 +497,20 @@ namespace MortysDLP.Views
                     pnlRunning.Visibility = Visibility.Collapsed;
                     // Debug-Log nur öffnen wenn DebugMode aktiv
                     if (Properties.Settings.Default.DebugMode)
-                        expLog.IsExpanded = true;
+                        expDebug.IsExpanded = true;
                 }
             });
         }
 
         private void AppendLog(string text) => Dispatcher.Invoke(() =>
         {
-            tbLog.AppendText(text + Environment.NewLine);
-            tbLog.ScrollToEnd();
+            tbDebugOutput.AppendText(text + Environment.NewLine);
+            tbDebugOutput.ScrollToEnd();
         });
 
-        private void tbLog_TextChanged(object sender, TextChangedEventArgs e)
+        private void tbDebugOutput_TextChanged(object sender, TextChangedEventArgs e)
         {
-            tbLog.ScrollToEnd();
+            tbDebugOutput.ScrollToEnd();
         }
     }
 }

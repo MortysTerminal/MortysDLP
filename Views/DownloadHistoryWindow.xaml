@@ -38,7 +38,7 @@
                            FontSize="22" VerticalAlignment="Center" Margin="0,0,12,0"
                            Foreground="{StaticResource BrandOrangeBrush}"/>
                 <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                    <TextBlock x:Name="txtHeaderTitle" FontSize="18" FontWeight="SemiBold"/>
+                    <TextBlock x:Name="txtHeaderTitle" Style="{StaticResource PageTitleStyle}"/>
                     <TextBlock x:Name="txtHeaderSubtitle" FontSize="12" Opacity="0.7" Margin="0,2,0,0"/>
                 </StackPanel>
             </Grid>

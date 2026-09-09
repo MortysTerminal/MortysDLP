@@ -56,7 +56,7 @@
         <!-- Header -->
         <StackPanel Grid.Row="0" Margin="0,0,0,14">
             <TextBlock Text="Credits &amp; Open-Source-Tools"
-                       FontSize="20" FontWeight="Bold" Margin="0,0,0,4"/>
+                       Style="{StaticResource PageTitleStyle}" Margin="0,0,0,4"/>
             <TextBlock FontSize="12" Opacity="0.65" TextWrapping="Wrap">
                 MortysDLP ist kostenlos und quelloffen. Für alle Kernfunktionen werden externe Open-Source-Tools eingesetzt.
                 Hier findest du eine vollständige Übersicht mit Links zu den jeweiligen Projekten.

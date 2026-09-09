@@ -137,12 +137,33 @@
                 <Setter Property="Margin"          Value="0,0,0,12"/>
             </Style>
 
-            <!-- Abschnittsüberschrift innerhalb einer Karte. Die Schriftgröße wird spaeter auf
-                 die Typo-Skala umgestellt, hier zunaechst nur der Abstand auf dem Raster. -->
+            <!-- Typo-Skala (08-DESIGN-CI.md §3.3). Sechs Rollen, keine Zwischenwerte:
+                   Display  28 SemiBold  - Splash, grosse Kopfzeile        -> DisplayTextStyle
+                   Seitentitel 20 Bold  - Kopfbereich, Fenster-/Dialogkopf -> PageTitleStyle
+                   Abschnitt 14 SemiBold - Ueberschrift in einer Karte     -> SectionHeaderStyle
+                   Fliesstext 13         - Beschriftungen, Knoepfe         }  erben die Groesse
+                   Nebentext  12         - Hilfe, Kopf-Unterzeile, Zahlen  }  vom globalen
+                   Kicker     10 SemiBold - Versalien, getrackt            }  TextBlock-Stil
+                 Fliesstext/Nebentext/Kicker sind bewusst KEINE eigenen Styles: das waere ein
+                 Eingriff in jede Seite. Sie bleiben inline, bis eine spaetere Aufgabe sie
+                 zusammenzieht. -->
+            <Style x:Key="DisplayTextStyle" TargetType="TextBlock"
+                   BasedOn="{StaticResource {x:Type TextBlock}}">
+                <Setter Property="FontSize"   Value="28"/>
+                <Setter Property="FontWeight" Value="SemiBold"/>
+            </Style>
+
+            <Style x:Key="PageTitleStyle" TargetType="TextBlock"
+                   BasedOn="{StaticResource {x:Type TextBlock}}">
+                <Setter Property="FontSize"   Value="20"/>
+                <Setter Property="FontWeight" Value="Bold"/>
+            </Style>
+
+            <!-- Abschnittsüberschrift innerhalb einer Karte. Groesse aus der Skala (14). -->
             <Style x:Key="SectionHeaderStyle" TargetType="TextBlock"
                    BasedOn="{StaticResource {x:Type TextBlock}}">
                 <Setter Property="FontWeight"  Value="SemiBold"/>
-                <Setter Property="FontSize"    Value="11"/>
+                <Setter Property="FontSize"    Value="14"/>
                 <Setter Property="Foreground"  Value="{StaticResource BrandOrangeBrush}"/>
                 <Setter Property="Margin"      Value="0,0,0,8"/>
             </Style>

@@ -61,8 +61,8 @@ MortysDLP relies on the following open-source tools:
 | [yt-dlp](https://github.com/yt-dlp/yt-dlp) | Video & audio downloads | Unlicense |
 | [ffmpeg](https://ffmpeg.org/) | Media processing, conversion | LGPL / GPL |
 | [TwitchDownloaderCLI](https://github.com/lay295/TwitchDownloader) | Twitch chat download & rendering | MIT |
-| [whisper.net / whisper.cpp](https://github.com/sandrohanea/whisper.net) | Offline speech-to-text | MIT |
-| [Wpf.Ui](https://github.com/lepoco/wpfui) | Fluent-style WPF UI library | MIT |
+| [whisper.cpp](https://github.com/ggml-org/whisper.cpp) | Offline speech-to-text | MIT |
+| [Inter / Inter Tight](https://github.com/rsms/inter) | Bundled UI font | SIL OFL 1.1 |
 
 ---
 

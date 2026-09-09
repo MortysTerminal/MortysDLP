@@ -667,10 +667,10 @@ namespace MortysDLP
 
                 if (result.Info?.DownloadUrl is not { } assetUrl)
                 {
-                    MessageBox.Show(
+                    FluentMessageBox.Show(
                         UITexte.UITexte.Error_UpdateNotAvailable,
                         UITexte.UITexte.Error,
-                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                        MessageBoxButton.OK, MessageBoxImage.Warning, MainWindow);
                     return;
                 }
 
@@ -753,18 +753,18 @@ namespace MortysDLP
                     {
                         string candidateNames = string.Join(", ", ex.CandidateNames);
                         Log.Error($"Mehrere passende Update-Pakete gefunden: {candidateNames}");
-                        MessageBox.Show(
+                        FluentMessageBox.Show(
                             UITexte.UITextDictionary.Get("Update.Error.AssetAmbiguous")
                                 .Replace("{0}", candidateNames, StringComparison.Ordinal),
-                            UITexte.UITexte.Error, MessageBoxButton.OK, MessageBoxImage.Error);
+                            UITexte.UITexte.Error, MessageBoxButton.OK, MessageBoxImage.Error, MainWindow);
                         return;
                     }
 
                     if (selected is null)
                     {
-                        MessageBox.Show(
+                        FluentMessageBox.Show(
                             UITexte.UITextDictionary.Get("Update.Error.AssetNotFound"),
-                            UITexte.UITexte.Error, MessageBoxButton.OK, MessageBoxImage.Warning);
+                            UITexte.UITexte.Error, MessageBoxButton.OK, MessageBoxImage.Warning, MainWindow);
                         return;
                     }
 
@@ -778,9 +778,9 @@ namespace MortysDLP
 
                 if (string.IsNullOrEmpty(assetUrl))
                 {
-                    MessageBox.Show(
+                    FluentMessageBox.Show(
                         UITexte.UITexte.Error_UpdateNotAvailable,
-                        UITexte.UITexte.Error, MessageBoxButton.OK, MessageBoxImage.Warning);
+                        UITexte.UITexte.Error, MessageBoxButton.OK, MessageBoxImage.Warning, MainWindow);
                     return;
                 }
 
@@ -818,9 +818,9 @@ namespace MortysDLP
                     {
                         Log.Error($"Update-Prüfsumme stimmt nicht überein. Erwartet: {ex.Expected}, " +
                             $"tatsächlich: {ex.Actual}");
-                        MessageBox.Show(
+                        FluentMessageBox.Show(
                             UITexte.UITextDictionary.Get("Update.Error.ChecksumMismatch"),
-                            UITexte.UITexte.Error, MessageBoxButton.OK, MessageBoxImage.Error);
+                            UITexte.UITexte.Error, MessageBoxButton.OK, MessageBoxImage.Error, MainWindow);
                         return;
                     }
                 }
@@ -830,10 +830,10 @@ namespace MortysDLP
                 if (!UpdateService.ValidateZipContainsMainExe(tempZipPath, Settings.Default.MortysDLPExeFile))
                 {
                     try { if (File.Exists(tempZipPath)) File.Delete(tempZipPath); } catch { }
-                    MessageBox.Show(
+                    FluentMessageBox.Show(
                         UITexte.UITexte.Error_UpdateZipCorrupt,
                         UITexte.UITexte.Error,
-                        MessageBoxButton.OK, MessageBoxImage.Error);
+                        MessageBoxButton.OK, MessageBoxImage.Error, MainWindow);
                     return;
                 }
 
@@ -841,10 +841,10 @@ namespace MortysDLP
                 string sourceUpdaterDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Settings.Default.MortysDLPUpdaterBaseFolderName);
                 if (!Directory.Exists(sourceUpdaterDir))
                 {
-                    MessageBox.Show(
+                    FluentMessageBox.Show(
                         UITexte.UITexte.Error_UpdaterNotFound,
                         UITexte.UITexte.Error,
-                        MessageBoxButton.OK, MessageBoxImage.Error);
+                        MessageBoxButton.OK, MessageBoxImage.Error, MainWindow);
                     return;
                 }
 
@@ -897,10 +897,10 @@ namespace MortysDLP
 
                 if (updaterProcess == null)
                 {
-                    MessageBox.Show(
+                    FluentMessageBox.Show(
                         "Der Updater-Prozess konnte nicht gestartet werden.",
                         UITexte.UITexte.Error,
-                        MessageBoxButton.OK, MessageBoxImage.Error);
+                        MessageBoxButton.OK, MessageBoxImage.Error, MainWindow);
                     return;
                 }
 
@@ -921,10 +921,10 @@ namespace MortysDLP
             catch (Exception ex)
             {
                 Log.Error("Update fehlgeschlagen", ex);
-                MessageBox.Show(
+                FluentMessageBox.Show(
                     string.Format(CultureInfo.CurrentCulture, UITexte.UITexte.Error_UpdateFailed, ex.Message),
                     UITexte.UITexte.Error,
-                    MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBoxButton.OK, MessageBoxImage.Error, MainWindow);
             }
         }
 

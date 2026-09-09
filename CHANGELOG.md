@@ -32,10 +32,29 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
   gespeichert. Die bisher fest verwendete enge Variante (Inter Tight) war für manche schwerer
   zu lesen.
 
+### Geändert
+- Überschriften und Titel folgen jetzt einer festen Größenstufung. Abschnittsüberschriften
+  auf den Seiten sind etwas größer und heben sich dadurch klarer vom übrigen Text ab.
+  Fettungen wurden auf ein ruhigeres Halbfett zurückgenommen — der Update-Hinweis bleibt
+  bewusst fett und auffällig.
+- Die Ordnerauswahl ist überall derselbe Dialog: Beim Zielordner auf der Konvertieren-,
+  Transkribieren- und Twitch-Seite sowie im Download-Pfad-Fenster kommt jetzt der native
+  Windows-Ordnerdialog zum Einsatz, wie er bisher schon beim GIF-Maker verwendet wurde. Er
+  öffnet im zuletzt gewählten Ordner und ist bei hoher Bildschirmskalierung scharf.
+- Alle verbliebenen Hinweis- und Fehlermeldungen sehen jetzt gleich aus: Auf der
+  Konvertieren-Seite, in den Einstellungen und im Ablauf des Anwendungs-Updates erschienen
+  bisher noch einzelne Windows-Standarddialoge statt der einheitlichen Meldungsfenster.
+- Der Debug-Modus wirkt jetzt sofort auf allen Seiten. Vorher blieb der Protokollbereich auf
+  der Batch-, GIF- und Twitch-Seite verschwunden, bis man den Tab einmal gewechselt hat.
+
 ### Behoben
 - Der Hinweis auf ein verfügbares Update ist wieder deutlich sichtbar: Der Banner steht auf
   vollem Markengelb mit dunkler, fetter Schrift, statt sich fast unsichtbar in die Oberfläche
   einzufügen.
+- Die Open-Source-Credits nannten zwei Bibliotheken, die MortysDLP gar nicht verwendet.
+  Ersetzt durch die tatsächlich genutzten Komponenten; die mitgelieferte Oberflächenschrift
+  und ihre Lizenz sind jetzt korrekt aufgeführt. Veraltete Projektlinks zu whisper.cpp in der
+  Dokumentation wurden aktualisiert.
 - Das Änderungen-Fenster („Was ist neu" bzw. der Update-Hinweis) zeigt jetzt auch dann sauber
   formatierte Überschriften, Listen und Hervorhebungen an, wenn die Release-Notiz HTML enthält.
   Vorher standen die HTML-Auszeichnungen (`<h2>`, `<li>`, …) als Text im Fenster.

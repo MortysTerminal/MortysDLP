@@ -186,7 +186,7 @@
             </Border>
 
             <!-- DEBUG -->
-            <DockPanel Margin="0,4,0,0">
+            <DockPanel x:Name="dockDebug" Margin="0,4,0,0" Visibility="Collapsed">
                 <Expander x:Name="expDebug" IsExpanded="False">
                     <TextBox x:Name="tbDebugOutput" VerticalScrollBarVisibility="Auto"
                              HorizontalScrollBarVisibility="Auto" IsReadOnly="True" TextWrapping="NoWrap"
@@ -209,7 +209,7 @@
                     <Border Padding="12,0,0,0">
                         <StackPanel x:Name="spLoadingbar" Visibility="Hidden" Orientation="Vertical" HorizontalAlignment="Center">
                             <StackPanel Orientation="Horizontal" Margin="4,0,4,2">
-                                <TextBlock x:Name="txtDownloadStatus" FontWeight="Bold"/>
+                                <TextBlock x:Name="txtDownloadStatus" FontWeight="SemiBold"/>
                                 <TextBlock x:Name="txtDownloadSpeed" Margin="8,0,0,0" Opacity="0.7" FontSize="12"/>
                             </StackPanel>
                             <ProgressBar x:Name="pbDownload"

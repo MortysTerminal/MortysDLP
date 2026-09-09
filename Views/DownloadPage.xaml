@@ -200,9 +200,9 @@
             </Border>
 
             <!-- DEBUG -->
-            <DockPanel Margin="0,4,0,0">
-                <Expander Name="expDebug" IsExpanded="False">
-                    <TextBox Name="tbDebugOutput" VerticalScrollBarVisibility="Auto"
+            <DockPanel x:Name="dockDebug" Margin="0,4,0,0" Visibility="Collapsed">
+                <Expander x:Name="expDebug" IsExpanded="False">
+                    <TextBox x:Name="tbDebugOutput" VerticalScrollBarVisibility="Auto"
                              HorizontalScrollBarVisibility="Auto" IsReadOnly="True" TextWrapping="NoWrap"
                              FontFamily="Consolas" FontSize="12" AcceptsReturn="True" AcceptsTab="True"
                              MaxHeight="200"/>
@@ -226,9 +226,9 @@
                     <Border Padding="12,0,0,0">
                         <StackPanel Name="spLoadingbar" Visibility="Hidden" Orientation="Vertical" HorizontalAlignment="Center">
                             <StackPanel Orientation="Horizontal" Margin="4,0,4,2">
-                                <TextBlock Name="txtPlaylistProgress" FontWeight="Bold" Foreground="{StaticResource BrandOrangeBrush}"
+                                <TextBlock Name="txtPlaylistProgress" FontWeight="SemiBold" Foreground="{StaticResource BrandOrangeBrush}"
                                            Visibility="Collapsed" Margin="0,0,8,0"/>
-                                <TextBlock Name="txtDownloadStatus" FontWeight="Bold"/>
+                                <TextBlock Name="txtDownloadStatus" FontWeight="SemiBold"/>
                                 <TextBlock Name="txtDownloadProgress" Text="0 %" Margin="8,0,0,0"/>
                                 <TextBlock Name="txtDownloadEta" Opacity="0.75" Margin="8,0,0,0"/>
                             </StackPanel>

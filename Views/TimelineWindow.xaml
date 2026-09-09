@@ -29,7 +29,7 @@
             <StackPanel Orientation="Horizontal">
                 <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xEC50;" FontSize="20"
                            Foreground="{StaticResource BrandOrangeBrush}" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                <TextBlock x:Name="txtHeaderTitle" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                <TextBlock x:Name="txtHeaderTitle" Style="{StaticResource PageTitleStyle}" VerticalAlignment="Center"/>
             </StackPanel>
             <TextBlock x:Name="txtVideoDuration" FontSize="12" Opacity="0.7" Margin="0,6,0,0"/>
         </StackPanel>

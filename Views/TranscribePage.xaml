@@ -176,14 +176,14 @@
                 </StackPanel>
             </Border>
 
-            <!-- AUSGABE-LOG -->
-            <DockPanel x:Name="dockLog" Margin="0,4,0,0">
-                <Expander x:Name="expLog" IsExpanded="False">
-                    <TextBox x:Name="tbLog" VerticalScrollBarVisibility="Auto"
+            <!-- DEBUG -->
+            <DockPanel x:Name="dockDebug" Margin="0,4,0,0" Visibility="Collapsed">
+                <Expander x:Name="expDebug" IsExpanded="False">
+                    <TextBox x:Name="tbDebugOutput" VerticalScrollBarVisibility="Auto"
                              HorizontalScrollBarVisibility="Auto" IsReadOnly="True"
                              TextWrapping="NoWrap" FontFamily="Consolas" FontSize="12"
-                             AcceptsReturn="True" MaxHeight="200"
-                             TextChanged="tbLog_TextChanged"/>
+                             AcceptsReturn="True" AcceptsTab="True" MaxHeight="200"
+                             TextChanged="tbDebugOutput_TextChanged"/>
                 </Expander>
             </DockPanel>
 
@@ -206,7 +206,7 @@
                     <Border x:Name="pnlRunning" Padding="12,0,0,0" Visibility="Collapsed">
                         <StackPanel VerticalAlignment="Center">
                             <StackPanel Orientation="Horizontal" Margin="0,0,0,2">
-                                <TextBlock x:Name="txtStatus" FontWeight="Bold"/>
+                                <TextBlock x:Name="txtStatus" FontWeight="SemiBold"/>
                                 <TextBlock x:Name="txtProgressPercent" Margin="8,0,0,0" Opacity="0.7"/>
                             </StackPanel>
                             <ProgressBar x:Name="pbProgress"

@@ -14,7 +14,7 @@ using System.Windows.Navigation;
 
 namespace MortysDLP.Views
 {
-    public partial class DownloadPage : Page, ICancellableWork
+    public partial class DownloadPage : Page, ICancellableWork, IDebugModeAware
     {
         bool ICancellableWork.IsBusy => btnDownloadCancel.IsEnabled;
         string ICancellableWork.BusyLabel => UITextDictionary.Get("ActiveWork.Label.Download");
@@ -132,7 +132,7 @@ namespace MortysDLP.Views
 
         public void ApplyDebugMode()
         {
-            expDebug.Visibility = Properties.Settings.Default.DebugMode ? Visibility.Visible : Visibility.Collapsed;
+            dockDebug.Visibility = Properties.Settings.Default.DebugMode ? Visibility.Visible : Visibility.Collapsed;
         }
 
         public void SetUITexts()
@@ -186,7 +186,7 @@ namespace MortysDLP.Views
             txtDownloadStatus.Text = T("DownloadPage.Status.Loading");
             
             // Debug
-            expDebug.Header = T("DownloadPage.Section.Debug");
+            expDebug.Header = T("Common.Section.Debug");
 
             // Section: GIF-Maker
             txtSectionGifMaker.Text         = T("DownloadPage.Section.GifMaker");

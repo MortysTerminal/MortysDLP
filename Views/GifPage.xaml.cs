@@ -10,7 +10,7 @@ using System.Windows.Controls;
 
 namespace MortysDLP.Views
 {
-    public partial class GifPage : Page, ICancellableWork
+    public partial class GifPage : Page, ICancellableWork, IDebugModeAware
     {
         bool ICancellableWork.IsBusy => btnCancel.IsEnabled;
         string ICancellableWork.BusyLabel => UITextDictionary.Get("ActiveWork.Label.Gif");
@@ -95,14 +95,14 @@ namespace MortysDLP.Views
             txtUseDownloadPath.Text  = T("GifPage.Button.UseDownloadPath");
             txtBtnStart.Text         = T("GifPage.Button.Start");
             txtBtnCancel.Text        = T("GifPage.Button.Cancel");
-            expDebug.Header          = T("DownloadPage.Section.Debug");
+            expDebug.Header          = T("Common.Section.Debug");
 
             ApplyDebugMode();
         }
 
         public void ApplyDebugMode()
         {
-            borderDebug.Visibility = Properties.Settings.Default.DebugMode
+            dockDebug.Visibility = Properties.Settings.Default.DebugMode
                 ? Visibility.Visible : Visibility.Collapsed;
         }
 

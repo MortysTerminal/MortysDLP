@@ -219,7 +219,7 @@
             </Border>
 
             <!-- DEBUG -->
-            <DockPanel Margin="0,4,0,0">
+            <DockPanel x:Name="dockDebug" Margin="0,4,0,0" Visibility="Collapsed">
                 <Expander x:Name="expDebug" IsExpanded="False">
                     <TextBox x:Name="tbDebugOutput" VerticalScrollBarVisibility="Auto"
                              HorizontalScrollBarVisibility="Auto" IsReadOnly="True" TextWrapping="NoWrap"
@@ -247,7 +247,7 @@
                             <!-- Aktueller Eintrag -->
                             <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
                                 <TextBlock x:Name="txtCurrentEntryLabel" Opacity="0.6" FontSize="11" VerticalAlignment="Center"/>
-                                <TextBlock x:Name="txtCurrentEntryTitle" FontWeight="Bold" Margin="8,0,0,0"
+                                <TextBlock x:Name="txtCurrentEntryTitle" FontWeight="SemiBold" Margin="8,0,0,0"
                                            MaxWidth="260" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
                                 <TextBlock x:Name="txtCurrentEntryStatus" Margin="8,0,0,0" Opacity="0.7" VerticalAlignment="Center"/>
                                 <TextBlock x:Name="txtCurrentEntryPercent" Margin="8,0,0,0" VerticalAlignment="Center"/>
@@ -259,9 +259,9 @@
                             <!-- Gesamt -->
                             <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
                                 <TextBlock x:Name="txtOverallLabel" Opacity="0.6" FontSize="11" VerticalAlignment="Center"/>
-                                <TextBlock x:Name="txtOverallStatus" FontWeight="Bold" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="txtOverallStatus" FontWeight="SemiBold" Margin="8,0,0,0" VerticalAlignment="Center"/>
                                 <TextBlock x:Name="txtOverallCount" Margin="8,0,0,0"
-                                           Foreground="{StaticResource BrandOrangeBrush}" FontWeight="Bold" VerticalAlignment="Center"/>
+                                           Foreground="{StaticResource BrandOrangeBrush}" FontWeight="SemiBold" VerticalAlignment="Center"/>
                                 <TextBlock x:Name="txtOverallPercent" Margin="8,0,0,0" Opacity="0.7" VerticalAlignment="Center"/>
                             </StackPanel>
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">

@@ -89,7 +89,7 @@ In the **Transcribe** tab you will see:
 
 > *"Step 1: Install Whisper"*
 
-Click **Install Whisper**. MortysDLP downloads and installs [whisper.cpp](https://github.com/ggerganov/whisper.cpp) into its own application folder. No Python, no virtual environments, no command line — the app handles everything.
+Click **Install Whisper**. MortysDLP downloads and installs [whisper.cpp](https://github.com/ggml-org/whisper.cpp) into its own application folder. No Python, no virtual environments, no command line — the app handles everything.
 
 > **What is Whisper?**  
 > Whisper is an open-source speech-recognition engine originally released by OpenAI. MortysDLP runs it **entirely on your local machine** — no audio is sent to any cloud service, no API key is needed, and there are no usage costs.

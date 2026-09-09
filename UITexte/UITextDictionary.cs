@@ -33,7 +33,6 @@ namespace MortysDLP.UITexte
             ["DownloadPage.Section.DownloadPaths"] = "DOWNLOAD-PFADE",
             ["DownloadPage.Section.Download"] = "DOWNLOAD",
             ["DownloadPage.Section.Options"] = "OPTIONEN",
-            ["DownloadPage.Section.Debug"] = "Debug-Ausgabe",
             ["DownloadPage.Label.DownloadPath"] = "Download-Pfad:",
             ["DownloadPage.Label.AudioOnlyPath"] = "Download-Audio-Pfad:",
             ["DownloadPage.Label.EnterURL"] = "URL eingeben:",
@@ -106,7 +105,6 @@ namespace MortysDLP.UITexte
             ["ConvertPage.Section.SelectFiles"] = "1. DATEIEN ZUM KONVERTIEREN AUSWÄHLEN",
             ["ConvertPage.Section.TargetFormat"] = "2. ZIELFORMAT UND ZIELORDNER WÄHLEN",
             ["ConvertPage.Section.Quality"] = "3. QUALITÄTSOPTIONEN (OPTIONAL)",
-            ["ConvertPage.Section.Debug"] = "Debug-Ausgabe",
             ["ConvertPage.DataGrid.Filename"] = "Dateiname",
             ["ConvertPage.DataGrid.Status"] = "Status",
             ["ConvertPage.DataGrid.Progress"] = "Fortschritt",
@@ -298,6 +296,7 @@ namespace MortysDLP.UITexte
 
             // Common
             ["Common.Error"] = "Fehler",
+            ["Common.Section.Debug"] = "Debug-Ausgabe",
             ["Common.Button.OK"]     = "OK",
             ["Common.Button.Cancel"] = "Abbrechen",
             ["Common.Button.Yes"]    = "Ja",
@@ -428,6 +427,7 @@ namespace MortysDLP.UITexte
             ["TranscribePage.CheckBox.OutputVtt"]    = "WebVTT (.vtt)",
             ["TranscribePage.Section.Output"]        = "AUSGABE",
             ["TranscribePage.Label.OutputDir"]       = "Ausgabeordner:",
+            ["TranscribePage.Dialog.OutputFolder"]  = "Wähle den Ausgabeordner für die Transkription",
             ["TranscribePage.Button.BrowseOutput"]   = "Durchsuchen...",
             ["TranscribePage.Button.OpenOutput"]     = "Ordner öffnen",
             ["TranscribePage.Button.Start"]          = "Transkription starten",
@@ -562,6 +562,7 @@ namespace MortysDLP.UITexte
             ["TwitchPage.Label.URL"]                  = "Twitch-URL, VOD-ID oder Clip-Slug:",
             ["TwitchPage.Tooltip.URL"]                = "Unterstützte Formate:\n• VOD-URL: https://www.twitch.tv/videos/123456789\n• VOD-ID: 123456789\n• Clip-URL: https://www.twitch.tv/clips/SlugHier\n• Clip-URL: https://clips.twitch.tv/SlugHier\n• Clip-Slug: SlugHier",
             ["TwitchPage.Label.OutputPath"]           = "Ausgabeordner:",
+            ["TwitchPage.Dialog.OutputFolder"]       = "Wähle den Ausgabeordner für die Twitch-Downloads",
             ["TwitchPage.Button.BrowseOutput"]        = "Durchsuchen...",
             ["TwitchPage.Button.UseGlobalPath"]       = "↵ Aus Einstellungen",
             ["TwitchPage.Button.OpenOutput"]          = "Ordner öffnen",
@@ -604,7 +605,6 @@ namespace MortysDLP.UITexte
             ["TwitchPage.UpdateCheck.Title"]          = "TwitchDownloaderCLI Update",
             ["TwitchPage.UpdateCheck.Error"]          = "Update-Prüfung fehlgeschlagen. Bitte überprüfe deine Internetverbindung.",
             ["TwitchPage.Success.OpenFolder"]         = "Download abgeschlossen!\n\nDateien befinden sich in:\n{0}\n\nOrdner öffnen?",
-            ["TwitchPage.Section.Debug"]              = "Debug-Ausgabe",
 
             // Settings – Bandwidth
             ["SettingsPage.Section.Bandwidth"]           = "DOWNLOADGESCHWINDIGKEIT",
@@ -698,7 +698,6 @@ namespace MortysDLP.UITexte
             ["DownloadPage.Section.DownloadPaths"] = "DOWNLOAD PATHS",
             ["DownloadPage.Section.Download"] = "DOWNLOAD",
             ["DownloadPage.Section.Options"] = "OPTIONS",
-            ["DownloadPage.Section.Debug"] = "Debug Output",
             ["DownloadPage.Label.DownloadPath"] = "Download Path:",
             ["DownloadPage.Label.AudioOnlyPath"] = "Audio-Only Path:",
             ["DownloadPage.Label.EnterURL"] = "Enter URL:",
@@ -771,7 +770,6 @@ namespace MortysDLP.UITexte
             ["ConvertPage.Section.SelectFiles"] = "1. SELECT FILES TO CONVERT",
             ["ConvertPage.Section.TargetFormat"] = "2. SELECT TARGET FORMAT AND FOLDER",
             ["ConvertPage.Section.Quality"] = "3. QUALITY OPTIONS (OPTIONAL)",
-            ["ConvertPage.Section.Debug"] = "Debug Output",
             ["ConvertPage.DataGrid.Filename"] = "Filename",
             ["ConvertPage.DataGrid.Status"] = "Status",
             ["ConvertPage.DataGrid.Progress"] = "Progress",
@@ -1005,6 +1003,7 @@ namespace MortysDLP.UITexte
 
             // Common
             ["Common.Error"] = "Error",
+            ["Common.Section.Debug"] = "Debug Output",
             ["Common.Button.OK"]     = "OK",
             ["Common.Button.Cancel"] = "Cancel",
             ["Common.Button.Yes"]    = "Yes",
@@ -1093,6 +1092,7 @@ namespace MortysDLP.UITexte
             ["TranscribePage.CheckBox.OutputVtt"]    = "WebVTT (.vtt)",
             ["TranscribePage.Section.Output"]        = "OUTPUT",
             ["TranscribePage.Label.OutputDir"]       = "Output folder:",
+            ["TranscribePage.Dialog.OutputFolder"]  = "Select the output folder for the transcription",
             ["TranscribePage.Button.BrowseOutput"]   = "Browse...",
             ["TranscribePage.Button.OpenOutput"]     = "Open Folder",
             ["TranscribePage.Button.Start"]          = "Start Transcription",
@@ -1227,6 +1227,7 @@ namespace MortysDLP.UITexte
             ["TwitchPage.Label.URL"]                  = "Twitch URL, VOD ID or Clip Slug:",
             ["TwitchPage.Tooltip.URL"]                = "Supported formats:\n• VOD URL: https://www.twitch.tv/videos/123456789\n• VOD ID: 123456789\n• Clip URL: https://www.twitch.tv/clips/SlugHere\n• Clip URL: https://clips.twitch.tv/SlugHere\n• Clip slug: SlugHere",
             ["TwitchPage.Label.OutputPath"]           = "Output folder:",
+            ["TwitchPage.Dialog.OutputFolder"]       = "Select the output folder for Twitch downloads",
             ["TwitchPage.Button.BrowseOutput"]        = "Browse...",
             ["TwitchPage.Button.UseGlobalPath"]       = "↵ From Settings",
             ["TwitchPage.Button.OpenOutput"]          = "Open Folder",
@@ -1269,7 +1270,6 @@ namespace MortysDLP.UITexte
             ["TwitchPage.UpdateCheck.Title"]          = "TwitchDownloaderCLI Update",
             ["TwitchPage.UpdateCheck.Error"]          = "Update check failed. Please check your internet connection.",
             ["TwitchPage.Success.OpenFolder"]         = "Download completed!\n\nFiles are located in:\n{0}\n\nOpen folder?",
-            ["TwitchPage.Section.Debug"]              = "Debug Output",
 
             // Settings – Bandwidth
             ["SettingsPage.Section.Bandwidth"]           = "DOWNLOAD SPEED LIMIT",

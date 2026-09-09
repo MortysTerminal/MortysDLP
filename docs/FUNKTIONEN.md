@@ -481,7 +481,8 @@ lassen.
 
 - **Download-Pfade** — öffnet denselben Dialog wie auf der Download-Seite.
 - **App** — GitHub-Seite öffnen, Anwendung beenden.
-- **Debug-Modus** — blendet auf allen Seiten die Protokollbereiche ein.
+- **Debug-Modus** — blendet auf allen Seiten die Protokollbereiche ein, sofort und ohne
+  Tabwechsel.
 - **Sprache** — Automatisch (zeigt die erkannte Sprache), Deutsch, Englisch. Wirkt sofort,
   ohne Neustart.
 - **Bandbreitenlimit** — an/aus plus Wert in MB/s. Wirkt sofort auf laufende Downloads:

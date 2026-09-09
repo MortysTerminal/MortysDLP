@@ -42,7 +42,7 @@ Deutsche Version: [docs/de/README.md](../de/README.md)
 
 ### Transcribe
 - Transcribe any video or audio file to text — fully **offline**, no data leaves your PC
-- Powered by [whisper.cpp](https://github.com/ggerganov/whisper.cpp) (OpenAI Whisper, running locally)
+- Powered by [whisper.cpp](https://github.com/ggml-org/whisper.cpp) (OpenAI Whisper, running locally)
 - Output formats: `.txt`, `.srt`, `.vtt`
 - Automatic language detection or manual selection (19+ languages)
 - Six model sizes to choose from (Tiny to Large-v3)

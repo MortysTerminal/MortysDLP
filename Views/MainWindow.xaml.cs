@@ -42,6 +42,21 @@ namespace MortysDLP
         internal IReadOnlyList<ICancellableWork> ActiveWorkSources =>
             new ICancellableWork[] { _downloadPage, _batchDownloadPage, _convertPage, _gifPage, _transcribePage, _twitchPage, _toolsPage };
 
+        /// <summary>Wendet den aktuellen Debug-Modus sofort auf alle Seiten mit einem
+        /// Debug-Bereich an — aufgerufen aus <see cref="Views.SettingsPage"/> beim Umschalten.
+        /// Ersetzt die früher dort handgepflegte Aufzählung (die drei Seiten übersah) und den
+        /// Sonderaufruf beim Navigieren zur Batch-Seite. Iteriert bewusst über die Felder
+        /// dieses Fensters: würde die Seitenerzeugung später verzögert, ist nur diese eine
+        /// Liste anzupassen (wie auch <see cref="ActiveWorkSources"/>).</summary>
+        internal void RefreshDebugMode()
+        {
+            foreach (var page in new IDebugModeAware[]
+                     { _downloadPage, _batchDownloadPage, _convertPage, _gifPage, _transcribePage, _twitchPage })
+            {
+                page.ApplyDebugMode();
+            }
+        }
+
         public MainWindow()
         {
             InitializeComponent();
@@ -385,7 +400,6 @@ namespace MortysDLP
                     MainFrame.Navigate(_downloadPage);
                     break;
                 case 1:
-                    _batchDownloadPage.ApplyDebugMode();
                     MainFrame.Navigate(_batchDownloadPage);
                     break;
                 case 2:

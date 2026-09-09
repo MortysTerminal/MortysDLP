@@ -23,8 +23,7 @@
         <!-- Überschrift -->
         <TextBlock Grid.Row="0"
                    Text="Mehrere URLs auf einmal hinzufügen"
-                   FontSize="18"
-                   FontWeight="Bold"
+                   Style="{StaticResource PageTitleStyle}"
                    Margin="0,0,0,10"/>
 
         <!-- Beschreibung / Hinweis -->

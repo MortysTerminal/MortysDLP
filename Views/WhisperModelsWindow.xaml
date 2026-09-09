@@ -20,7 +20,7 @@
 
         <!-- Header -->
         <StackPanel Grid.Row="0" Margin="0,0,0,16">
-            <TextBlock x:Name="txtHeaderTitle" FontSize="20" FontWeight="Bold"/>
+            <TextBlock x:Name="txtHeaderTitle" Style="{StaticResource PageTitleStyle}"/>
             <TextBlock x:Name="txtHeaderSubtitle" Opacity="0.65" Margin="0,2,0,0" TextWrapping="Wrap"/>
         </StackPanel>
 

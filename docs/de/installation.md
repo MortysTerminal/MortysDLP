@@ -88,7 +88,7 @@ Im Tab **Transkribieren** siehst du:
 
 > *„Schritt 1: Whisper installieren"*
 
-Klicke auf **Whisper installieren**. Die App lädt [whisper.cpp](https://github.com/ggerganov/whisper.cpp) herunter und installiert es im MortysDLP-Ordner. Kein Python, keine virtuellen Umgebungen, keine Kommandozeile nötig.
+Klicke auf **Whisper installieren**. Die App lädt [whisper.cpp](https://github.com/ggml-org/whisper.cpp) herunter und installiert es im MortysDLP-Ordner. Kein Python, keine virtuellen Umgebungen, keine Kommandozeile nötig.
 
 Nach erfolgreicher Installation ändert sich der Status zu:
 

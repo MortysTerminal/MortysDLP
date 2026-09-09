@@ -1,3 +1,4 @@
+using Microsoft.Win32;
 using MortysDLP.Helpers;
 using MortysDLP.Services;
 using MortysDLP.Services.Tools;
@@ -9,11 +10,10 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Forms;
 
 namespace MortysDLP.Views
 {
-    public partial class TwitchPage : Page, ICancellableWork
+    public partial class TwitchPage : Page, ICancellableWork, IDebugModeAware
     {
         bool ICancellableWork.IsBusy => btnCancel.IsEnabled;
         string ICancellableWork.BusyLabel => UITextDictionary.Get("ActiveWork.Label.Twitch");
@@ -104,7 +104,7 @@ namespace MortysDLP.Views
             btnUseGlobalPath.Content    = T("TwitchPage.Button.UseGlobalPath");
             btnStart.Content           = T("TwitchPage.Button.Start");
             btnCancel.Content          = T("TwitchPage.Button.Cancel");
-            expDebug.Header            = T("TwitchPage.Section.Debug");
+            expDebug.Header            = T("Common.Section.Debug");
 
             // Bandwidth-Hinweis
             double bw = Properties.Settings.Default.DownloadBandwidthMBps;
@@ -124,7 +124,7 @@ namespace MortysDLP.Views
 
         public void ApplyDebugMode()
         {
-            expDebug.Visibility = Properties.Settings.Default.DebugMode
+            dockDebug.Visibility = Properties.Settings.Default.DebugMode
                 ? Visibility.Visible : Visibility.Collapsed;
         }
 
@@ -191,14 +191,17 @@ namespace MortysDLP.Views
 
         private void btnBrowseOutput_Click(object sender, RoutedEventArgs e)
         {
-            using var dlg = new FolderBrowserDialog();
+            var dlg = new OpenFolderDialog
+            {
+                Title = UITextDictionary.Get("TwitchPage.Dialog.OutputFolder")
+            };
             if (!string.IsNullOrEmpty(tbOutputPath.Text) && Directory.Exists(tbOutputPath.Text))
                 dlg.InitialDirectory = tbOutputPath.Text;
 
-            if (dlg.ShowDialog() == DialogResult.OK)
+            if (dlg.ShowDialog() == true)
             {
-                tbOutputPath.Text = dlg.SelectedPath;
-                Properties.Settings.Default.TwitchDownloaderOutputPath = dlg.SelectedPath;
+                tbOutputPath.Text = dlg.FolderName;
+                Properties.Settings.Default.TwitchDownloaderOutputPath = dlg.FolderName;
                 Properties.Settings.Default.Save();
                 ValidateStartButton();
             }

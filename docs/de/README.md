@@ -42,7 +42,7 @@ English version: [docs/en/README.md](../en/README.md)
 
 ### Transkribieren
 - Video- oder Audiodateien vollständig **offline** in Text umwandeln — keine Daten verlassen den PC
-- Basiert auf [whisper.cpp](https://github.com/ggerganov/whisper.cpp) (OpenAI Whisper, lokal ausgeführt)
+- Basiert auf [whisper.cpp](https://github.com/ggml-org/whisper.cpp) (OpenAI Whisper, lokal ausgeführt)
 - Ausgabeformate: `.txt`, `.srt`, `.vtt`
 - Automatische Spracherkennung oder manuelle Auswahl (19+ Sprachen)
 - Sechs Modellgrößen zur Auswahl (Tiny bis Large-v3)

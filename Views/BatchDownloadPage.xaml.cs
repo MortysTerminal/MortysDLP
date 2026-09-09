@@ -62,7 +62,7 @@ namespace MortysDLP.Views
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
 
-    public partial class BatchDownloadPage : Page, ICancellableWork
+    public partial class BatchDownloadPage : Page, ICancellableWork, IDebugModeAware
     {
         bool ICancellableWork.IsBusy => btnCancelAll.IsEnabled;
         string ICancellableWork.BusyLabel => UITextDictionary.Get("ActiveWork.Label.BatchDownload");
@@ -144,7 +144,7 @@ namespace MortysDLP.Views
 
         public void ApplyDebugMode()
         {
-            expDebug.Visibility = Properties.Settings.Default.DebugMode
+            dockDebug.Visibility = Properties.Settings.Default.DebugMode
                 ? Visibility.Visible
                 : Visibility.Collapsed;
         }
@@ -197,7 +197,7 @@ namespace MortysDLP.Views
             btnCancelAll.Content           = T("BatchDownloadPage.Button.CancelAll");
             txtCurrentEntryLabel.Text      = T("BatchDownloadPage.Label.CurrentEntry");
             txtOverallLabel.Text           = T("BatchDownloadPage.Label.Overall");
-            expDebug.Header                = T("DownloadPage.Section.Debug");
+            expDebug.Header                = T("Common.Section.Debug");
 
             // Bandwidth-Hinweis
             double bw = Properties.Settings.Default.DownloadBandwidthMBps;

@@ -43,17 +43,16 @@ namespace MortysDLP.Views
                 "https://github.com/lay295/TwitchDownloader"),
 
             new(
-                "Whisper.net / whisper.cpp",
-                "KI-basierte Sprach-zu-Text-Transkription (OpenAI Whisper). Wird auf der Transkribieren-Seite verwendet, um Audio- und Videodateien lokal in Text umzuwandeln – ohne Cloud, ohne Datenweitergabe.",
+                "whisper.cpp",
+                "KI-basierte Sprach-zu-Text-Transkription (OpenAI Whisper). Läuft als eigenständiges Programm, das MortysDLP direkt aufruft – ohne .NET-Zwischenschicht, ohne Cloud, ohne Datenweitergabe. Wandelt Audio- und Videodateien lokal in Text um.",
                 "MIT",
-                "https://github.com/sandrohanea/whisper.net",
                 "https://github.com/ggml-org/whisper.cpp"),
 
             new(
-                "Wpf.Ui",
-                "WPF-Bibliothek mit modernem Fluent-Design (Windows 11-Stil). Stellt Farbpaletten, Schriften und UI-Designressourcen bereit, die das Erscheinungsbild von MortysDLP prägen.",
+                "Fluent-Theme von WPF",
+                "Das moderne Windows-11-Aussehen (Farben, Steuerelemente, Hell/Dunkel) kommt aus dem Fluent-Theme, das in .NET selbst enthalten ist. MortysDLP legt nur die Akzentfarbe darüber.",
                 "MIT",
-                "https://github.com/lepoco/wpfui"),
+                "https://github.com/dotnet/wpf"),
 
             new(
                 "Inter / Inter Tight",

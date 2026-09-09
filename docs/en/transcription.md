@@ -3,7 +3,7 @@
 > 🇩🇪 Deutsche Version: [../de/transkription.md](../de/transkription.md)  
 > ← [Usage Guide](usage.md) | [Overview →](README.md)
 
-MortysDLP includes a fully **offline** speech-to-text feature powered by [whisper.cpp](https://github.com/ggerganov/whisper.cpp) — an optimized local implementation of OpenAI's Whisper model. No audio is ever sent to any cloud service. No API key, no subscription, no internet connection required during transcription.
+MortysDLP includes a fully **offline** speech-to-text feature powered by [whisper.cpp](https://github.com/ggml-org/whisper.cpp) — an optimized local implementation of OpenAI's Whisper model. No audio is ever sent to any cloud service. No API key, no subscription, no internet connection required during transcription.
 
 ---
 
@@ -38,7 +38,7 @@ The **Transcribe** tab guides you through setup with two steps:
 The tab shows:
 > *"Step 1: Install Whisper"*
 
-Click **Install Whisper**. The app downloads [whisper.cpp](https://github.com/ggerganov/whisper.cpp) and installs it inside the MortysDLP folder. No Python, no virtual environments, no command line needed.
+Click **Install Whisper**. The app downloads [whisper.cpp](https://github.com/ggml-org/whisper.cpp) and installs it inside the MortysDLP folder. No Python, no virtual environments, no command line needed.
 
 Once installed, the status changes to:
 > *"✔ Step 1: Whisper installed"*

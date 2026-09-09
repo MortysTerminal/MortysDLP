@@ -163,7 +163,7 @@ namespace MortysDLP.Views
             }
             catch
             {
-                MessageBox.Show(UITexte.UITexte.Error_OpenBrowser, UITexte.UITexte.Error, MessageBoxButton.OK, MessageBoxImage.Error);
+                FluentMessageBox.Show(UITexte.UITexte.Error_OpenBrowser, UITexte.UITexte.Error, MessageBoxButton.OK, MessageBoxImage.Error, Window.GetWindow(this));
             }
         }
 
@@ -237,9 +237,7 @@ namespace MortysDLP.Views
             {
                 if (window is MainWindow mainWindow)
                 {
-                    mainWindow.DownloadPage.ApplyDebugMode();
-                    mainWindow.ConvertPage.ApplyDebugMode();
-                    mainWindow.TranscribePage.ApplyDebugMode();
+                    mainWindow.RefreshDebugMode();
                     break;
                 }
             }

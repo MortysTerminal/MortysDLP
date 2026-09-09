@@ -1,6 +1,8 @@
-﻿using MortysDLP.Helpers;
+﻿using Microsoft.Win32;
+using MortysDLP.Helpers;
 using MortysDLP.UITexte;
 using System.Globalization;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -87,32 +89,30 @@ namespace MortysDLP
         }
         private void btnDownloadPath_Click(object sender, RoutedEventArgs e)
         {
-            #pragma warning disable CA1416 // Plattformkompatibilität überprüfen
-            var dialog = new Ookii.Dialogs.Wpf.VistaFolderBrowserDialog
+            var dialog = new OpenFolderDialog
             {
-                Description = UITextDictionary.Get("DownloadPathDialog.Browse.Description"),
-                SelectedPath = tbDownloadPath.Text,
-                UseDescriptionForTitle = true
+                Title = UITextDictionary.Get("DownloadPathDialog.Browse.Description")
             };
-            #pragma warning restore CA1416 // Plattformkompatibilität überprüfen
-            #pragma warning disable CA1416 // Plattformkompatibilität überprüfen
+            if (!string.IsNullOrWhiteSpace(tbDownloadPath.Text) && Directory.Exists(tbDownloadPath.Text))
+                dialog.InitialDirectory = tbDownloadPath.Text;
+
             if (dialog.ShowDialog(this) == true)
             {
-                tbDownloadPath.Text = dialog.SelectedPath;
+                tbDownloadPath.Text = dialog.FolderName;
             }
-            #pragma warning restore CA1416 // Plattformkompatibilität überprüfen
         }
         private void btnSearchAudioPath_Click(object sender, RoutedEventArgs e)
         {
-            var dialog = new Ookii.Dialogs.Wpf.VistaFolderBrowserDialog
+            var dialog = new OpenFolderDialog
             {
-                Description = UITextDictionary.Get("DownloadPathDialog.Browse.AudioDescription"),
-                SelectedPath = tbAudioPathBox.Text,
-                UseDescriptionForTitle = true
+                Title = UITextDictionary.Get("DownloadPathDialog.Browse.AudioDescription")
             };
+            if (!string.IsNullOrWhiteSpace(tbAudioPathBox.Text) && Directory.Exists(tbAudioPathBox.Text))
+                dialog.InitialDirectory = tbAudioPathBox.Text;
+
             if (dialog.ShowDialog(this) == true)
             {
-                tbAudioPathBox.Text = dialog.SelectedPath;
+                tbAudioPathBox.Text = dialog.FolderName;
             }
         }
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)

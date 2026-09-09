@@ -50,7 +50,7 @@
 
                 <StackPanel Grid.Column="1" VerticalAlignment="Center">
                     <TextBlock x:Name="txtTitle"
-                               FontSize="16" FontWeight="SemiBold"/>
+                               Style="{StaticResource PageTitleStyle}"/>
                     <TextBlock x:Name="txtSubtitle"
                                FontSize="12" Opacity="0.65" Margin="0,3,0,0"/>
                 </StackPanel>

@@ -119,7 +119,7 @@
             </Border>
 
             <!-- Block 5: Debug-Ausgabe (nur sichtbar wenn Debug-Modus aktiv) -->
-            <DockPanel x:Name="borderDebug" Margin="0,4,0,0" Visibility="Collapsed">
+            <DockPanel x:Name="dockDebug" Margin="0,4,0,0" Visibility="Collapsed">
                 <Expander x:Name="expDebug" IsExpanded="False">
                     <TextBox x:Name="tbDebugOutput"
                              VerticalScrollBarVisibility="Auto"
@@ -129,6 +129,7 @@
                              FontFamily="Consolas"
                              FontSize="12"
                              AcceptsReturn="True"
+                             AcceptsTab="True"
                              MaxHeight="200"/>
                 </Expander>
             </DockPanel>
