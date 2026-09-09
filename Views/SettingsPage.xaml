@@ -6,79 +6,62 @@
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <StackPanel Margin="0">
 
-            <!-- DOWNLOAD-PFADE -->
+            <!-- DOWNLOADS: Zielpfad + Geschwindigkeit -->
             <Border Style="{StaticResource CardBorderStyle}">
                 <StackPanel>
-                    <TextBlock x:Name="txtSectionDownloadPaths" Style="{StaticResource SectionHeaderStyle}"/>
+                    <TextBlock x:Name="txtSectionDownloads" Style="{StaticResource SectionHeaderStyle}"/>
+
                     <Button x:Name="btnChangeDownloadPath" Click="btnChangeDownloadPath_Click"
                             MinWidth="100" Style="{StaticResource PrimaryButtonStyle}" HorizontalAlignment="Left"/>
-                </StackPanel>
-            </Border>
 
-            <!-- APP -->
-            <Border Style="{StaticResource CardBorderStyle}">
-                <StackPanel>
-                    <TextBlock x:Name="txtSectionApp" Style="{StaticResource SectionHeaderStyle}"/>
-                    <WrapPanel>
-                        <Button x:Name="btnGitHub" Click="btnGitHub_Click" MinWidth="100" Padding="12,4" Margin="0,0,8,0"/>
-                        <Button x:Name="btnClose" Click="btnClose_Click" MinWidth="100" Padding="12,4"/>
-                    </WrapPanel>
-                </StackPanel>
-            </Border>
-
-            <!-- DEBUG -->
-            <Border Style="{StaticResource CardBorderStyle}">
-                <StackPanel>
-                    <TextBlock x:Name="txtSectionDebug" Style="{StaticResource SectionHeaderStyle}"/>
-                    <CheckBox x:Name="cbDebugMode"
-                              Checked="cbDebugMode_Changed" Unchecked="cbDebugMode_Changed"/>
-                </StackPanel>
-            </Border>
-
-            <!-- LANGUAGE -->
-            <Border Style="{StaticResource CardBorderStyle}">
-                <StackPanel>
-                    <TextBlock x:Name="txtSectionLanguage" Style="{StaticResource SectionHeaderStyle}"/>
-                    
-                    <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                        <Label x:Name="lblSelectLanguage" VerticalAlignment="Center" Style="{StaticResource FormLabelStyle}"/>
-                        <ComboBox x:Name="cbLanguage" Width="200" SelectionChanged="cbLanguage_SelectionChanged"/>
-                    </StackPanel>
-                    
-                    <TextBlock x:Name="txtLanguageInfo" Opacity="0.7" Margin="0,8,0,0" TextWrapping="Wrap"/>
-                </StackPanel>
-            </Border>
-
-            <!-- SCHRIFTBILD -->
-            <Border Style="{StaticResource CardBorderStyle}">
-                <StackPanel>
-                    <TextBlock x:Name="txtSectionFontAppearance" Style="{StaticResource SectionHeaderStyle}"/>
-
-                    <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                        <Label x:Name="lblFontAppearance" VerticalAlignment="Center" Style="{StaticResource FormLabelStyle}"/>
-                        <ComboBox x:Name="cbFontAppearance" Width="200" SelectionChanged="cbFontAppearance_SelectionChanged"/>
-                    </StackPanel>
-
-                    <TextBlock x:Name="txtFontAppearanceInfo" Opacity="0.7" Margin="0,8,0,0" TextWrapping="Wrap"/>
-                </StackPanel>
-            </Border>
-
-            <!-- DOWNLOAD-GESCHWINDIGKEIT -->
-            <Border Style="{StaticResource CardBorderStyle}">
-                <StackPanel>
-                    <TextBlock x:Name="txtSectionBandwidth" Style="{StaticResource SectionHeaderStyle}"/>
-                    <TextBlock x:Name="txtBandwidthInfo" Opacity="0.7" Margin="0,0,0,8" TextWrapping="Wrap"/>
+                    <TextBlock x:Name="txtBandwidthInfo" Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                               Margin="0,24,0,8" TextWrapping="Wrap"/>
                     <CheckBox x:Name="cbBandwidthEnabled" Margin="0,0,0,8"
                               Checked="cbBandwidthEnabled_Changed" Unchecked="cbBandwidthEnabled_Changed"/>
-                    <StackPanel Orientation="Horizontal">
+                    <StackPanel x:Name="pnlBandwidthLimit" Orientation="Horizontal">
                         <Label x:Name="lblBandwidthLimit" VerticalAlignment="Center" Style="{StaticResource FormLabelStyle}"/>
                         <TextBox x:Name="tbBandwidthLimit" Width="80" VerticalContentAlignment="Center"
                                  Margin="8,0,0,0" MaxLength="6"
                                  PreviewTextInput="tbBandwidthLimit_PreviewTextInput"
                                  TextChanged="tbBandwidthLimit_TextChanged"
                                  LostFocus="tbBandwidthLimit_LostFocus"/>
-                        <TextBlock x:Name="txtBandwidthUnit" VerticalAlignment="Center" Margin="8,0,0,0" Opacity="0.7"/>
+                        <TextBlock x:Name="txtBandwidthUnit" VerticalAlignment="Center" Margin="8,0,0,0"/>
                     </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- DARSTELLUNG: Sprache + Schriftbild -->
+            <Border Style="{StaticResource CardBorderStyle}">
+                <StackPanel>
+                    <TextBlock x:Name="txtSectionAppearance" Style="{StaticResource SectionHeaderStyle}"/>
+
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                        <Label x:Name="lblSelectLanguage" VerticalAlignment="Center" Style="{StaticResource FormLabelStyle}"/>
+                        <ComboBox x:Name="cbLanguage" Width="200" SelectionChanged="cbLanguage_SelectionChanged"/>
+                    </StackPanel>
+                    <TextBlock x:Name="txtLanguageInfo" Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                               Margin="0,0,0,24" TextWrapping="Wrap"/>
+
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                        <Label x:Name="lblFontAppearance" VerticalAlignment="Center" Style="{StaticResource FormLabelStyle}"/>
+                        <ComboBox x:Name="cbFontAppearance" Width="200" SelectionChanged="cbFontAppearance_SelectionChanged"/>
+                    </StackPanel>
+                    <TextBlock x:Name="txtFontAppearanceInfo" Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                               Margin="0,0,0,0" TextWrapping="Wrap"/>
+                </StackPanel>
+            </Border>
+
+            <!-- ANWENDUNG: Links, Beenden, Debug -->
+            <Border Style="{StaticResource CardBorderStyle}">
+                <StackPanel>
+                    <TextBlock x:Name="txtSectionApplication" Style="{StaticResource SectionHeaderStyle}"/>
+
+                    <WrapPanel Margin="0,0,0,12">
+                        <Button x:Name="btnGitHub" Click="btnGitHub_Click" MinWidth="100" Padding="12,4" Margin="0,0,8,0"/>
+                        <Button x:Name="btnClose" Click="btnClose_Click" MinWidth="100" Padding="12,4"/>
+                    </WrapPanel>
+                    <CheckBox x:Name="cbDebugMode"
+                              Checked="cbDebugMode_Changed" Unchecked="cbDebugMode_Changed"/>
                 </StackPanel>
             </Border>
 

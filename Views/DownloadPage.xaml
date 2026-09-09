@@ -17,7 +17,26 @@
             <v:ToolMissingNotice x:Name="toolNotice"/>
             <StackPanel x:Name="pnlWork">
 
-            <!-- DOWNLOAD-PFADE -->
+            <!-- DOWNLOAD (URL zuerst - der eigentliche Einstieg der Seite) -->
+            <Border Style="{StaticResource CardBorderStyle}">
+                <StackPanel>
+                    <TextBlock x:Name="txtSectionDownload" Style="{StaticResource SectionHeaderStyle}"/>
+                    <Grid Margin="0,0,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Grid.Column="0" Name="lblURLInfo" VerticalAlignment="Center" Padding="0" Style="{StaticResource FormLabelStyle}"/>
+                        <TextBox Grid.Column="1" Name="tbURL" MinWidth="150" GotFocus="TextBox_GotFocus"
+                                 TextChanged="tbURL_TextChanged" KeyDown="tbURL_KeyDown"
+                                 VerticalAlignment="Center" VerticalContentAlignment="Center" Margin="8,0,0,0"/>
+                        <Button Grid.Column="2" Name="btnHistory" Click="btnHistory_Click" VerticalAlignment="Center" MinWidth="100" Padding="12,4" Margin="8,0,0,0"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- DOWNLOAD-PFADE (wohin die Datei landet - nach der URL) -->
             <Border Style="{StaticResource CardBorderStyle}">
                 <StackPanel>
                     <TextBlock x:Name="txtSectionDownloadPaths" Style="{StaticResource SectionHeaderStyle}"/>
@@ -37,25 +56,6 @@
                                    MouseLeftButtonUp="DownloadPath_MouseLeftButtonUp"/>
                         </StackPanel>
                     </DockPanel>
-                </StackPanel>
-            </Border>
-
-            <!-- DOWNLOAD -->
-            <Border Style="{StaticResource CardBorderStyle}">
-                <StackPanel>
-                    <TextBlock x:Name="txtSectionDownload" Style="{StaticResource SectionHeaderStyle}"/>
-                    <Grid Margin="0,0,0,0">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <Label Grid.Column="0" Name="lblURLInfo" VerticalAlignment="Center" Padding="0" Style="{StaticResource FormLabelStyle}"/>
-                        <TextBox Grid.Column="1" Name="tbURL" MinWidth="150" GotFocus="TextBox_GotFocus"
-                                 TextChanged="tbURL_TextChanged" KeyDown="tbURL_KeyDown"
-                                 VerticalAlignment="Center" VerticalContentAlignment="Center" Margin="8,0,0,0"/>
-                        <Button Grid.Column="2" Name="btnHistory" Click="btnHistory_Click" VerticalAlignment="Center" MinWidth="100" Padding="12,4" Margin="8,0,0,0"/>
-                    </Grid>
                 </StackPanel>
             </Border>
 
@@ -143,38 +143,13 @@
                         </ComboBox>
                     </StackPanel>
 
-                    <StackPanel Orientation="Horizontal" Margin="0,0,0,0">
-                        <TextBlock Name="txtVideoQuality" VerticalAlignment="Center" MinWidth="100" Margin="24,0,0,0"/>
-                        <ComboBox Name="combVideoQuality" Width="150" SelectedIndex="0" Margin="8,0,0,0" VerticalContentAlignment="Center">
-                            <ComboBoxItem x:Name="cbiVideoQualityHighest" Tag="best"/>
-                            <ComboBoxItem Content="1440p" Tag="1440"/>
-                            <ComboBoxItem Content="1080p" Tag="1080"/>
-                            <ComboBoxItem Content="720p" Tag="720"/>
-                            <ComboBoxItem Content="480p" Tag="480"/>
-                            <ComboBoxItem Content="360p" Tag="360"/>
-                            <ComboBoxItem Content="240p" Tag="240"/>
-                            <ComboBoxItem Content="144p" Tag="144"/>
-                        </ComboBox>
-                        <TextBlock Name="txtVideoContainer" VerticalAlignment="Center" Margin="12,0,0,0"/>
-                        <ComboBox Name="combVideoFormat" Width="100" SelectedIndex="0" Margin="8,0,0,0" VerticalContentAlignment="Center">
-                            <ComboBoxItem Content="mp4"/>
-                            <ComboBoxItem Content="mkv"/>
-                            <ComboBoxItem Content="mov"/>
-                            <ComboBoxItem Content="avi"/>
-                        </ComboBox>
-                    </StackPanel>
-                </StackPanel>
-            </Border>
-
-            <!-- GIF-MAKER -->
-            <Border Style="{StaticResource CardBorderStyle}">
-                <StackPanel>
-                    <TextBlock x:Name="txtSectionGifMaker" Style="{StaticResource SectionHeaderStyle}"/>
-                    <StackPanel Orientation="Horizontal">
+                    <!-- GIF-Maker: das Video wird normal heruntergeladen und ZUSÄTZLICH ein GIF
+                         daraus erzeugt. Schließt nur NUR Audio aus. -->
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
                         <CheckBox x:Name="cbGifMaker" VerticalAlignment="Center" Margin="0,0,8,0"
                                   Checked="cbGifMakerCheck" Unchecked="cbGifMakerCheck"/>
-                        <TextBlock x:Name="txtGifMakerEnable" VerticalAlignment="Center" Margin="0,0,12,0"/>
-                        <TextBlock x:Name="txtGifMakerQualityLabel" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <TextBlock x:Name="txtGifMakerEnable" VerticalAlignment="Center" MinWidth="100"/>
+                        <TextBlock x:Name="txtGifMakerQualityLabel" VerticalAlignment="Center" Margin="8,0,8,0"/>
                         <ComboBox x:Name="combGifMakerQuality" Width="220" IsEnabled="False"
                                   VerticalContentAlignment="Center">
                             <ComboBoxItem x:Name="cbiGifQualityWeb" IsSelected="True"/>
@@ -182,13 +157,51 @@
                             <ComboBoxItem x:Name="cbiGifQualityMedium"/>
                             <ComboBoxItem x:Name="cbiGifQualityHigh"/>
                         </ComboBox>
-                        <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="16"
+                        <TextBlock x:Name="imgGifMakerInfo" FontFamily="Segoe MDL2 Assets" FontSize="16"
                                    Text="&#xE946;" Opacity="0.8" VerticalAlignment="Center" Margin="8,0,0,0">
                             <TextBlock.ToolTip>
                                 <ToolTip x:Name="tooltipGifMaker"/>
                             </TextBlock.ToolTip>
                         </TextBlock>
                     </StackPanel>
+
+                    <!-- Unter-Option: Videodatei behalten (an) oder nur das GIF (aus). -->
+                    <StackPanel x:Name="pnlGifKeepVideo" Orientation="Horizontal" Margin="28,0,0,8" IsEnabled="False">
+                        <CheckBox x:Name="cbGifKeepVideo" IsChecked="True"
+                                  Checked="cbGifKeepVideoCheck" Unchecked="cbGifKeepVideoCheck"
+                                  VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <TextBlock x:Name="txtGifKeepVideo" VerticalAlignment="Center"/>
+                    </StackPanel>
+
+                    <!-- Videoausgabe: die Grundeinstellung ohne Häkchen, gilt immer (außer
+                         NUR Audio / GIF-Maker). Als eigener Unterblock abgesetzt. -->
+                    <Border x:Name="pnlVideoGroup" BorderThickness="0,1,0,0"
+                            BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                            Margin="0,8,0,0" Padding="0,12,0,0">
+                        <StackPanel>
+                            <TextBlock x:Name="txtVideoGroupHeader" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Name="txtVideoQuality" VerticalAlignment="Center" MinWidth="100"/>
+                                <ComboBox Name="combVideoQuality" Width="150" SelectedIndex="0" Margin="8,0,0,0" VerticalContentAlignment="Center">
+                                    <ComboBoxItem x:Name="cbiVideoQualityHighest" Tag="best"/>
+                                    <ComboBoxItem Content="1440p" Tag="1440"/>
+                                    <ComboBoxItem Content="1080p" Tag="1080"/>
+                                    <ComboBoxItem Content="720p" Tag="720"/>
+                                    <ComboBoxItem Content="480p" Tag="480"/>
+                                    <ComboBoxItem Content="360p" Tag="360"/>
+                                    <ComboBoxItem Content="240p" Tag="240"/>
+                                    <ComboBoxItem Content="144p" Tag="144"/>
+                                </ComboBox>
+                                <TextBlock Name="txtVideoContainer" VerticalAlignment="Center" Margin="16,0,0,0"/>
+                                <ComboBox Name="combVideoFormat" Width="100" SelectedIndex="0" Margin="8,0,0,0" VerticalContentAlignment="Center">
+                                    <ComboBoxItem Content="mp4"/>
+                                    <ComboBoxItem Content="mkv"/>
+                                    <ComboBoxItem Content="mov"/>
+                                    <ComboBoxItem Content="avi"/>
+                                </ComboBox>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
                 </StackPanel>
             </Border>
 

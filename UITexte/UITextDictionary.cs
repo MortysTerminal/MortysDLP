@@ -44,6 +44,7 @@ namespace MortysDLP.UITexte
             ["DownloadPage.Label.VideoFormatInfo"] = "(nicht zusammen mit NUR Audio)",
             ["DownloadPage.Label.AudioOnly"] = "NUR Audio",
             ["DownloadPage.Label.Bitrate"] = "Bitrate:",
+            ["DownloadPage.Label.VideoGroup"] = "Videoausgabe",
             ["DownloadPage.Label.VideoQuality"] = "Videoqualität:",
             ["DownloadPage.Label.VideoContainer"] = "Videoformat:",
             ["DownloadPage.Label.TimespanFormat"] = "hh:mm:ss oder mm:ss",
@@ -143,10 +144,9 @@ namespace MortysDLP.UITexte
             ["ConvertPage.Dialog.FolderBrowser"] = "Wähle den Zielordner für die konvertierten Dateien",
             
             // Settings Page
-            ["SettingsPage.Section.DownloadPaths"] = "DOWNLOAD-PFADE",
-            ["SettingsPage.Section.App"] = "APP",
-            ["SettingsPage.Section.Debug"] = "DEBUG",
-            ["SettingsPage.Section.Language"] = "SPRACHE",
+            ["SettingsPage.Section.Downloads"] = "DOWNLOADS",
+            ["SettingsPage.Section.Appearance"] = "DARSTELLUNG",
+            ["SettingsPage.Section.Application"] = "ANWENDUNG",
             ["SettingsPage.Button.ChangeDownloadPath"] = "Download-Pfad ändern",
             ["SettingsPage.Button.OpenGitHub"] = "GitHub öffnen",
             ["SettingsPage.Button.CloseApp"] = "Programm schließen",
@@ -154,7 +154,6 @@ namespace MortysDLP.UITexte
             ["SettingsPage.Checkbox.ForceEnglish"] = "Englisch erzwingen",
             ["SettingsPage.Label.LanguageInfo"] = "Deine Auswahl wird automatisch gespeichert.",
             ["SettingsPage.Label.SelectLanguage"] = "Sprache auswählen:",
-            ["SettingsPage.Section.FontAppearance"] = "SCHRIFT",
             ["SettingsPage.Label.FontAppearance"] = "Schrift:",
             ["SettingsPage.FontAppearance.Info"] = "Wirkt sofort und wird gespeichert. Inter kompakt läuft enger, Inter luftig gibt den Zeilen mehr Platz.",
             ["FontAppearance.Arial"] = "Arial (empfohlen)",
@@ -528,10 +527,10 @@ namespace MortysDLP.UITexte
             ["GifPage.Button.UseDownloadPath"]   = "Downloadpfad",
 
             // Download Page – GIF-Option
-            ["DownloadPage.Section.GifMaker"]    = "GIF-MAKER NACH DOWNLOAD",
             ["DownloadPage.GifMaker.Enable"]     = "Nach dem Download automatisch als GIF speichern",
             ["DownloadPage.GifMaker.Quality"]    = "GIF-Qualität:",
-            ["DownloadPage.GifMaker.Tooltip"]    = "Wenn aktiviert, wird das heruntergeladene Video nach dem Download automatisch mit FFmpeg in ein GIF umgewandelt. Das GIF wird im selben Ordner wie das Video gespeichert.",
+            ["DownloadPage.GifMaker.KeepVideo"]  = "Videodatei behalten (sonst nur das GIF)",
+            ["DownloadPage.GifMaker.Tooltip"]    = "Lädt das Video ganz normal herunter und erzeugt zusätzlich ein GIF daraus (FFmpeg, gleicher Ordner). Nur NUR Audio schließt das aus. Über die Unter-Option wählst du, ob die Videodatei bleibt oder nach dem GIF gelöscht wird.",
             ["DownloadPage.Status.CreatingGif"]  = "GIF wird erstellt...",
 
             // Download Page – Transkriptions-Option
@@ -609,7 +608,6 @@ namespace MortysDLP.UITexte
             ["TwitchPage.Success.OpenFolder"]         = "Download abgeschlossen!\n\nDateien befinden sich in:\n{0}\n\nOrdner öffnen?",
 
             // Settings – Bandwidth
-            ["SettingsPage.Section.Bandwidth"]           = "DOWNLOADGESCHWINDIGKEIT",
             ["SettingsPage.Bandwidth.Info"]              = "Begrenzt die maximale Downloadgeschwindigkeit für alle Downloads (yt-dlp & TwitchDownloaderCLI).",
             ["SettingsPage.Bandwidth.EnableCheckbox"]    = "Downloadgeschwindigkeit begrenzen",
             ["SettingsPage.Bandwidth.Label"]             = "Maximale Geschwindigkeit:",
@@ -711,6 +709,7 @@ namespace MortysDLP.UITexte
             ["DownloadPage.Label.VideoFormatInfo"] = "(not together with audio only)",
             ["DownloadPage.Label.AudioOnly"] = "Audio ONLY",
             ["DownloadPage.Label.Bitrate"] = "Bitrate:",
+            ["DownloadPage.Label.VideoGroup"] = "Video output",
             ["DownloadPage.Label.VideoQuality"] = "Video Quality:",
             ["DownloadPage.Label.VideoContainer"] = "Video Format:",
             ["DownloadPage.Label.TimespanFormat"] = "hh:mm:ss or mm:ss",
@@ -810,10 +809,9 @@ namespace MortysDLP.UITexte
             ["ConvertPage.Dialog.FolderBrowser"] = "Select the target folder for converted files",
             
             // Settings Page
-            ["SettingsPage.Section.DownloadPaths"] = "DOWNLOAD PATHS",
-            ["SettingsPage.Section.App"] = "APP",
-            ["SettingsPage.Section.Debug"] = "DEBUG",
-            ["SettingsPage.Section.Language"] = "LANGUAGE",
+            ["SettingsPage.Section.Downloads"] = "DOWNLOADS",
+            ["SettingsPage.Section.Appearance"] = "APPEARANCE",
+            ["SettingsPage.Section.Application"] = "APPLICATION",
             ["SettingsPage.Button.ChangeDownloadPath"] = "Change Download Path",
             ["SettingsPage.Button.OpenGitHub"] = "Open GitHub",
             ["SettingsPage.Button.CloseApp"] = "Close Application",
@@ -821,7 +819,6 @@ namespace MortysDLP.UITexte
             ["SettingsPage.Checkbox.ForceEnglish"] = "Force English",
             ["SettingsPage.Label.LanguageInfo"] = "Your selection will be saved automatically.",
             ["SettingsPage.Label.SelectLanguage"] = "Select Language:",
-            ["SettingsPage.Section.FontAppearance"] = "FONT",
             ["SettingsPage.Label.FontAppearance"] = "Font:",
             ["SettingsPage.FontAppearance.Info"] = "Takes effect immediately and is saved. Inter compact is tighter, Inter airy gives lines more room.",
             ["FontAppearance.Arial"] = "Arial (recommended)",
@@ -1195,10 +1192,10 @@ namespace MortysDLP.UITexte
             ["GifPage.Button.UseDownloadPath"]   = "Download Path",
 
             // Download Page – GIF option
-            ["DownloadPage.Section.GifMaker"]    = "GIF MAKER AFTER DOWNLOAD",
             ["DownloadPage.GifMaker.Enable"]     = "Automatically save as GIF after download",
             ["DownloadPage.GifMaker.Quality"]    = "GIF Quality:",
-            ["DownloadPage.GifMaker.Tooltip"]    = "When enabled, the downloaded video will automatically be converted to a GIF by FFmpeg. The GIF will be saved in the same folder as the video.",
+            ["DownloadPage.GifMaker.KeepVideo"]  = "Keep the video file (otherwise only the GIF)",
+            ["DownloadPage.GifMaker.Tooltip"]    = "Downloads the video normally and additionally creates a GIF from it (FFmpeg, same folder). Only audio-only rules this out. The sub-option lets you choose whether the video file stays or is deleted after the GIF.",
             ["DownloadPage.Status.CreatingGif"]  = "Creating GIF...",
 
             // Download Page – Transcription option
@@ -1276,7 +1273,6 @@ namespace MortysDLP.UITexte
             ["TwitchPage.Success.OpenFolder"]         = "Download completed!\n\nFiles are located in:\n{0}\n\nOpen folder?",
 
             // Settings – Bandwidth
-            ["SettingsPage.Section.Bandwidth"]           = "DOWNLOAD SPEED LIMIT",
             ["SettingsPage.Bandwidth.Info"]              = "Limits the maximum download speed for all downloads (yt-dlp & TwitchDownloaderCLI).",
             ["SettingsPage.Bandwidth.EnableCheckbox"]    = "Limit download speed",
             ["SettingsPage.Bandwidth.Label"]             = "Maximum speed:",

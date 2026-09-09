@@ -25,7 +25,7 @@ namespace MortysDLP.Views
             double bw = Properties.Settings.Default.DownloadBandwidthMBps;
             bool bwEnabled = bw > 0;
             cbBandwidthEnabled.IsChecked = bwEnabled;
-            tbBandwidthLimit.IsEnabled = bwEnabled;
+            SetBandwidthRowEnabled(bwEnabled);
             tbBandwidthLimit.Text = bwEnabled ? bw.ToString(System.Globalization.CultureInfo.InvariantCulture) : "10";
             
             // Lade verfügbare Sprachen
@@ -97,26 +97,14 @@ namespace MortysDLP.Views
             
             Title = T("MainWindow.Nav.Settings");
             
-            // Download Paths Section
-            txtSectionDownloadPaths.Text = T("SettingsPage.Section.DownloadPaths");
+            // Karte "Downloads": Zielpfad + Geschwindigkeit
+            txtSectionDownloads.Text = T("SettingsPage.Section.Downloads");
             btnChangeDownloadPath.Content = T("SettingsPage.Button.ChangeDownloadPath");
-            
-            // App Section
-            txtSectionApp.Text = T("SettingsPage.Section.App");
-            btnGitHub.Content = T("SettingsPage.Button.OpenGitHub");
-            btnClose.Content = T("SettingsPage.Button.CloseApp");
-            
-            // Debug Section
-            txtSectionDebug.Text = T("SettingsPage.Section.Debug");
-            cbDebugMode.Content = T("SettingsPage.Checkbox.DebugMode");
-            
-            // Language Section
-            txtSectionLanguage.Text = T("SettingsPage.Section.Language");
+
+            // Karte "Darstellung": Sprache + Schriftbild
+            txtSectionAppearance.Text = T("SettingsPage.Section.Appearance");
             lblSelectLanguage.Content = T("SettingsPage.Label.SelectLanguage");
             txtLanguageInfo.Text = T("SettingsPage.Label.LanguageInfo");
-
-            // Font appearance Section
-            txtSectionFontAppearance.Text = T("SettingsPage.Section.FontAppearance");
             lblFontAppearance.Content = T("SettingsPage.Label.FontAppearance");
             txtFontAppearanceInfo.Text = T("SettingsPage.FontAppearance.Info");
             foreach (ComboBoxItem item in cbFontAppearance.Items)
@@ -125,14 +113,18 @@ namespace MortysDLP.Views
                 item.Content = T($"FontAppearance.{char.ToUpperInvariant(v[0])}{v[1..]}");
             }
 
-            // Bandwidth Section
-            txtSectionBandwidth.Text  = T("SettingsPage.Section.Bandwidth");
+            // Karte "Anwendung": Links, Beenden, Debug
+            txtSectionApplication.Text = T("SettingsPage.Section.Application");
+            btnGitHub.Content = T("SettingsPage.Button.OpenGitHub");
+            btnClose.Content = T("SettingsPage.Button.CloseApp");
+            cbDebugMode.Content = T("SettingsPage.Checkbox.DebugMode");
+
+            // Bandbreite (in der Karte "Downloads")
             txtBandwidthInfo.Text     = T("SettingsPage.Bandwidth.Info");
             cbBandwidthEnabled.Content = T("SettingsPage.Bandwidth.EnableCheckbox");
             lblBandwidthLimit.Content = T("SettingsPage.Bandwidth.Label");
             txtBandwidthUnit.Text     = T("SettingsPage.Bandwidth.Unit");
-            lblBandwidthLimit.IsEnabled = cbBandwidthEnabled.IsChecked == true;
-            tbBandwidthLimit.IsEnabled  = cbBandwidthEnabled.IsChecked == true;
+            SetBandwidthRowEnabled(cbBandwidthEnabled.IsChecked == true);
 
             // Aktualisiere Dropdown-Inhalte
             if (!_isInitializing)
@@ -172,6 +164,19 @@ namespace MortysDLP.Views
             Application.Current.Shutdown();
         }
 
+        /// <summary>Aktiviert bzw. sperrt die Bandbreiten-Zeile (Feld + „MB/s"). Das Feld
+        /// bekommt im gesperrten Zustand zusätzlich eine gedämpfte Schriftfarbe — das
+        /// Fluent-Theme lässt den eingegebenen Wert sonst fast normal stehen. Nur dieses eine
+        /// Feld, kein globaler Stil (der hat den modernen Feld-Look zerschossen).</summary>
+        private void SetBandwidthRowEnabled(bool enabled)
+        {
+            pnlBandwidthLimit.IsEnabled = enabled;
+            if (enabled)
+                tbBandwidthLimit.ClearValue(Control.ForegroundProperty);
+            else
+                tbBandwidthLimit.SetResourceReference(Control.ForegroundProperty, "TextFillColorDisabledBrush");
+        }
+
         private void tbBandwidthLimit_PreviewTextInput(object sender, System.Windows.Input.TextCompositionEventArgs e)
         {
             // Nur Ziffern und maximal ein Dezimalpunkt erlauben
@@ -203,8 +208,7 @@ namespace MortysDLP.Views
         {
             if (_isInitializing) return;
             bool enabled = cbBandwidthEnabled.IsChecked == true;
-            tbBandwidthLimit.IsEnabled = enabled;
-            lblBandwidthLimit.IsEnabled = enabled;
+            SetBandwidthRowEnabled(enabled);
             if (enabled)
             {
                 // Gespeicherten Wert wieder einsetzen, Fallback 10 MB/s

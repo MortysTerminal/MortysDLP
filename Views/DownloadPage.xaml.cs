@@ -25,6 +25,11 @@ namespace MortysDLP.Views
         private string _lastDownloadPath = "";
         private double _lastProgress;
         private bool _initialized;
+
+        /// <summary>false, solange ein Download läuft — dann sind alle OPTIONEN-Steuerelemente
+        /// gesperrt, unabhängig von den Häkchen. <see cref="SyncOutputOptionState"/> respektiert
+        /// das.</summary>
+        private bool _optionsUnlocked = true;
         private string? _lastOutputFilePath;
 
         private static readonly char[] NewlineChars = ['\r', '\n'];
@@ -94,6 +99,7 @@ namespace MortysDLP.Views
             SettingsLoad();
             AudioOnlyAdjustments();
             VideoformatAdjustments();
+            GifMakerAdjustments();
             TimespanAdjustments();
             FirstSecondsAdjustments();
             CustomFilenameAdjustments();
@@ -170,6 +176,7 @@ namespace MortysDLP.Views
             
             txtAudioOnlyInfo.Text = T("DownloadPage.Label.AudioOnly");
             txtBitrateLabel.Text = T("DownloadPage.Label.Bitrate");
+            txtVideoGroupHeader.Text = T("DownloadPage.Label.VideoGroup");
             txtVideoQuality.Text = T("DownloadPage.Label.VideoQuality");
             txtVideoContainer.Text = T("DownloadPage.Label.VideoContainer");
             
@@ -188,9 +195,9 @@ namespace MortysDLP.Views
             // Debug
             expDebug.Header = T("Common.Section.Debug");
 
-            // Section: GIF-Maker
-            txtSectionGifMaker.Text         = T("DownloadPage.Section.GifMaker");
+            // GIF-Maker (Option in der OPTIONEN-Karte)
             txtGifMakerEnable.Text          = T("DownloadPage.GifMaker.Enable");
+            txtGifKeepVideo.Text            = T("DownloadPage.GifMaker.KeepVideo");
             txtGifMakerQualityLabel.Text    = T("DownloadPage.GifMaker.Quality");
             tooltipGifMaker.Content         = T("DownloadPage.GifMaker.Tooltip");
             cbiGifQualityWeb.Content        = T("GifPage.Quality.Web");
@@ -232,15 +239,63 @@ namespace MortysDLP.Views
 
         private void AudioOnlyAdjustments()
         {
+            // NUR Audio und GIF-Maker schließen sich aus (kein Video → kein GIF).
+            if (cbAudioOnly.IsChecked == true && cbGifMaker.IsChecked == true)
+                cbGifMaker.IsChecked = false;   // löst GifMakerAdjustments aus (reagiert mit „aus")
+
+            SyncOutputOptionState();
+        }
+
+        /// <summary>Setzt die Aktivierung (und damit die Ausgrauung von Text, Beschriftungen und
+        /// Drop-downs) der wechselseitig abhängigen OPTIONEN-Steuerelemente. Wichtig: der
+        /// GIF-Maker lädt das Video ganz normal herunter und erzeugt **zusätzlich** ein GIF;
+        /// nur „NUR Audio" schließt ihn aus. Videoqualität, Videoformat und der
+        /// x264-Schnittmodus bleiben deshalb bei aktivem GIF-Maker nutzbar (sie gelten für die
+        /// Videodatei). Respektiert <see cref="_optionsUnlocked"/> (Download läuft).</summary>
+        private void SyncOutputOptionState()
+        {
+            // Während InitializeComponent() feuert cbGifKeepVideo (IsChecked="True" + Handler)
+            // dieses Event, bevor die später im XAML stehenden Steuerelemente (pnlVideoGroup,
+            // combVideoFormat …) existieren. Erst nach EndInit ist alles da.
+            if (!IsInitialized)
+                return;
+
+            bool u = _optionsUnlocked;
             bool a = cbAudioOnly.IsChecked == true;
+            bool v = cbVideoformat.IsChecked == true;
+            bool g = cbGifMaker.IsChecked == true;
+            // „nur GIF": GIF-Maker an, Videodatei wird NICHT behalten → die Videodatei ist nur
+            // ein Zwischenschritt, ihre Qualität/ihr Format und der x264-Modus zählen nicht.
+            bool gifOnly = g && cbGifKeepVideo.IsChecked != true;
 
-            txtAudioOnlyInfo.IsEnabled = a;
-            combAudioFormat.IsEnabled = a;
+            // NUR Audio <-> GIF wechselseitig; x264 gegen NUR Audio und gegen „nur GIF".
+            cbAudioOnly.IsEnabled   = u && !g;
+            cbGifMaker.IsEnabled    = u && !a;
+            cbVideoformat.IsEnabled = u && !a && !gifOnly;
 
-            cbVideoformat.IsEnabled = !a;
-            combAudioBitrate.IsEnabled = a;
-            combVideoQuality.IsEnabled = !a;
-            combVideoFormat.IsEnabled = !a && (cbVideoformat.IsChecked != true);
+            // NUR-Audio-Zeile (Text + beide Drop-downs)
+            txtAudioOnlyInfo.IsEnabled = u && a;
+            combAudioFormat.IsEnabled  = u && a;
+            txtBitrateLabel.IsEnabled  = u && a;
+            combAudioBitrate.IsEnabled = u && a;
+
+            // x264-Zeile (die drei Erklärtexte)
+            txtVideoformatInfo1.IsEnabled = u && v;
+            txtVideoformatInfo2.IsEnabled = u && v;
+            txtVideoformatInfo3.IsEnabled = u && v;
+
+            // GIF-Zeile: Qualitäts-Auswahl + „nur GIF"-Option nur bei aktivem GIF-Maker
+            txtGifMakerEnable.IsEnabled       = u && g;
+            txtGifMakerQualityLabel.IsEnabled = u && g;
+            combGifMakerQuality.IsEnabled     = u && g;
+            imgGifMakerInfo.IsEnabled         = u && g;
+            pnlGifKeepVideo.IsEnabled         = u && g;
+
+            // Videoausgabe-Unterblock: bei NUR Audio gesperrt und bei „nur GIF" (die
+            // Videodatei wird dann verworfen, die Videoqualität ist bedeutungslos).
+            pnlVideoGroup.IsEnabled = u && !a && !gifOnly;
+            // Der x264-Schnittmodus erzwingt mp4 und sperrt darin zusätzlich die Format-Wahl.
+            combVideoFormat.IsEnabled = !v;
         }
 
         private void btnDownloadCancel_Click(object sender, RoutedEventArgs e)
@@ -483,6 +538,7 @@ namespace MortysDLP.Views
                 AudioOnlyAdjustments();
                 FirstSecondsAdjustments();
                 VideoformatAdjustments();
+                GifMakerAdjustments();
                 TimespanAdjustments();
                 CustomFilenameAdjustments();
                 Dispatcher.Invoke(() => txtPlaylistProgress.Visibility = Visibility.Collapsed);
@@ -742,8 +798,22 @@ namespace MortysDLP.Views
         private void cbFirstSecondsCheck(object sender, RoutedEventArgs e) { FirstSecondsAdjustments(); ValidateDownloadButton(); }
         private void cbTimespanCheck(object sender, RoutedEventArgs e) => TimespanAdjustments();
         private void cbVideoFormatCheck(object sender, RoutedEventArgs e) => VideoformatAdjustments();
-        private void cbGifMakerCheck(object sender, RoutedEventArgs e) =>
-            combGifMakerQuality.IsEnabled = cbGifMaker.IsChecked == true;
+        private void cbGifMakerCheck(object sender, RoutedEventArgs e) => GifMakerAdjustments();
+        private void cbGifKeepVideoCheck(object sender, RoutedEventArgs e) => SyncOutputOptionState();
+
+        /// <summary>GIF-Maker ist ein eigener Ausgabemodus: aktiv schließt er „NUR Audio", den
+        /// x264-Schnittmodus, die Videoqualität und die Videoformat-/Container-Wahl aus — dann
+        /// zählt die GIF-Qualität. Zeitausschnitt, „erste N Sekunden" und eigener Dateiname
+        /// bleiben nutzbar (für kurze GIFs sinnvoll).</summary>
+        private void GifMakerAdjustments()
+        {
+            // GIF-Maker schließt nur „NUR Audio" aus (kein Video → kein GIF). x264-Schnittmodus
+            // und Videoqualität bleiben, weil die Videodatei mit heruntergeladen wird.
+            if (cbGifMaker.IsChecked == true && cbAudioOnly.IsChecked == true)
+                cbAudioOnly.IsChecked = false;   // löst AudioOnlyAdjustments aus (reagiert mit „aus")
+
+            SyncOutputOptionState();
+        }
 
         private void FirstSecondsAdjustments()
         {
@@ -1440,24 +1510,18 @@ namespace MortysDLP.Views
             tbTimespanTo.IsEnabled = enabled && cbTimespan.IsChecked == true;
             cbFirstSeconds.IsEnabled = enabled;
             tbFirstSecondsSeconds.IsEnabled = enabled && cbFirstSeconds.IsChecked == true;
-            cbVideoformat.IsEnabled = enabled && cbAudioOnly.IsChecked != true;
-            cbAudioOnly.IsEnabled = enabled;
-            combAudioFormat.IsEnabled = enabled && cbAudioOnly.IsChecked == true;
             btnSaveSettings.IsEnabled = enabled;
             btnHistory.IsEnabled = enabled;
             btnDownloadStart.IsEnabled = enabled;
-
-            combVideoQuality.IsEnabled = enabled && cbAudioOnly.IsChecked != true;
-            combVideoFormat.IsEnabled = enabled && cbAudioOnly.IsChecked != true && cbVideoformat.IsChecked != true;
-            combAudioBitrate.IsEnabled = enabled && cbAudioOnly.IsChecked == true;
 
             cbCustomFilename.IsEnabled = enabled;
             tbCustomFilename.IsEnabled = enabled && cbCustomFilename.IsChecked == true;
             tbCustomFilename.IsReadOnly = !(enabled && cbCustomFilename.IsChecked == true);
             btnOpenTimeline.IsEnabled = enabled && cbTimespan.IsChecked == true;
 
-            cbGifMaker.IsEnabled = enabled;
-            combGifMakerQuality.IsEnabled = enabled && cbGifMaker.IsChecked == true;
+            // Alle wechselseitig abhängigen Ausgabe-Optionen laufen über die eine Stelle.
+            _optionsUnlocked = enabled;
+            SyncOutputOptionState();
         }
 
         private async Task StartDownloadAsync(string urlOverride, CancellationToken token)
@@ -1518,10 +1582,12 @@ namespace MortysDLP.Views
 
             // Post-Download: GIF-Konvertierung
             bool gifEnabled = false;
+            bool gifKeepVideo = true;
             int gifPresetIndex = 0;
             Dispatcher.Invoke(() =>
             {
                 gifEnabled    = cbGifMaker.IsChecked == true;
+                gifKeepVideo  = cbGifKeepVideo.IsChecked == true;
                 gifPresetIndex = combGifMakerQuality.SelectedIndex < 0 ? 0 : combGifMakerQuality.SelectedIndex;
             });
 
@@ -1533,6 +1599,24 @@ namespace MortysDLP.Views
                     Dispatcher.Invoke(() => txtDownloadStatus.Text = UITextDictionary.Get("DownloadPage.Status.CreatingGif"));
                     UpdateProgress(0);
                     await ConvertDownloadedVideoToGifAsync(sourcePath, gifPresetIndex, token);
+
+                    // „Nur GIF": das heruntergeladene Video nach erfolgreicher GIF-Erstellung
+                    // löschen. Nur bei nicht abgebrochenem Lauf und wenn die Datei noch da ist.
+                    if (!gifKeepVideo && !token.IsCancellationRequested)
+                    {
+                        try
+                        {
+                            if (System.IO.File.Exists(sourcePath))
+                            {
+                                System.IO.File.Delete(sourcePath);
+                                AppendOutput($"[GIF] Videodatei gelöscht (nur GIF): {System.IO.Path.GetFileName(sourcePath)}");
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            AppendOutput($"[GIF] Videodatei konnte nicht gelöscht werden: {ex.Message}");
+                        }
+                    }
                 }
                 else
                 {
@@ -1949,21 +2033,11 @@ namespace MortysDLP.Views
 
         private void VideoformatAdjustments()
         {
-            bool v = cbVideoformat.IsChecked == true;
-            txtVideoformatInfo1.IsEnabled = v;
-            txtVideoformatInfo2.IsEnabled = v;
-            txtVideoformatInfo3.IsEnabled = v;
-            cbAudioOnly.IsEnabled = !v;
-
-            if (v)
-            {
+            // x264-Schnittmodus erzwingt mp4 als Container.
+            if (cbVideoformat.IsChecked == true)
                 SelectComboByContent(combVideoFormat, "mp4", "mp4");
-                combVideoFormat.IsEnabled = false;
-            }
-            else
-            {
-                combVideoFormat.IsEnabled = cbAudioOnly.IsChecked != true;
-            }
+
+            SyncOutputOptionState();
         }
 
         private void cbCustomFilenameCheck(object sender, RoutedEventArgs e)

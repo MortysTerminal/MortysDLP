@@ -271,8 +271,12 @@ angezeigten Pfad öffnet den Ordner im Explorer. „Pfad ändern" öffnet den Pf
 - **Nur Audio** — extrahiert die Tonspur. Formate: mp3, m4a, aac, alac, flac, wav, opus,
   vorbis. Bitrate: Höchste, 320k, 256k, 192k, 128k, 96k, 64k.
   Ist die Quelle unter 44,1 kHz oder mono, wird automatisch auf 48 kHz Stereo hochgesetzt.
-- **GIF-Maker** — wandelt das fertige Video zusätzlich in ein GIF um (Qualitätsstufen wie
-  auf der GIF-Seite).
+- **GIF-Maker** — lädt das Video ganz normal herunter und erzeugt **zusätzlich** ein GIF
+  daraus (Qualitätsstufen wie auf der GIF-Seite, gleicher Ordner). Nur **Nur Audio** schließt
+  das aus. Solange die Videodatei behalten wird, gelten Videoqualität, Videoformat,
+  Zeitausschnitt usw. weiter für sie. Die Unter-Option **Videodatei behalten** entscheidet, ob
+  das Video bleibt oder nach dem GIF gelöscht wird; bei „nur GIF" sind Videoqualität und
+  Videoformat ausgegraut, weil die Videodatei dann nur ein Zwischenschritt ist.
 
 ### Playlists
 Enthält die URL einen `list=`-Parameter, fragt die App nach:
@@ -480,15 +484,23 @@ lassen.
 
 ## 11. Einstellungen
 
-- **Download-Pfade** — öffnet denselben Dialog wie auf der Download-Seite.
-- **App** — GitHub-Seite öffnen, Anwendung beenden.
-- **Debug-Modus** — blendet auf allen Seiten die Protokollbereiche ein, sofort und ohne
-  Tabwechsel.
-- **Sprache** — Automatisch (zeigt die erkannte Sprache), Deutsch, Englisch. Wirkt sofort,
-  ohne Neustart.
+Drei Gruppen: **Downloads**, **Darstellung**, **Anwendung**.
+
+**Downloads**
+- **Download-Pfad ändern** — öffnet denselben Dialog wie auf der Download-Seite.
 - **Bandbreitenlimit** — an/aus plus Wert in MB/s. Wirkt sofort auf laufende Downloads:
   der yt-dlp-Prozess wird beendet und mit dem neuen Limit sowie `--continue` fortgesetzt.
   Ist ein Limit aktiv, zeigen die Download-Seiten einen Hinweis.
+
+**Darstellung**
+- **Sprache** — Automatisch (zeigt die erkannte Sprache), Deutsch, Englisch. Wirkt sofort,
+  ohne Neustart.
+- **Schrift** — Auswahl der Oberflächenschrift (siehe Abschnitt 3). Wirkt sofort.
+
+**Anwendung**
+- **GitHub öffnen**, **Programm schließen**.
+- **Debug-Modus** — blendet auf allen Seiten die Protokollbereiche ein, sofort und ohne
+  Tabwechsel.
 
 ---
 

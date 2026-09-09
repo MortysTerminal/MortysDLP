@@ -16,30 +16,7 @@
             <v:ToolMissingNotice x:Name="toolNotice"/>
             <StackPanel x:Name="pnlWork">
 
-            <!-- DOWNLOAD-PFADE -->
-            <Border Style="{StaticResource CardBorderStyle}">
-                <StackPanel>
-                    <TextBlock x:Name="txtSectionDownloadPaths" Style="{StaticResource SectionHeaderStyle}"/>
-                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                        <Label x:Name="lblDownloadPathInfo" VerticalAlignment="Center" Padding="0" Style="{StaticResource FormLabelStyle}"/>
-                        <Label x:Name="lblDownloadPath" MinWidth="400" Cursor="Hand"
-                               Foreground="{StaticResource BrandYellowBrush}"
-                               MouseLeftButtonUp="DownloadPath_MouseLeftButtonUp"/>
-                        <Button x:Name="btnChangeDownloadPath" Click="btnChangeDownloadPath_Click"
-                                Margin="8,0,0,0" Padding="8,4"/>
-                    </StackPanel>
-                    <DockPanel x:Name="dpAudioPath">
-                        <StackPanel Orientation="Horizontal">
-                            <Label x:Name="lblAudioPathInfo" VerticalAlignment="Center" Padding="0" Style="{StaticResource FormLabelStyle}"/>
-                            <Label x:Name="lblAudioPath" MinWidth="400" Cursor="Hand"
-                                   Foreground="{StaticResource BrandYellowBrush}"
-                                   MouseLeftButtonUp="DownloadPath_MouseLeftButtonUp"/>
-                        </StackPanel>
-                    </DockPanel>
-                </StackPanel>
-            </Border>
-
-            <!-- URL-LISTE -->
+            <!-- URL-LISTE (die Warteschlange - der Einstieg der Seite) -->
             <Border Style="{StaticResource CardBorderStyle}">
                 <StackPanel>
                     <TextBlock x:Name="txtSectionUrlList" Style="{StaticResource SectionHeaderStyle}"/>
@@ -59,14 +36,17 @@
                             <!-- Inputs -->
                         </Grid.ColumnDefinitions>
 
-                        <!-- Hint sitzt in Spalte 1 -> automatisch über der Textbox -->
+                        <!-- Hint sitzt in Spalte 1, in einer eigenen Zeile über der Textbox.
+                             Visibility="Hidden" (nicht Collapsed): die Zeile reserviert ihren
+                             Platz dauerhaft, damit die Eingabe nicht springt, wenn der Hinweis
+                             erscheint - ohne den frueheren Negativ-Margin-Hack. -->
                         <TextBlock x:Name="txtUrlHint"
                            Grid.Row="0" Grid.Column="1"
                            Visibility="Hidden"
                            Foreground="{StaticResource BrandYellowBrush}"
                            FontSize="11"
                            FontStyle="Italic"
-                           Margin="8,-22,0,4"/>
+                           Margin="8,0,0,4"/>
 
                         <!-- Label in Spalte 0 -->
                         <Label x:Name="lblAddUrl"
@@ -141,6 +121,29 @@
                             <Button x:Name="btnClearList" Click="btnClearList_Click" MinWidth="100" Padding="12,4" IsEnabled="False"/>
                         </StackPanel>
                     </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- DOWNLOAD-PFADE (wohin die Dateien landen - nach der Liste) -->
+            <Border Style="{StaticResource CardBorderStyle}">
+                <StackPanel>
+                    <TextBlock x:Name="txtSectionDownloadPaths" Style="{StaticResource SectionHeaderStyle}"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                        <Label x:Name="lblDownloadPathInfo" VerticalAlignment="Center" Padding="0" Style="{StaticResource FormLabelStyle}"/>
+                        <Label x:Name="lblDownloadPath" MinWidth="400" Cursor="Hand"
+                               Foreground="{StaticResource BrandYellowBrush}"
+                               MouseLeftButtonUp="DownloadPath_MouseLeftButtonUp"/>
+                        <Button x:Name="btnChangeDownloadPath" Click="btnChangeDownloadPath_Click"
+                                Margin="8,0,0,0" Padding="8,4"/>
+                    </StackPanel>
+                    <DockPanel x:Name="dpAudioPath">
+                        <StackPanel Orientation="Horizontal">
+                            <Label x:Name="lblAudioPathInfo" VerticalAlignment="Center" Padding="0" Style="{StaticResource FormLabelStyle}"/>
+                            <Label x:Name="lblAudioPath" MinWidth="400" Cursor="Hand"
+                                   Foreground="{StaticResource BrandYellowBrush}"
+                                   MouseLeftButtonUp="DownloadPath_MouseLeftButtonUp"/>
+                        </StackPanel>
+                    </DockPanel>
                 </StackPanel>
             </Border>
 

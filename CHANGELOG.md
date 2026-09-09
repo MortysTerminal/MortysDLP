@@ -33,6 +33,20 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
   zu lesen.
 
 ### Geändert
+- Die Einstellungen sind in drei Gruppen zusammengefasst — Downloads, Darstellung, Anwendung
+  — statt sechs einzelner Kästchen.
+- Auf der Download- und der Batch-Seite steht jetzt das Eingabefeld bzw. die Warteschlange
+  ganz oben, der Speicherort darunter — in der Reihenfolge, in der man sie braucht.
+- Der GIF-Maker auf der Download-Seite ist jetzt eine Option unter „Optionen" statt einem
+  eigenen Bereich. Das Video wird normal heruntergeladen und zusätzlich ein GIF daraus
+  erzeugt — alle Videoeinstellungen bleiben also nutzbar. Nur „Nur Audio" schließt den
+  GIF-Maker aus. Neue Unter-Option „Videodatei behalten": aus = es bleibt nur das GIF.
+- Auf der Download-Seite werden Beschriftungen und Auswahlfelder einer Option jetzt
+  durchgängig mitausgegraut, wenn die Option nicht aktiv ist.
+- In den Einstellungen wird der Wert im Feld „Maximale Geschwindigkeit" gedämpft angezeigt,
+  solange das Geschwindigkeitslimit aus ist.
+- Videoqualität und Videoformat stehen auf der Download-Seite jetzt in einem eigenen,
+  abgesetzten Abschnitt „Videoausgabe" statt lose zwischen den Optionen.
 - Überschriften und Titel folgen jetzt einer festen Größenstufung. Abschnittsüberschriften
   auf den Seiten sind etwas größer und heben sich dadurch klarer vom übrigen Text ab.
   Fettungen wurden auf ein ruhigeres Halbfett zurückgenommen — der Update-Hinweis bleibt
