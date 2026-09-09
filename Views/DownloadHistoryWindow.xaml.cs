@@ -3,6 +3,7 @@ using MortysDLP.Services;
 using MortysDLP.Helpers;
 using System.Globalization;
 using System.Windows;
+using System.Windows.Input;
 
 namespace MortysDLP
 {
@@ -93,6 +94,18 @@ namespace MortysDLP
                     }
                 }
                 this.Close();
+            }
+        }
+
+        protected override void OnKeyDown(KeyEventArgs e)
+        {
+            base.OnKeyDown(e);
+            // Esc schließt das Fenster wirkungslos. Kein Enter-Standardknopf: „Historie leeren"
+            // ist unwiderruflich, „Neu verwenden" braucht eine Auswahl.
+            if (e.Key == Key.Escape)
+            {
+                Close();
+                e.Handled = true;
             }
         }
 

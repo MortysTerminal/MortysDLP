@@ -378,35 +378,40 @@ namespace MortysDLP
 
             string downloadText = Fmt(T("StartupWindow.Status.Downloading"), tool.DisplayName);
 
-            using var dialog = new DownloadProgressDialog(downloadText);
-            dialog.Owner = this;
+            var dialog = new DownloadProgressDialog(downloadText) { Owner = this };
             dialog.Show();
-
-            var progress = new Progress<double>(dialog.SetProgress);
-
-            // Nach dem Download bleibt der Dialog offen (Entpacken, Ersetzen, Prüfen) - ohne
-            // eigene Anzeige dieser Abschnitte sähe er bei 100 % eingefroren aus, obwohl im
-            // Hintergrund weitergearbeitet wird. Die Statuszeile im Hintergrundfenster
-            // (SetStatus) allein reicht nicht: Der modale Dialog verdeckt sie.
-            var stage = new Progress<ToolInstallStage>(s =>
+            try
             {
-                string text = StageText(s, tool.DisplayName, T);
-                SetStatus(text);
+                var progress = new Progress<double>(dialog.SetProgress);
 
-                if (s != ToolInstallStage.Downloading)
-                    dialog.SetStage(text);
-            });
+                // Nach dem Download bleibt der Dialog offen (Entpacken, Ersetzen, Prüfen) - ohne
+                // eigene Anzeige dieser Abschnitte sähe er bei 100 % eingefroren aus, obwohl im
+                // Hintergrund weitergearbeitet wird. Die Statuszeile im Hintergrundfenster
+                // (SetStatus) allein reicht nicht: Der modale Dialog verdeckt sie.
+                var stage = new Progress<ToolInstallStage>(s =>
+                {
+                    string text = StageText(s, tool.DisplayName, T);
+                    SetStatus(text);
 
-            SetStatus(downloadText);
+                    if (s != ToolInstallStage.Downloading)
+                        dialog.SetStage(text);
+                });
 
-            var installOutcome = await tool.InstallAsync(release, progress, stage, dialog.CancellationToken);
+                SetStatus(downloadText);
 
-            if (installOutcome.Status == ToolInstallStatus.Canceled)
-                SetStatus(T("StartupWindow.Status.DownloadCanceled"));
-            else if (!installOutcome.Success)
-                SetStatus(T("StartupWindow.Status.DownloadFailed"));
+                var installOutcome = await tool.InstallAsync(release, progress, stage, dialog.CancellationToken);
 
-            return installOutcome;
+                if (installOutcome.Status == ToolInstallStatus.Canceled)
+                    SetStatus(T("StartupWindow.Status.DownloadCanceled"));
+                else if (!installOutcome.Success)
+                    SetStatus(T("StartupWindow.Status.DownloadFailed"));
+
+                return installOutcome;
+            }
+            finally
+            {
+                dialog.CloseIfOpen();
+            }
         }
 
         private static string StageText(ToolInstallStage stage, string displayName, Func<string, string> T) =>

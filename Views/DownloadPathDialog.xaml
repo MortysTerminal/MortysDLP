@@ -141,9 +141,9 @@
 
         <!-- Action Buttons -->
         <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0">
-            <Button Name="btnOK" Click="btnOK_Click" 
+            <Button Name="btnOK" Click="btnOK_Click" IsDefault="True"
                     Style="{StaticResource PrimaryButtonStyle}" Padding="20,8" Margin="0,0,8,0"/>
-            <Button Name="btnCancel" Click="btnCancel_Click" Padding="20,8"/>
+            <Button Name="btnCancel" Click="btnCancel_Click" IsCancel="True" Padding="20,8"/>
         </StackPanel>
     </Grid>
 </Window>

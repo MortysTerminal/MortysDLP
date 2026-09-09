@@ -127,9 +127,11 @@ namespace MortysDLP
             }
             else if (e.Key == Key.Enter)
             {
-                // Primären Button (letzter = rechts) auslösen
-                if (ButtonPanel.Children.OfType<Button>().LastOrDefault() is { } primary)
-                    primary.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                // Löst den zuletzt hinzugefügten Knopf aus: bei OK der OK-Knopf, bei
+                // OKCancel/YesNo bewusst den nicht-zerstörenden (Abbrechen bzw. Nein), damit
+                // ein versehentliches Enter nichts Unwiderrufliches bestätigt.
+                if (ButtonPanel.Children.OfType<Button>().LastOrDefault() is { } lastButton)
+                    lastButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
                 e.Handled = true;
             }
         }

@@ -130,7 +130,7 @@
 
         <!-- Footer -->
         <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button x:Name="btnClose" Click="btnClose_Click" MinWidth="90"/>
+            <Button x:Name="btnClose" Click="btnClose_Click" IsCancel="True" MinWidth="90"/>
         </StackPanel>
     </Grid>
 </Window>

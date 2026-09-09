@@ -46,6 +46,12 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
   bisher noch einzelne Windows-Standarddialoge statt der einheitlichen Meldungsfenster.
 - Der Debug-Modus wirkt jetzt sofort auf allen Seiten. Vorher blieb der Protokollbereich auf
   der Batch-, GIF- und Twitch-Seite verschwunden, bis man den Tab einmal gewechselt hat.
+- Dialoge lassen sich durchgängig mit der Tastatur bedienen: `Esc` schließt jedes Fenster
+  ohne Wirkung, `Enter` löst die naheliegende Aktion aus — außer bei Fenstern, in denen
+  `Enter` etwas Unwiderrufliches auslösen würde (dort bewusst nicht). Betrifft die Fenster
+  für Credits, Download-Pfade, Zeitausschnitt, Verlauf und Whisper-Modelle.
+- Der Fortschrittsdialog beim ersten Start (Werkzeug-Download) hat eine aufgeräumte
+  Lebensdauer bekommen. Der Abbruch wird nicht mehr über mehrere Wege gleichzeitig ausgelöst.
 
 ### Behoben
 - Der Hinweis auf ein verfügbares Update ist wieder deutlich sichtbar: Der Banner steht auf

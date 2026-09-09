@@ -82,6 +82,7 @@
                            Text="Alle genannten Tools stehen unter ihren jeweiligen Open-Source-Lizenzen."/>
                 <Button x:Name="btnClose" Content="Schließen"
                         HorizontalAlignment="Right"
+                        IsDefault="True" IsCancel="True"
                         Padding="20,6" Click="btnClose_Click">
                     <Button.Style>
                         <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">

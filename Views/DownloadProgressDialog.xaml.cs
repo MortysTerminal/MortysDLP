@@ -18,9 +18,10 @@ namespace MortysDLP
     /// <summary>
     /// Interaktionslogik für DownloadProgressDialog.xaml
     /// </summary>
-    public partial class DownloadProgressDialog : Window, IDisposable
+    public partial class DownloadProgressDialog : Window
     {
         private readonly CancellationTokenSource _cts = new();
+        private bool _closed;
 
         public CancellationToken CancellationToken => _cts.Token;
 
@@ -63,26 +64,34 @@ namespace MortysDLP
 
         private void CancelButton_Click(object sender, RoutedEventArgs e)
         {
-            // Explizit auslösen statt sich nur auf OnClosing zu verlassen, und den Knopf
-            // sofort deaktivieren - ein zweiter Klick während des Schließens darf nicht zu
-            // einem zweiten Abbruchversuch führen.
+            // Knopf sofort deaktivieren, damit ein zweiter Klick während des Schließens nichts
+            // mehr auslöst. Der Abbruch selbst passiert in OnClosing - der einzige Abbruchpfad.
             CancelButton.IsEnabled = false;
-            _cts.Cancel();
             Close();
         }
 
         protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
         {
+            // Einziger Abbruchpfad: über den Knopf, das Fenster-X oder CloseIfOpen() vom
+            // Aufrufer landet alles hier. Cancel() ist idempotent.
             _cts.Cancel();
             base.OnClosing(e);
         }
 
-        public void Dispose()
+        protected override void OnClosed(EventArgs e)
         {
-            try { _cts.Cancel(); } catch { }
-            try { Close(); } catch { }
+            _closed = true;
+            base.OnClosed(e);
             _cts.Dispose();
-            GC.SuppressFinalize(this);
+        }
+
+        /// <summary>Schließt den Dialog, wenn er noch offen ist. Der Aufrufer ruft das im
+        /// <c>finally</c> nach der begleiteten Arbeit auf; hat der Nutzer vorher „Abbrechen"
+        /// gedrückt, ist das ein wirkungsloser Aufruf statt einer Ausnahme.</summary>
+        public void CloseIfOpen()
+        {
+            if (!_closed)
+                Close();
         }
     }
 }

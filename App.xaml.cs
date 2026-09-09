@@ -790,12 +790,16 @@ namespace MortysDLP
 
                 // 2. Download mit Fortschrittsdialog, Retry, streamender Prüfsumme und
                 // Größenabgleich - erst nach bestandener Prüfung trägt die Datei
-                // ihren endgültigen Namen. using: der Dialog wird in jedem Fall geschlossen,
-                // auch bei Erfolg. Dass er nicht-modal ist, bleibt bewusst unangetastet.
-                using (var dialog = new DownloadProgressDialog(UITexte.UITextDictionary.Get("Update.Download.InProgress")))
+                // ihren endgültigen Namen. Der Dialog ist bewusst nicht-modal (die Arbeit läuft
+                // asynchron weiter); try/finally schließt ihn in jedem Fall, auch bei Erfolg
+                // oder frühem return.
+                var dialog = new DownloadProgressDialog(UITexte.UITextDictionary.Get("Update.Download.InProgress"))
                 {
-                    dialog.Owner = MainWindow;
-                    dialog.Show();
+                    Owner = MainWindow
+                };
+                dialog.Show();
+                try
+                {
                     var progress = new Progress<double>(dialog.SetProgress);
 
                     try
@@ -823,6 +827,10 @@ namespace MortysDLP
                             UITexte.UITexte.Error, MessageBoxButton.OK, MessageBoxImage.Error, MainWindow);
                         return;
                     }
+                }
+                finally
+                {
+                    dialog.CloseIfOpen();
                 }
 
                 // 3. ZIP-Grundprüfung: enthält den erwarteten Haupteintrag, nicht nur
