@@ -304,7 +304,8 @@ namespace MortysDLP
                 title,
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Warning,
-                this);
+                this,
+                enterConfirmsPrimary: true);
 
             if (answer != MessageBoxResult.Yes)
             {

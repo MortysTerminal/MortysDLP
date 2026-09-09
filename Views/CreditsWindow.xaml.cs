@@ -98,7 +98,9 @@ namespace MortysDLP.Views
 
                 var licenseBadge = new Border
                 {
-                    Background    = new SolidColorBrush(Color.FromRgb(40, 50, 70)),
+                    Background    = (Brush)FindResource("ControlFillColorDefaultBrush"),
+                    BorderBrush   = (Brush)FindResource("CardStrokeColorDefaultBrush"),
+                    BorderThickness = new Thickness(1),
                     CornerRadius  = new CornerRadius(4),
                     Padding       = new Thickness(6, 2, 6, 2),
                     VerticalAlignment = VerticalAlignment.Center,
@@ -106,7 +108,7 @@ namespace MortysDLP.Views
                     {
                         Text     = tool.License,
                         FontSize = 10,
-                        Foreground = new SolidColorBrush(Color.FromRgb(130, 175, 230)),
+                        Foreground = (Brush)FindResource("TextFillColorSecondaryBrush"),
                     }
                 };
                 Grid.SetColumn(licenseBadge, 1);
@@ -122,7 +124,7 @@ namespace MortysDLP.Views
                     FontSize       = 12,
                     TextWrapping   = TextWrapping.Wrap,
                     Margin         = new Thickness(0, 5, 0, 6),
-                    Opacity        = 0.75,
+                    Foreground     = (Brush)FindResource("TextFillColorSecondaryBrush"),
                 });
 
                 // Links
@@ -136,7 +138,7 @@ namespace MortysDLP.Views
                     {
                         Text       = " · ",
                         FontSize   = 11,
-                        Opacity    = 0.4,
+                        Foreground = (Brush)FindResource("TextFillColorTertiaryBrush"),
                         VerticalAlignment = VerticalAlignment.Center,
                     });
                     AddLinkButton(linkRow, "Website", tool.HomepageUrl);

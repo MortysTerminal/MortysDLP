@@ -40,7 +40,8 @@ namespace MortysDLP
                     T("DownloadPathDialog.Validation.Title"),
                     MessageBoxButton.YesNoCancel,
                     MessageBoxImage.Warning,
-                    this);
+                    this,
+                    enterConfirmsPrimary: true);
 
                 if (result == MessageBoxResult.Yes)
                 {

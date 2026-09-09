@@ -59,7 +59,8 @@ namespace MortysDLP.Views
                     T("AddBatchUrlsWindow.Confirm.Title"),
                     MessageBoxButton.OKCancel,
                     MessageBoxImage.Question,
-                    owner: this);
+                    owner: this,
+                    enterConfirmsPrimary: true);
 
                 if (res != MessageBoxResult.OK) return;
             }

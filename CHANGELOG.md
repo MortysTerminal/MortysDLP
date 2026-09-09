@@ -52,6 +52,13 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
   für Credits, Download-Pfade, Zeitausschnitt, Verlauf und Whisper-Modelle.
 - Der Fortschrittsdialog beim ersten Start (Werkzeug-Download) hat eine aufgeräumte
   Lebensdauer bekommen. Der Abbruch wird nicht mehr über mehrere Wege gleichzeitig ausgelöst.
+- Das Credits-Fenster folgt jetzt dem Farbschema: Die Lizenz-Abzeichen und Nebentexte waren
+  fest blau bzw. blass eingefärbt und passten im hellen Design nicht.
+- Auf der Konvertieren-Seite fragt „Liste leeren" jetzt nach, bevor die ganze Dateiliste
+  verworfen wird — wie auf der Batch-Seite.
+- Die Knöpfe in Dialogen stehen jetzt überall in derselben Reihenfolge: die Hauptaktion
+  links, „Abbrechen" und Alternativen rechts. `Enter` löst die Hauptaktion aus, außer bei
+  Rückfragen mit unwiderruflicher Folge (dort muss bewusst geklickt werden).
 
 ### Behoben
 - Der Hinweis auf ein verfügbares Update ist wieder deutlich sichtbar: Der Banner steht auf

@@ -352,6 +352,7 @@ Wandelt lokale Dateien um.
   abgebrochen) in der Debug-Ausgabe.
 - Auswahl und Scrollposition der Dateiliste bleiben während einer laufenden Konvertierung
   erhalten.
+- **Liste leeren** fragt vorher nach, bevor die ganze Dateiliste verworfen wird.
 
 ---
 

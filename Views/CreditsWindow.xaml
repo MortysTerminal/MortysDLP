@@ -57,7 +57,7 @@
         <StackPanel Grid.Row="0" Margin="0,0,0,14">
             <TextBlock Text="Credits &amp; Open-Source-Tools"
                        Style="{StaticResource PageTitleStyle}" Margin="0,0,0,4"/>
-            <TextBlock FontSize="12" Opacity="0.65" TextWrapping="Wrap">
+            <TextBlock FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" TextWrapping="Wrap">
                 MortysDLP ist kostenlos und quelloffen. Für alle Kernfunktionen werden externe Open-Source-Tools eingesetzt.
                 Hier findest du eine vollständige Übersicht mit Links zu den jeweiligen Projekten.
             </TextBlock>
@@ -77,7 +77,8 @@
                 BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
                 BorderThickness="0,1,0,0" Padding="0,10,0,0">
             <Grid>
-                <TextBlock HorizontalAlignment="Left" FontSize="11" Opacity="0.5"
+                <TextBlock HorizontalAlignment="Left" FontSize="11"
+                           Foreground="{DynamicResource TextFillColorTertiaryBrush}"
                            VerticalAlignment="Center"
                            Text="Alle genannten Tools stehen unter ihren jeweiligen Open-Source-Lizenzen."/>
                 <Button x:Name="btnClose" Content="Schließen"

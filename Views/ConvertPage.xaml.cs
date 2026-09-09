@@ -539,6 +539,20 @@ namespace MortysDLP.Views
 
         private void btnClearFiles_Click(object sender, RoutedEventArgs e)
         {
+            if (!_fileList.Any())
+                return;
+
+            var T = UITextDictionary.Get;
+            var result = FluentMessageBox.Show(
+                T("ConvertPage.ClearList.Question"),
+                T("ConvertPage.ClearList.Title"),
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question,
+                Window.GetWindow(this));
+
+            if (result != MessageBoxResult.Yes)
+                return;
+
             _fileList.Clear();
             UpdateFileButtonsState();
         }

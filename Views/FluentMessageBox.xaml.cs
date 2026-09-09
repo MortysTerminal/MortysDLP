@@ -10,9 +10,22 @@ namespace MortysDLP
     {
         public MessageBoxResult Result { get; private set; } = MessageBoxResult.None;
 
-        private FluentMessageBox(string message, string title, MessageBoxButton buttons, MessageBoxImage icon)
+        /// <summary>Der Knopf mit der Primäraktion (steht links). <c>Enter</c> löst ihn aus —
+        /// aber nur, wenn <see cref="_enterConfirmsPrimary"/> gesetzt ist.</summary>
+        private Button? _primaryButton;
+
+        /// <summary>Ob <c>Enter</c> die Primäraktion auslösen darf. Vorgabe für die
+        /// Standard-Knopfsätze (`YesNo` usw.) ist <c>false</c>: Enter tut dann nichts, damit
+        /// ein versehentliches Enter nichts Unwiderrufliches bestätigt. Ein einzelner
+        /// `OK`-Knopf wird davon nicht berührt. Bei benutzerdefinierten Knöpfen hat der
+        /// Aufrufer die Reihenfolge selbst festgelegt — dort ist Enter → Primäraktion erlaubt.</summary>
+        private readonly bool _enterConfirmsPrimary;
+
+        private FluentMessageBox(string message, string title, MessageBoxButton buttons, MessageBoxImage icon,
+            bool enterConfirmsPrimary)
         {
             InitializeComponent();
+            _enterConfirmsPrimary = enterConfirmsPrimary;
             TitleBlock.Text  = title;
             MessageBlock.Text = message;
             ConfigureIcon(icon);
@@ -23,6 +36,7 @@ namespace MortysDLP
             params (string Text, MessageBoxResult Result, bool Primary)[] customButtons)
         {
             InitializeComponent();
+            _enterConfirmsPrimary = true;
             TitleBlock.Text  = title;
             MessageBlock.Text = message;
             ConfigureIcon(icon);
@@ -106,8 +120,12 @@ namespace MortysDLP
                 Margin   = new Thickness(ButtonPanel.Children.Count > 0 ? 8 : 0, 0, 0, 0)
             };
 
-            if (primary && TryFindResource("PrimaryButtonStyle") is Style ps)
-                btn.Style = ps;
+            if (primary)
+            {
+                if (TryFindResource("PrimaryButtonStyle") is Style ps)
+                    btn.Style = ps;
+                _primaryButton = btn;
+            }
 
             btn.Click += (_, _) => { Result = result; DialogResult = true; };
             ButtonPanel.Children.Add(btn);
@@ -127,31 +145,41 @@ namespace MortysDLP
             }
             else if (e.Key == Key.Enter)
             {
-                // Löst den zuletzt hinzugefügten Knopf aus: bei OK der OK-Knopf, bei
-                // OKCancel/YesNo bewusst den nicht-zerstörenden (Abbrechen bzw. Nein), damit
-                // ein versehentliches Enter nichts Unwiderrufliches bestätigt.
-                if (ButtonPanel.Children.OfType<Button>().LastOrDefault() is { } lastButton)
-                    lastButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
-                e.Handled = true;
+                // Ein einzelner Knopf (OK): Enter löst ihn aus. Sonst nur, wenn der Aufrufer
+                // es erlaubt hat — dann die Primäraktion (der linke Knopf). Vorgabe: Enter tut
+                // nichts, damit ein versehentliches Enter nichts Unwiderrufliches bestätigt.
+                Button? target = ButtonPanel.Children.Count == 1
+                    ? ButtonPanel.Children.OfType<Button>().FirstOrDefault()
+                    : (_enterConfirmsPrimary ? _primaryButton : null);
+
+                if (target != null)
+                {
+                    target.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                    e.Handled = true;
+                }
             }
         }
 
         // ─── Statische API ───────────────────────────────────────────────────────────
 
         /// <summary>Zeigt eine Fluent-MessageBox an. Ersetzt MessageBox.Show() global.</summary>
+        /// <param name="enterConfirmsPrimary">Nur für gutartige Rückfragen setzen: <c>Enter</c>
+        /// löst dann „Ja"/„OK" aus. Bei destruktiven Rückfragen (löschen, deinstallieren,
+        /// Liste leeren) weglassen — dann bleibt <c>Enter</c> wirkungslos.</param>
         public static MessageBoxResult Show(
             string           message,
             string           title   = "",
             MessageBoxButton buttons = MessageBoxButton.OK,
             MessageBoxImage  icon    = MessageBoxImage.None,
-            Window?          owner   = null)
+            Window?          owner   = null,
+            bool             enterConfirmsPrimary = false)
         {
             string resolvedTitle = string.IsNullOrWhiteSpace(title) ? ResolveDefaultTitle(icon) : title;
 
             return Dispatch(() =>
             {
                 owner ??= FindActiveWindow();
-                var box = new FluentMessageBox(message, resolvedTitle, buttons, icon);
+                var box = new FluentMessageBox(message, resolvedTitle, buttons, icon, enterConfirmsPrimary);
                 if (owner != null) box.Owner = owner;
                 box.ShowDialog();
                 return box.Result;

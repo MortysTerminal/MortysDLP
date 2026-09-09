@@ -257,8 +257,8 @@ namespace MortysDLP
 
             return FluentMessageBox.Show(
                 T("Update.Elevation.Warning"), "", MessageBoxImage.Warning, this,
-                (T("Update.Elevation.TryAnyway"), MessageBoxResult.Yes, false),
-                (T("Common.Button.Cancel"), MessageBoxResult.Cancel, true)) == MessageBoxResult.Yes;
+                (T("Common.Button.Cancel"), MessageBoxResult.Cancel, true),
+                (T("Update.Elevation.TryAnyway"), MessageBoxResult.Yes, false)) == MessageBoxResult.Yes;
         }
 
         /// <summary>Schreibt <c>VersionSkip</c> — der Dialog selbst speichert keine

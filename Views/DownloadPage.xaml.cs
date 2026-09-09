@@ -1247,7 +1247,8 @@ namespace MortysDLP.Views
                 T("DownloadPage.SaveSettings.Question"),
                 T("DownloadPage.SaveSettings.Title"),
                 MessageBoxButton.YesNo,
-                MessageBoxImage.Question);
+                MessageBoxImage.Question,
+                enterConfirmsPrimary: true);
             if (result == MessageBoxResult.Yes)
             {
                 Properties.Settings.Default.CheckedTimespan = cbTimespanChecked;

@@ -87,21 +87,21 @@
             <StackPanel Grid.Row="3"
                         Orientation="Horizontal"
                         HorizontalAlignment="Right">
-                <Button x:Name="btnSkip"
-                        MinWidth="150"
+                <Button x:Name="btnUpdateNow"
+                        MinWidth="130"
                         Padding="20,8"
                         Margin="0,0,8,0"
-                        Click="btnSkip_Click"/>
+                        Style="{StaticResource PrimaryButtonStyle}"
+                        Click="btnUpdateNow_Click"/>
                 <Button x:Name="btnLater"
                         MinWidth="90"
                         Padding="20,8"
                         Margin="0,0,8,0"
                         Click="btnLater_Click"/>
-                <Button x:Name="btnUpdateNow"
-                        MinWidth="130"
+                <Button x:Name="btnSkip"
+                        MinWidth="150"
                         Padding="20,8"
-                        Style="{StaticResource PrimaryButtonStyle}"
-                        Click="btnUpdateNow_Click"/>
+                        Click="btnSkip_Click"/>
             </StackPanel>
         </Grid>
     </Grid>
