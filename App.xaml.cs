@@ -176,6 +176,12 @@ namespace MortysDLP
                 // Sicherungen, eigene Temp-Reste) — ebenfalls erst jetzt, nicht blockierend.
                 _ = Task.Run(RunToolHousekeeping);
 
+                // 7. GPU-Encoder-Erkennung schon jetzt anstoßen, nicht erst im Moment der ersten
+                // H.264-Konvertierung. Sonst laufen dort bis zu drei ffmpeg-Testprozesse genau
+                // dann, wenn der Nutzer auf sein fertiges Video wartet. Ergebnis landet im
+                // gemeinsamen Zwischenspeicher; die Konvertierung findet es dann vor.
+                _ = Task.Run(RunBackgroundEncoderWarmupAsync);
+
                 splash.Close(); // Splash explizit schließen
             }
             catch (Exception ex)
@@ -421,6 +427,29 @@ namespace MortysDLP
             catch (Exception ex)
             {
                 Log.Warn("Werkzeugprüfung im Hintergrund fehlgeschlagen", ex);
+            }
+        }
+
+        /// <summary>Stößt die GPU-Encoder-Erkennung (<see cref="HwAccelHelper"/>) schon nach dem
+        /// Fenster an, im Hintergrund. Zu diesem Zeitpunkt ist ffmpeg als brauchbar bekannt (die
+        /// Existenzprüfung im Splash ist gelaufen). Fehlt es doch noch, merkt sich
+        /// <see cref="HwAccelHelper"/> nichts und die Erkennung wiederholt sich beim ersten
+        /// echten Bedarf.
+        ///
+        /// <para>Eigene Task mit eigenem <c>try/catch</c> wie die übrigen Hintergrundschritte -
+        /// nicht mit <c>.Result</c>/<c>.Wait()</c> darauf warten (02-BEST-PRACTICES.md §4).</para></summary>
+        private static async Task RunBackgroundEncoderWarmupAsync()
+        {
+            try
+            {
+                var stopwatch = Stopwatch.StartNew();
+                string encoder = await HwAccelHelper.DetectBestH264EncoderAsync(AppPaths.Ffmpeg);
+                Log.Info($"GPU-Encoder-Erkennung im Hintergrund abgeschlossen nach " +
+                    $"{stopwatch.ElapsedMilliseconds} ms: {HwAccelHelper.GetEncoderDisplayName(encoder)}.");
+            }
+            catch (Exception ex)
+            {
+                Log.Warn("GPU-Encoder-Erkennung im Hintergrund fehlgeschlagen", ex);
             }
         }
 

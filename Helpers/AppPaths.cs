@@ -64,6 +64,12 @@ namespace MortysDLP.Helpers
         /// lassen, ohne dabei Belege wie den Update-Zustand mitzunehmen.</summary>
         public static string UpdateCacheFile => Path.Combine(CacheDir, "update-cache.json");
 
+        /// <summary>Ablage der GPU-Encoder-Erkennung (welcher H.264-Encoder auf diesem Rechner
+        /// mit diesem ffmpeg taugt). Bewusst unter <see cref="CacheDir"/>: Geht die Datei
+        /// verloren oder passt sie nicht mehr, wird beim nächsten Bedarf schlicht neu geprüft —
+        /// sie ist Zwischenspeicher, kein Beleg.</summary>
+        public static string HwEncoderCacheFile => Path.Combine(CacheDir, "hw-encoder.json");
+
         /// <summary>Beleg dafür, dass ein Update tatsächlich angestoßen wurde.
         /// Bewusst direkt unter <see cref="DataDir"/>, **nicht** unter <see cref="CacheDir"/>:
         /// Anders als ein Zwischenspeicher darf diese Datei nicht mit dem Cache gemeinsam

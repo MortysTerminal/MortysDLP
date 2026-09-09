@@ -36,7 +36,7 @@
                                                      </Style>
                                                  </TextBox.Style>
                                              </TextBox>
-                                             <Button x:Name="btnBrowseInput" Click="btnBrowseInput_Click" MinWidth="100" Padding="12,4">
+                                             <Button x:Name="btnBrowseInput" Click="btnBrowseInput_Click" Style="{StaticResource SecondaryButtonStyle}" MinWidth="100">
                                                  <TextBlock x:Name="txtBrowseInput"/>
                                              </Button>
                                              <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="16"
@@ -106,12 +106,12 @@
                                Style="{StaticResource FormLabelStyle}" Grid.Column="0"/>
                         <TextBox x:Name="tbOutputFolder" VerticalContentAlignment="Center"
                                  Margin="8,0,0,0" Grid.Column="1"/>
-                        <Button x:Name="btnBrowseOutput" Click="btnBrowseOutput_Click"
-                                MinWidth="100" Padding="12,4" Margin="8,0,0,0" Grid.Column="2">
+                        <Button x:Name="btnBrowseOutput" Click="btnBrowseOutput_Click" Style="{StaticResource SecondaryButtonStyle}"
+                                MinWidth="100" Margin="8,0,0,0" Grid.Column="2">
                             <TextBlock x:Name="txtBrowseOutput"/>
                         </Button>
-                        <Button x:Name="btnOpenOutput" Click="btnOpenOutput_Click"
-                                MinWidth="100" Padding="12,4" Margin="8,0,0,0" Grid.Column="3">
+                        <Button x:Name="btnOpenOutput" Click="btnOpenOutput_Click" Style="{StaticResource SecondaryButtonStyle}"
+                                MinWidth="100" Margin="8,0,0,0" Grid.Column="3">
                             <TextBlock x:Name="txtOpenOutput"/>
                         </Button>
                     </Grid>
@@ -124,7 +124,7 @@
                         <StackPanel>
                             <TextBlock x:Name="txtUsePath" FontWeight="SemiBold" Margin="0,0,0,8"/>
                             <StackPanel Orientation="Horizontal">
-                                <Button x:Name="btnUseDownloadPath" Click="btnUseDownloadPath_Click" Width="140">
+                                <Button x:Name="btnUseDownloadPath" Click="btnUseDownloadPath_Click" Style="{StaticResource SecondaryButtonStyle}" Width="140">
                                     <TextBlock x:Name="txtUseDownloadPath"/>
                                 </Button>
                             </StackPanel>
@@ -155,12 +155,12 @@
 
         <!-- STEUERUNG + STATUS - fixierte Fußzeile, scrollt nicht mit -->
         <Border Grid.Row="1" Style="{StaticResource ActionBarStyle}">
-                <StackPanel Orientation="Horizontal">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                     <Button x:Name="btnStart" Click="btnStart_Click"
                             Style="{StaticResource PrimaryButtonStyle}" Margin="0,0,8,0">
                         <TextBlock x:Name="txtBtnStart"/>
                     </Button>
-                    <Button x:Name="btnCancel" Click="btnCancel_Click" IsEnabled="False">
+                    <Button x:Name="btnCancel" Click="btnCancel_Click" Style="{StaticResource SecondaryButtonStyle}" IsEnabled="False">
                         <TextBlock x:Name="txtBtnCancel"/>
                     </Button>
 

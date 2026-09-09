@@ -4,6 +4,7 @@ using MortysDLP.Services;
 using MortysDLP.UITexte;
 using MortysDLP.Views;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -11,14 +12,20 @@ namespace MortysDLP
 {
     public partial class MainWindow : Window
     {
-        private readonly DownloadPage _downloadPage = new();
-        private readonly ConvertPage _convertPage = new();
-        private readonly SettingsPage _settingsPage = new();
-        private readonly TranscribePage _transcribePage = new();
-        private readonly GifPage _gifPage = new();
-        private readonly BatchDownloadPage _batchDownloadPage = new();
-        private readonly TwitchPage _twitchPage = new();
-        private readonly ToolsPage _toolsPage = new();
+        // Seiten entstehen erst, wenn sie das erste Mal gebraucht werden - beim Start baut die
+        // Anwendung nur die Download-Seite (siehe Konstruktor). Die Seiten bleiben Singletons,
+        // nur der Zeitpunkt ihrer Erzeugung verschiebt sich.
+        private static Lazy<T> LazyPage<T>() where T : Page, new()
+            => new(() => { var p = new T(); Log.Debug($"Seite erzeugt: {typeof(T).Name}"); return p; });
+
+        private readonly Lazy<DownloadPage> _downloadPage = LazyPage<DownloadPage>();
+        private readonly Lazy<ConvertPage> _convertPage = LazyPage<ConvertPage>();
+        private readonly Lazy<SettingsPage> _settingsPage = LazyPage<SettingsPage>();
+        private readonly Lazy<TranscribePage> _transcribePage = LazyPage<TranscribePage>();
+        private readonly Lazy<GifPage> _gifPage = LazyPage<GifPage>();
+        private readonly Lazy<BatchDownloadPage> _batchDownloadPage = LazyPage<BatchDownloadPage>();
+        private readonly Lazy<TwitchPage> _twitchPage = LazyPage<TwitchPage>();
+        private readonly Lazy<ToolsPage> _toolsPage = LazyPage<ToolsPage>();
 
         private string? _pendingUpdateVersion;
         private string? _pendingUpdateChangelog;
@@ -28,33 +35,81 @@ namespace MortysDLP
         /// „Jetzt aktualisieren" gäbe es an dieser Stelle nichts anzubieten.</summary>
         private string? _blockedUpdateReasonKey;
 
-        internal DownloadPage DownloadPage => _downloadPage;
-        internal ConvertPage ConvertPage => _convertPage;
-        internal TranscribePage TranscribePage => _transcribePage;
-        internal TwitchPage TwitchPage => _twitchPage;
-        internal BatchDownloadPage BatchDownloadPage => _batchDownloadPage;
-        internal GifPage GifPage => _gifPage;
-        internal ToolsPage ToolsPage => _toolsPage;
+        /// <summary>Nur für Aufrufer, die die Download-Seite ohnehin gleich brauchen (Verlauf →
+        /// URL übernehmen). Erzeugt sie bei Bedarf.</summary>
+        internal DownloadPage DownloadPage => _downloadPage.Value;
 
-        /// <summary>Alle Seiten mit einem abbrechbaren Hintergrundvorgang — Grundlage der
-        /// Update-Vorprüfung. Seiten laufen als Singletons im Hintergrund weiter,
-        /// auch wenn gerade eine andere Seite angezeigt wird (siehe Navigate-Aufrufe unten).</summary>
+        /// <summary>Die bereits erzeugten Seiten — die einzige Stelle, die aufzählt, welche
+        /// Seiten es gibt. <see cref="ActiveWorkSources"/>, <see cref="RefreshDebugMode"/>,
+        /// <see cref="NotifyBandwidthChanged"/> usw. gehen darüber und rühren keine noch nicht
+        /// erzeugte Seite an.</summary>
+        private IEnumerable<Page> CreatedPages()
+        {
+            if (_downloadPage.IsValueCreated)      yield return _downloadPage.Value;
+            if (_batchDownloadPage.IsValueCreated) yield return _batchDownloadPage.Value;
+            if (_convertPage.IsValueCreated)       yield return _convertPage.Value;
+            if (_gifPage.IsValueCreated)           yield return _gifPage.Value;
+            if (_transcribePage.IsValueCreated)    yield return _transcribePage.Value;
+            if (_twitchPage.IsValueCreated)        yield return _twitchPage.Value;
+            if (_toolsPage.IsValueCreated)         yield return _toolsPage.Value;
+            if (_settingsPage.IsValueCreated)      yield return _settingsPage.Value;
+        }
+
+        /// <summary>Bereits erzeugte Seiten mit einem abbrechbaren Hintergrundvorgang —
+        /// Grundlage der Update-Vorprüfung. Eine nie geöffnete Seite hat keinen laufenden
+        /// Download, kann die Prüfung also auch nicht blockieren.</summary>
         internal IReadOnlyList<ICancellableWork> ActiveWorkSources =>
-            new ICancellableWork[] { _downloadPage, _batchDownloadPage, _convertPage, _gifPage, _transcribePage, _twitchPage, _toolsPage };
+            CreatedPages().OfType<ICancellableWork>().ToList();
 
-        /// <summary>Wendet den aktuellen Debug-Modus sofort auf alle Seiten mit einem
-        /// Debug-Bereich an — aufgerufen aus <see cref="Views.SettingsPage"/> beim Umschalten.
-        /// Ersetzt die früher dort handgepflegte Aufzählung (die drei Seiten übersah) und den
-        /// Sonderaufruf beim Navigieren zur Batch-Seite. Iteriert bewusst über die Felder
-        /// dieses Fensters: würde die Seitenerzeugung später verzögert, ist nur diese eine
-        /// Liste anzupassen (wie auch <see cref="ActiveWorkSources"/>).</summary>
+        /// <summary>Wendet den aktuellen Debug-Modus sofort auf alle bereits erzeugten Seiten
+        /// mit einem Debug-Bereich an — aufgerufen aus <see cref="Views.SettingsPage"/> beim
+        /// Umschalten. Noch nicht erzeugte Seiten lesen den Modus in ihrem eigenen
+        /// <c>Loaded</c>-Behandler.</summary>
         internal void RefreshDebugMode()
         {
-            foreach (var page in new IDebugModeAware[]
-                     { _downloadPage, _batchDownloadPage, _convertPage, _gifPage, _transcribePage, _twitchPage })
-            {
+            foreach (var page in CreatedPages().OfType<IDebugModeAware>())
                 page.ApplyDebugMode();
+        }
+
+        /// <summary>Benachrichtigt die bereits erzeugten Download-Seiten über eine geänderte
+        /// Bandbreite. Aufgerufen aus <see cref="Views.SettingsPage"/>.</summary>
+        internal void NotifyBandwidthChanged()
+        {
+            foreach (var page in CreatedPages())
+            {
+                switch (page)
+                {
+                    case DownloadPage d:      d.ApplyBandwidthChange(); break;
+                    case BatchDownloadPage b: b.ApplyBandwidthChange(); break;
+                    case TwitchPage t:        t.ApplyBandwidthChange(); break;
+                }
             }
+        }
+
+        /// <summary>Aktualisiert die Oberflächentexte der gerade sichtbaren Seite (nach einem
+        /// Sprachwechsel). Weggeblätterte und noch nicht erzeugte Seiten holen das beim
+        /// nächsten Navigieren bzw. bei ihrer Erzeugung selbst nach.</summary>
+        internal void RefreshVisiblePageUITexts()
+        {
+            foreach (var page in CreatedPages())
+            {
+                if (!page.IsLoaded) continue;
+                switch (page)
+                {
+                    case DownloadPage d: d.SetUITexts(); break;
+                    case ConvertPage c:  c.SetUITexts(); break;
+                    case ToolsPage t:    t.SetUITexts(); break;
+                }
+            }
+        }
+
+        /// <summary>Übernimmt geänderte Download-Pfade auf der Download-Seite — nur wenn sie
+        /// schon erzeugt wurde. Sonst liest sie die Pfade ohnehin bei ihrer Erzeugung.</summary>
+        internal void RefreshDownloadPathsIfCreated()
+        {
+            if (!_downloadPage.IsValueCreated) return;
+            _downloadPage.Value.RefreshPaths();
+            _downloadPage.Value.SetUiAudioEnabled(Settings.Default.CheckedAudioOnlyPath);
         }
 
         public MainWindow()
@@ -393,27 +448,28 @@ namespace MortysDLP
 
             RefreshSectionTitle();
 
+            // Hier wird bewusst erzeugt: der Nutzer will genau auf diese Seite.
             switch (idx)
             {
                 case 0:
-                    _downloadPage.RefreshPaths();
-                    MainFrame.Navigate(_downloadPage);
+                    _downloadPage.Value.RefreshPaths();
+                    MainFrame.Navigate(_downloadPage.Value);
                     break;
                 case 1:
-                    MainFrame.Navigate(_batchDownloadPage);
+                    MainFrame.Navigate(_batchDownloadPage.Value);
                     break;
                 case 2:
-                    MainFrame.Navigate(_convertPage);
+                    MainFrame.Navigate(_convertPage.Value);
                     break;
                 case 3:
-                    _transcribePage.RefreshAll();
-                    MainFrame.Navigate(_transcribePage);
+                    _transcribePage.Value.RefreshAll();
+                    MainFrame.Navigate(_transcribePage.Value);
                     break;
                 case 4:
-                    MainFrame.Navigate(_gifPage);
+                    MainFrame.Navigate(_gifPage.Value);
                     break;
                 case 5:
-                    MainFrame.Navigate(_twitchPage);
+                    MainFrame.Navigate(_twitchPage.Value);
                     break;
             }
         }
@@ -424,7 +480,7 @@ namespace MortysDLP
         public void NavigateToTools()
         {
             if (SettingsNavigationList.SelectedIndex == 0)
-                MainFrame.Navigate(_toolsPage);
+                MainFrame.Navigate(_toolsPage.Value);
             else
                 SettingsNavigationList.SelectedIndex = 0; // löst SettingsNavigationList_SelectionChanged aus
         }
@@ -444,10 +500,10 @@ namespace MortysDLP
             switch (idx)
             {
                 case 0:
-                    MainFrame.Navigate(_toolsPage);
+                    MainFrame.Navigate(_toolsPage.Value);
                     break;
                 case 1:
-                    MainFrame.Navigate(_settingsPage);
+                    MainFrame.Navigate(_settingsPage.Value);
                     break;
             }
         }

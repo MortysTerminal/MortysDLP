@@ -309,47 +309,25 @@ namespace MortysDLP.Views
 
         private void RefreshBandwidthHints()
         {
-            if (Window.GetWindow(this) is not MainWindow mw) return;
-            if (mw.DownloadPage.IsLoaded) mw.DownloadPage.SetUITexts();
+            if (Window.GetWindow(this) is MainWindow mw)
+                mw.RefreshVisiblePageUITexts();
         }
 
-        /// <summary>Benachrichtigt alle laufenden Download-Seiten über die geänderte Bandbreite.</summary>
+        /// <summary>Benachrichtigt die laufenden Download-Seiten über die geänderte Bandbreite.</summary>
         private void NotifyBandwidthChanged()
         {
-            if (Window.GetWindow(this) is not MainWindow mw) return;
-            mw.TwitchPage.ApplyBandwidthChange();
-            mw.DownloadPage.ApplyBandwidthChange();
-            mw.BatchDownloadPage.ApplyBandwidthChange();
+            if (Window.GetWindow(this) is MainWindow mw)
+                mw.NotifyBandwidthChanged();
         }
 
         private void RefreshAllUITexts()
         {
-            // Aktualisiere diese Seite
             SetUITexts();
-            
-            // Finde MainWindow und aktualisiere alle Pages
+
             if (Window.GetWindow(this) is MainWindow mainWindow)
             {
-                // Aktualisiere MainWindow selbst
                 mainWindow.SetUITexts();
-                
-                // Aktualisiere Download Page
-                if (mainWindow.DownloadPage.IsLoaded)
-                {
-                    mainWindow.DownloadPage.SetUITexts();
-                }
-                
-                // Aktualisiere Convert Page
-                if (mainWindow.ConvertPage.IsLoaded)
-                {
-                    mainWindow.ConvertPage.SetUITexts();
-                }
-
-                // Aktualisiere Werkzeuge-Seite
-                if (mainWindow.ToolsPage.IsLoaded)
-                {
-                    mainWindow.ToolsPage.SetUITexts();
-                }
+                mainWindow.RefreshVisiblePageUITexts();
             }
         }
     }

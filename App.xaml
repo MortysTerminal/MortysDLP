@@ -114,13 +114,34 @@
                 </Style.Triggers>
             </Style>
 
+            <!-- Standardhöhe für Steuerelemente in einer Formularzeile. Die Fluent-Texteingaben
+                 rendern mit 32 px; Knöpfe erben das NICHT von selbst (Fluent-Button ohne feste
+                 Mindesthöhe rendert hier ~26 px). Dieser eine Wert hält Eingaben und Knöpfe in
+                 einer Zeile auf derselben Linie. 4-Pixel-Raster (08-DESIGN-CI.md §Raster). -->
+            <sys:Double x:Key="FormControlHeight">32</sys:Double>
+
             <!-- Primary action button: Akzentfarbe kommt aus AccentButtonStyle (oben belegt),
-                 hier nur noch, was die Akzentfarbe nicht schon leistet. Padding auf einem
-                 4-Pixel-Raster. -->
+                 hier nur noch, was die Akzentfarbe nicht schon leistet. -->
             <Style x:Key="PrimaryButtonStyle" TargetType="Button"
                    BasedOn="{StaticResource AccentButtonStyle}">
-                <Setter Property="FontWeight" Value="SemiBold"/>
-                <Setter Property="Padding"    Value="16,4"/>
+                <Setter Property="FontWeight"               Value="SemiBold"/>
+                <Setter Property="MinHeight"                Value="{StaticResource FormControlHeight}"/>
+                <Setter Property="Padding"                  Value="16,0"/>
+                <Setter Property="VerticalContentAlignment" Value="Center"/>
+            </Style>
+
+            <!-- Sekundärer Knopf: gleiche Höhe wie eine Texteingabe (32 px), damit Knöpfe neben
+                 Eingabefeldern und in der Aktionsleiste in einer Linie sitzen. KEIN
+                 schlüsselloser Stil - der zerschießt in App.xaml den Fluent-Look (u. a. den
+                 Deaktiviert-Zustand, am Start beobachtet). Deshalb keyed und je Knopf
+                 ausdrücklich zugewiesen. BasedOn {x:Type Button} nimmt den Fluent-Look
+                 vollständig mit (wie FormLabelStyle bei Label, TranscribePage bei TextBox -
+                 dort nachweislich). -->
+            <Style x:Key="SecondaryButtonStyle" TargetType="Button"
+                   BasedOn="{StaticResource {x:Type Button}}">
+                <Setter Property="MinHeight"                Value="{StaticResource FormControlHeight}"/>
+                <Setter Property="Padding"                  Value="12,0"/>
+                <Setter Property="VerticalContentAlignment" Value="Center"/>
             </Style>
 
             <!-- Karte: eine Zeile XAML statt fünf wiederholter Attribute.
@@ -171,7 +192,14 @@
             <!-- Aktionsleiste (Status/Fortschritt/Knöpfe) - fixierte Fußzeile unterhalb des
                  ScrollViewer, bleibt beim Scrollen sichtbar. Margin nur oben: trennt sie
                  sichtbar vom Scrollbereich, aber sie ist selbst das letzte Element im
-                 Seiten-Grid. Innenabstand wie die Karte (16,12). -->
+                 Seiten-Grid. Innenabstand wie die Karte (16,12).
+                 MinHeight: Die Fußzeile ist auf JEDER Seite und in JEDEM Zustand gleich hoch.
+                 Ohne den Wert wächst und schrumpft sie je nachdem, was gerade sichtbar ist
+                 (nur Knöpfe / ein Balken / zwei Balken) - das sah pro Seite fremd aus. Der
+                 Wert fasst die höchste vorkommende Füllung: die Batch-Seite mit zwei
+                 Fortschrittsbalken samt Kopfzeilen (je Balken eine). Kürzere Füllungen werden
+                 darin mittig zentriert. Neue Inhalte müssen darunter passen oder diesen einen
+                 Wert anheben. -->
             <Style x:Key="ActionBarStyle" TargetType="Border">
                 <Setter Property="Background"      Value="{DynamicResource CardBackgroundFillColorDefaultBrush}"/>
                 <Setter Property="BorderBrush"     Value="{DynamicResource CardStrokeColorDefaultBrush}"/>
@@ -179,6 +207,7 @@
                 <Setter Property="CornerRadius"    Value="8"/>
                 <Setter Property="Padding"         Value="16,12"/>
                 <Setter Property="Margin"          Value="0,12,0,0"/>
+                <Setter Property="MinHeight"       Value="84"/>
             </Style>
 
             <!-- Beschriftungsspalte: eine gemeinsame Breite statt einer eigenen

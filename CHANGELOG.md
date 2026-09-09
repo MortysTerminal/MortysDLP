@@ -25,71 +25,59 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
 
 ## [Unreleased]
 
+## [2026.09.09] – 2026-09-09
+
+Feinschliff an Oberfläche und Abläufen, ein schnellerer Programmstart und mehrere
+Fehlerbehebungen rund um die Video-Umwandlung.
+
 ### Hinzugefügt
-- Neue Einstellung **Schrift**: Die Oberflächenschrift lässt sich jetzt auswählen — Arial
-  (empfohlen), Inter und Inter kompakt/luftig (mitgeliefert), sowie Segoe UI, Verdana, Georgia,
-  Tahoma und Comic Sans MS vom System. Wirkt sofort ohne Neustart und wird dauerhaft
-  gespeichert. Die bisher fest verwendete enge Variante (Inter Tight) war für manche schwerer
-  zu lesen.
+- Neue Einstellung **Schrift**: Die Oberflächenschrift lässt sich auswählen — Arial
+  (empfohlen), das mitgelieferte Inter (kompakt/luftig) sowie Segoe UI, Verdana, Georgia,
+  Tahoma und Comic Sans MS. Wirkt sofort ohne Neustart und bleibt gespeichert.
 
 ### Geändert
-- Die Einstellungen sind in drei Gruppen zusammengefasst — Downloads, Darstellung, Anwendung
-  — statt sechs einzelner Kästchen.
-- Auf der Download- und der Batch-Seite steht jetzt das Eingabefeld bzw. die Warteschlange
-  ganz oben, der Speicherort darunter — in der Reihenfolge, in der man sie braucht.
-- Der GIF-Maker auf der Download-Seite ist jetzt eine Option unter „Optionen" statt einem
-  eigenen Bereich. Das Video wird normal heruntergeladen und zusätzlich ein GIF daraus
-  erzeugt — alle Videoeinstellungen bleiben also nutzbar. Nur „Nur Audio" schließt den
-  GIF-Maker aus. Neue Unter-Option „Videodatei behalten": aus = es bleibt nur das GIF.
-- Auf der Download-Seite werden Beschriftungen und Auswahlfelder einer Option jetzt
-  durchgängig mitausgegraut, wenn die Option nicht aktiv ist.
-- In den Einstellungen wird der Wert im Feld „Maximale Geschwindigkeit" gedämpft angezeigt,
-  solange das Geschwindigkeitslimit aus ist.
-- Videoqualität und Videoformat stehen auf der Download-Seite jetzt in einem eigenen,
-  abgesetzten Abschnitt „Videoausgabe" statt lose zwischen den Optionen.
-- Überschriften und Titel folgen jetzt einer festen Größenstufung. Abschnittsüberschriften
-  auf den Seiten sind etwas größer und heben sich dadurch klarer vom übrigen Text ab.
-  Fettungen wurden auf ein ruhigeres Halbfett zurückgenommen — der Update-Hinweis bleibt
-  bewusst fett und auffällig.
-- Die Ordnerauswahl ist überall derselbe Dialog: Beim Zielordner auf der Konvertieren-,
-  Transkribieren- und Twitch-Seite sowie im Download-Pfad-Fenster kommt jetzt der native
-  Windows-Ordnerdialog zum Einsatz, wie er bisher schon beim GIF-Maker verwendet wurde. Er
-  öffnet im zuletzt gewählten Ordner und ist bei hoher Bildschirmskalierung scharf.
-- Alle verbliebenen Hinweis- und Fehlermeldungen sehen jetzt gleich aus: Auf der
-  Konvertieren-Seite, in den Einstellungen und im Ablauf des Anwendungs-Updates erschienen
-  bisher noch einzelne Windows-Standarddialoge statt der einheitlichen Meldungsfenster.
-- Der Debug-Modus wirkt jetzt sofort auf allen Seiten. Vorher blieb der Protokollbereich auf
-  der Batch-, GIF- und Twitch-Seite verschwunden, bis man den Tab einmal gewechselt hat.
-- Dialoge lassen sich durchgängig mit der Tastatur bedienen: `Esc` schließt jedes Fenster
-  ohne Wirkung, `Enter` löst die naheliegende Aktion aus — außer bei Fenstern, in denen
-  `Enter` etwas Unwiderrufliches auslösen würde (dort bewusst nicht). Betrifft die Fenster
-  für Credits, Download-Pfade, Zeitausschnitt, Verlauf und Whisper-Modelle.
-- Der Fortschrittsdialog beim ersten Start (Werkzeug-Download) hat eine aufgeräumte
-  Lebensdauer bekommen. Der Abbruch wird nicht mehr über mehrere Wege gleichzeitig ausgelöst.
-- Das Credits-Fenster folgt jetzt dem Farbschema: Die Lizenz-Abzeichen und Nebentexte waren
-  fest blau bzw. blass eingefärbt und passten im hellen Design nicht.
-- Auf der Konvertieren-Seite fragt „Liste leeren" jetzt nach, bevor die ganze Dateiliste
-  verworfen wird — wie auf der Batch-Seite.
-- Die Knöpfe in Dialogen stehen jetzt überall in derselben Reihenfolge: die Hauptaktion
-  links, „Abbrechen" und Alternativen rechts. `Enter` löst die Hauptaktion aus, außer bei
-  Rückfragen mit unwiderruflicher Folge (dort muss bewusst geklickt werden).
+- **Schnellerer Start:** Beim Start wird nur noch die Download-Seite aufgebaut, die übrigen
+  Tabs entstehen beim ersten Öffnen. Welcher Video-Encoder auf dem Rechner taugt, wird im
+  Hintergrund ermittelt statt erst vor der ersten Umwandlung.
+- **Download-Verlauf:** enthält jetzt nur noch fertige Downloads (keine abgebrochenen oder
+  fehlgeschlagenen), Batch-Downloads stehen ebenfalls drin, und jeder Eintrag merkt sich den
+  Zielordner — im Verlaufsfenster per Klick zu öffnen.
+- **Batch-Fortschrittsanzeige** aufgeräumt: zwei Balken untereinander (aktueller Eintrag /
+  Gesamt), rechts ein Status mit Symbol und Farbe, die Geschwindigkeit beim aktuellen
+  Eintrag. Nach dem Lauf zeigt das Symbol, ob alles fertig wurde, es Fehler gab oder
+  abgebrochen wurde.
+- **Einheitlichere Oberfläche:** Die Leiste am unteren Rand jeder Seite ist überall gleich
+  hoch; Knöpfe neben Eingabefeldern haben dieselbe Höhe wie das Feld. Karten sind nach dem
+  Arbeitsablauf geordnet (Eingabe zuerst, dann Speicherort). Überschriften folgen einer
+  festen Größenstufung. Meldungen und der Ordner-Auswahldialog sehen überall gleich aus. In
+  Dialogen steht die Hauptaktion links, „Abbrechen" rechts.
+- Die Einstellungen sind in drei Gruppen zusammengefasst (Downloads, Darstellung, Anwendung).
+- Der **GIF-Maker** auf der Download-Seite ist eine Option unter „Optionen": Das Video wird
+  normal geladen und zusätzlich ein GIF erzeugt. Neue Unter-Option „Videodatei behalten"
+  (aus = nur das GIF).
+- Beschriftungen und Auswahlfelder einer Option werden mitausgegraut, wenn die Option nicht
+  aktiv ist; ebenso der Wert im Geschwindigkeitsfeld, solange das Limit aus ist.
+- Der Debug-Modus wirkt sofort auf allen Seiten.
+- Dialoge lassen sich durchgängig mit der Tastatur bedienen (`Esc` schließt, `Enter` löst die
+  naheliegende Aktion aus — außer bei unwiderruflichen Rückfragen).
+- „Liste leeren" fragt jetzt auch auf der Konvertieren-Seite nach.
+- Das Credits-Fenster folgt dem Farbschema.
 
 ### Behoben
-- Der Hinweis auf ein verfügbares Update ist wieder deutlich sichtbar: Der Banner steht auf
-  vollem Markengelb mit dunkler, fetter Schrift, statt sich fast unsichtbar in die Oberfläche
-  einzufügen.
-- Die Open-Source-Credits nannten zwei Bibliotheken, die MortysDLP gar nicht verwendet.
-  Ersetzt durch die tatsächlich genutzten Komponenten; die mitgelieferte Oberflächenschrift
-  und ihre Lizenz sind jetzt korrekt aufgeführt. Veraltete Projektlinks zu whisper.cpp in der
-  Dokumentation wurden aktualisiert.
-- Das Änderungen-Fenster („Was ist neu" bzw. der Update-Hinweis) zeigt jetzt auch dann sauber
-  formatierte Überschriften, Listen und Hervorhebungen an, wenn die Release-Notiz HTML enthält.
-  Vorher standen die HTML-Auszeichnungen (`<h2>`, `<li>`, …) als Text im Fenster.
+- Die Umwandlung in `.mov` oder `.avi` scheiterte bei AV1- oder VP9-Quellen (häufig bei
+  YouTube in hoher Auflösung). Die Videospur wird jetzt zu H.264 umkodiert, die Zieldatei
+  entsteht wie erwartet.
+- Vor der x264-Umwandlung entfällt die kurze Pause („Encoder wird gesucht"); das Ergebnis
+  wird über Programmstarts hinweg gemerkt und nach einem ffmpeg-Update neu geprüft.
+- Die Grafikkarten-Beschleunigung fällt nicht mehr für den Rest der Sitzung aus, wenn ffmpeg
+  beim ersten Versuch kurz nicht verfügbar war.
+- Der Update-Hinweis-Banner ist wieder deutlich sichtbar (volles Markengelb, dunkle Schrift).
+- Das „Was ist neu"-Fenster zeigt auch HTML-formatierte Release-Notizen sauber an.
+- Die Open-Source-Credits nennen jetzt die tatsächlich verwendeten Komponenten.
 
 ### Intern
-- Alle Analyzer-Warnungen aus dem Build beseitigt (Ausgangspunkt: 158). Explizite Kultur bei
-  String-Vergleichen und Zahlen-Formatierung, aufgeräumte Hilfsmethoden, neuer Helfer
-  `UITextDictionary.Format`. Kein Verhaltenswechsel. Der Build ist jetzt warnungsfrei.
+- Build ohne Analyzer-Warnungen; nicht mehr verwendeter Code entfernt. Kein sichtbarer
+  Unterschied.
 
 ## [2026.09.07] – 2026-09-07
 
@@ -245,7 +233,8 @@ Selbst-Update, der Verwaltung der externen Werkzeuge und einer einheitlichen Obe
 > Ältere Einträge wurden nicht rückwirkend erfasst. Die vollständige Historie steht in den
 > [GitHub-Releases](https://github.com/MortysTerminal/MortysDLP/releases).
 
-[Unreleased]: https://github.com/MortysTerminal/MortysDLP/compare/2026.09.07...HEAD
+[Unreleased]: https://github.com/MortysTerminal/MortysDLP/compare/2026.09.09...HEAD
+[2026.09.09]: https://github.com/MortysTerminal/MortysDLP/compare/2026.09.07...2026.09.09
 [2026.09.07]: https://github.com/MortysTerminal/MortysDLP/compare/2026.06.01...2026.09.07
 [2026.06.01]: https://github.com/MortysTerminal/MortysDLP/releases/tag/2026.06.01
 [2026.05.13]: https://github.com/MortysTerminal/MortysDLP/releases/tag/2026.05.13

@@ -84,61 +84,7 @@ namespace MortysDLP.Services
             return (null, ContentType.Vod);
         }
 
-        /// <summary>Rückwärtskompatibel: gibt nur die VOD-ID zurück.</summary>
-        public static string? ExtractVodId(string input)
-        {
-            var (id, type) = ParseInput(input);
-            return type == ContentType.Vod ? id : null;
-        }
-
         // ── Download ─────────────────────────────────────────────────────────────
-
-        /// <summary>
-        /// Lädt ein Twitch-VOD herunter.
-        /// </summary>
-        /// <summary>
-        /// Lädt ein Twitch-VOD herunter.
-        /// </summary>
-        /// <param name="bandwidthKibs">Max. Bandbreite pro Thread in KiB/s, -1 = unbegrenzt.</param>
-        public static async Task DownloadVodAsync(
-            string vodId,
-            string outputPath,
-            int bandwidthKibs = -1,
-            IProgress<string>? progress = null,
-            CancellationToken cancellationToken = default)
-        {
-            List<string> args = ["videodownload", "--id", vodId, "--collision", "Overwrite"];
-            if (bandwidthKibs > 0)
-            {
-                args.Add("--bandwidth");
-                args.Add(bandwidthKibs.ToString(System.Globalization.CultureInfo.InvariantCulture));
-            }
-            args.Add("-o");
-            args.Add(outputPath);
-            await RunCliAsync(args, progress, cancellationToken);
-        }
-
-        /// <summary>
-        /// Lädt einen Twitch-Clip herunter.
-        /// </summary>
-        /// <param name="bandwidthKibs">Max. Bandbreite in KiB/s, -1 = unbegrenzt.</param>
-        public static async Task DownloadClipAsync(
-            string clipSlug,
-            string outputPath,
-            int bandwidthKibs = -1,
-            IProgress<string>? progress = null,
-            CancellationToken cancellationToken = default)
-        {
-            List<string> args = ["clipdownload", "--id", clipSlug, "--collision", "Overwrite"];
-            if (bandwidthKibs > 0)
-            {
-                args.Add("--bandwidth");
-                args.Add(bandwidthKibs.ToString(System.Globalization.CultureInfo.InvariantCulture));
-            }
-            args.Add("-o");
-            args.Add(outputPath);
-            await RunCliAsync(args, progress, cancellationToken);
-        }
 
         /// <summary>
         /// Ruft den Titel eines VODs oder Clips über die Twitch GQL API ab.

@@ -493,8 +493,5 @@ namespace MortysDLP
             }
         }
 
-        private void ShowError(string message) =>
-            FluentMessageBox.Show(message, icon: MessageBoxImage.Error, owner: this);
-
     }
 }

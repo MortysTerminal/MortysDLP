@@ -57,8 +57,8 @@
                     <TextBlock x:Name="txtSectionApplication" Style="{StaticResource SectionHeaderStyle}"/>
 
                     <WrapPanel Margin="0,0,0,12">
-                        <Button x:Name="btnGitHub" Click="btnGitHub_Click" MinWidth="100" Padding="12,4" Margin="0,0,8,0"/>
-                        <Button x:Name="btnClose" Click="btnClose_Click" MinWidth="100" Padding="12,4"/>
+                        <Button x:Name="btnGitHub" Click="btnGitHub_Click" Style="{StaticResource SecondaryButtonStyle}" MinWidth="100" Margin="0,0,8,0"/>
+                        <Button x:Name="btnClose" Click="btnClose_Click" Style="{StaticResource SecondaryButtonStyle}" MinWidth="100"/>
                     </WrapPanel>
                     <CheckBox x:Name="cbDebugMode"
                               Checked="cbDebugMode_Changed" Unchecked="cbDebugMode_Changed"/>

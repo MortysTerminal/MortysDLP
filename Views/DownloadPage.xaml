@@ -31,7 +31,7 @@
                         <TextBox Grid.Column="1" Name="tbURL" MinWidth="150" GotFocus="TextBox_GotFocus"
                                  TextChanged="tbURL_TextChanged" KeyDown="tbURL_KeyDown"
                                  VerticalAlignment="Center" VerticalContentAlignment="Center" Margin="8,0,0,0"/>
-                        <Button Grid.Column="2" Name="btnHistory" Click="btnHistory_Click" VerticalAlignment="Center" MinWidth="100" Padding="12,4" Margin="8,0,0,0"/>
+                        <Button Grid.Column="2" Name="btnHistory" Click="btnHistory_Click" Style="{StaticResource SecondaryButtonStyle}" VerticalAlignment="Center" MinWidth="100" Margin="8,0,0,0"/>
                     </Grid>
                 </StackPanel>
             </Border>
@@ -45,7 +45,7 @@
                         <Label Name="lblDownloadPath" MinWidth="400" Cursor="Hand"
                                Foreground="{StaticResource BrandYellowBrush}"
                                MouseLeftButtonUp="DownloadPath_MouseLeftButtonUp"/>
-                        <Button x:Name="btnChangeDownloadPath" Click="btnChangeDownloadPath_Click"
+                        <Button x:Name="btnChangeDownloadPath" Click="btnChangeDownloadPath_Click" Style="{StaticResource SecondaryButtonStyle}"
                                 Margin="8,0,0,0" Padding="8,4"/>
                     </StackPanel>
                     <DockPanel Name="dpAudioPath">
@@ -81,7 +81,7 @@
                         <TextBlock Name="txtTimespanDash" VerticalAlignment="Center" Margin="8,0" MinWidth="16" TextAlignment="Center"/>
                         <TextBox Name="tbTimespanTo" Width="100" VerticalAlignment="Center" VerticalContentAlignment="Center"
                                  TextChanged="tbTimespanTo_TextChanged" Margin="8,0,0,0"/>
-                        <Button Name="btnOpenTimeline" Click="btnOpenTimeline_Click"
+                        <Button Name="btnOpenTimeline" Click="btnOpenTimeline_Click" Style="{StaticResource SecondaryButtonStyle}"
                                 VerticalAlignment="Center" Margin="8,0,0,0" Padding="8,4"
                                 IsEnabled="False">
                             <StackPanel Orientation="Horizontal">
@@ -228,13 +228,13 @@
 
         <!-- AKTIONEN + FORTSCHRITT - fixierte Fußzeile, scrollt nicht mit -->
         <Border Grid.Row="1" Style="{StaticResource ActionBarStyle}">
-                <StackPanel Orientation="Horizontal">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                     <Button Name="btnDownloadStart" Click="btnDownloadStart_Click" MinWidth="100"
                             Style="{StaticResource PrimaryButtonStyle}" VerticalAlignment="Center"/>
-                    <Button Name="btnDownloadCancel" Click="btnDownloadCancel_Click" IsEnabled="False" MinWidth="100" Padding="12,4"
+                    <Button Name="btnDownloadCancel" Click="btnDownloadCancel_Click" Style="{StaticResource SecondaryButtonStyle}" IsEnabled="False" MinWidth="100"
                             VerticalAlignment="Center" Margin="8,0,0,0"/>
                     <Separator Margin="12,0"/>
-                    <Button Name="btnSaveSettings" Click="SaveSettings" MinWidth="100" Padding="12,4"
+                    <Button Name="btnSaveSettings" Click="SaveSettings" Style="{StaticResource SecondaryButtonStyle}" MinWidth="100"
                             VerticalAlignment="Center"/>
                     <Border Padding="12,0,0,0">
                         <StackPanel Name="spLoadingbar" Visibility="Hidden" Orientation="Vertical" HorizontalAlignment="Center">

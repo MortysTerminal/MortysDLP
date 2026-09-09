@@ -47,6 +47,29 @@ namespace MortysDLP.Services
             }
         }
 
+        /// <summary>Schreibt einen Verlaufseintrag für einen <b>erfolgreich abgeschlossenen</b>
+        /// Download. Gemeinsamer Weg für Einzel- und Batch-Download (früher eine private
+        /// Hilfsmethode je Seite). Ein leerer Titel wird durch die URL ersetzt.
+        ///
+        /// <para>Wirft nicht: schlägt das Schreiben fehl, protokolliert
+        /// <see cref="AddAsync"/> das und der Download bleibt erfolgreich.</para></summary>
+        public static Task RecordAsync(
+            string url, string? title, string? downloadDirectory,
+            bool isAudioOnly, string? videoQuality, string? videoFormat,
+            string? audioFormat, string? audioBitrate)
+            => AddAsync(new DownloadHistoryEntry
+            {
+                Url = url,
+                Title = string.IsNullOrWhiteSpace(title) ? url : title.Trim(),
+                DownloadDirectory = downloadDirectory,
+                DownloadedAt = DateTime.Now,
+                IsAudioOnly = isAudioOnly,
+                VideoQuality = videoQuality,
+                VideoFormat = videoFormat,
+                AudioFormat = audioFormat,
+                AudioBitrate = audioBitrate,
+            });
+
         internal static async Task AddAsync(DownloadHistoryEntry downloadHistoryEntry)
         {
             await _lock.WaitAsync();

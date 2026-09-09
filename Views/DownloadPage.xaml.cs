@@ -218,21 +218,30 @@ namespace MortysDLP.Views
             }
         }
 
-        private static async Task AddDownloadToHistoryAsync(string url, string title, string downloadDirectory,
-            bool isAudioOnly, string? videoQuality, string? videoFormat, string? audioFormat, string? audioBitrate)
+        /// <summary>Schreibt genau einen Verlaufseintrag — erst aufgerufen, wenn der Download
+        /// tatsächlich erfolgreich beendet ist (nicht mehr parallel zum Download wie früher).
+        /// Der Zielordner richtet sich nach dem Modus: Nur-Audio → Audio-Zielordner.</summary>
+        private async Task WriteDownloadHistoryAsync(string url, string title)
         {
-            await DownloadHistoryService.AddAsync(new DownloadHistoryEntry
+            bool isAudioOnly = false;
+            string? vq = null, vf = null, af = null, ab = null;
+            string dir = "";
+
+            Dispatcher.Invoke(() =>
             {
-                Url = url,
-                Title = title.Trim(),
-                DownloadDirectory = downloadDirectory,
-                DownloadedAt = DateTime.Now,
-                IsAudioOnly = isAudioOnly,
-                VideoQuality = videoQuality,
-                VideoFormat = videoFormat,
-                AudioFormat = audioFormat,
-                AudioBitrate = audioBitrate
+                isAudioOnly = cbAudioOnly.IsChecked == true;
+                vq = GetSelectedVideoQualityLabel();
+                vf = GetSelectedVideoFormat();
+                af = GetSelectedAudioFormat();
+                ab = GetSelectedAudioBitrate();
+                dir = isAudioOnly
+                    ? Properties.Settings.Default.DownloadAudioOnlyPath
+                    : Properties.Settings.Default.DownloadPath;
             });
+
+            await DownloadHistoryService.RecordAsync(url, title, dir, isAudioOnly, vq, vf, af, ab);
+            AppendOutput($"[VERLAUF] Eintrag: {(string.IsNullOrWhiteSpace(title) ? url : title)} | " +
+                $"Modus={(isAudioOnly ? "Audio" : "Video")} | Ordner={dir}");
         }
 
         private void AppendOutput(string text) => _log.Append(text);
@@ -311,57 +320,25 @@ namespace MortysDLP.Views
             UpdateProgress(0);
         }
 
-        private async Task FetchTitleAndAddHistoryAsync(string ytDlpPath, string url, CancellationToken token)
+        /// <summary>Holt den Titel für den Verlaufseintrag — früh und parallel zum Download
+        /// (der yt-dlp-Aufruf hat 15 s Zeitlimit, siehe <see cref="GetVideoTitleAsync"/>).
+        /// Schreibt <b>nichts</b>: Das Schreiben passiert erst nach erfolgreichem Download.
+        /// Wirft nicht — bei Zeitlimit, Abbruch oder fehlendem yt-dlp kommt der Platzhaltertitel
+        /// zurück, damit ein erfolgreicher Download trotzdem genau einen Eintrag bekommt.</summary>
+        private async Task<string> ResolveHistoryTitleAsync(string ytDlpPath, string url, CancellationToken token)
         {
             try
             {
-                string title = await GetVideoTitleAsync(ytDlpPath, url, token);
-                if (token.IsCancellationRequested) return;
-
-                bool isAudioOnly = false;
-                string? vq = null;
-                string? vf = null;
-                string? af = null;
-                string? ab = null;
-
-                Dispatcher.Invoke(() =>
-                {
-                    isAudioOnly = cbAudioOnly.IsChecked == true;
-                    vq = GetSelectedVideoQualityLabel();
-                    vf = GetSelectedVideoFormat();
-                    af = GetSelectedAudioFormat();
-                    ab = GetSelectedAudioBitrate();
-                });
-
-                await AddDownloadToHistoryAsync(url, title, "", isAudioOnly, vq, vf, af, ab);
-                AppendOutput($"[TITLE] Gespeichert: {title} | Modus={(isAudioOnly ? "Audio" : "Video")} | VQ={vq ?? "-"} | VF={vf ?? "-"} | AF={af ?? "-"} | AB={ab ?? "-"}");
+                return await GetVideoTitleAsync(ytDlpPath, url, token);
             }
             catch (OperationCanceledException)
             {
+                return UITexte.UITexte.MainWindow_Download_UnknownTitle;
             }
             catch (Exception ex)
             {
                 AppendOutput($"[TITLE] Fehler ({ex.Message}) – verwende Platzhalter");
-                try
-                {
-                    bool isAudioOnly = false;
-                    string? vq = null;
-                    string? vf = null;
-                    string? af = null;
-                    string? ab = null;
-
-                    Dispatcher.Invoke(() =>
-                    {
-                        isAudioOnly = cbAudioOnly.IsChecked == true;
-                        vq = GetSelectedVideoQualityLabel();
-                        vf = GetSelectedVideoFormat();
-                        af = GetSelectedAudioFormat();
-                        ab = GetSelectedAudioBitrate();
-                    });
-
-                    await AddDownloadToHistoryAsync(url, UITexte.UITexte.MainWindow_Download_UnknownTitle, "", isAudioOnly, vq, vf, af, ab);
-                }
-                catch { }
+                return UITexte.UITexte.MainWindow_Download_UnknownTitle;
             }
         }
 
@@ -400,9 +377,6 @@ namespace MortysDLP.Views
 
             string url = tbURL.Text;
             string ytDlpPath = AppPaths.YtDlp;
-            string downloadDir = lblDownloadPath.Content?.ToString() ?? "";
-
-            Task? titleTask = null;
 
             try
             {
@@ -462,6 +436,10 @@ namespace MortysDLP.Views
 
                         token.ThrowIfCancellationRequested();
 
+                        // Bewusst kein Verlaufseintrag für Playlists: Der Playlist-Weg kennt
+                        // keine Video-Titel (er arbeitet mit IDs/URLs) - ein Eintrag je Video
+                        // bräuchte einen zusätzlichen yt-dlp-Titelabruf je Video, ein
+                        // Sammeleintrag passt nicht zum Feld-Modell (URL/Qualität je Video).
                         AppendOutput(UITexte.UITexte.MainWindow_DebugOutput_DownloadSuccess);
                         SetiaStatusIcon(iaStatusIconType.Success);
                         UpdateProgress(100);
@@ -481,25 +459,29 @@ namespace MortysDLP.Views
                     customName = tbCustomFilename.Text?.Trim() ?? "";
                 });
 
-                if (useCustom && !string.IsNullOrWhiteSpace(customName))
-                {
-                    titleTask = AddDownloadToHistoryAsync(url, customName, downloadDir,
-                        isAudioOnly: cbAudioOnly.IsChecked == true,
-                        videoQuality: GetSelectedVideoQualityLabel(),
-                        videoFormat: GetSelectedVideoFormat(),
-                        audioFormat: GetSelectedAudioFormat(),
-                        audioBitrate: GetSelectedAudioBitrate());
-                }
-                else
-                {
-                    titleTask = FetchTitleAndAddHistoryAsync(ytDlpPath, url, token);
-                }
+                // Titel früh und parallel zum Download besorgen (der Abruf dauert bis zu 15 s).
+                // Geschrieben wird der Verlaufseintrag aber erst nach erfolgreichem Download.
+                // Diese Task wirft nie - bei Fehler/Abbruch kommt der Platzhaltertitel zurück -,
+                // deshalb muss sie in den Fehlerzweigen unten nicht eigens abgewartet werden.
+                Task<string> titleTask = (useCustom && !string.IsNullOrWhiteSpace(customName))
+                    ? Task.FromResult(customName)
+                    : ResolveHistoryTitleAsync(ytDlpPath, url, token);
 
                 await _downloadTask;
 
-                if (titleTask != null) await titleTask;
-
                 token.ThrowIfCancellationRequested();
+
+                // Erst jetzt - der Download ist wirklich fertig - genau ein Verlaufseintrag.
+                // Ein Fehlschlag beim Schreiben darf den erfolgreichen Download nicht zum Fehler
+                // machen, deshalb hier gefangen.
+                try
+                {
+                    await WriteDownloadHistoryAsync(url, await titleTask);
+                }
+                catch (Exception histEx)
+                {
+                    Log.Warn($"Verlaufseintrag für '{url}' konnte nicht geschrieben werden.", histEx);
+                }
 
                 AppendOutput(UITexte.UITexte.MainWindow_DebugOutput_DownloadSuccess);
                 SetiaStatusIcon(iaStatusIconType.Success);

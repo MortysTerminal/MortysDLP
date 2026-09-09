@@ -434,12 +434,5 @@ namespace MortysDLP.Views
         }
 
         private void AppendDebug(string text) => _log.Append(text);
-
-        /// <summary>Öffnet die GIF-Seite mit einer vorausgewählten Datei (z.B. nach dem Download).</summary>
-        internal void SetInputFile(string filePath)
-        {
-            tbInputFile.Text = filePath;
-            tbOutputFolder.Text = Path.GetDirectoryName(filePath) ?? Properties.Settings.Default.DownloadPath;
-        }
     }
 }

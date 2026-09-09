@@ -31,6 +31,10 @@ namespace MortysDLP.Views
         // Cache für bereits ermittelte Metadaten (gleiche Quelldatei mehrfach)
         private readonly ConcurrentDictionary<string, Task<(int? sr, int? ch, int? brKbps)>> _audioMetaCache = new();
 
+        // Cache für den Video-Codec der Quelldatei (ffprobe codec_name, z. B. "av1"). Getrennt
+        // vom Audio-Cache, weil er nur bei einem Video-Ziel überhaupt gebraucht wird.
+        private readonly ConcurrentDictionary<string, Task<string?>> _videoCodecCache = new();
+
         public ConvertPage()
         {
             InitializeComponent();
@@ -283,6 +287,27 @@ namespace MortysDLP.Views
                 return m;
             });
 
+            // Bei einem Video-Ziel prüfen, ob der Quell-Codec überhaupt in den Zielcontainer
+            // kopiert werden kann. AV1/VP9 in .mov/.avi z. B. lässt ffmpeg mit "av1 only
+            // supported in MP4 and AVIF" scheitern, bevor ein Frame geschrieben ist - dann
+            // stattdessen zu H.264 umkodieren.
+            bool forceH264ForContainer = false;
+            if (isVideoTarget)
+            {
+                string? sourceVideoCodec = await _videoCodecCache.GetOrAdd(file.SourcePath, async _ =>
+                {
+                    var (c, _, _) = await MediaProbe.GetVideoStreamInfoAsync(ffprobePath, file.SourcePath, token);
+                    return c;
+                });
+
+                if (!VideoContainerRules.CanCopyVideo(sourceVideoCodec, extension))
+                {
+                    forceH264ForContainer = true;
+                    AppendDebugOutput($"[{file.Name}] " +
+                        UITextDictionary.Format("ConvertPage.Debug.ForceH264", sourceVideoCodec ?? "?", extension));
+                }
+            }
+
             // ffmpeg Args zusammenbauen
             List<string> args = BuildFfmpegArguments(
                 sourcePath: file.SourcePath,
@@ -292,6 +317,7 @@ namespace MortysDLP.Views
                 videoQuality: videoQuality,
                 audioQuality: audioQuality,
                 meta,
+                forceH264ForContainer,
                 token);
 
             try
@@ -329,6 +355,7 @@ namespace MortysDLP.Views
             string videoQuality,
             string audioQuality,
             (int? sr, int? ch, int? brKbps) meta,
+            bool forceH264ForContainer,
             CancellationToken token)
         {
             // Basis
@@ -337,7 +364,7 @@ namespace MortysDLP.Views
             // VIDEO
             if (isVideoTarget)
             {
-                args.AddRange(BuildVideoArgs(videoQuality));
+                args.AddRange(BuildVideoArgs(videoQuality, forceH264ForContainer));
                 // Audio für Video-Container
                 args.AddRange(BuildAudioArgsForVideoContainer(meta, audioQuality, extension));
             }
@@ -351,24 +378,30 @@ namespace MortysDLP.Views
             return args;
         }
 
-        private static List<string> BuildVideoArgs(string videoQuality)
+        private static List<string> BuildVideoArgs(string videoQuality, bool forceH264ForContainer)
         {
+            // libx264 in Standardqualität, ohne Skalierung - für den Fall, dass der Quell-Codec
+            // zwar behalten werden sollte, aber nicht in den Zielcontainer passt.
+            List<string> reencodeKeepResolution =
+                ["-c:v", "libx264", "-preset", "fast", "-crf", "20", "-pix_fmt", "yuv420p"];
+
             if (string.IsNullOrWhiteSpace(videoQuality) ||
                 videoQuality.Contains("Original", StringComparison.OrdinalIgnoreCase))
             {
-                // Copy wenn keine Skalierung gewünscht
-                return ["-c:v", "copy"];
+                // Auflösung unverändert: normal -c:v copy, nur bei Container-Konflikt umkodieren.
+                return forceH264ForContainer ? reencodeKeepResolution : ["-c:v", "copy"];
             }
 
             // Erwartetes Format z.B. "1080p"
             string h = videoQuality.ToLowerInvariant().Replace("p", "", StringComparison.Ordinal).Trim();
             if (!int.TryParse(h, out _))
             {
-                // Fallback: copy
-                return ["-c:v", "copy"];
+                // Fallback: wie "Original"
+                return forceH264ForContainer ? reencodeKeepResolution : ["-c:v", "copy"];
             }
 
-            // Skalierung + Re-Encode (libx264 Standard)
+            // Skalierung + Re-Encode (libx264 Standard). Erzeugt ohnehin H.264, deshalb hier
+            // kein Sonderfall für forceH264ForContainer nötig.
             // CRF/Preset könnten konfigurierbar gemacht werden
             return ["-vf", $"scale=-2:{h}", "-c:v", "libx264", "-preset", "medium", "-crf", "20"];
         }

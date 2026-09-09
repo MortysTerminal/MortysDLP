@@ -501,6 +501,9 @@ namespace MortysDLP.Views
             SetDownloadUILocked(true);
             spOverallProgress.Visibility = Visibility.Visible;
             btnOpenFolder.Visibility     = Visibility.Collapsed;
+            spCurrentEntry.Visibility    = Visibility.Collapsed; // erst mit dem ersten Eintrag
+            txtCurrentSpeed.Text         = "";
+            ShowBatchStatus(running: true);
 
             bool audioOnly = cbAudioOnly.IsChecked == true;
             bool useX264   = cbVideoformat.IsChecked == true;
@@ -510,11 +513,13 @@ namespace MortysDLP.Views
                 : Properties.Settings.Default.DownloadPath;
             _lastDownloadPath = downloadPath;
 
-            string ytDlpPath       = AppPaths.YtDlp;
-            string audioFormat     = (combAudioFormat.SelectedItem    as ComboBoxItem)?.Content?.ToString() ?? "mp3";
-            string audioBitrate    = (combAudioBitrate.SelectedItem   as ComboBoxItem)?.Content?.ToString() ?? "192k";
-            string videoQualityTag = (combVideoQuality.SelectedItem   as ComboBoxItem)?.Tag?.ToString()    ?? "best";
-            string videoFormat     = (combVideoFormat.SelectedItem    as ComboBoxItem)?.Content?.ToString() ?? "mp4";
+            string ytDlpPath        = AppPaths.YtDlp;
+            string audioFormat      = (combAudioFormat.SelectedItem    as ComboBoxItem)?.Content?.ToString() ?? "mp3";
+            string audioBitrate     = (combAudioBitrate.SelectedItem   as ComboBoxItem)?.Content?.ToString() ?? "192k";
+            string videoQualityTag  = (combVideoQuality.SelectedItem   as ComboBoxItem)?.Tag?.ToString()    ?? "best";
+            string videoQualityLabel = (combVideoQuality.SelectedItem  as ComboBoxItem)?.Content?.ToString()
+                                       ?? UITextDictionary.Get("DownloadPage.Quality.Highest");
+            string videoFormat      = (combVideoFormat.SelectedItem    as ComboBoxItem)?.Content?.ToString() ?? "mp4";
             string highestLabel    = UITextDictionary.Get("DownloadPage.Quality.Highest");
             bool isHighestAbr      = audioBitrate.Equals(highestLabel, StringComparison.OrdinalIgnoreCase);
 
@@ -523,7 +528,7 @@ namespace MortysDLP.Views
             int errors    = 0;
             bool canceled = false;
 
-            UpdateOverall(0, total, isRunning: true);
+            UpdateOverall(0, total);
 
             foreach (var entry in toRun)
             {
@@ -541,7 +546,7 @@ namespace MortysDLP.Views
                 entry.IconColor = (System.Windows.Media.Brush)FindResource("RunningBrush");
                 entry.Progress = 0;
                 SetActiveEntry(entry);
-                UpdateOverall(completed, total, isRunning: true);
+                UpdateOverall(completed, total);
 
                 try
                 {
@@ -559,6 +564,23 @@ namespace MortysDLP.Views
                     entry.Icon = "\uE001"; // Checkmark
                     entry.IconColor = (System.Windows.Media.Brush)FindResource("SuccessBrush");
                     completed++;
+
+                    // Verlaufseintrag je erfolgreich abgeschlossenem Eintrag - derselbe Weg wie
+                    // auf der Einzel-Download-Seite. Der Titel l\u00E4uft im Hintergrund nach; steht
+                    // er noch auf dem Platzhalter, nimmt RecordAsync die URL. Ein Fehlschlag beim
+                    // Schreiben darf den erfolgreichen Download nicht nachtr\u00E4glich zum Fehler
+                    // machen - deshalb hier gefangen und nur protokolliert.
+                    try
+                    {
+                        string historyTitle = entry.Title == "..." ? entry.Url : entry.Title;
+                        await DownloadHistoryService.RecordAsync(
+                            entry.Url, historyTitle, downloadPath,
+                            audioOnly, videoQualityLabel, videoFormat, audioFormat, audioBitrate);
+                    }
+                    catch (Exception histEx)
+                    {
+                        Log.Warn($"Verlaufseintrag f\u00FCr '{entry.Url}' konnte nicht geschrieben werden.", histEx);
+                    }
                 }
                 catch (OperationCanceledException)
                 {
@@ -603,7 +625,8 @@ namespace MortysDLP.Views
                 state = BatchFinishState.Done;
 
             SetActiveEntry(null);
-            UpdateOverall(completed - errors, total, isRunning: false, state);
+            UpdateOverall(completed - errors, total);
+            ShowBatchStatus(running: false, state);
             SetDownloadUILocked(false);
 
             if (completed > 0 && System.IO.Directory.Exists(_lastDownloadPath))
@@ -888,7 +911,12 @@ namespace MortysDLP.Views
             _activeEntry = entry;
 
             if (_activeEntry != null)
+            {
                 _activeEntry.PropertyChanged += ActiveEntry_PropertyChanged;
+                // Geschwindigkeit des vorigen Eintrags nicht stehen lassen, bis die erste
+                // Fortschrittszeile des neuen Eintrags kommt.
+                txtCurrentSpeed.Text = "";
+            }
 
             RefreshActiveEntryDisplay();
         }
@@ -896,19 +924,23 @@ namespace MortysDLP.Views
         private void ActiveEntry_PropertyChanged(object? sender, PropertyChangedEventArgs e)
             => Dispatcher.Invoke(RefreshActiveEntryDisplay);
 
-        /// <summary>Zeigt Titel, Status, Prozent und Balken von <see cref="_activeEntry"/> -
-        /// oder blendet die Zeile aus, wenn gerade kein Eintrag aktiv ist.</summary>
+        /// <summary>Zeigt Titel, Phasentext, Prozent und Balken von <see cref="_activeEntry"/> -
+        /// oder blendet den Eintragsblock aus, wenn gerade kein Eintrag läuft (vor dem Start,
+        /// nach dem Ende).</summary>
         private void RefreshActiveEntryDisplay()
         {
             if (_activeEntry is null)
             {
-                txtCurrentEntryTitle.Text  = "";
-                txtCurrentEntryStatus.Text = "";
+                spCurrentEntry.Visibility   = Visibility.Collapsed;
+                txtCurrentEntryTitle.Text   = "";
+                txtCurrentEntryStatus.Text  = "";
                 txtCurrentEntryPercent.Text = "";
-                pbCurrentEntry.Value = 0;
+                txtCurrentSpeed.Text        = "";
+                pbCurrentEntry.Value        = 0;
                 return;
             }
 
+            spCurrentEntry.Visibility   = Visibility.Visible;
             txtCurrentEntryTitle.Text   = string.IsNullOrWhiteSpace(_activeEntry.Title) || _activeEntry.Title == "..."
                 ? _activeEntry.Url
                 : _activeEntry.Title;
@@ -917,30 +949,40 @@ namespace MortysDLP.Views
             pbCurrentEntry.Value        = _activeEntry.Progress;
         }
 
-        private void UpdateOverall(int done, int total, bool isRunning = true,
-                                    BatchFinishState state = BatchFinishState.Done)
+        /// <summary>Nur der Gesamtbalken: erledigt/gesamt, Prozent, Balkenwert. Der
+        /// Ergebnisstatus (Symbol/Farbe/Text) läuft über <see cref="ShowBatchStatus"/>.</summary>
+        private void UpdateOverall(int done, int total)
         {
             Dispatcher.Invoke(() =>
             {
                 txtOverallCount.Text   = $"{done}/{total}";
                 pbOverall.Value        = total > 0 ? done * 100.0 / total : 0;
                 txtOverallPercent.Text = total > 0 ? $"{done * 100 / total} %" : "";
+            });
+        }
 
-                if (isRunning)
-                {
-                    txtOverallStatus.Text = UITextDictionary.Get("BatchDownloadPage.Status.Downloading");
-                }
-                else
-                {
-                    txtOverallStatus.Text = state switch
+        /// <summary>Die Statusanzeige rechts in der Fußzeile: während des Laufs „Lädt…", danach
+        /// das zum Ergebnis passende Symbol und die passende Farbe. Symbole wie bei den
+        /// Listeneinträgen (<c></c> Häkchen, <c></c> Abbruch, <c></c> Warnung).</summary>
+        private void ShowBatchStatus(bool running, BatchFinishState state = BatchFinishState.Done)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                spBatchStatus.Visibility = Visibility.Visible;
+
+                (string glyph, string brushKey, string textKey) = running
+                    ? ("", "RunningBrush", "BatchDownloadPage.Status.Downloading")
+                    : state switch
                     {
-                        BatchFinishState.Done           => UITextDictionary.Get("BatchDownloadPage.Status.Done"),
-                        BatchFinishState.Canceled       => UITextDictionary.Get("BatchDownloadPage.Status.Canceled"),
-                        BatchFinishState.PartialCanceled => UITextDictionary.Get("BatchDownloadPage.Status.PartialCanceled"),
-                        BatchFinishState.PartialError    => UITextDictionary.Get("BatchDownloadPage.Status.PartialError"),
-                        _                               => UITextDictionary.Get("BatchDownloadPage.Status.Done"),
+                        BatchFinishState.PartialError    => ("", "ErrorBrush",   "BatchDownloadPage.Status.PartialError"),
+                        BatchFinishState.Canceled        => ("", "NeutralBrush", "BatchDownloadPage.Status.Canceled"),
+                        BatchFinishState.PartialCanceled => ("", "NeutralBrush", "BatchDownloadPage.Status.PartialCanceled"),
+                        _                                => ("", "SuccessBrush", "BatchDownloadPage.Status.Done"),
                     };
-                }
+
+                iaBatchStatusIcon.Text       = glyph;
+                iaBatchStatusIcon.Foreground = (System.Windows.Media.Brush)FindResource(brushKey);
+                txtBatchStatusText.Text      = UITextDictionary.Get(textKey);
             });
         }
 

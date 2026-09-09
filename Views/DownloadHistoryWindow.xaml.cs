@@ -97,6 +97,30 @@ namespace MortysDLP
             }
         }
 
+        private void OpenFolder_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is not System.Windows.Documents.Hyperlink link ||
+                link.DataContext is not DownloadHistoryEntry entry)
+                return;
+
+            string? dir = entry.DownloadDirectory;
+            if (!string.IsNullOrWhiteSpace(dir) && System.IO.Directory.Exists(dir))
+            {
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = dir,
+                    UseShellExecute = true,
+                });
+            }
+            else
+            {
+                FluentMessageBox.Show(
+                    UITexte.UITextDictionary.Get("ConvertPage.Message.FolderNotExists"),
+                    UITexte.UITextDictionary.Get("Common.Error"),
+                    MessageBoxButton.OK, MessageBoxImage.Error, this);
+            }
+        }
+
         protected override void OnKeyDown(KeyEventArgs e)
         {
             base.OnKeyDown(e);

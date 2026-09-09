@@ -41,7 +41,7 @@
                     <StackPanel Orientation="Horizontal">
                         <Button x:Name="btnManageModels" Click="btnManageModels_Click" MinWidth="100"
                                 Style="{StaticResource PrimaryButtonStyle}" Margin="0,0,8,0"/>
-                        <Button x:Name="btnInstallWhisper" Click="btnInstallWhisper_Click" MinWidth="100" Padding="12,4"
+                        <Button x:Name="btnInstallWhisper" Click="btnInstallWhisper_Click" Style="{StaticResource SecondaryButtonStyle}" MinWidth="100"
                                 Visibility="Collapsed"/>
                     </StackPanel>
                 </StackPanel>
@@ -75,7 +75,7 @@
                                 </Style>
                             </TextBox.Style>
                         </TextBox>
-                        <Button Grid.Column="2" x:Name="btnBrowseInput" Click="btnBrowseInput_Click" VerticalAlignment="Center" MinWidth="100" Padding="12,4">
+                        <Button Grid.Column="2" x:Name="btnBrowseInput" Click="btnBrowseInput_Click" Style="{StaticResource SecondaryButtonStyle}" VerticalAlignment="Center" MinWidth="100">
                             <TextBlock x:Name="txtBrowseInput"/>
                         </Button>
                         <TextBlock Grid.Column="3" x:Name="imgInputInfo" FontFamily="Segoe MDL2 Assets" FontSize="16"
@@ -162,10 +162,10 @@
                         <Label Grid.Column="0" x:Name="lblOutputDir" VerticalAlignment="Center" Padding="0" Style="{StaticResource FormLabelStyle}"/>
                         <TextBox Grid.Column="1" x:Name="tbOutputDir" MinWidth="150" VerticalAlignment="Center" VerticalContentAlignment="Center"
                                  Margin="8,0,8,0"/>
-                        <Button Grid.Column="2" x:Name="btnBrowseOutput" Click="btnBrowseOutput_Click" VerticalAlignment="Center" Margin="0,0,8,0">
+                        <Button Grid.Column="2" x:Name="btnBrowseOutput" Click="btnBrowseOutput_Click" Style="{StaticResource SecondaryButtonStyle}" VerticalAlignment="Center" Margin="0,0,8,0">
                             <TextBlock x:Name="txtBrowseOutput"/>
                         </Button>
-                        <Button Grid.Column="3" x:Name="btnOpenOutput" Click="btnOpenOutput_Click" VerticalAlignment="Center">
+                        <Button Grid.Column="3" x:Name="btnOpenOutput" Click="btnOpenOutput_Click" Style="{StaticResource SecondaryButtonStyle}" VerticalAlignment="Center">
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xED25;" FontSize="14"
                                            VerticalAlignment="Center" Margin="0,0,4,0"/>
@@ -192,14 +192,14 @@
 
         <!-- AKTIONEN + FORTSCHRITT - fixierte Fußzeile, scrollt nicht mit -->
         <Border x:Name="borderActions" Grid.Row="1" Style="{StaticResource ActionBarStyle}">
-                <StackPanel Orientation="Horizontal">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                     <Button x:Name="btnStart" Click="btnStart_Click"
                             Style="{StaticResource PrimaryButtonStyle}" VerticalAlignment="Center">
                         <Button.ToolTip>
                             <ToolTip x:Name="tooltipBtnStart"/>
                         </Button.ToolTip>
                     </Button>
-                    <Button x:Name="btnCancel" Click="btnCancel_Click" IsEnabled="False"
+                    <Button x:Name="btnCancel" Click="btnCancel_Click" Style="{StaticResource SecondaryButtonStyle}" IsEnabled="False"
                             VerticalAlignment="Center" Margin="8,0,0,0"/>
 
                     <!-- Fortschritt (läuft) -->

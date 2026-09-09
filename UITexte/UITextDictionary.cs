@@ -140,6 +140,7 @@ namespace MortysDLP.UITexte
             ["ConvertPage.Debug.Successful"] = "Erfolgreich: {0}",
             ["ConvertPage.Debug.Failed"] = "Fehler: {0}",
             ["ConvertPage.Debug.Canceled"] = "Abgebrochen: {0}",
+            ["ConvertPage.Debug.ForceH264"] = "Video-Codec {0} passt nicht in {1} - wird zu H.264 umkodiert statt kopiert.",
             ["ConvertPage.Dialog.FileFilter"] = "Medien-Dateien|*.mov;*.mp4;*.mkv;*.avi;*.mp3;*.aac;*.wav;*.flac;*.opus|Alle Dateien|*.*",
             ["ConvertPage.Dialog.FolderBrowser"] = "Wähle den Zielordner für die konvertierten Dateien",
             
@@ -384,7 +385,7 @@ namespace MortysDLP.UITexte
             ["BatchDownloadPage.Section.Options"]   = "OPTIONEN",
             ["BatchDownloadPage.Button.StartAll"]   = "Alle herunterladen",
             ["BatchDownloadPage.Button.CancelAll"]  = "Abbrechen",
-            ["BatchDownloadPage.Label.CurrentEntry"] = "Aktueller Eintrag:",
+            ["BatchDownloadPage.Label.CurrentEntry"] = "Aktuell:",
             ["BatchDownloadPage.Label.Overall"]     = "Gesamt:",
             ["BatchDownloadPage.Status.Ready"]      = "Bereit",
             ["BatchDownloadPage.Status.Waiting"]    = "Wartend",
@@ -805,6 +806,7 @@ namespace MortysDLP.UITexte
             ["ConvertPage.Debug.Successful"] = "Successful: {0}",
             ["ConvertPage.Debug.Failed"] = "Failed: {0}",
             ["ConvertPage.Debug.Canceled"] = "Canceled: {0}",
+            ["ConvertPage.Debug.ForceH264"] = "Video codec {0} is not valid in {1} - re-encoding to H.264 instead of copying.",
             ["ConvertPage.Dialog.FileFilter"] = "Media Files|*.mov;*.mp4;*.mkv;*.avi;*.mp3;*.aac;*.wav;*.flac;*.opus|All Files|*.*",
             ["ConvertPage.Dialog.FolderBrowser"] = "Select the target folder for converted files",
             
@@ -864,7 +866,7 @@ namespace MortysDLP.UITexte
             ["BatchDownloadPage.Section.Options"]    = "OPTIONS",
             ["BatchDownloadPage.Button.StartAll"]    = "Download All",
             ["BatchDownloadPage.Button.CancelAll"]   = "Cancel",
-            ["BatchDownloadPage.Label.CurrentEntry"] = "Current entry:",
+            ["BatchDownloadPage.Label.CurrentEntry"] = "Current:",
             ["BatchDownloadPage.Label.Overall"]      = "Overall:",
             ["BatchDownloadPage.Status.Ready"]       = "Ready",
             ["BatchDownloadPage.Status.Waiting"]     = "Waiting",

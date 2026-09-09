@@ -122,8 +122,7 @@ namespace MortysDLP
             {
                 if (window is MainWindow mainWindow)
                 {
-                    mainWindow.DownloadPage.RefreshPaths();
-                    mainWindow.DownloadPage.SetUiAudioEnabled(Properties.Settings.Default.CheckedAudioOnlyPath);
+                    mainWindow.RefreshDownloadPathsIfCreated();
                     break;
                 }
             }

@@ -38,9 +38,9 @@
                         <Button x:Name="btnInstall" Click="btnInstall_Click" MinWidth="120"
                                 Style="{StaticResource PrimaryButtonStyle}" Margin="0,0,8,0"/>
                         <!-- Sichtbar wenn installiert: adaptiver Update/Check-Button -->
-                        <Button x:Name="btnUpdateAction" Click="btnUpdateAction_Click" MinWidth="180" Padding="12,4"
+                        <Button x:Name="btnUpdateAction" Click="btnUpdateAction_Click" Style="{StaticResource SecondaryButtonStyle}" MinWidth="180"
                                 Margin="0,0,8,0" Visibility="Collapsed" IsEnabled="False"/>
-                        <Button x:Name="btnUninstall" Click="btnUninstall_Click" MinWidth="120" Padding="12,4"
+                        <Button x:Name="btnUninstall" Click="btnUninstall_Click" Style="{StaticResource SecondaryButtonStyle}" MinWidth="120"
                                 Visibility="Collapsed"/>
                     </StackPanel>
                 </StackPanel>
@@ -80,10 +80,10 @@
                         <TextBox Grid.Column="1" x:Name="tbOutputPath" MinWidth="120" IsReadOnly="True" VerticalAlignment="Center" VerticalContentAlignment="Center"
                                  Margin="8,0,8,0"
                                  ToolTip="{Binding ElementName=tbOutputPath, Path=Text}"/>
-                        <Button Grid.Column="2" x:Name="btnUseGlobalPath" Click="btnUseGlobalPath_Click" VerticalAlignment="Center" MinWidth="100" Padding="12,4"
+                        <Button Grid.Column="2" x:Name="btnUseGlobalPath" Click="btnUseGlobalPath_Click" Style="{StaticResource SecondaryButtonStyle}" VerticalAlignment="Center" MinWidth="100"
                                 Margin="0,0,8,0"/>
-                        <Button Grid.Column="3" x:Name="btnBrowseOutput" Click="btnBrowseOutput_Click" VerticalAlignment="Center" MinWidth="100" Padding="12,4"/>
-                        <Button Grid.Column="4" x:Name="btnOpenOutput" Click="btnOpenOutput_Click" VerticalAlignment="Center" MinWidth="100" Padding="12,4"
+                        <Button Grid.Column="3" x:Name="btnBrowseOutput" Click="btnBrowseOutput_Click" Style="{StaticResource SecondaryButtonStyle}" VerticalAlignment="Center" MinWidth="100"/>
+                        <Button Grid.Column="4" x:Name="btnOpenOutput" Click="btnOpenOutput_Click" Style="{StaticResource SecondaryButtonStyle}" VerticalAlignment="Center" MinWidth="100"
                                 Margin="8,0,0,0" IsEnabled="False"/>
                     </Grid>
 
@@ -201,10 +201,10 @@
         <!-- AKTIONEN + FORTSCHRITT - fixierte Fußzeile, scrollt nicht mit. Wird zusammen mit
              dem VOD-Download-Abschnitt ausgeblendet, solange TwitchDownloaderCLI fehlt. -->
         <Border x:Name="borderActions" Grid.Row="1" Style="{StaticResource ActionBarStyle}">
-                <StackPanel Orientation="Horizontal">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                     <Button x:Name="btnStart" Click="btnStart_Click" MinWidth="100"
                             Style="{StaticResource PrimaryButtonStyle}" VerticalAlignment="Center"/>
-                    <Button x:Name="btnCancel" Click="btnCancel_Click" IsEnabled="False" MinWidth="100" Padding="12,4"
+                    <Button x:Name="btnCancel" Click="btnCancel_Click" Style="{StaticResource SecondaryButtonStyle}" IsEnabled="False" MinWidth="100"
                             VerticalAlignment="Center" Margin="8,0,0,0"/>
                     <Border Padding="12,0,0,0">
                         <StackPanel x:Name="spLoadingbar" Visibility="Hidden" Orientation="Vertical" HorizontalAlignment="Center">

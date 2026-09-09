@@ -255,4 +255,81 @@ public class DownloadHistoryServiceTests : IDisposable
 
         Assert.Empty(deleted);
     }
+
+    // ── RecordAsync ──────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task RecordAsync_SchreibtEintragMitAllenFeldern()
+    {
+        await DownloadHistoryService.RecordAsync(
+            "https://example.com/v", "Mein Video", @"C:\Downloads",
+            isAudioOnly: false, videoQuality: "1080p", videoFormat: "mp4",
+            audioFormat: null, audioBitrate: null);
+
+        var result = await DownloadHistoryService.LoadAsync();
+
+        Assert.Single(result);
+        Assert.Equal("https://example.com/v", result[0].Url);
+        Assert.Equal("Mein Video", result[0].Title);
+        Assert.Equal(@"C:\Downloads", result[0].DownloadDirectory);
+        Assert.Equal("1080p", result[0].VideoQuality);
+        Assert.Equal("mp4", result[0].VideoFormat);
+    }
+
+    [Fact]
+    public async Task RecordAsync_LeererTitel_WirdDurchUrlErsetzt()
+    {
+        await DownloadHistoryService.RecordAsync(
+            "https://example.com/v", "   ", @"C:\Downloads",
+            isAudioOnly: false, videoQuality: null, videoFormat: null,
+            audioFormat: null, audioBitrate: null);
+
+        var result = await DownloadHistoryService.LoadAsync();
+
+        Assert.Equal("https://example.com/v", result[0].Title);
+    }
+
+    [Fact]
+    public async Task RecordAsync_NullTitel_WirdDurchUrlErsetzt()
+    {
+        await DownloadHistoryService.RecordAsync(
+            "https://example.com/v", null, null,
+            isAudioOnly: true, videoQuality: null, videoFormat: null,
+            audioFormat: "mp3", audioBitrate: "320k");
+
+        var result = await DownloadHistoryService.LoadAsync();
+
+        Assert.Equal("https://example.com/v", result[0].Title);
+        Assert.True(result[0].IsAudioOnly);
+        Assert.Equal("mp3", result[0].AudioFormat);
+        Assert.Null(result[0].DownloadDirectory);
+    }
+
+    [Fact]
+    public async Task RecordAsync_MehrfachAufgerufen_JederAufrufGenauEinEintrag()
+    {
+        await DownloadHistoryService.RecordAsync("https://a", "A", @"C:\d", false, null, null, null, null);
+        await DownloadHistoryService.RecordAsync("https://b", "B", @"C:\d", false, null, null, null, null);
+        await DownloadHistoryService.RecordAsync("https://c", "C", @"C:\d", false, null, null, null, null);
+
+        var result = await DownloadHistoryService.LoadAsync();
+
+        Assert.Equal(3, result.Count);
+        // AddAsync fügt vorn ein -> der zuletzt geschriebene steht oben.
+        Assert.Equal("https://c", result[0].Url);
+    }
+
+    [Fact]
+    public async Task LoadAsync_AlterEintragOhneDownloadDirectory_WirdWeiterhinGelesen()
+    {
+        // Bestand aus älterer Zeit: kein DownloadDirectory-Feld im JSON.
+        await File.WriteAllTextAsync(_historyPath,
+            """[{"Url":"https://alt","Title":"Alt","DownloadedAt":"2026-01-01T10:00:00","IsAudioOnly":false}]""");
+
+        var result = await DownloadHistoryService.LoadAsync();
+
+        Assert.Single(result);
+        Assert.Equal("https://alt", result[0].Url);
+        Assert.Null(result[0].DownloadDirectory);
+    }
 }

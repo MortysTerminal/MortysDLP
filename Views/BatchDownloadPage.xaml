@@ -61,9 +61,9 @@
                             Margin="8,0,0,0">
                             <TextBox x:Name="tbAddUrl" Width="440" VerticalContentAlignment="Center"
                                  KeyDown="tbAddUrl_KeyDown" TextChanged="tbAddUrl_TextChanged"/>
-                            <Button x:Name="btnAddUrl" Click="btnAddUrl_Click" MinWidth="100" Padding="12,4" Margin="8,0,0,0" IsEnabled="False"/>
-                            <Button x:Name="btnAddBatchUrl" Click="btnAddBatchUrl_Click" MinWidth="100" Padding="12,4" Margin="8,0,0,0"/>
-                            <Button x:Name="btnHistory" Click="btnHistory_Click" MinWidth="100" Padding="12,4" Margin="8,0,0,0"/>
+                            <Button x:Name="btnAddUrl" Click="btnAddUrl_Click" Style="{StaticResource SecondaryButtonStyle}" MinWidth="100" Margin="8,0,0,0" IsEnabled="False"/>
+                            <Button x:Name="btnAddBatchUrl" Click="btnAddBatchUrl_Click" Style="{StaticResource SecondaryButtonStyle}" MinWidth="100" Margin="8,0,0,0"/>
+                            <Button x:Name="btnHistory" Click="btnHistory_Click" Style="{StaticResource SecondaryButtonStyle}" MinWidth="100" Margin="8,0,0,0"/>
                         </StackPanel>
                     </Grid>
 
@@ -116,9 +116,9 @@
                         </DataGrid>
 
                         <StackPanel Orientation="Horizontal" Grid.Row="1" HorizontalAlignment="Right">
-                            <Button x:Name="btnRequeueDone" Click="btnRequeueDone_Click" MinWidth="100" Padding="12,4" Margin="0,0,8,0" IsEnabled="False"/>
-                            <Button x:Name="btnRemoveSelected" Click="btnRemoveSelected_Click" MinWidth="100" Padding="12,4" Margin="0,0,8,0" IsEnabled="False"/>
-                            <Button x:Name="btnClearList" Click="btnClearList_Click" MinWidth="100" Padding="12,4" IsEnabled="False"/>
+                            <Button x:Name="btnRequeueDone" Click="btnRequeueDone_Click" Style="{StaticResource SecondaryButtonStyle}" MinWidth="100" Margin="0,0,8,0" IsEnabled="False"/>
+                            <Button x:Name="btnRemoveSelected" Click="btnRemoveSelected_Click" Style="{StaticResource SecondaryButtonStyle}" MinWidth="100" Margin="0,0,8,0" IsEnabled="False"/>
+                            <Button x:Name="btnClearList" Click="btnClearList_Click" Style="{StaticResource SecondaryButtonStyle}" MinWidth="100" IsEnabled="False"/>
                         </StackPanel>
                     </Grid>
                 </StackPanel>
@@ -133,7 +133,7 @@
                         <Label x:Name="lblDownloadPath" MinWidth="400" Cursor="Hand"
                                Foreground="{StaticResource BrandYellowBrush}"
                                MouseLeftButtonUp="DownloadPath_MouseLeftButtonUp"/>
-                        <Button x:Name="btnChangeDownloadPath" Click="btnChangeDownloadPath_Click"
+                        <Button x:Name="btnChangeDownloadPath" Click="btnChangeDownloadPath_Click" Style="{StaticResource SecondaryButtonStyle}"
                                 Margin="8,0,0,0" Padding="8,4"/>
                     </StackPanel>
                     <DockPanel x:Name="dpAudioPath">
@@ -235,54 +235,78 @@
         </StackPanel>
         </ScrollViewer>
 
-        <!-- AKTIONEN + FORTSCHRITT - fixierte Fußzeile, scrollt nicht mit. Zwei gestapelte
-             Balken statt eines einzelnen, mehrfach genutzten: oben der aktuelle Eintrag,
-             darunter der Gesamtfortschritt der Warteschlange. -->
+        <!-- AKTIONEN + FORTSCHRITT - fixierte Fußzeile, scrollt nicht mit.
+             Links Aktionen, Mitte zwei linksbündig gestapelte Balken (aktueller Eintrag /
+             Gesamt), rechts die Statusanzeige mit Symbol und Farbe. -->
         <Border Grid.Row="1" Style="{StaticResource ActionBarStyle}">
-                <StackPanel Orientation="Horizontal">
+            <Grid VerticalAlignment="Center">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Aktionen -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
                     <Button x:Name="btnStartAll" Click="btnStartAll_Click" MinWidth="100"
                             Style="{StaticResource PrimaryButtonStyle}" VerticalAlignment="Center" IsEnabled="False"/>
-                    <Button x:Name="btnCancelAll" Click="btnCancelAll_Click" IsEnabled="False" MinWidth="100" Padding="12,4"
+                    <Button x:Name="btnCancelAll" Click="btnCancelAll_Click" Style="{StaticResource SecondaryButtonStyle}" IsEnabled="False" MinWidth="100"
                             VerticalAlignment="Center" Margin="8,0,0,0"/>
-                    <Border Padding="12,0,0,0">
-                        <StackPanel x:Name="spOverallProgress" Visibility="Hidden" Orientation="Vertical" VerticalAlignment="Center">
-
-                            <!-- Aktueller Eintrag -->
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                <TextBlock x:Name="txtCurrentEntryLabel" Opacity="0.6" FontSize="11" VerticalAlignment="Center"/>
-                                <TextBlock x:Name="txtCurrentEntryTitle" FontWeight="SemiBold" Margin="8,0,0,0"
-                                           MaxWidth="260" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
-                                <TextBlock x:Name="txtCurrentEntryStatus" Margin="8,0,0,0" Opacity="0.7" VerticalAlignment="Center"/>
-                                <TextBlock x:Name="txtCurrentEntryPercent" Margin="8,0,0,0" VerticalAlignment="Center"/>
-                            </StackPanel>
-                            <ProgressBar x:Name="pbCurrentEntry"
-                                         Width="300" Height="8" Margin="0,0,0,8"
-                                         Minimum="0" Maximum="100" Value="0"/>
-
-                            <!-- Gesamt -->
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                <TextBlock x:Name="txtOverallLabel" Opacity="0.6" FontSize="11" VerticalAlignment="Center"/>
-                                <TextBlock x:Name="txtOverallStatus" FontWeight="SemiBold" Margin="8,0,0,0" VerticalAlignment="Center"/>
-                                <TextBlock x:Name="txtOverallCount" Margin="8,0,0,0"
-                                           Foreground="{StaticResource BrandOrangeBrush}" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                                <TextBlock x:Name="txtOverallPercent" Margin="8,0,0,0" Opacity="0.7" VerticalAlignment="Center"/>
-                            </StackPanel>
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <ProgressBar x:Name="pbOverall"
-                                             Width="300" Height="8"
-                                             Minimum="0" Maximum="100" Value="0"/>
-                                <TextBlock x:Name="txtCurrentSpeed" Margin="8,0,0,0" Opacity="0.7" FontSize="11"
-                                           VerticalAlignment="Center"/>
-                                <Button x:Name="btnOpenFolder" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}"
-                                        Background="Transparent" BorderThickness="0" Padding="0" Margin="8,0,0,0"
-                                        Click="btnOpenFolder_Click" Visibility="Collapsed">
-                                    <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="20" Text="&#xE8B7;"
-                                               Foreground="{StaticResource BrandYellowBrush}"/>
-                                </Button>
-                            </StackPanel>
-                        </StackPanel>
-                    </Border>
                 </StackPanel>
+
+                <!-- Fortschritt: linksbündig, zwei Balken sauber untereinander. Jeder Balken
+                     mit einer eigenen Kopfzeile darüber, gleiche Breite und gleiche linke
+                     Kante. Oben der aktuelle Eintrag, darunter der Gesamtfortschritt. Die
+                     Fußzeilenhöhe (ActionBarStyle MinHeight) ist auf diesen Aufbau abgestimmt. -->
+                <StackPanel x:Name="spOverallProgress" Grid.Column="1" Orientation="Vertical"
+                            HorizontalAlignment="Left" VerticalAlignment="Center"
+                            Margin="16,0,0,0" Visibility="Hidden">
+
+                    <!-- Aktueller Eintrag (nur sichtbar, solange einer läuft) -->
+                    <StackPanel x:Name="spCurrentEntry" Orientation="Vertical" Margin="0,0,0,6">
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,3">
+                            <TextBlock x:Name="txtCurrentEntryLabel" Opacity="0.6" FontSize="11" VerticalAlignment="Center"/>
+                            <TextBlock x:Name="txtCurrentEntryTitle" FontWeight="SemiBold" Margin="6,0,0,0"
+                                       MaxWidth="240" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                            <TextBlock Text="·" Opacity="0.4" Margin="6,0,6,0" VerticalAlignment="Center"/>
+                            <TextBlock x:Name="txtCurrentEntryStatus" Opacity="0.7" FontSize="11" VerticalAlignment="Center"/>
+                            <TextBlock x:Name="txtCurrentEntryPercent" Margin="8,0,0,0" FontSize="11" VerticalAlignment="Center"/>
+                            <TextBlock x:Name="txtCurrentSpeed" Margin="8,0,0,0" Opacity="0.7" FontSize="11" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <ProgressBar x:Name="pbCurrentEntry" Width="360" Height="8" HorizontalAlignment="Left"
+                                     Minimum="0" Maximum="100" Value="0"/>
+                    </StackPanel>
+
+                    <!-- Gesamt -->
+                    <StackPanel Orientation="Vertical">
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,3">
+                            <TextBlock x:Name="txtOverallLabel" Opacity="0.6" FontSize="11" VerticalAlignment="Center"/>
+                            <TextBlock x:Name="txtOverallCount" Margin="6,0,0,0"
+                                       Foreground="{StaticResource BrandOrangeBrush}" FontWeight="SemiBold"
+                                       FontSize="11" VerticalAlignment="Center"/>
+                            <TextBlock Text="·" Opacity="0.4" Margin="6,0,6,0" VerticalAlignment="Center"/>
+                            <TextBlock x:Name="txtOverallPercent" Opacity="0.7" FontSize="11" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <ProgressBar x:Name="pbOverall" Width="360" Height="8" HorizontalAlignment="Left"
+                                     Minimum="0" Maximum="100" Value="0"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Statusanzeige rechts -->
+                <StackPanel x:Name="spBatchStatus" Grid.Column="2" Orientation="Horizontal"
+                            VerticalAlignment="Center" Margin="16,0,0,0" Visibility="Hidden">
+                    <TextBlock x:Name="iaBatchStatusIcon" FontFamily="Segoe MDL2 Assets" FontSize="18"
+                               VerticalAlignment="Center"/>
+                    <TextBlock x:Name="txtBatchStatusText" FontWeight="SemiBold" Margin="8,0,0,0"
+                               VerticalAlignment="Center"/>
+                    <Button x:Name="btnOpenFolder" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}"
+                            Background="Transparent" BorderThickness="0" Padding="0" Margin="12,0,0,0"
+                            Click="btnOpenFolder_Click" Visibility="Collapsed">
+                        <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="18" Text="&#xE8B7;"
+                                   Foreground="{StaticResource BrandYellowBrush}"/>
+                    </Button>
+                </StackPanel>
+            </Grid>
         </Border>
     </Grid>
 </Page>

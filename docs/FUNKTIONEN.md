@@ -4,7 +4,7 @@
 geplant ist. Bekannte Einschränkungen sind bewusst mit aufgeführt; sie werden nach und nach
 behoben.
 
-**Stand:** 2026-09-07 · beschreibt Version `2026.09.07`
+**Stand:** 2026-09-09 · beschreibt Version `2026.09.09`
 
 ---
 
@@ -40,6 +40,13 @@ erscheint. Die Kopfzeile zeigt den Seitentitel, eine kurze Zeile dazu, was die S
 rechts die Version. Ein Info-Knopf neben dem Titel öffnet eine ausführlichere Erklärung der
 aktuellen Seite. Sprache: Deutsch oder Englisch, automatisch nach Windows-Sprache oder manuell.
 Helles und dunkles Design folgen der Windows-Einstellung.
+
+**Was die Anwendung bewusst nicht tut.** Alle Arbeit läuft lokal auf dem Rechner: kein Cloud-
+Dienst, keine Server-Verarbeitung. Es gibt keine Telemetrie, keine Zählung von Downloads,
+keine Nutzungsdaten. Keine Werbung, keine kostenpflichtigen Zusatzfunktionen, kein Konto und
+kein Login. Die einzige Netzverbindung, die die App von sich aus aufbaut, ist die für den
+Download der externen Werkzeuge (yt-dlp, ffmpeg, Whisper-Modelle) und die optionale
+Update-Prüfung gegen GitHub.
 
 ---
 
@@ -244,7 +251,10 @@ angezeigten Pfad öffnet den Ordner im Explorer. „Pfad ändern" öffnet den Pf
 
 ### Eingabe
 - **URL** — jede von yt-dlp unterstützte Adresse. `Enter` startet den Download.
-- **Verlauf** — öffnet die Liste früherer Downloads; ein Eintrag lässt sich übernehmen.
+- **Verlauf** — öffnet die Liste früherer Downloads; ein Eintrag lässt sich übernehmen. Es
+  stehen nur **erfolgreich abgeschlossene** Downloads darin (Einzel- und Batch-Downloads),
+  jeweils mit Zielordner — ein Klick darauf öffnet ihn. Abgebrochene und fehlgeschlagene
+  Downloads werden nicht eingetragen. Ganze Playlists erzeugen keinen Eintrag.
 - **Benutzerdefinierter Videotitel** — ersetzt `%(title)s` im Dateinamen. Ungültige Zeichen
   werden ersetzt, Leerzeichen zu Bindestrichen, alles kleingeschrieben.
 
@@ -267,7 +277,10 @@ angezeigten Pfad öffnet den Ordner im Explorer. „Pfad ändern" öffnet den Pf
   Codec per ffprobe. Ist er nicht H.264, wird umkodiert. Der Encoder wird automatisch
   gewählt: NVIDIA NVENC → Intel QuickSync → AMD AMF → libx264 (CPU). Ab einer Kantenlänge
   über 4096 px wird immer die CPU verwendet, weil GPU-Encoder H.264 dort nicht unterstützen.
-  Audio wird dabei immer zu AAC 48 kHz Stereo gewandelt.
+  Audio wird dabei immer zu AAC 48 kHz Stereo gewandelt. Welcher Encoder auf dem Rechner
+  taugt, wird kurz nach dem Start im Hintergrund ermittelt und für den nächsten Start
+  gemerkt — vor der Konvertierung entsteht dadurch keine Wartepause mehr. Nach einem
+  ffmpeg-Update wird neu geprüft.
 - **Nur Audio** — extrahiert die Tonspur. Formate: mp3, m4a, aac, alac, flac, wav, opus,
   vorbis. Bitrate: Höchste, 320k, 256k, 192k, 128k, 96k, 64k.
   Ist die Quelle unter 44,1 kHz oder mono, wird automatisch auf 48 kHz Stereo hochgesetzt.
@@ -327,14 +340,14 @@ Warteschlange für mehrere URLs.
   `Entf` entfernt die Auswahl.
 - **Optionen**: Nur Audio (Format + Bitrate), Videoqualität, Container, x264-Modus.
   *Zeitspanne, eigener Dateiname, GIF-Nachlauf und Playlist-Abfrage gibt es hier nicht.*
-- Abarbeitung streng nacheinander. Die Fortschrittsanzeige bleibt beim Scrollen sichtbar und
-  zeigt zwei Balken übereinander: oben der **aktuelle Eintrag** (Titel, Status, Prozent),
-  darunter der **Gesamtfortschritt** der Warteschlange (`erledigt/gesamt`, Prozent, aktuelle
-  Geschwindigkeit) — nach demselben Muster wie auf der Download-Seite.
-- Abschlusszustände: Fertig, Abgebrochen, Teilweise abgebrochen, Teilweise fehlerhaft.
+- Abarbeitung streng nacheinander. Die Fortschritts-Fußzeile bleibt beim Scrollen sichtbar:
+  links zwei linksbündig übereinanderliegende Balken — oben der **aktuelle Eintrag** (Titel,
+  Phase, Prozent, Download-Geschwindigkeit), darunter der **Gesamtfortschritt**
+  (`erledigt/gesamt`, Prozent) — rechts eine **Statusanzeige** mit Symbol und Farbe.
+- Abschlusszustände (rechts, mit Symbol/Farbe): Fertig (grün), Fertig mit Fehlern (rot),
+  Abgebrochen / Teilweise abgebrochen (neutral).
 - Nach dem Lauf erscheint ein Knopf, der den Zielordner öffnet.
-
-> **Bekannte Einschränkung:** Batch-Downloads landen nicht im Verlauf.
+- Jeder **erfolgreich** geladene Eintrag wird in den Download-Verlauf geschrieben.
 
 ---
 
@@ -348,6 +361,9 @@ Wandelt lokale Dateien um.
 - **Zielordner** frei wählbar; Schnellknöpfe übernehmen den Download- oder Audio-Pfad.
 - **Videoqualität**: Original (Stream-Copy) oder Skalierung auf eine Höhe; dann libx264
   mit `-preset medium -crf 20`.
+- Passt der Video-Codec der Quelle nicht in den Zielcontainer (z. B. AV1 oder VP9 nach
+  `.mov`/`.avi`), wird das Bild auch bei „Original" zu H.264 umkodiert statt kopiert — sonst
+  bräche ffmpeg mit „av1 only supported in MP4 and AVIF" ab. Die Debug-Ausgabe nennt den Grund.
 - **Audioqualität**: Original oder feste Bitrate. Mono-Quellen werden zu Stereo, Quellen
   unter 44,1 kHz (bei Video-Zielen unter 48 kHz) werden hochgesetzt.
 - Existiert die Zieldatei bereits, wird die Datei als „Bereits konvertiert" übersprungen.
@@ -510,7 +526,7 @@ Drei Gruppen: **Downloads**, **Darstellung**, **Anwendung**.
 |---|---|
 | **Startbildschirm** | Fortschritt der Startprüfungen |
 | **Download-Pfade** | Standard-Zielordner und optionaler Audio-Zielordner; bei leerer Eingabe wird der Windows-Downloads-Ordner angeboten |
-| **Verlauf** | Bis zu 30 Einträge mit Titel, Datum, Typ und Einstellungen; „Neu verwenden" übernimmt die URL; „Leeren" fragt nach |
+| **Verlauf** | Bis zu 30 Einträge mit Titel, Datum, Typ, Einstellungen und Zielordner (anklickbar); nur erfolgreiche Downloads; „Neu verwenden" übernimmt die URL; „Leeren" fragt nach |
 | **Timeline** | Grafische Auswahl eines Zeitausschnitts |
 | **Whisper-Modelle** | Engine- und Modellverwaltung |
 | **Sammel-URLs** | Mehrere URLs auf einmal einfügen |
