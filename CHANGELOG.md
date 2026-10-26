@@ -25,6 +25,14 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
 
 ## [Unreleased]
 
+### Behoben
+
+- **whisper.cpp lässt sich wieder installieren.** whisper.cpp veröffentlicht seine
+  Programmpakete inzwischen getrennt von den Versionsnummern; MortysDLP fand das Paket deshalb
+  nicht mehr und die Installation brach ab. Das Paket wird jetzt über die zugehörige Version
+  gefunden und **mit Prüfsumme** geladen. Antwortet die GitHub-Schnittstelle nicht oder anders als
+  erwartet, wird auf ein fest hinterlegtes, geprüftes Paket ausgewichen.
+
 ## [2026.09.09] – 2026-09-09
 
 Feinschliff an Oberfläche und Abläufen, ein schnellerer Programmstart und mehrere
