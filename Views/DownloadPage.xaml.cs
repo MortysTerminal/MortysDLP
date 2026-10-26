@@ -742,23 +742,20 @@ namespace MortysDLP.Views
 
             string variantSuffix = tags.Count > 0 ? "_" + string.Join("_", tags) : "";
 
-            string fileBase;
+            // Eigener Name oder Videotitel - Maskierung (%), Windows-Bereinigung und Längenbudget
+            // übernimmt YtDlpOutputTemplate für beide Fälle.
+            string? customBase = null;
             if (useCustomName && !string.IsNullOrWhiteSpace(customName))
             {
-                fileBase = AppPaths.SanitizeFileName(SanitizeSegment(customName));
-                AppendOutput($"[NAME] Benutzerdefinierter Dateiname aktiv: \"{fileBase}\"");
+                customBase = SanitizeSegment(customName);
+                AppendOutput($"[NAME] Benutzerdefinierter Dateiname aktiv: \"{YtDlpOutputTemplate.LiteralBaseName(downloadPath, customBase, variantSuffix)}\"");
             }
-            else
-            {
-                fileBase = "%(title)s";
-            }
-
-            string outputPattern = $"{fileBase}{variantSuffix}_%(id)s.%(ext)s";
 
             var job = new YtDlpJob
             {
                 Url = url,
-                OutputTemplate = $"{downloadPath}\\{outputPattern}",
+                OutputTemplate = YtDlpOutputTemplate.Build(downloadPath, customBase, variantSuffix),
+                FinalPathFile = YtDlpOutputTemplate.NewFinalPathFile(),
                 IsAudioOnly = isAudioOnly,
                 FormatSelector = formatSelector,
                 MergeOutputFormat = mergeOutputFormat,
@@ -1091,21 +1088,39 @@ namespace MortysDLP.Views
                 isTimespanChecked = cbTimespan.IsChecked == true;
             });
 
-            return await _ytDlpRunner.RunAsync(
-                ytDlpPath, job,
-                onStdOut: line => ProcessYtDlpOutputLine(line, timespanFrom, timespanTo, isTimespanChecked, isError: false),
-                onStdErr: line => ProcessYtDlpOutputLine(line, timespanFrom, timespanTo, isTimespanChecked, isError: true),
-                idleTimeout: TimeSpan.FromSeconds(120),
-                ct: token,
-                onExitCode: exitCode => AppendOutput($"[yt-dlp] Beendet mit Exit-Code: {exitCode}"));
+            try
+            {
+                return await _ytDlpRunner.RunAsync(
+                    ytDlpPath, job,
+                    onStdOut: line => ProcessYtDlpOutputLine(line, timespanFrom, timespanTo, isTimespanChecked, isError: false),
+                    onStdErr: line => ProcessYtDlpOutputLine(line, timespanFrom, timespanTo, isTimespanChecked, isError: true),
+                    idleTimeout: TimeSpan.FromSeconds(120),
+                    ct: token,
+                    onExitCode: exitCode => AppendOutput($"[yt-dlp] Beendet mit Exit-Code: {exitCode}"));
+            }
+            finally
+            {
+                // Der Endpfad aus der Pfaddatei hat Vorrang vor dem aus der Konsole gelesenen -
+                // die Datei schreibt yt-dlp in UTF-8, die Konsole nicht garantiert.
+                if (job.FinalPathFile is { } finalPathFile)
+                {
+                    if (YtDlpOutputTemplate.TryReadFinalPath(finalPathFile) is { } finalPath)
+                    {
+                        _lastOutputFilePath = finalPath;
+                        AppendOutput($"[DATEI] {finalPath}");
+                    }
+                    YtDlpOutputTemplate.DeleteFinalPathFile(finalPathFile);
+                }
+            }
         }
 
         // ─── Post-Download Codec-Garantie (Schnittmodus) ────────────────────────────
 
-        /// <summary>Löst den tatsächlichen Ausgabedateipfad auf.
-        /// yt-dlp sanitisiert Sonderzeichen (z.B. 【】) in der Konsolenausgabe,
-        /// behält sie aber im echten Dateinamen bei → geparster Pfad ≠ echter Pfad.
-        /// Fallback: Suche im Download-Verzeichnis anhand der Video-ID im Dateinamen.</summary>
+        /// <summary>Löst den tatsächlichen Ausgabedateipfad auf. Im Normalfall stammt
+        /// <c>_lastOutputFilePath</c> aus der Pfaddatei von yt-dlp (UTF-8, siehe
+        /// <see cref="RunYtDlpAsync"/>). Nur wenn die fehlt, gilt der aus der Konsole gelesene Pfad —
+        /// dort können Sonderzeichen (z. B. 【】, Emoji) verfälscht ankommen, deshalb als
+        /// Rückfall die Suche im Download-Verzeichnis anhand der Video-ID im Dateinamen.</summary>
         private string? ResolveOutputFilePath()
         {
             if (!string.IsNullOrEmpty(_lastOutputFilePath) && System.IO.File.Exists(_lastOutputFilePath))
