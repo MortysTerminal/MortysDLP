@@ -371,6 +371,11 @@ namespace MortysDLP.Views
                     AppendLog(line);
                 }));
 
+                // Bei Videos wird zuerst der Ton extrahiert (erster Abschnitt des Balkens, siehe
+                // WhisperProgressParser.ExtractionWeight) - die Statuszeile nennt das, bis der
+                // Balken in den Transkriptionsabschnitt wechselt.
+                bool extractsAudio = !WhisperService.IsAudioFile(inputFile);
+
                 // numericProgress meldet einen Anteil (0.0–1.0, projektweite Konvention);
                 // die ProgressBar hier arbeitet mit Prozent (0–100).
                 var numericProgress = new Progress<double>(fraction => Dispatcher.Invoke(() =>
@@ -378,11 +383,13 @@ namespace MortysDLP.Views
                     pbProgress.IsIndeterminate = false;
                     pbProgress.Value = fraction * 100;
                     txtProgressPercent.Text = $"{fraction * 100:F0} %";
+                    if (extractsAudio && fraction >= WhisperProgressParser.ExtractionWeight)
+                        txtStatus.Text = T("TranscribePage.Status.Transcribing");
                 }));
 
                 Dispatcher.Invoke(() =>
                 {
-                    txtStatus.Text = T("TranscribePage.Status.Transcribing");
+                    txtStatus.Text = T(extractsAudio ? "TranscribePage.Status.ExtractingAudio" : "TranscribePage.Status.Transcribing");
                     pbProgress.IsIndeterminate = true;
                     txtProgressPercent.Text = "";
                 });

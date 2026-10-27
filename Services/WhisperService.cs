@@ -2,7 +2,6 @@ using MortysDLP.Helpers;
 using MortysDLP.Services.Tools;
 using System.Diagnostics;
 using System.IO;
-using System.Text.RegularExpressions;
 
 namespace MortysDLP.Services
 {
@@ -84,8 +83,12 @@ namespace MortysDLP.Services
         /// Extrahiert den Audiotrack einer Mediendatei in eine temporäre WAV-Datei (16 kHz Mono).
         /// Whisper arbeitet intern immer mit 16 kHz Mono – das ist die optimale Auflösung.
         /// </summary>
+        /// <param name="onFraction">Meldet den Extraktions-Anteil (0.0–1.0) aus der ffmpeg-Zeit,
+        /// sobald <paramref name="durationSeconds"/> bekannt ist.</param>
+        /// <param name="durationSeconds">Gesamtdauer des Eingangs in Sekunden; <c>null</c> = unbekannt.</param>
         public static async Task<string> ExtractAudioToWavAsync(
             string ffmpegPath, string inputFile, IProgress<string>? progress = null,
+            Action<double>? onFraction = null, double? durationSeconds = null,
             CancellationToken cancellationToken = default)
         {
             string tempWav = Path.Combine(Path.GetTempPath(),
@@ -96,7 +99,15 @@ namespace MortysDLP.Services
             var result = await ProcessRunner.RunStreamingAsync(
                 ffmpegPath,
                 ["-y", "-i", inputFile, "-ar", "16000", "-ac", "1", "-c:a", "pcm_s16le", tempWav],
-                onStdErr: line => progress?.Report($"[ffmpeg] {line}"),
+                onStdErr: line =>
+                {
+                    progress?.Report($"[ffmpeg] {line}");
+
+                    if (onFraction != null &&
+                        WhisperProgressParser.TryParseFfmpegTime(line, out var time) &&
+                        WhisperProgressParser.TryGetFraction(time, durationSeconds, out double fraction))
+                        onFraction(fraction);
+                },
                 timeout: null,
                 idleTimeout: TimeSpan.FromSeconds(120),
                 ct: cancellationToken);
@@ -118,8 +129,9 @@ namespace MortysDLP.Services
         /// Führt die Whisper-Transkription durch.
         /// Gibt den Pfad-Präfix zurück, unter dem whisper.cpp seine Ausgaben erzeugt hat.
         /// </summary>
-        /// <param name="numericProgress">Fortschritt als Anteil (0.0–1.0) — siehe
-        ///</param>
+        /// <param name="numericProgress">Fortschritt als Anteil (0.0–1.0) über beide Abschnitte:
+        /// Audio-Extraktion und Transkription, gewichtet nach
+        /// <see cref="WhisperProgressParser.ToOverall"/>.</param>
         public static async Task<string> RunTranscriptionAsync(
             string whisperExe,
             string ffmpegPath,
@@ -147,11 +159,36 @@ namespace MortysDLP.Services
             string? tempWav = null;
             string actualInput = inputFile;
             bool isAudio = IsAudioFile(inputFile);
+            bool hasExtraction = !isAudio;
+
+            // Gesamtanteil: nie rückwärts, von beiden Ausgabekanälen (und ffmpeg) gespeist.
+            var monotonic = new MonotonicProgress();
+            var progressLock = new object();
+            void ReportOverall(double phaseFraction, bool isExtractionPhase)
+            {
+                if (numericProgress == null) return;
+                double overall = WhisperProgressParser.ToOverall(phaseFraction, isExtractionPhase, hasExtraction);
+                lock (progressLock)
+                    numericProgress.Report(monotonic.Advance(overall, alpha: 1.0, maxStep: 1.0));
+            }
+
+            // Dauer nur für den Rückfall ohne Prozentzeile und die ffmpeg-Anzeige nötig;
+            // fehlt ffprobe oder die Dauer, bleibt der Balken in dieser Phase einfach stehen.
+            double? durationSeconds = null;
+            if (numericProgress != null && File.Exists(AppPaths.Ffprobe))
+                durationSeconds = await MediaProbe.GetDurationAsync(AppPaths.Ffprobe, inputFile, cancellationToken);
+
+            // GetDurationAsync verschluckt einen Abbruch - sonst startete ffmpeg trotzdem noch.
+            cancellationToken.ThrowIfCancellationRequested();
 
             if (!isAudio)
             {
-                tempWav = await ExtractAudioToWavAsync(ffmpegPath, inputFile, progress, cancellationToken);
+                tempWav = await ExtractAudioToWavAsync(ffmpegPath, inputFile, progress,
+                    onFraction: f => ReportOverall(f, isExtractionPhase: true),
+                    durationSeconds: durationSeconds,
+                    cancellationToken: cancellationToken);
                 actualInput = tempWav;
+                ReportOverall(1.0, isExtractionPhase: true);
             }
 
             try
@@ -187,24 +224,42 @@ namespace MortysDLP.Services
                 progress?.Report($"[WHISPER] Sprache: {language}");
                 progress?.Report($"[WHISPER] Args: {string.Join(' ', args)}");
 
+                // Wird eine Prozentzeile gesehen, hat sie Vorrang vor dem Segment-Rückfall. Gesetzt
+                // auf dem stderr-, gelesen auf dem stdout-Thread.
+                int percentSeen = 0;
+
+                // whisper.cpp --print-progress schreibt "whisper_print_progress_callback:
+                // progress = 42%" auf stderr, Segmentzeilen "[00:00:00.000 --> 00:00:04.640] Text"
+                // auf stdout. Prozent nur aus stderr: Auf stdout steht der gesprochene Text, und
+                // ein gesprochenes "progress = 100%" darf den Balken nicht springen lassen.
                 void OnStdOut(string line)
                 {
                     progress?.Report(line);
 
-                    // whisper.cpp --print-progress gibt Zeilen wie:
-                    // "whisper_print_progress_callback: progress = 42%"
-                    if (numericProgress != null && line.Contains("progress ="))
+                    if (numericProgress != null &&
+                        Volatile.Read(ref percentSeen) == 0 &&
+                        WhisperProgressParser.TryParseSegmentEnd(line, out var segmentEnd) &&
+                        WhisperProgressParser.TryGetFraction(segmentEnd, durationSeconds, out double fallback))
                     {
-                        var match = Regex.Match(line, @"progress\s*=\s*(\d+)");
-                        if (match.Success && int.TryParse(match.Groups[1].Value, out int pct))
-                            numericProgress.Report(Math.Clamp(pct / 100.0, 0.0, 1.0));
+                        ReportOverall(fallback, isExtractionPhase: false);
+                    }
+                }
+
+                void OnStdErr(string line)
+                {
+                    progress?.Report($"[stderr] {line}");
+
+                    if (numericProgress != null && WhisperProgressParser.TryParsePercent(line, out double pct))
+                    {
+                        Volatile.Write(ref percentSeen, 1);
+                        ReportOverall(pct, isExtractionPhase: false);
                     }
                 }
 
                 var result = await ProcessRunner.RunStreamingAsync(
                     whisperExe, args,
                     onStdOut: OnStdOut,
-                    onStdErr: line => progress?.Report($"[stderr] {line}"),
+                    onStdErr: OnStdErr,
                     timeout: null,
                     idleTimeout: TimeSpan.FromSeconds(120),
                     ct: cancellationToken);
@@ -283,7 +338,7 @@ namespace MortysDLP.Services
                 : $"{ts.Minutes:D2}:{ts.Seconds:D2}";
         }
 
-        private static bool IsAudioFile(string path)
+        internal static bool IsAudioFile(string path)
         {
             string ext = Path.GetExtension(path).ToLowerInvariant();
             return ext is ".mp3" or ".wav" or ".flac" or ".aac" or ".m4a" or ".ogg" or ".opus" or ".wma";

@@ -25,6 +25,11 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
 
 ## [Unreleased]
 
+### Behoben
+- **Transkription:** Der Fortschrittsbalken zeigt jetzt den tatsächlichen Stand statt unbestimmt
+  zu laufen — einschließlich des Vorbereitungsschritts, in dem das Audio aus dem Video
+  gelesen wird.
+
 ## [2026.09.09] – 2026-09-09
 
 Feinschliff an Oberfläche und Abläufen, ein schnellerer Programmstart und mehrere
