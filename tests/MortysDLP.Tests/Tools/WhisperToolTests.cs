@@ -292,4 +292,98 @@ public class WhisperToolTests : IDisposable
 
         return path;
     }
+
+    // --- Deinstallation: das ganze Paket, nicht nur die EXE -----------------------------
+
+    /// <summary>Legt ein Abbild einer echten Installation an: Programm, Laufzeitbibliotheken,
+    /// Reste früherer Aktualisierungen und ein Modell im Unterordner.</summary>
+    private (string WhisperDir, string ModelsDir) CreateInstallation()
+    {
+        string whisperDir = Path.Combine(_tempDir, "Whisper");
+        string modelsDir = Path.Combine(whisperDir, "models");
+        Directory.CreateDirectory(modelsDir);
+        foreach (string name in new[] { "whisper.exe", "whisper.dll", "ggml.dll", "ggml-base.dll", "ggml-cpu-haswell.dll", "libopenblas.dll", "whisper.exe.old" })
+            File.WriteAllText(Path.Combine(whisperDir, name), name);
+        File.WriteAllText(Path.Combine(modelsDir, "ggml-base.bin"), "modell");
+        return (whisperDir, modelsDir);
+    }
+
+    /// <summary>Genau der gemeldete Fehler: Nach dem Deinstallieren blieben der Ordner und die
+    /// DLLs liegen, weil nur die EXE entfernt wurde.</summary>
+    [Fact]
+    public void RemovePackage_Vollstaendig_EntferntOrdnerSamtDllsUndModellen()
+    {
+        var (whisperDir, modelsDir) = CreateInstallation();
+
+        var result = WhisperTool.RemovePackage(whisperDir, modelsDir, keepModels: false);
+
+        Assert.True(result.Success);
+        Assert.False(Directory.Exists(whisperDir));
+    }
+
+    [Fact]
+    public void RemovePackage_ModelleBehalten_EntferntAllesAusserDemModellordner()
+    {
+        var (whisperDir, modelsDir) = CreateInstallation();
+        Directory.CreateDirectory(Path.Combine(whisperDir, "fremd"));
+
+        var result = WhisperTool.RemovePackage(whisperDir, modelsDir, keepModels: true);
+
+        Assert.True(result.Success);
+        Assert.Equal(["models"], Directory.GetFileSystemEntries(whisperDir).Select(Path.GetFileName));
+        Assert.True(File.Exists(Path.Combine(modelsDir, "ggml-base.bin")));
+    }
+
+    [Fact]
+    public void RemovePackage_ModelleBehaltenOhneModelle_EntferntAuchDenLeerenOrdner()
+    {
+        string whisperDir = Path.Combine(_tempDir, "Whisper");
+        Directory.CreateDirectory(whisperDir);
+        File.WriteAllText(Path.Combine(whisperDir, "whisper.exe"), "x");
+
+        var result = WhisperTool.RemovePackage(whisperDir, Path.Combine(whisperDir, "models"), keepModels: true);
+
+        Assert.True(result.Success);
+        Assert.False(Directory.Exists(whisperDir));
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void RemovePackage_NichtsInstalliert_WirftNichtUndMeldetNichts(bool keepModels)
+    {
+        string whisperDir = Path.Combine(_tempDir, "gibt-es-nicht");
+
+        var result = WhisperTool.RemovePackage(whisperDir, Path.Combine(whisperDir, "models"), keepModels);
+
+        Assert.True(result.Success);
+        Assert.Empty(result.RemovedPaths);
+    }
+
+    [Fact]
+    public void RemovePackage_MeldetEntfernteEintraege()
+    {
+        var (whisperDir, modelsDir) = CreateInstallation();
+
+        var result = WhisperTool.RemovePackage(whisperDir, modelsDir, keepModels: true);
+
+        Assert.Contains(result.RemovedPaths, p => p.EndsWith("libopenblas.dll", StringComparison.Ordinal));
+        Assert.DoesNotContain(result.RemovedPaths, p => p.Contains("models", StringComparison.Ordinal));
+    }
+
+    /// <summary>Nur whisper.cpp bietet „Modelle behalten" an — für alle anderen bleibt die
+    /// einfache Ja/Nein-Rückfrage.</summary>
+    [Fact]
+    public void NurWhisperHatNutzerdaten()
+    {
+        var withData = ToolCatalog.CreateAll().Where(t => t.HasUserData).Select(t => t.Id);
+
+        Assert.Equal(["whisper"], withData);
+    }
+
+    [Fact]
+    public void Whisper_HatNutzerdaten()
+    {
+        Assert.True(_tool.HasUserData);
+    }
 }

@@ -32,6 +32,16 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
   nicht mehr und die Installation brach ab. Das Paket wird jetzt über die zugehörige Version
   gefunden und **mit Prüfsumme** geladen. Antwortet die GitHub-Schnittstelle nicht oder anders als
   erwartet, wird auf ein fest hinterlegtes, geprüftes Paket ausgewichen.
+- **whisper.cpp wird beim Deinstallieren restlos entfernt.** Auf der Seite „Werkzeuge" blieben
+  bisher der Whisper-Ordner und die Programmbibliotheken liegen. Jetzt bietet „Deinstallieren"
+  dort dieselbe Wahl wie im Fenster „Whisper verwalten" — nur das Programm entfernen und die
+  Sprachmodelle behalten, oder vollständig löschen — und beide Wege entfernen dasselbe. Das
+  Löschen läuft im Hintergrund, die Seite friert dabei nicht mehr ein.
+
+### Geändert
+
+- **Werkzeuge-Seite mit Bildschirmleser:** Die Knöpfe jeder Zeile nennen jetzt auch das Werkzeug
+  („whisper.cpp: Deinstallieren"), statt in jeder Zeile gleich zu heißen.
 
 ## [2026.09.09] – 2026-09-09
 
