@@ -127,6 +127,6 @@ namespace MortysDLP.Services.Releases
         }
 
         private static bool IsGitHubApiSource(IReleaseSource source) =>
-            source is GitHubApiLatestSource or GitHubApiListSource;
+            source is GitHubApiLatestSource or GitHubApiListSource or GitHubCommitPairedSource;
     }
 }

@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -39,12 +40,21 @@ namespace MortysDLP.Services.Tools
         private const string DownloadUrlTemplate =
             "https://github.com/{owner}/{repo}/releases/download/{tag}/" + AssetName;
 
-        /// <summary>Rückfalladresse ohne Versionsangabe. Bei whisper.cpp nicht der Ausnahmefall,
-        /// sondern heute der <b>einzig erreichbare</b> Weg, siehe
-        /// <see cref="ReleaseSources.CreateWhisperChain"/>: Keine der dortigen Quellen liefert
-        /// aktuell eine brauchbare Version.</summary>
-        private const string LatestAssetUrl =
-            "https://github.com/" + Owner + "/" + Repo + "/releases/latest/download/" + AssetName;
+        /// <summary>Letzte Rückfallebene: ein fest hinterlegtes, geprüftes Paket (Build <c>b5454</c>
+        /// = whisper.cpp 1.9.5; Größe und SHA-256 aus der GitHub-API, am 2026-10-26 gegen die
+        /// heruntergeladene Datei abgeglichen). Die frühere versionslose Adresse
+        /// <c>releases/latest/download/…</c> taugt nicht mehr: <c>latest</c> zeigt seit dem
+        /// Schemawechsel auf ein Release ohne Anhänge und antwortet mit <c>404</c>. Diese Adresse
+        /// veraltet absichtlich — sie ist kein Update-Weg, sondern sorgt nur dafür, dass eine
+        /// Installation auch ohne Antwort der Quellenkette gelingt. Eine neuere Installation wird
+        /// darüber nie ersetzt, siehe <see cref="ResolveDownloadCandidates"/>.</summary>
+        internal static readonly DownloadCandidate PinnedPackage = new(
+            "https://github.com/" + Owner + "/" + Repo + "/releases/download/b5454/" + AssetName,
+            21_715_607,
+            "b1158bd10edf92c9799149a6fc5d3e58da3f495241d6fb3423088130e88ffbf3");
+
+        /// <summary>Die Version, die <see cref="PinnedPackage"/> installiert.</summary>
+        internal const string PinnedVersion = "1.9.5";
 
         /// <summary>Namen, unter denen das Paket im Lauf der whisper.cpp-Geschichte sein
         /// Hauptprogramm ausliefert. <c>whisper-cli.exe</c> ist der aktuelle Name (2026-09-01
@@ -75,10 +85,11 @@ namespace MortysDLP.Services.Tools
         /// Transkriptions-Seite, ausgelöst vom Nutzer.</summary>
         public override bool RequiredForOperation => false;
 
-        /// <summary>Nicht ordnend vergleichbar: Die installierte Version (<c>1.9.3</c>, aus dem
-        /// Programm selbst) und die von der Quellenkette gemeldete (aktuell keine, siehe
-        /// <see cref="ReleaseSources.CreateWhisperChain"/>) stammen aus unterschiedlichen
-        /// Zählweisen desselben Anbieters — derselbe Grundsatz wie bei ffmpeg
+        /// <summary>Nur auf Verschiedenheit geprüft: Die installierte Version (<c>1.9.5</c>, aus dem
+        /// Programm selbst) und die gemeldete (aus dem <c>vX.Y.Z</c>-Tag, siehe
+        /// <see cref="ReleaseSources.CreateWhisperChain"/>) passen heute zusammen, der Anbieter hat
+        /// sein Tag-Schema aber schon zweimal geändert — ein ordnender Vergleich würde beim
+        /// nächsten Wechsel falsche Schlüsse ziehen. Derselbe Grundsatz wie bei ffmpeg
         /// (<see cref="FfmpegTool"/>).</summary>
         public override ToolUpdatePolicy UpdatePolicy => ToolUpdatePolicy.WhenDifferent;
 
@@ -137,25 +148,23 @@ namespace MortysDLP.Services.Tools
 
             string stagedExe = target + ToolInstaller.StagedSuffix;
 
-            var asset = ResolveAsset(release);
-            if (asset.Url is null)
-                return new ToolInstallOutcome(ToolInstallStatus.Failed, ToolVersion.Unknown,
-                    "keine Download-Adresse ermittelbar");
-
             string tempDir = Path.Combine(Path.GetTempPath(), "MortysDLP");
             string tempZip = Path.Combine(tempDir, $"whisper-{Guid.NewGuid():N}.zip");
 
             try
             {
+                // Im try, damit ein Abbruch während der Versionsprüfung wie jeder andere Abbruch
+                // als "abgebrochen" endet und nicht als Ausnahme beim Aufrufer.
+                var candidates = ResolveDownloadCandidates(release, await ProbeAsync(ct));
+                if (candidates.Count == 0)
+                    return new ToolInstallOutcome(ToolInstallStatus.Failed, ToolVersion.Unknown,
+                        "keine Download-Adresse ermittelbar");
+
                 Directory.CreateDirectory(whisperDir);
                 Directory.CreateDirectory(tempDir);
 
                 stage?.Report(ToolInstallStage.Downloading);
-                Log.Info($"[{Id}] Lade Paket von {asset.Url} " +
-                    $"({(asset.Sha256 is null ? "ohne bekannte Prüfsumme - dieser Anhang hat keine" : "mit Prüfsumme")}).");
-
-                var verification = await VerifiedDownload.ToFileAsync(
-                    asset.Url, tempZip, asset.Sha256, asset.Size, progress, ct);
+                var verification = await CandidateDownload.FirstReachableAsync(Id, candidates, tempZip, progress, ct);
 
                 Log.Info($"[{Id}] Paket geladen: {verification.Bytes} Byte, " +
                     $"Prüfsumme {(verification.ChecksumChecked ? "geprüft" : "nicht prüfbar")}, " +
@@ -240,24 +249,61 @@ namespace MortysDLP.Services.Tools
             }
         }
 
-        /// <summary>Wählt den Anhang. Anders als bei yt-dlp gibt es hier keinen Anhang mit
-        /// Prüfsummen (am 2026-09-01 gegen das echte Release geprüft) - <see cref="ReleaseAsset.Size"/>
-        /// bleibt deshalb die einzige Kontrolle neben der reinen Erreichbarkeit.</summary>
-        private (string? Url, long? Size, string? Sha256) ResolveAsset(ReleaseInfo? release)
+        /// <summary>
+        /// Die Adressen, die nacheinander versucht werden: zuerst die aus der Release-Antwort
+        /// (falls sie eine nennt), danach <see cref="PinnedPackage"/> — aber nur, wenn das nichts
+        /// verschlechtert: whisper.cpp fehlt, antwortet nicht brauchbar, meldet keine lesbare
+        /// Version oder ist älter als <see cref="PinnedVersion"/>. Eine neuere Installation wird
+        /// nie über die feste Adresse zurückgestuft. Eine Adresse wird nie geraten — ein Release mit
+        /// Version, aber ohne Anhang führt direkt zur festen Adresse (oder zu keiner).
+        /// </summary>
+        internal IReadOnlyList<DownloadCandidate> ResolveDownloadCandidates(ReleaseInfo? release, ToolProbe installed)
+        {
+            var candidates = new List<DownloadCandidate>(2);
+
+            if (ResolveAsset(release) is { } fromRelease)
+                candidates.Add(fromRelease);
+
+            bool alreadyListed = candidates.Any(c => string.Equals(c.Url, PinnedPackage.Url, StringComparison.OrdinalIgnoreCase));
+            if (alreadyListed)
+                return candidates;
+
+            if (PinnedPackageWouldNotDowngrade(installed))
+            {
+                if (candidates.Count == 0)
+                    Log.Info($"[{Id}] Keine Paketadresse aus der Release-Antwort - es wird das fest " +
+                        "hinterlegte, geprüfte Paket geladen.");
+                candidates.Add(PinnedPackage);
+            }
+            else
+            {
+                Log.Info($"[{Id}] Installiert ist {installed.Version.Raw}, neuer als das fest hinterlegte " +
+                    $"Paket ({PinnedVersion}) - es dient deshalb nicht als Rückfall.");
+            }
+
+            return candidates;
+        }
+
+        private static bool PinnedPackageWouldNotDowngrade(ToolProbe installed) =>
+            !installed.Usable ||
+            !AppVersion.TryParse(installed.Version.Raw, out var current) ||
+            !AppVersion.TryParse(PinnedVersion, out var pinned) ||
+            current < pinned;
+
+        /// <summary>Wählt den Anhang aus der Release-Antwort, oder <c>null</c>, wenn sie keinen
+        /// nennt. Die Prüfsumme kommt aus der Quelle (GitHub-<c>digest</c>), sofern sie eine
+        /// liefert.</summary>
+        private DownloadCandidate? ResolveAsset(ReleaseInfo? release)
         {
             if (release is null)
-            {
-                Log.Info($"[{Id}] Keine Release-Antwort - es wird über die feste Adresse der " +
-                    "neuesten Ausgabe geladen.");
-                return (LatestAssetUrl, null, null);
-            }
+                return null;
 
             if (release.Assets.Count > 0)
             {
                 try
                 {
                     if (AssetSelector.Select(release.Assets, AssetName) is { } selected)
-                        return (selected.Url, selected.Size > 0 ? selected.Size : null, release.Sha256);
+                        return new DownloadCandidate(selected.Url, selected.Size > 0 ? selected.Size : null, release.Sha256);
                 }
                 catch (AssetAmbiguousException ex)
                 {
@@ -265,12 +311,9 @@ namespace MortysDLP.Services.Tools
                 }
             }
 
-            if (!string.IsNullOrEmpty(release.DownloadUrl))
-                return (release.DownloadUrl, release.ExpectedSize, release.Sha256);
-
-            Log.Info($"[{Id}] Release {release.Version} nennt keinen Anhang - es wird über die " +
-                "feste Adresse der neuesten Ausgabe geladen.");
-            return (LatestAssetUrl, null, null);
+            return string.IsNullOrEmpty(release.DownloadUrl)
+                ? null
+                : new DownloadCandidate(release.DownloadUrl, release.ExpectedSize, release.Sha256);
         }
 
         /// <summary>

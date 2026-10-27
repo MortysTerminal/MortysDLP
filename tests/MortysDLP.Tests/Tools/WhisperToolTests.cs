@@ -36,6 +36,12 @@ public class WhisperToolTests : IDisposable
         GC.SuppressFinalize(this);
     }
 
+    private static AppVersion V(string text) =>
+        AppVersion.TryParse(text, out var version) ? version : throw new ArgumentException(text);
+
+    private static ToolProbe Installed(string version) =>
+        new(ToolHealth.Ok, ToolVersion.Parse(version), $"whisper.cpp version: {version}");
+
     [Fact]
     public void IstOptionalUndVergleichtNurAufUngleichheit()
     {
@@ -52,16 +58,113 @@ public class WhisperToolTests : IDisposable
             StringComparison.OrdinalIgnoreCase);
     }
 
-    /// <summary>Bewusst ohne <c>github-atom</c>: Der Atom-Feed kennt keine
-    /// Vorabversions-Kennzeichnung und griff im echten Testlauf einen assetlosen <c>vX.Y.Z</c>-Tag,
-    /// was den Download mit 404 scheitern ließ, statt auf die versionslose Rückfalladresse
-    /// auszuweichen (siehe <see cref="ReleaseSources.CreateWhisperChain"/>).</summary>
+    /// <summary>Nur die Commit-Zuordnung: <c>/releases/latest</c> zeigt seit dem Schemawechsel auf
+    /// ein stabiles Versions-Release ohne Anhänge - eine Quelle, die das abfragt, beendet die Kette
+    /// mit „Version ohne Paket" und verhindert den Rückfall (siehe
+    /// <see cref="ReleaseSources.CreateWhisperChain"/>).</summary>
     [Fact]
-    public void Quellenkette_FragtNurDasEchteLatestOhneAtom()
+    public void Quellenkette_FragtNurDieCommitZuordnung()
     {
         var names = _tool.CreateSources().Select(s => s.Name).ToList();
 
-        Assert.Equal(["github-api-latest", "github-redirect"], names);
+        Assert.Equal(["github-api-commit-paired"], names);
+    }
+
+    /// <summary>Die feste Rückfalladresse ist gegen das echte Release <c>b5454</c> geprüft
+    /// (2026-10-26): Größe und SHA-256 stammen aus der GitHub-API und stimmen mit der
+    /// heruntergeladenen Datei überein.</summary>
+    [Fact]
+    public void FesteRueckfalladresse_IstGepruftesPaketMitPruefsumme()
+    {
+        var candidates = _tool.ResolveDownloadCandidates(null, ToolProbe.NotInstalled);
+
+        var only = Assert.Single(candidates);
+        Assert.Equal("https://github.com/ggml-org/whisper.cpp/releases/download/b5454/whisper-blas-bin-x64.zip", only.Url);
+        Assert.Equal(21715607, only.Size);
+        Assert.Equal("b1158bd10edf92c9799149a6fc5d3e58da3f495241d6fb3423088130e88ffbf3", only.Sha256);
+        Assert.True(MortysDLP.Helpers.UrlSafety.IsAllowed(new Uri(only.Url)));
+    }
+
+    [Fact]
+    public void ReleaseMitAdresse_WirdZuerstVersuchtDanachDieFesteAdresse()
+    {
+        var release = new ReleaseInfo(V("1.9.6"), "https://github.com/ggml-org/whisper.cpp/releases/download/b5500/whisper-blas-bin-x64.zip",
+            null, 22000000, "cd34", "test", []);
+
+        var candidates = _tool.ResolveDownloadCandidates(release, ToolProbe.NotInstalled);
+
+        Assert.Equal(2, candidates.Count);
+        Assert.Equal(release.DownloadUrl, candidates[0].Url);
+        Assert.Equal("cd34", candidates[0].Sha256);
+        Assert.Contains("/b5454/", candidates[1].Url);
+    }
+
+    /// <summary>Genau der Fall, der die Installation gebrochen hat: eine Version ohne Anhang und
+    /// ohne Adresse. Es darf keine geratene <c>releases/latest/download/…</c>-Adresse entstehen.</summary>
+    [Fact]
+    public void ReleaseOhneAnhangUndAdresse_NutztNurDieFesteAdresse()
+    {
+        var release = new ReleaseInfo(V("1.9.5"), null, null, null, null, "test", []);
+
+        var candidates = _tool.ResolveDownloadCandidates(release, ToolProbe.NotInstalled);
+
+        var only = Assert.Single(candidates);
+        Assert.Contains("/b5454/", only.Url);
+        Assert.DoesNotContain(candidates, c => c.Url.Contains("/latest/", StringComparison.Ordinal));
+    }
+
+    /// <summary>Die feste Adresse darf eine neuere Installation nie ersetzen — sonst stufte ein
+    /// einziger 404 auf der Release-Adresse 1.9.6 still auf 1.9.5 zurück.</summary>
+    [Fact]
+    public void NeuereInstallation_FesteAdresseIstKeinRueckfall()
+    {
+        var release = new ReleaseInfo(V("1.9.7"), "https://github.com/ggml-org/whisper.cpp/releases/download/b5600/whisper-blas-bin-x64.zip",
+            null, 22000000, "cd34", "test", []);
+
+        var candidates = _tool.ResolveDownloadCandidates(release, Installed("1.9.6"));
+
+        var only = Assert.Single(candidates);
+        Assert.Equal(release.DownloadUrl, only.Url);
+    }
+
+    [Fact]
+    public void GleicheVersionInstalliert_OhneReleaseAdresse_KeinKandidat()
+    {
+        var candidates = _tool.ResolveDownloadCandidates(null, Installed(WhisperTool.PinnedVersion));
+
+        Assert.Empty(candidates);
+    }
+
+    [Theory]
+    [InlineData("1.9.3")]
+    [InlineData("1.8.7")]
+    public void AeltereInstallation_FesteAdresseBleibtRueckfall(string installed)
+    {
+        var candidates = _tool.ResolveDownloadCandidates(null, Installed(installed));
+
+        Assert.Contains("/b5454/", Assert.Single(candidates).Url);
+    }
+
+    /// <summary>Reparieren: Die Datei ist da, antwortet aber nicht — dann zählt sie nicht als
+    /// „neuer" und die feste Adresse muss greifen.</summary>
+    [Fact]
+    public void InstallationAntwortetNicht_FesteAdresseBleibtRueckfall()
+    {
+        var broken = new ToolProbe(ToolHealth.NoAnswer, ToolVersion.Parse("1.9.6"), null);
+
+        var candidates = _tool.ResolveDownloadCandidates(null, broken);
+
+        Assert.Contains("/b5454/", Assert.Single(candidates).Url);
+    }
+
+    [Fact]
+    public void ReleaseIstDieFesteAdresse_WirdNurEinmalVersucht()
+    {
+        var release = new ReleaseInfo(V("1.9.5"),
+            "https://github.com/ggml-org/whisper.cpp/releases/download/b5454/whisper-blas-bin-x64.zip",
+            null, 21715607, "b1158bd10edf92c9799149a6fc5d3e58da3f495241d6fb3423088130e88ffbf3", "test", []);
+
+        Assert.Single(_tool.ResolveDownloadCandidates(release, ToolProbe.NotInstalled));
     }
 
     [Fact]

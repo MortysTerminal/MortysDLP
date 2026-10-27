@@ -237,6 +237,23 @@ public class ResilientReleaseResolverTests : IDisposable
         Assert.Contains("1 Prüfling(e)", File.ReadAllText(Log.CurrentLogFile));
     }
 
+    /// <summary>Die Commit-Zuordnung fragt dieselbe API und verbraucht dasselbe Kontingent — sie
+    /// muss in der Prüflinge-Zählung genauso auftauchen wie die beiden klassischen API-Quellen.</summary>
+    [Fact]
+    public async Task ResolveAsync_CommitZuordnungAngefragt_ZaehltAlsPruefling()
+    {
+        var handler = new FakeHttpMessageHandler().When(@"releases\?per_page=30$", content: "[]");
+        using var client = new HttpClient(handler);
+        var resolver = new ResilientReleaseResolver([new GitHubCommitPairedSource(client)]);
+
+        await resolver.ResolveAsync(Query, null, CancellationToken.None);
+
+        GitHubRateLimit.Observe(MakeExhaustedRateLimitHeaders(), DateTimeOffset.UtcNow);
+        Log.CloseForTests();
+
+        Assert.Contains("1 Prüfling(e)", File.ReadAllText(Log.CurrentLogFile));
+    }
+
     [Fact]
     public async Task ResolveAsync_NichtGitHubQuelle_ZaehltNichtAlsPruefling()
     {
