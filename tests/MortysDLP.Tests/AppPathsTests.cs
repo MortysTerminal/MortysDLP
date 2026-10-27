@@ -136,4 +136,80 @@ public class AppPathsTests
 
         Assert.False(string.IsNullOrEmpty(ergebnis));
     }
+
+    // --- Windows-Namensregeln, unabhängig vom Betriebssystem des Testlaufs ---------------
+    // Quelle: learn.microsoft.com/en-us/windows/win32/fileio/naming-a-file (2026-10-26).
+
+    private static readonly char[] WindowsReservedChars = ['<', '>', ':', '"', '/', '\\', '|', '?', '*'];
+
+    [Fact]
+    public void SanitizeFileName_EntferntAlleWindowsReserviertenZeichenUndSteuerzeichen()
+    {
+        string eingabe = "a<b>c:d\"e/f\\g|h?i*j" + string.Concat(Enumerable.Range(0, 32).Select(i => (char)i)) + "k";
+
+        var ergebnis = AppPaths.SanitizeFileName(eingabe, maxLength: 500);
+
+        Assert.All(ergebnis, ch =>
+        {
+            Assert.DoesNotContain(ch, WindowsReservedChars);
+            Assert.True(ch >= 32, $"Steuerzeichen {(int)ch} im Ergebnis");
+        });
+        Assert.StartsWith("a_b_c_d_e_f_g_h_i_j", ergebnis);
+    }
+
+    [Theory]
+    [InlineData("COM\u00B9")]
+    [InlineData("com\u00B2")]
+    [InlineData("LPT\u00B3")]
+    [InlineData("lpt\u00B9.mp4")]
+    public void SanitizeFileName_ErsetztReservierteNamenMitHochgestellterZiffer(string reservedName)
+    {
+        var ergebnis = AppPaths.SanitizeFileName(reservedName);
+
+        string basis = ergebnis.Split('.')[0];
+        Assert.NotEqual(reservedName.Split('.')[0].ToUpperInvariant(), basis.ToUpperInvariant());
+    }
+
+    /// <summary>Windows behandelt <c>NUL.tar.gz</c> wie <c>NUL</c> — maßgeblich ist der Teil vor
+    /// dem <b>ersten</b> Punkt, nicht vor dem letzten.</summary>
+    [Theory]
+    [InlineData("NUL.tar.gz", "NUL_.tar.gz")]
+    [InlineData("con.part.mp4", "con_.part.mp4")]
+    [InlineData("AUX.", "AUX_")]
+    [InlineData("CON .txt", "CON_ .txt")]
+    public void SanitizeFileName_ReservierterNameMitMehrerenEndungen_WirdErkannt(string eingabe, string erwartet)
+    {
+        Assert.Equal(erwartet, AppPaths.SanitizeFileName(eingabe));
+    }
+
+    [Theory]
+    [InlineData("CONSOLE")]
+    [InlineData("NULL.txt")]
+    [InlineData("COM10")]
+    [InlineData("Concert.mp4")]
+    public void SanitizeFileName_AehnlicheAberNichtReservierteNamen_BleibenUnveraendert(string eingabe)
+    {
+        Assert.Equal(eingabe, AppPaths.SanitizeFileName(eingabe));
+    }
+
+    /// <summary>Ein halbiertes Surrogatpaar wäre ungültiges UTF-16 — manche Programme lehnen den
+    /// Namen dann ab oder ersetzen das Zeichen.</summary>
+    [Fact]
+    public void SanitizeFileName_KuerzenHalbiertKeinEmoji()
+    {
+        string eingabe = new string('a', 9) + "🎉🎉";
+
+        var ergebnis = AppPaths.SanitizeFileName(eingabe, maxLength: 10);
+
+        Assert.Equal(new string('a', 9), ergebnis);
+        Assert.False(char.IsHighSurrogate(ergebnis[^1]));
+    }
+
+    [Fact]
+    public void SanitizeFileName_GekuerzterNameEndetNichtMitPunktOderLeerzeichen()
+    {
+        var ergebnis = AppPaths.SanitizeFileName("abcde. fghij", maxLength: 7);
+
+        Assert.Equal("abcde", ergebnis);
+    }
 }

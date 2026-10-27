@@ -26,9 +26,35 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
 ## [Unreleased]
 
 ### Behoben
+
+- **whisper.cpp lässt sich wieder installieren.** whisper.cpp veröffentlicht seine
+  Programmpakete inzwischen getrennt von den Versionsnummern; MortysDLP fand das Paket deshalb
+  nicht mehr und die Installation brach ab. Das Paket wird jetzt über die zugehörige Version
+  gefunden und **mit Prüfsumme** geladen. Antwortet die GitHub-Schnittstelle nicht oder anders als
+  erwartet, wird auf ein fest hinterlegtes, geprüftes Paket ausgewichen.
+- **whisper.cpp wird beim Deinstallieren restlos entfernt.** Auf der Seite „Werkzeuge" blieben
+  bisher der Whisper-Ordner und die Programmbibliotheken liegen. Jetzt bietet „Deinstallieren"
+  dort dieselbe Wahl wie im Fenster „Whisper verwalten" — nur das Programm entfernen und die
+  Sprachmodelle behalten, oder vollständig löschen — und beide Wege entfernen dasselbe. Das
+  Löschen läuft im Hintergrund, die Seite friert dabei nicht mehr ein.
+- **Downloads brechen bei besonderen Titeln nicht mehr ab.** Dateinamen folgen jetzt durchgehend
+  den Windows-Regeln: verbotene Zeichen und reservierte Namen (z. B. `CON`, `NUL`, `COM¹`) werden
+  ersetzt, ein `%` in Titel, eigenem Dateinamen oder Zielordner wird richtig weitergegeben, und
+  Titel werden auf höchstens 120 Zeichen gekürzt — bei sehr tief verschachtelten Zielordnern
+  entsprechend weniger, damit der Pfad unter der Windows-Grenze bleibt (Titel mit vielen Umlauten,
+  Emoji oder asiatischen Schriftzeichen werden etwas stärker gekürzt). Gilt für Einzel-, Batch-
+  und Twitch-Download. Folge: Ein früher heruntergeladenes Video mit sehr langem Titel wird nicht
+  mehr als „bereits vorhanden" erkannt und erneut geladen.
+- **Heruntergeladene Dateien werden auch mit Emoji oder fremden Schriftzeichen im Titel
+  zuverlässig wiedergefunden** (Schnittmodus, GIF-Erstellung, x264-Nachbearbeitung im Batch).
 - **Transkription:** Der Fortschrittsbalken zeigt jetzt den tatsächlichen Stand statt unbestimmt
   zu laufen — einschließlich des Vorbereitungsschritts, in dem das Audio aus dem Video
   gelesen wird.
+
+### Geändert
+
+- **Werkzeuge-Seite mit Bildschirmleser:** Die Knöpfe jeder Zeile nennen jetzt auch das Werkzeug
+  („whisper.cpp: Deinstallieren"), statt in jeder Zeile gleich zu heißen.
 
 ## [2026.09.09] – 2026-09-09
 

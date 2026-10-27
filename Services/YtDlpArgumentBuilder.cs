@@ -58,6 +58,20 @@ namespace MortysDLP.Services
             args.Add("-o");
             args.Add(job.OutputTemplate);
 
+            // Ausdrücklich statt auf yt-dlps Voreinstellung zu vertrauen: Titel werden für
+            // Windows bereinigt (reservierte Zeichen, Gerätenamen), gleich wo yt-dlp läuft.
+            args.Add("--windows-filenames");
+
+            // --print-to-file statt --print: --print impliziert --quiet und würde Fortschritt
+            // und Destination-Zeilen abschalten. Der Dateipfad folgt der Syntax der
+            // Ausgabevorlage und wird deshalb ebenfalls maskiert.
+            if (!string.IsNullOrEmpty(job.FinalPathFile))
+            {
+                args.Add("--print-to-file");
+                args.Add("after_move:filepath");
+                args.Add(YtDlpOutputTemplate.EscapeLiteral(job.FinalPathFile));
+            }
+
             if (job.Timespan is { } timespan)
             {
                 args.Add("--download-sections");

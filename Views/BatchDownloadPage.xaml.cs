@@ -699,7 +699,8 @@ namespace MortysDLP.Views
             var job = new YtDlpJob
             {
                 Url = entry.Url,
-                OutputTemplate = $"{downloadPath}\\%(title)s_%(id)s.%(ext)s",
+                OutputTemplate = YtDlpOutputTemplate.Build(downloadPath, literalBaseName: null, literalSuffix: ""),
+                FinalPathFile = YtDlpOutputTemplate.NewFinalPathFile(),
                 IsAudioOnly = audioOnly,
                 FormatSelector = formatSelector,
                 MergeOutputFormat = mergeOutputFormat,
@@ -777,12 +778,26 @@ namespace MortysDLP.Views
                 }
             }
 
-            bool needsRestart = await _ytDlpRunner.RunAsync(
-                ytDlpPath, job,
-                onStdOut: OnStdOut,
-                onStdErr: line => AppendDebug($"[ERR] {line}"),
-                idleTimeout: TimeSpan.FromSeconds(120),
-                ct: token);
+            bool needsRestart;
+            try
+            {
+                needsRestart = await _ytDlpRunner.RunAsync(
+                    ytDlpPath, job,
+                    onStdOut: OnStdOut,
+                    onStdErr: line => AppendDebug($"[ERR] {line}"),
+                    idleTimeout: TimeSpan.FromSeconds(120),
+                    ct: token);
+            }
+            finally
+            {
+                // Endpfad aus der UTF-8-Pfaddatei hat Vorrang vor dem aus der Konsole gelesenen.
+                if (YtDlpOutputTemplate.TryReadFinalPath(job.FinalPathFile!) is { } finalPath)
+                {
+                    lastOutputFile = finalPath;
+                    AppendDebug($"[DATEI] {finalPath}");
+                }
+                YtDlpOutputTemplate.DeleteFinalPathFile(job.FinalPathFile!);
+            }
 
             if (needsRestart) return true;
 

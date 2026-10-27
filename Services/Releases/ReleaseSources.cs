@@ -72,52 +72,31 @@ namespace MortysDLP.Services.Releases
         ];
 
         /// <summary>
-        /// whisper.cpp. <b>Bewusst ohne</b> <see cref="GitHubAtomFeedSource"/> — anders als bei
-        /// yt-dlp und TwitchDownloaderCLI trägt dieses Repository <b>zwei</b> Tag-Schemata
-        /// parallel: <c>vX.Y.Z</c>-Tags ohne jeden Anhang (semantische Marker, am 2026-09-01
-        /// gegen die echte API geprüft: <c>v1.9.3</c> ist <c>prerelease: true</c> und hat
-        /// <b>keine</b> Assets) und <c>bNNNN</c>-Tags mit den tatsächlichen Programmpaketen.
-        /// <c>GitHubAtomFeedSource</c> kennt keine Vorabversions-Kennzeichnung (der Atom-Feed
-        /// führt dieses Feld nicht) und griff im echten Testlauf genau deshalb den assetlosen
-        /// <c>v1.9.3</c>-Eintrag — mit der Folge, dass <see cref="ReleaseQueryExtensions.ResolveDownloadUrl"/>
-        /// eine Adresse baute, die mit <c>404</c> antwortet, obwohl die versionslose
-        /// Rückfalladresse (<see cref="WhisperTool"/>) zuverlässig funktioniert hätte. Eine Quelle,
-        /// die eine <b>falsche</b> Adresse liefert, ist schädlicher als eine, die schweigt — deshalb
-        /// bleibt sie hier draußen, nicht aus Bequemlichkeit.
+        /// whisper.cpp. Nur <see cref="GitHubCommitPairedSource"/>: Seit 2026-09-11 tragen die
+        /// stabilen <c>vX.Y.Z</c>-Releases keine Anhänge mehr, die Pakete hängen an
+        /// <c>bNNNN</c>-Vorabversionen mit demselben Commit (gegen die echte API geprüft,
+        /// 2026-10-26). <c>/releases/latest</c> zeigt damit auf ein Release mit Version, aber ohne
+        /// Paket — <see cref="GitHubApiLatestSource"/> würde die Kette mit dieser Antwort beenden,
+        /// <see cref="GitHubRedirectSource"/> über die Adressvorlage eine Adresse liefern, die mit
+        /// <c>404</c> antwortet. Beide verhinderten so den Rückfall auf die feste Paketadresse in
+        /// <see cref="WhisperTool"/> und sind deshalb für dieses Repository draußen.
+        /// <see cref="GitHubAtomFeedSource"/> kennt keine Vorabversions-Kennzeichnung und griff schon
+        /// beim früheren Schema assetlose Tags.
         ///
-        /// <para><see cref="GitHubApiLatestSource"/> und <see cref="GitHubRedirectSource"/> fragen
-        /// beide ausschließlich <c>/releases/latest</c> — dort filtert GitHub selbst Vorabversionen
-        /// heraus, das Problem der Atom-Quelle betrifft sie nicht. <b>Am 2026-09-01 gegen die echte
-        /// API geprüft:</b> Das Repository heißt inzwischen <c>ggml-org/whisper.cpp</c> —
-        /// <c>ggerganov/whisper.cpp</c> ist nur noch eine GitHub-Weiterleitung (die
-        /// <c>api.github.com</c> transparent mitgeht, die HEAD-Weiterleitung von
-        /// <see cref="GitHubRedirectSource"/> aber nicht, weil dort der erste Sprung die
-        /// Weiterleitung auf das neue Owner/Repo wäre, nicht mehr auf den Tag). Der alte Name ist
-        /// deshalb keine Option mehr, nicht nur eine veraltete Schreibweise.</para>
-        ///
-        /// <para><b>Beide verbleibenden Quellen liefern trotzdem heute keine Version:</b>
-        /// <c>/releases/latest</c> zeigt aktuell auf den Tag <c>b4938</c> — eine fortlaufende
-        /// Build-Nummer, kein <c>vX.Y.Z</c>. <see cref="AppVersion.TryParse"/> scheitert daran, und
-        /// <see cref="GitHubApiReleaseJson.TryParse"/> verwirft dabei auch die mitgelieferte
-        /// Asset-Liste. Die Ursache liegt im gemeinsamen Quellen-Layer (<see cref="ReleaseInfo.Version"/> ist eine
-        /// <see cref="AppVersion"/>) und betrifft potenziell jede weitere Quelle mit
-        /// nicht-semantischem Tag-Schema. Beide Quellen bleiben trotzdem stehen: harmlos im
-        /// heutigen Fehlschlag, und sofort nutzbar, falls <c>ggml-org</c> seine „latest"-Kennzeichnung
-        /// einmal auf ein parsebares Schema umstellt. Die Installation bleibt in der Zwischenzeit
-        /// möglich: <see cref="WhisperTool"/> lädt ohne Versionsantwort über eine feste,
-        /// versionslose Adresse (wie schon bei yt-dlp und ffmpeg) — am 2026-09-01 gegen das echte
-        /// Release durchgespielt.</para>
+        /// <para>Antwortet die Quelle nicht, installiert <see cref="WhisperTool"/> über eine fest
+        /// hinterlegte, geprüfte Paketadresse mit Prüfsumme — die Installation hängt also nicht an
+        /// dieser einen Anfrage.</para>
         /// </summary>
         public static IReadOnlyList<IReleaseSource> CreateWhisperChain() =>
         [
-            new GitHubApiLatestSource(),
-            new GitHubRedirectSource(),
+            new GitHubCommitPairedSource(),
         ];
 
         /// <summary>
-        /// TwitchDownloaderCLI. Dieselben drei GitHub-Wege wie bei whisper.cpp — anders als dort
-        /// ist der Tag von <c>lay295/TwitchDownloader</c> (z. B. <c>1.56.5</c>) eine echte,
-        /// ordnende Version, am 2026-09-01 gegen die echte API bestätigt. Die Kette trägt hier
+        /// TwitchDownloaderCLI. Die drei klassischen GitHub-Wege (API, Atom, Weiterleitung) — anders
+        /// als bei whisper.cpp ist der Tag von <c>lay295/TwitchDownloader</c> (z. B. <c>1.56.5</c>)
+        /// eine echte, ordnende Version am selben Release wie das Paket, am 2026-09-01 gegen die
+        /// echte API bestätigt. Die Kette trägt hier
         /// also tatsächlich, nicht nur auf dem Papier.
         /// </summary>
         public static IReadOnlyList<IReleaseSource> CreateTwitchDownloaderChain() =>

@@ -28,6 +28,48 @@ public class YtDlpArgumentBuilderTests
         Assert.Contains("--no-playlist", args);
     }
 
+    /// <summary>yt-dlp bereinigt Titel nur unter Windows standardmäßig Windows-konform — ausdrücklich
+    /// gesetzt, damit das Verhalten nicht an einer Voreinstellung hängt.</summary>
+    [Fact]
+    public void Build_ErzwingtImmerWindowsKonformeDateinamen()
+    {
+        Assert.Contains("--windows-filenames", YtDlpArgumentBuilder.Build(MinimalJob()));
+    }
+
+    /// <summary>Den Endpfad schreibt yt-dlp in eine Datei (UTF-8) — <b>nicht</b> per
+    /// <c>--print</c>, das <c>--quiet</c> impliziert und damit Fortschritt und
+    /// <c>Destination</c>-Zeilen abschalten würde.</summary>
+    [Fact]
+    public void Build_MitPfaddatei_SchreibtEndpfadPerPrintToFile()
+    {
+        var job = MinimalJob() with { FinalPathFile = @"C:\Temp\MortysDLP\ytdlp-final-1.txt" };
+
+        var args = YtDlpArgumentBuilder.Build(job).ToList();
+
+        int i = args.IndexOf("--print-to-file");
+        Assert.True(i >= 0);
+        Assert.Equal("after_move:filepath", args[i + 1]);
+        Assert.Equal(@"C:\Temp\MortysDLP\ytdlp-final-1.txt", args[i + 2]);
+        Assert.DoesNotContain("--print", args);
+        Assert.DoesNotContain("-O", args);
+    }
+
+    [Fact]
+    public void Build_PfaddateiMitProzent_WirdMaskiert()
+    {
+        var job = MinimalJob() with { FinalPathFile = @"C:\Users\100%\AppData\Local\Temp\f.txt" };
+
+        var args = YtDlpArgumentBuilder.Build(job).ToList();
+
+        Assert.Equal(@"C:\Users\100%%\AppData\Local\Temp\f.txt", args[args.IndexOf("--print-to-file") + 2]);
+    }
+
+    [Fact]
+    public void Build_OhnePfaddatei_KeinPrintToFile()
+    {
+        Assert.DoesNotContain("--print-to-file", YtDlpArgumentBuilder.Build(MinimalJob()));
+    }
+
     [Fact]
     public void Build_OutputTemplateUndUrlStehenImmerDrin()
     {
@@ -229,6 +271,7 @@ public class YtDlpArgumentBuilderTests
             "-f", "bestvideo+bestaudio/bestvideo+bestaudio/best",
             "--merge-output-format", "mkv",
             "-o", @"C:\Downloads\%(title)s_qbest_mkv_%(id)s.%(ext)s",
+            "--windows-filenames",
             "--continue", "--no-check-certificates", "--no-mtime", "--newline",
             "--progress-template", YtDlpProgressParser.Template,
             "--no-playlist",
@@ -262,6 +305,7 @@ public class YtDlpArgumentBuilderTests
             "--merge-output-format", "mp4",
             "--postprocessor-args", "Merger:-c copy -movflags +faststart",
             "-o", @"C:\Downloads\%(title)s_q1080_avi_x264_%(id)s.%(ext)s",
+            "--windows-filenames",
             "--continue", "--no-check-certificates", "--no-mtime", "--newline",
             "--progress-template", YtDlpProgressParser.Template,
             "--no-playlist",
@@ -293,6 +337,7 @@ public class YtDlpArgumentBuilderTests
             "-x", "--audio-format", "mp3",
             "--audio-quality", "192K",
             "-o", @"C:\Downloads\%(title)s_%(id)s.%(ext)s",
+            "--windows-filenames",
             "--continue", "--no-check-certificates", "--no-mtime", "--newline",
             "--progress-template", YtDlpProgressParser.Template,
             "--no-playlist",
@@ -322,6 +367,7 @@ public class YtDlpArgumentBuilderTests
             "-f", "best[ext=mp4]/bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best",
             "--merge-output-format", "mp4",
             "-o", @"C:\Downloads\Titel_%(id)s.%(ext)s",
+            "--windows-filenames",
             "--continue", "--no-check-certificates", "--no-mtime", "--newline",
             "--progress-template", YtDlpProgressParser.Template,
             "--no-playlist",
