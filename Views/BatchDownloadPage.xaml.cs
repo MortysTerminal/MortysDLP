@@ -64,6 +64,10 @@ namespace MortysDLP.Views
 
     public partial class BatchDownloadPage : Page, ICancellableWork, IDebugModeAware
     {
+        // Platzhaltertitel, solange der echte Videotitel noch geladen wird. Steht sichtbar in der
+        // Liste und dient zugleich als Erkennungszeichen "Titel noch unbekannt".
+        private const string PendingTitle = "…";
+
         bool ICancellableWork.IsBusy => btnCancelAll.IsEnabled;
         string ICancellableWork.BusyLabel => UITextDictionary.Get("ActiveWork.Label.BatchDownload");
         void ICancellableWork.RequestCancel() => btnCancelAll_Click(this, new RoutedEventArgs());
@@ -159,6 +163,8 @@ namespace MortysDLP.Views
             btnChangeDownloadPath.Content  = T("DownloadPage.Button.ChangePath");
 
             txtSectionUrlList.Text         = T("BatchDownloadPage.Section.UrlList");
+            System.Windows.Automation.AutomationProperties.SetName(btnOpenFolder, T("Common.Button.OpenFolder"));
+            System.Windows.Automation.AutomationProperties.SetName(combAudioFormat, T("A11y.AudioFormat"));
             lblAddUrl.Content              = T("BatchDownloadPage.Label.AddUrl");
             txtUrlHint.Text                = T("BatchDownloadPage.Label.UrlHint");
             btnAddUrl.Content              = T("BatchDownloadPage.Button.AddUrl");
@@ -294,7 +300,7 @@ namespace MortysDLP.Views
             var entry = new BatchDownloadEntry
             {
                 Url = url,
-                Title = "...",
+                Title = PendingTitle,
                 Status = UITextDictionary.Get("BatchDownloadPage.Status.Waiting"),
                 Icon = "\uE118",
                 IconColor = (System.Windows.Media.Brush)FindResource("NeutralBrush")
@@ -356,7 +362,7 @@ namespace MortysDLP.Views
                     var entry = new BatchDownloadEntry
                     {
                         Url    = url,
-                        Title  = "...",
+                        Title  = PendingTitle,
                         Status = UITextDictionary.Get("BatchDownloadPage.Status.Waiting")
                     };
                     AddCurrentUrl(entry.Url);
@@ -572,7 +578,7 @@ namespace MortysDLP.Views
                     // machen - deshalb hier gefangen und nur protokolliert.
                     try
                     {
-                        string historyTitle = entry.Title == "..." ? entry.Url : entry.Title;
+                        string historyTitle = entry.Title == PendingTitle ? entry.Url : entry.Title;
                         await DownloadHistoryService.RecordAsync(
                             entry.Url, historyTitle, downloadPath,
                             audioOnly, videoQualityLabel, videoFormat, audioFormat, audioBitrate);
@@ -956,7 +962,7 @@ namespace MortysDLP.Views
             }
 
             spCurrentEntry.Visibility   = Visibility.Visible;
-            txtCurrentEntryTitle.Text   = string.IsNullOrWhiteSpace(_activeEntry.Title) || _activeEntry.Title == "..."
+            txtCurrentEntryTitle.Text   = string.IsNullOrWhiteSpace(_activeEntry.Title) || _activeEntry.Title == PendingTitle
                 ? _activeEntry.Url
                 : _activeEntry.Title;
             txtCurrentEntryStatus.Text  = _activeEntry.Status;

@@ -115,6 +115,7 @@ namespace MortysDLP.Views
                 : T("ToolsPage.Button.Repair");
             row.UninstallButtonText = T("ToolsPage.Button.Uninstall");
             row.OpenFolderButtonText = T("ToolsPage.Button.OpenFolder");
+            row.CancelButtonText = T("Common.Button.Cancel");
         }
 
         // ── Prüfen ───────────────────────────────────────────────────────────────────
@@ -162,13 +163,13 @@ namespace MortysDLP.Views
             var actions = ToolRowActions.For(state);
 
             row.State = state;
-            (row.StateText, row.StateColor) = state switch
+            (row.StateText, row.Tone) = state switch
             {
-                ToolRowState.Missing => (T("ToolsPage.State.Missing"), "#94A3B8"),
-                ToolRowState.Broken => (T("ToolsPage.State.Broken"), "#EF4444"),
-                ToolRowState.Ok => (T("ToolsPage.State.Ok"), "#22C55E"),
-                ToolRowState.UpdateAvailable => (T("ToolsPage.State.UpdateAvailable"), "#F59E0B"),
-                _ => ("", "#94A3B8"),
+                ToolRowState.Missing => (T("ToolsPage.State.Missing"), StatusTone.Neutral),
+                ToolRowState.Broken => (T("ToolsPage.State.Broken"), StatusTone.Error),
+                ToolRowState.Ok => (T("ToolsPage.State.Ok"), StatusTone.Success),
+                ToolRowState.UpdateAvailable => (T("ToolsPage.State.UpdateAvailable"), StatusTone.Warning),
+                _ => ("", StatusTone.Neutral),
             };
 
             row.VersionText = outcome.LocalVersion.HasValue ? outcome.LocalVersion.Raw : "–";
@@ -409,7 +410,7 @@ namespace MortysDLP.Views
         {
             public string Name { get; init; } = "";
             public string StateText { get; init; } = "";
-            public string StateColor { get; init; } = "#94A3B8";
+            public StatusTone Tone { get; init; }
         }
 
         private void RefreshModelsDisplay()
@@ -427,18 +428,18 @@ namespace MortysDLP.Views
                 if (state == WhisperModelState.Complete)
                     complete++;
 
-                var (text, color) = state switch
+                var (text, tone) = state switch
                 {
-                    WhisperModelState.Complete => (T("ToolsPage.State.Ok"), "#22C55E"),
-                    WhisperModelState.Incomplete => (T("WhisperModels.Status.Incomplete"), "#F59E0B"),
-                    _ => (T("ToolsPage.State.Missing"), "#94A3B8"),
+                    WhisperModelState.Complete => (T("ToolsPage.State.Ok"), StatusTone.Success),
+                    WhisperModelState.Incomplete => (T("WhisperModels.Status.Incomplete"), StatusTone.Warning),
+                    _ => (T("ToolsPage.State.Missing"), StatusTone.Neutral),
                 };
 
                 rows.Add(new ModelSummaryRow
                 {
                     Name = model.GetDisplayName(lang),
                     StateText = text,
-                    StateColor = color,
+                    Tone = tone,
                 });
             }
 

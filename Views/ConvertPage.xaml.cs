@@ -109,6 +109,10 @@ namespace MortysDLP.Views
             
             // Section 5
             expDebug.Header = T("Common.Section.Debug");
+            
+            // Barrierefreiheit: Namen für Elemente ohne sichtbare Beschriftung
+            System.Windows.Automation.AutomationProperties.SetName(dgFiles, T("ConvertPage.Section.SelectFiles"));
+            System.Windows.Automation.AutomationProperties.SetName(tbDebugOutput, T("Common.Section.Debug"));
         }
 
         public void ApplyDebugMode()

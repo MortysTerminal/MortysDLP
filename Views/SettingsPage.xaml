@@ -19,7 +19,7 @@
                     <CheckBox x:Name="cbBandwidthEnabled" Margin="0,0,0,8"
                               Checked="cbBandwidthEnabled_Changed" Unchecked="cbBandwidthEnabled_Changed"/>
                     <StackPanel x:Name="pnlBandwidthLimit" Orientation="Horizontal">
-                        <Label x:Name="lblBandwidthLimit" VerticalAlignment="Center" Style="{StaticResource FormLabelStyle}"/>
+                        <Label x:Name="lblBandwidthLimit" Target="{Binding ElementName=tbBandwidthLimit}" VerticalAlignment="Center" Style="{StaticResource FormLabelStyle}"/>
                         <TextBox x:Name="tbBandwidthLimit" Width="80" VerticalContentAlignment="Center"
                                  Margin="8,0,0,0" MaxLength="6"
                                  PreviewTextInput="tbBandwidthLimit_PreviewTextInput"
@@ -36,14 +36,14 @@
                     <TextBlock x:Name="txtSectionAppearance" Style="{StaticResource SectionHeaderStyle}"/>
 
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                        <Label x:Name="lblSelectLanguage" VerticalAlignment="Center" Style="{StaticResource FormLabelStyle}"/>
+                        <Label x:Name="lblSelectLanguage" Target="{Binding ElementName=cbLanguage}" VerticalAlignment="Center" Style="{StaticResource FormLabelStyle}"/>
                         <ComboBox x:Name="cbLanguage" Width="200" SelectionChanged="cbLanguage_SelectionChanged"/>
                     </StackPanel>
                     <TextBlock x:Name="txtLanguageInfo" Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                                Margin="0,0,0,24" TextWrapping="Wrap"/>
 
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                        <Label x:Name="lblFontAppearance" VerticalAlignment="Center" Style="{StaticResource FormLabelStyle}"/>
+                        <Label x:Name="lblFontAppearance" Target="{Binding ElementName=cbFontAppearance}" VerticalAlignment="Center" Style="{StaticResource FormLabelStyle}"/>
                         <ComboBox x:Name="cbFontAppearance" Width="200" SelectionChanged="cbFontAppearance_SelectionChanged"/>
                     </StackPanel>
                     <TextBlock x:Name="txtFontAppearanceInfo" Foreground="{DynamicResource TextFillColorSecondaryBrush}"

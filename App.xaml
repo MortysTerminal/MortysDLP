@@ -144,6 +144,54 @@
                 <Setter Property="VerticalContentAlignment" Value="Center"/>
             </Style>
 
+            <!-- Reiner Symbolknopf (nur ein Glyph, kein Text): Ordner öffnen, Info, Ausblenden.
+                 Grundlage ist der flache Werkzeugleisten-Knopf des Themes (wie bisher an jeder
+                 Stelle einzeln gesetzt), hier einmal mit fester Trefferfläche 32 x 32, damit er
+                 neben Formular-Knöpfen auf derselben Linie sitzt. Jeder Symbolknopf braucht
+                 zusätzlich AutomationProperties.Name - der Glyph allein ist für einen
+                 Bildschirmleser nur ein unlesbares Zeichen. -->
+            <Style x:Key="IconButtonStyle" TargetType="Button"
+                   BasedOn="{StaticResource {x:Static ToolBar.ButtonStyleKey}}">
+                <Setter Property="MinWidth"                   Value="{StaticResource FormControlHeight}"/>
+                <Setter Property="MinHeight"                  Value="{StaticResource FormControlHeight}"/>
+                <Setter Property="Padding"                    Value="4"/>
+                <Setter Property="Background"                 Value="Transparent"/>
+                <Setter Property="BorderThickness"            Value="0"/>
+                <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                <Setter Property="VerticalContentAlignment"   Value="Center"/>
+            </Style>
+
+            <!-- Symbolschrift (08-DESIGN-CI.md §6): Segoe Fluent Icons ist seit Windows 11 die
+                 empfohlene Symbolschrift; Windows 10 bringt sie nicht mit, dort greift der
+                 Rückfall Segoe MDL2 Assets (Quelle: learn.microsoft.com, "Segoe Fluent Icons
+                 font", geprüft 2026-10-27). Die verwendeten Codepunkte stammen aus MDL2 - dass
+                 jeder davon in Fluent Icons dasselbe Symbol zeigt, belegt die Quelle nicht;
+                 deshalb Sichtprüfung aller Symbole unter Windows 11 vor dem Release. -->
+            <FontFamily x:Key="IconFontFamily">Segoe Fluent Icons, Segoe MDL2 Assets</FontFamily>
+
+            <!-- Statustext, dessen Farbe aus dem Feld "Tone" (Models/StatusTone) des
+                 Datenkontexts kommt. DynamicResource statt fester Farbe: StatusColorSync tauscht
+                 die Status-Pinsel beim Theme-Wechsel aus, die Zeile färbt sich dann sofort um. -->
+            <Style x:Key="StatusToneTextStyle" TargetType="TextBlock"
+                   BasedOn="{StaticResource {x:Type TextBlock}}">
+                <Setter Property="FontWeight" Value="SemiBold"/>
+                <Setter Property="Foreground" Value="{DynamicResource NeutralBrush}"/>
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding Tone}" Value="Success">
+                        <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}"/>
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding Tone}" Value="Warning">
+                        <Setter Property="Foreground" Value="{DynamicResource WarningBrush}"/>
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding Tone}" Value="Error">
+                        <Setter Property="Foreground" Value="{DynamicResource ErrorBrush}"/>
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+
+            <!-- Eine Höhe für jeden Fortschrittsbalken (vorher 8/10/11/14/18/25). -->
+            <sys:Double x:Key="ProgressBarHeight">8</sys:Double>
+
             <!-- Karte: eine Zeile XAML statt fünf wiederholter Attribute.
                  Innenabstand 16,12 und Kartenabstand 12 auf einem 4-Pixel-Raster. Bewusst OHNE
                  BasedOn: Anders als Button/TextBlock hat Border im Fluent-Theme keinen

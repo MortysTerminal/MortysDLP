@@ -2,6 +2,7 @@
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:v="clr-namespace:MortysDLP.Views"
+      xmlns:helpers="clr-namespace:MortysDLP.Helpers"
       Title="Transkribieren"
       Loaded="TranscribePage_Loaded">
     <Grid>
@@ -23,20 +24,20 @@
                             Background="{DynamicResource SubtleFillColorSecondaryBrush}"
                             Visibility="Collapsed">
                         <StackPanel>
-                            <TextBlock x:Name="txtSetupHint" TextWrapping="Wrap" Margin="0,0,0,8" Opacity="0.85"/>
+                            <TextBlock x:Name="txtSetupHint" TextWrapping="Wrap" Margin="0,0,0,8" Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
                             <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
                                 <TextBlock x:Name="txtSetupStep1" FontWeight="SemiBold" VerticalAlignment="Center" MinWidth="260"/>
-                                <TextBlock x:Name="txtSetupStep1Status" VerticalAlignment="Center" Margin="8,0,0,0" Opacity="0.7"/>
+                                <TextBlock x:Name="txtSetupStep1Status" VerticalAlignment="Center" Margin="8,0,0,0" Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
                             </StackPanel>
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock x:Name="txtSetupStep2" FontWeight="SemiBold" VerticalAlignment="Center" MinWidth="260"/>
-                                <TextBlock x:Name="txtSetupStep2Status" VerticalAlignment="Center" Margin="8,0,0,0" Opacity="0.7"/>
+                                <TextBlock x:Name="txtSetupStep2Status" VerticalAlignment="Center" Margin="8,0,0,0" Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
                             </StackPanel>
                         </StackPanel>
                     </Border>
 
                     <!-- Fertig-Status (sichtbar wenn alles eingerichtet) -->
-                    <TextBlock x:Name="txtWhisperStatus" TextWrapping="Wrap" Margin="0,0,0,8" Opacity="0.85"/>
+                    <TextBlock x:Name="txtWhisperStatus" TextWrapping="Wrap" Margin="0,0,0,8" Foreground="{DynamicResource TextFillColorSecondaryBrush}" helpers:A11y.AnnounceChanges="True"/>
 
                     <StackPanel Orientation="Horizontal">
                         <Button x:Name="btnManageModels" Click="btnManageModels_Click" MinWidth="100"
@@ -61,7 +62,7 @@
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <Label Grid.Column="0" x:Name="lblInputFile" VerticalAlignment="Center" Padding="0" Style="{StaticResource FormLabelStyle}"/>
+                        <Label Grid.Column="0" x:Name="lblInputFile" Target="{Binding ElementName=tbInputFile}" VerticalAlignment="Center" Padding="0" Style="{StaticResource FormLabelStyle}"/>
                         <TextBox Grid.Column="1" x:Name="tbInputFile" MinWidth="150" IsReadOnly="True"
                                  VerticalAlignment="Center" VerticalContentAlignment="Center" Margin="8,0,8,0"
                                  ToolTip="{Binding ElementName=tbInputFile, Path=Text}">
@@ -78,8 +79,8 @@
                         <Button Grid.Column="2" x:Name="btnBrowseInput" Click="btnBrowseInput_Click" Style="{StaticResource SecondaryButtonStyle}" VerticalAlignment="Center" MinWidth="100">
                             <TextBlock x:Name="txtBrowseInput"/>
                         </Button>
-                        <TextBlock Grid.Column="3" x:Name="imgInputInfo" FontFamily="Segoe MDL2 Assets" FontSize="16"
-                                   Text="&#xE946;" Opacity="0.8" VerticalAlignment="Center" Margin="8,0,0,0">
+                        <TextBlock Grid.Column="3" x:Name="imgInputInfo" FontFamily="{StaticResource IconFontFamily}" FontSize="16"
+                                   Text="&#xE946;" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Focusable="True" KeyboardNavigation.IsTabStop="True" ToolTipService.ShowsToolTipOnKeyboardFocus="True" VerticalAlignment="Center" Margin="8,0,0,0">
                             <TextBlock.ToolTip>
                                 <ToolTip x:Name="tooltipInputFile"/>
                             </TextBlock.ToolTip>
@@ -95,17 +96,17 @@
 
                     <!-- Modell -->
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                        <Label x:Name="lblModel" VerticalAlignment="Center" Padding="0" Style="{StaticResource FormLabelStyle}"/>
+                        <Label x:Name="lblModel" Target="{Binding ElementName=combModel}" VerticalAlignment="Center" Padding="0" Style="{StaticResource FormLabelStyle}"/>
                         <ComboBox x:Name="combModel" Width="280" Margin="8,0,0,0" VerticalContentAlignment="Center">
-                            <TextBlock x:Name="imgModelInfo" FontFamily="Segoe MDL2 Assets" FontSize="16"
-                                       Text="&#xE946;" Opacity="0.8" VerticalAlignment="Center" Margin="8,0,0,0">
+                            <TextBlock x:Name="imgModelInfo" FontFamily="{StaticResource IconFontFamily}" FontSize="16"
+                                       Text="&#xE946;" Foreground="{DynamicResource TextFillColorSecondaryBrush}" VerticalAlignment="Center" Margin="8,0,0,0">
                                 <TextBlock.ToolTip>
                                     <ToolTip x:Name="tooltipModel"/>
                                 </TextBlock.ToolTip>
                             </TextBlock>
                         </ComboBox>
-                        <TextBlock x:Name="imgModelInfoIcon" FontFamily="Segoe MDL2 Assets" FontSize="16"
-                                   Text="&#xE946;" Opacity="0.8" VerticalAlignment="Center" Margin="8,0,0,0">
+                        <TextBlock x:Name="imgModelInfoIcon" FontFamily="{StaticResource IconFontFamily}" FontSize="16"
+                                   Text="&#xE946;" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Focusable="True" KeyboardNavigation.IsTabStop="True" ToolTipService.ShowsToolTipOnKeyboardFocus="True" VerticalAlignment="Center" Margin="8,0,0,0">
                             <TextBlock.ToolTip>
                                 <ToolTip x:Name="tooltipModel2"/>
                             </TextBlock.ToolTip>
@@ -114,10 +115,10 @@
 
                     <!-- Sprache -->
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                        <Label x:Name="lblLanguage" VerticalAlignment="Center" Padding="0" Style="{StaticResource FormLabelStyle}"/>
+                        <Label x:Name="lblLanguage" Target="{Binding ElementName=combLanguage}" VerticalAlignment="Center" Padding="0" Style="{StaticResource FormLabelStyle}"/>
                         <ComboBox x:Name="combLanguage" Width="200" Margin="8,0,0,0" VerticalContentAlignment="Center"/>
-                        <TextBlock x:Name="imgLangInfo" FontFamily="Segoe MDL2 Assets" FontSize="16"
-                                   Text="&#xE946;" Opacity="0.8" VerticalAlignment="Center" Margin="8,0,0,0">
+                        <TextBlock x:Name="imgLangInfo" FontFamily="{StaticResource IconFontFamily}" FontSize="16"
+                                   Text="&#xE946;" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Focusable="True" KeyboardNavigation.IsTabStop="True" ToolTipService.ShowsToolTipOnKeyboardFocus="True" VerticalAlignment="Center" Margin="8,0,0,0">
                             <TextBlock.ToolTip>
                                 <ToolTip x:Name="tooltipLang"/>
                             </TextBlock.ToolTip>
@@ -138,8 +139,8 @@
                                 <TextBlock x:Name="txtOutputVtt"/>
                             </CheckBox>
                         </StackPanel>
-                        <TextBlock x:Name="imgFormatInfo" FontFamily="Segoe MDL2 Assets" FontSize="16"
-                                   Text="&#xE946;" Opacity="0.8" VerticalAlignment="Top" Margin="8,4,0,0">
+                        <TextBlock x:Name="imgFormatInfo" FontFamily="{StaticResource IconFontFamily}" FontSize="16"
+                                   Text="&#xE946;" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Focusable="True" KeyboardNavigation.IsTabStop="True" ToolTipService.ShowsToolTipOnKeyboardFocus="True" VerticalAlignment="Top" Margin="8,4,0,0">
                             <TextBlock.ToolTip>
                                 <ToolTip x:Name="tooltipFormat"/>
                             </TextBlock.ToolTip>
@@ -159,15 +160,15 @@
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <Label Grid.Column="0" x:Name="lblOutputDir" VerticalAlignment="Center" Padding="0" Style="{StaticResource FormLabelStyle}"/>
+                        <Label Grid.Column="0" x:Name="lblOutputDir" Target="{Binding ElementName=tbOutputDir}" VerticalAlignment="Center" Padding="0" Style="{StaticResource FormLabelStyle}"/>
                         <TextBox Grid.Column="1" x:Name="tbOutputDir" MinWidth="150" VerticalAlignment="Center" VerticalContentAlignment="Center"
                                  Margin="8,0,8,0"/>
-                        <Button Grid.Column="2" x:Name="btnBrowseOutput" Click="btnBrowseOutput_Click" Style="{StaticResource SecondaryButtonStyle}" VerticalAlignment="Center" Margin="0,0,8,0">
+                        <Button Grid.Column="2" x:Name="btnBrowseOutput" Click="btnBrowseOutput_Click" Style="{StaticResource SecondaryButtonStyle}" MinWidth="100" VerticalAlignment="Center" Margin="0,0,8,0">
                             <TextBlock x:Name="txtBrowseOutput"/>
                         </Button>
-                        <Button Grid.Column="3" x:Name="btnOpenOutput" Click="btnOpenOutput_Click" Style="{StaticResource SecondaryButtonStyle}" VerticalAlignment="Center">
+                        <Button Grid.Column="3" x:Name="btnOpenOutput" Click="btnOpenOutput_Click" Style="{StaticResource SecondaryButtonStyle}" MinWidth="100" VerticalAlignment="Center">
                             <StackPanel Orientation="Horizontal">
-                                <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xED25;" FontSize="14"
+                                <TextBlock FontFamily="{StaticResource IconFontFamily}" Text="&#xED25;" FontSize="16"
                                            VerticalAlignment="Center" Margin="0,0,4,0"/>
                                 <TextBlock x:Name="txtOpenOutput" VerticalAlignment="Center"/>
                             </StackPanel>
@@ -194,23 +195,23 @@
         <Border x:Name="borderActions" Grid.Row="1" Style="{StaticResource ActionBarStyle}">
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                     <Button x:Name="btnStart" Click="btnStart_Click"
-                            Style="{StaticResource PrimaryButtonStyle}" VerticalAlignment="Center">
+                            Style="{StaticResource PrimaryButtonStyle}" MinWidth="100" VerticalAlignment="Center">
                         <Button.ToolTip>
                             <ToolTip x:Name="tooltipBtnStart"/>
                         </Button.ToolTip>
                     </Button>
-                    <Button x:Name="btnCancel" Click="btnCancel_Click" Style="{StaticResource SecondaryButtonStyle}" IsEnabled="False"
+                    <Button x:Name="btnCancel" Click="btnCancel_Click" Style="{StaticResource SecondaryButtonStyle}" IsEnabled="False" MinWidth="100"
                             VerticalAlignment="Center" Margin="8,0,0,0"/>
 
                     <!-- Fortschritt (läuft) -->
                     <Border x:Name="pnlRunning" Padding="12,0,0,0" Visibility="Collapsed">
                         <StackPanel VerticalAlignment="Center">
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,2">
-                                <TextBlock x:Name="txtStatus" FontWeight="SemiBold"/>
-                                <TextBlock x:Name="txtProgressPercent" Margin="8,0,0,0" Opacity="0.7"/>
+                            <StackPanel Orientation="Horizontal" Margin="0">
+                                <TextBlock x:Name="txtStatus" FontWeight="SemiBold" helpers:A11y.AnnounceChanges="True"/>
+                                <TextBlock x:Name="txtProgressPercent" Margin="8,0,0,0" Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
                             </StackPanel>
                             <ProgressBar x:Name="pbProgress"
-                                         Width="250" Height="8"
+                                         Width="250" Height="{StaticResource ProgressBarHeight}"
                                          Minimum="0" Maximum="100" Value="0"
                                          IsIndeterminate="False"/>
                         </StackPanel>
@@ -219,16 +220,16 @@
                     <!-- Ergebnis (fertig / Fehler / abgebrochen) -->
                     <Border x:Name="pnlResult" Padding="12,0,0,0" Visibility="Collapsed">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                            <TextBlock x:Name="txtResultIcon" FontFamily="Segoe MDL2 Assets" FontSize="20"
+                            <TextBlock x:Name="txtResultIcon" FontFamily="{StaticResource IconFontFamily}" FontSize="20"
                                        VerticalAlignment="Center" Margin="0,0,4,0"/>
                             <StackPanel VerticalAlignment="Center">
-                                <TextBlock x:Name="txtResultTitle" FontWeight="SemiBold"/>
-                                <TextBlock x:Name="txtResultFile" Opacity="0.65" FontSize="11"
+                                <TextBlock x:Name="txtResultTitle" FontWeight="SemiBold" helpers:A11y.AnnounceChanges="True"/>
+                                <TextBlock x:Name="txtResultFile" Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontSize="12"
                                            MaxWidth="320" TextTrimming="CharacterEllipsis"/>
                             </StackPanel>
-                            <Button x:Name="btnOpenResult" Click="btnOpenResult_Click" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}"
-                                    Background="Transparent" BorderThickness="0" Margin="12,0,0,0" Padding="0" Visibility="Collapsed">
-                                    <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE8B7;" FontSize="20"
+                            <Button x:Name="btnOpenResult" Click="btnOpenResult_Click" Style="{StaticResource IconButtonStyle}"
+                                    Margin="12,0,0,0" Visibility="Collapsed">
+                                    <TextBlock FontFamily="{StaticResource IconFontFamily}" Text="&#xE8B7;" FontSize="20"
                                                Foreground="{StaticResource BrandYellowBrush}" VerticalAlignment="Center"/>
                             </Button>
                         </StackPanel>

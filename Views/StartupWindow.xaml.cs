@@ -44,6 +44,10 @@ namespace MortysDLP
 
         private void StartLoadingAnimation()
         {
+            // Systemeinstellung „Animationseffekte" respektieren: sonst bleibt das Symbol still
+            if (!MortysDLP.Helpers.A11y.AnimationsEnabled)
+                return;
+
             var animation = new DoubleAnimation
             {
                 From = 0,

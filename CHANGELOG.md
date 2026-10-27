@@ -51,10 +51,27 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
   zu laufen — einschließlich des Vorbereitungsschritts, in dem das Audio aus dem Video
   gelesen wird.
 
+- **Werkzeuge:** Der Abbrechen-Knopf neben dem Fortschritt einer Installation oder Reparatur war
+  leer. Er ist jetzt beschriftet.
+- **Twitch:** Der Knopf zum Prüfen und Aktualisieren von TwitchDownloaderCLI schrumpfte nach der
+  ersten Prüfung auf eine kleinere Höhe. Er behält jetzt seine Größe.
+
 ### Geändert
 
 - **Werkzeuge-Seite mit Bildschirmleser:** Die Knöpfe jeder Zeile nennen jetzt auch das Werkzeug
   („whisper.cpp: Deinstallieren"), statt in jeder Zeile gleich zu heißen.
+- **Einheitlichere Oberfläche:** Knöpfe sind auf allen Seiten und in allen Dialogen gleich hoch und
+  gleich gestaltet, Fortschrittsbalken überall gleich dünn, Abstände und Schriftgrade folgen einem
+  Raster. Symbole nutzen unter Windows 11 die aktuelle Systemschrift „Segoe Fluent Icons".
+- **Besser lesbar im hellen Design:** Die Zustandsfarben („Installiert", „Fehlt", „Update
+  verfügbar") nutzen die Windows-Statusfarben und wechseln sofort mit dem Windows-Design.
+  Zweitrangige Texte sind nicht mehr nur halb durchsichtig, sondern nutzen die Systemfarbe für
+  Nebentext.
+- **Bedienung mit Tastatur und Bildschirmleser:** Eingabefelder nennen ihre Beschriftung, reine
+  Symbolknöpfe haben einen Namen, Info-Symbole sind per Tab erreichbar und lesen ihren Hinweis
+  vor, Statusmeldungen werden angesagt. Drehende Ladesymbole stehen still, wenn unter Windows die
+  Animationseffekte ausgeschaltet sind.
+- Ladetexte enden mit „…" statt mit drei Punkten.
 
 ## [2026.09.09] – 2026-09-09
 

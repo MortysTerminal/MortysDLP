@@ -1,6 +1,7 @@
 <Page x:Class="MortysDLP.Views.ToolsPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:helpers="clr-namespace:MortysDLP.Helpers"
       Title="Werkzeuge"
       Loaded="ToolsPage_Loaded">
     <Page.Resources>
@@ -17,7 +18,7 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <TextBlock x:Name="txtCheckAllHint" Grid.Column="0" VerticalAlignment="Center"
-                               TextWrapping="Wrap" Opacity="0.75" Margin="0,0,12,0"/>
+                               TextWrapping="Wrap" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,0,12,0"/>
                     <Button x:Name="btnCheckAll" Grid.Column="1" Click="btnCheckAll_Click"
                             Style="{StaticResource PrimaryButtonStyle}"/>
                 </Grid>
@@ -33,7 +34,7 @@
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0" x:Name="txtSectionTools" Style="{StaticResource SectionHeaderStyle}"
                                    Margin="0" VerticalAlignment="Center"/>
-                        <TextBlock Grid.Column="1" x:Name="txtTotalSize" Opacity="0.7" FontSize="11"
+                        <TextBlock Grid.Column="1" x:Name="txtTotalSize" Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontSize="12"
                                    VerticalAlignment="Center"/>
                     </Grid>
 
@@ -60,30 +61,30 @@
                                                                FontWeight="SemiBold" TextWrapping="Wrap"/>
                                                     <Border Visibility="{Binding RequiredForOperation, Converter={StaticResource BoolToVis}}"
                                                             Background="{DynamicResource SubtleFillColorSecondaryBrush}"
-                                                            CornerRadius="3" Padding="5,1" Margin="8,0,0,0" VerticalAlignment="Center">
+                                                            CornerRadius="4" Padding="4,0" Margin="8,0,0,0" VerticalAlignment="Center">
                                                         <TextBlock Text="{Binding RequiredBadgeText}" FontSize="10"
-                                                                   FontWeight="SemiBold" Opacity="0.8"/>
+                                                                   FontWeight="SemiBold" Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
                                                     </Border>
                                                 </StackPanel>
-                                                <TextBlock Text="{Binding UsedForText}" FontSize="11" Opacity="0.6"
-                                                           TextWrapping="Wrap" Margin="0,2,0,0"/>
+                                                <TextBlock Text="{Binding UsedForText}" FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                                           TextWrapping="Wrap" Margin="0,4,0,0"/>
                                             </StackPanel>
 
                                             <TextBlock Grid.Column="1" Text="{Binding StateText}"
-                                                       Foreground="{Binding StateColor}" FontWeight="SemiBold"
+                                                       Style="{StaticResource StatusToneTextStyle}"
                                                        VerticalAlignment="Center" Margin="0,0,8,0"/>
 
                                             <TextBlock Grid.Column="2" Text="{Binding VersionText}"
-                                                       VerticalAlignment="Center" Opacity="0.8" Margin="0,0,8,0"
+                                                       VerticalAlignment="Center" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,0,8,0"
                                                        TextTrimming="CharacterEllipsis"/>
 
                                             <TextBlock Grid.Column="3" Text="{Binding LocationText}"
-                                                       VerticalAlignment="Center" Opacity="0.6" Margin="0,0,8,0"
-                                                       TextTrimming="CharacterEllipsis" FontSize="11"
+                                                       VerticalAlignment="Center" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,0,8,0"
+                                                       TextTrimming="CharacterEllipsis" FontSize="12"
                                                        ToolTip="{Binding LocationText}"/>
 
                                             <TextBlock Grid.Column="4" Text="{Binding SizeText}"
-                                                       VerticalAlignment="Center" Opacity="0.75"
+                                                       VerticalAlignment="Center" Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                                                        HorizontalAlignment="Right" Margin="0,0,8,0"/>
 
                                             <!-- Jede Zeile hat dieselben Knopftexte - für Screenreader trägt jeder Knopf
@@ -91,7 +92,7 @@
                                             <StackPanel Grid.Column="5" Orientation="Horizontal">
                                                 <Button Content="{Binding RepairButtonText}" Tag="{Binding ToolId}"
                                                         IsEnabled="{Binding CanRepair}" Click="btnRepair_Click"
-                                                        Margin="0,0,8,0" Padding="8,4">
+                                                        Style="{StaticResource SecondaryButtonStyle}" Margin="0,0,8,0">
                                                     <AutomationProperties.Name>
                                                         <MultiBinding StringFormat="{}{0}: {1}">
                                                             <Binding Path="DisplayName"/>
@@ -102,7 +103,7 @@
                                                 <Button Content="{Binding UpdateButtonText}" Tag="{Binding ToolId}"
                                                         Visibility="{Binding UpdateVisibility}" Click="btnUpdate_Click"
                                                         Style="{StaticResource PrimaryButtonStyle}"
-                                                        Margin="0,0,8,0" Padding="8,4">
+                                                        Margin="0,0,8,0">
                                                     <AutomationProperties.Name>
                                                         <MultiBinding StringFormat="{}{0}: {1}">
                                                             <Binding Path="DisplayName"/>
@@ -112,7 +113,7 @@
                                                 </Button>
                                                 <Button Content="{Binding UninstallButtonText}" Tag="{Binding ToolId}"
                                                         IsEnabled="{Binding CanUninstall}" Click="btnUninstall_Click"
-                                                        Margin="0,0,8,0" Padding="8,4">
+                                                        Style="{StaticResource SecondaryButtonStyle}" Margin="0,0,8,0">
                                                     <AutomationProperties.Name>
                                                         <MultiBinding StringFormat="{}{0}: {1}">
                                                             <Binding Path="DisplayName"/>
@@ -122,7 +123,7 @@
                                                 </Button>
                                                 <Button Content="{Binding OpenFolderButtonText}" Tag="{Binding ToolId}"
                                                         IsEnabled="{Binding CanOpenFolder}" Click="btnOpenFolder_Click"
-                                                        Padding="8,4">
+                                                        Style="{StaticResource SecondaryButtonStyle}">
                                                     <AutomationProperties.Name>
                                                         <MultiBinding StringFormat="{}{0}: {1}">
                                                             <Binding Path="DisplayName"/>
@@ -141,12 +142,22 @@
                                                 <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
                                             <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,12,0">
-                                                <TextBlock Text="{Binding StatusMessage}" FontSize="11" Opacity="0.8" Margin="0,0,0,4"/>
+                                                <TextBlock Text="{Binding StatusMessage}" FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,0,0,4"
+                                                           helpers:A11y.AnnounceChanges="True"/>
                                                 <ProgressBar Value="{Binding ProgressFraction}" Minimum="0" Maximum="1"
-                                                             Height="8"/>
+                                                             Height="{StaticResource ProgressBarHeight}"
+                                                             AutomationProperties.Name="{Binding DisplayName}"/>
                                             </StackPanel>
-                                            <Button x:Name="btnCancelRow" Grid.Column="1" Click="btnCancelRow_Click"
-                                                    VerticalAlignment="Center" Padding="8,4"/>
+                                            <Button Grid.Column="1" Click="btnCancelRow_Click" VerticalAlignment="Center"
+                                                    Content="{Binding CancelButtonText}"
+                                                    Style="{StaticResource SecondaryButtonStyle}">
+                                                <AutomationProperties.Name>
+                                                    <MultiBinding StringFormat="{}{0}: {1}">
+                                                        <Binding Path="DisplayName"/>
+                                                        <Binding Path="CancelButtonText"/>
+                                                    </MultiBinding>
+                                                </AutomationProperties.Name>
+                                            </Button>
                                         </Grid>
                                     </StackPanel>
                                 </Border>
@@ -166,10 +177,11 @@
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0" x:Name="txtSectionModels" Style="{StaticResource SectionHeaderStyle}"
                                    Margin="0" VerticalAlignment="Center"/>
-                        <Button Grid.Column="1" x:Name="btnManageModels" Click="btnManageModels_Click" Padding="8,4"/>
+                        <Button Grid.Column="1" x:Name="btnManageModels" Click="btnManageModels_Click"
+                                Style="{StaticResource SecondaryButtonStyle}"/>
                     </Grid>
 
-                    <TextBlock x:Name="txtModelsSummary" Opacity="0.75" Margin="0,0,0,8" TextWrapping="Wrap"/>
+                    <TextBlock x:Name="txtModelsSummary" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,0,0,8" TextWrapping="Wrap"/>
 
                     <ItemsControl x:Name="icModels">
                         <ItemsControl.ItemsPanel>
@@ -184,8 +196,8 @@
                                         BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="1">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="{Binding Name}" Margin="0,0,8,0" FontSize="12"/>
-                                        <TextBlock Text="{Binding StateText}" Foreground="{Binding StateColor}"
-                                                   FontSize="12" FontWeight="SemiBold"/>
+                                        <TextBlock Text="{Binding StateText}" Style="{StaticResource StatusToneTextStyle}"
+                                                   FontSize="12"/>
                                     </StackPanel>
                                 </Border>
                             </DataTemplate>

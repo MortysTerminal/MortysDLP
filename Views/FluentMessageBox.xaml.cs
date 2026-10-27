@@ -46,6 +46,9 @@ namespace MortysDLP
 
         // ─── Icon-Konfiguration ───────────────────────────────────────────────────────
 
+        // Symbolfarben bewusst noch fest: Ob sie den theme-abhängigen Statusfarben folgen
+        // (dunkel: Warnung gelb, Fehler hellrot) oder neutral werden, entscheidet die
+        // Gestaltungsrunde mit Mock-up.
         private void ConfigureIcon(MessageBoxImage icon)
         {
             switch (icon)
@@ -115,8 +118,7 @@ namespace MortysDLP
             var btn = new Button
             {
                 Content  = text,
-                MinWidth = 80,
-                Padding  = new Thickness(20, 8, 20, 8),
+                MinWidth = 100,
                 Margin   = new Thickness(ButtonPanel.Children.Count > 0 ? 8 : 0, 0, 0, 0)
             };
 
@@ -125,6 +127,10 @@ namespace MortysDLP
                 if (TryFindResource("PrimaryButtonStyle") is Style ps)
                     btn.Style = ps;
                 _primaryButton = btn;
+            }
+            else if (TryFindResource("SecondaryButtonStyle") is Style ss)
+            {
+                btn.Style = ss;
             }
 
             btn.Click += (_, _) => { Result = result; DialogResult = true; };

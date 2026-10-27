@@ -41,6 +41,7 @@ namespace MortysDLP
             // Header
             txtHeaderTitle.Text = T("DownloadHistory.Header.Title");
             txtHeaderSubtitle.Text = T("DownloadHistory.Header.Subtitle");
+            System.Windows.Automation.AutomationProperties.SetName(HistoryList, T("DownloadHistory.Header.Title"));
             
             // Buttons
             this.ReuseButton.Content = T("DownloadHistory.Button.ReUse");

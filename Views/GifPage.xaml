@@ -2,6 +2,7 @@
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:v="clr-namespace:MortysDLP.Views"
+      xmlns:helpers="clr-namespace:MortysDLP.Helpers"
       Title="GIF-Maker"
       Loaded="GifPage_Loaded">
     <Grid>
@@ -22,7 +23,7 @@
                 <StackPanel>
                     <TextBlock x:Name="txtSectionInput" Style="{StaticResource SectionHeaderStyle}"/>
                     <StackPanel Orientation="Horizontal">
-                        <Label x:Name="lblInputFile" VerticalAlignment="Center" Padding="0" Style="{StaticResource FormLabelStyle}"/>
+                        <Label x:Name="lblInputFile" Target="{Binding ElementName=tbInputFile}" VerticalAlignment="Center" Padding="0" Style="{StaticResource FormLabelStyle}"/>
                         <TextBox x:Name="tbInputFile" Width="430" IsReadOnly="True"
                                  VerticalContentAlignment="Center" Margin="8,0,8,0"
                                  ToolTip="{Binding ElementName=tbInputFile, Path=Text}">
@@ -39,8 +40,8 @@
                                              <Button x:Name="btnBrowseInput" Click="btnBrowseInput_Click" Style="{StaticResource SecondaryButtonStyle}" MinWidth="100">
                                                  <TextBlock x:Name="txtBrowseInput"/>
                                              </Button>
-                                             <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="16"
-                                   Text="&#xE946;" Opacity="0.8" VerticalAlignment="Center" Margin="8,0,0,0">
+                                             <TextBlock x:Name="imgInputInfo" FontFamily="{StaticResource IconFontFamily}" FontSize="16"
+                                   Text="&#xE946;" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Focusable="True" KeyboardNavigation.IsTabStop="True" ToolTipService.ShowsToolTipOnKeyboardFocus="True" VerticalAlignment="Center" Margin="8,0,0,0">
                             <TextBlock.ToolTip>
                                 <ToolTip x:Name="tooltipInputFile"/>
                             </TextBlock.ToolTip>
@@ -56,15 +57,15 @@
 
                     <!-- Qualität -->
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                        <Label x:Name="lblQuality" VerticalAlignment="Center" Padding="0" Style="{StaticResource FormLabelStyle}"/>
+                        <Label x:Name="lblQuality" Target="{Binding ElementName=combQuality}" VerticalAlignment="Center" Padding="0" Style="{StaticResource FormLabelStyle}"/>
                         <ComboBox x:Name="combQuality" Width="240" Margin="8,0,0,0" VerticalContentAlignment="Center">
                             <ComboBoxItem x:Name="cbiQualityWeb" IsSelected="True"/>
                             <ComboBoxItem x:Name="cbiQualityLow"/>
                             <ComboBoxItem x:Name="cbiQualityMedium"/>
                             <ComboBoxItem x:Name="cbiQualityHigh"/>
                         </ComboBox>
-                        <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="16"
-                                   Text="&#xE946;" Opacity="0.8" VerticalAlignment="Center" Margin="8,0,0,0">
+                        <TextBlock x:Name="imgQualityInfo" FontFamily="{StaticResource IconFontFamily}" FontSize="16"
+                                   Text="&#xE946;" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Focusable="True" KeyboardNavigation.IsTabStop="True" ToolTipService.ShowsToolTipOnKeyboardFocus="True" VerticalAlignment="Center" Margin="8,0,0,0">
                             <TextBlock.ToolTip>
                                 <ToolTip x:Name="tooltipQuality"/>
                             </TextBlock.ToolTip>
@@ -75,12 +76,12 @@
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,0">
                         <CheckBox x:Name="cbTimeRange" VerticalAlignment="Center" Margin="0,0,8,0"
                                   Checked="cbTimeRange_Check" Unchecked="cbTimeRange_Check"/>
-                        <Label x:Name="lblStartTime" VerticalAlignment="Center" Padding="0" Style="{StaticResource FormLabelShortStyle}"/>
+                        <Label x:Name="lblStartTime" Target="{Binding ElementName=tbStartTime}" VerticalAlignment="Center" Padding="0" Style="{StaticResource FormLabelShortStyle}"/>
                         <TextBox x:Name="tbStartTime" Width="100" IsEnabled="False" VerticalContentAlignment="Center" Margin="8,0,24,0"/>
-                        <Label x:Name="lblEndTime" VerticalAlignment="Center" Padding="0" Style="{StaticResource FormLabelShortStyle}"/>
+                        <Label x:Name="lblEndTime" Target="{Binding ElementName=tbEndTime}" VerticalAlignment="Center" Padding="0" Style="{StaticResource FormLabelShortStyle}"/>
                         <TextBox x:Name="tbEndTime" Width="100" IsEnabled="False" VerticalContentAlignment="Center" Margin="8,0,0,0"/>
-                        <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="16"
-                                   Text="&#xE946;" Opacity="0.8" VerticalAlignment="Center" Margin="8,0,0,0">
+                        <TextBlock x:Name="imgTimeInfo" FontFamily="{StaticResource IconFontFamily}" FontSize="16"
+                                   Text="&#xE946;" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Focusable="True" KeyboardNavigation.IsTabStop="True" ToolTipService.ShowsToolTipOnKeyboardFocus="True" VerticalAlignment="Center" Margin="8,0,0,0">
                             <TextBlock.ToolTip>
                                 <ToolTip x:Name="tooltipTime"/>
                             </TextBlock.ToolTip>
@@ -102,7 +103,7 @@
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <Label x:Name="lblOutputFolder" VerticalAlignment="Center" Padding="0"
+                        <Label x:Name="lblOutputFolder" Target="{Binding ElementName=tbOutputFolder}" VerticalAlignment="Center" Padding="0"
                                Style="{StaticResource FormLabelStyle}" Grid.Column="0"/>
                         <TextBox x:Name="tbOutputFolder" VerticalContentAlignment="Center"
                                  Margin="8,0,0,0" Grid.Column="1"/>
@@ -124,7 +125,7 @@
                         <StackPanel>
                             <TextBlock x:Name="txtUsePath" FontWeight="SemiBold" Margin="0,0,0,8"/>
                             <StackPanel Orientation="Horizontal">
-                                <Button x:Name="btnUseDownloadPath" Click="btnUseDownloadPath_Click" Style="{StaticResource SecondaryButtonStyle}" Width="140">
+                                <Button x:Name="btnUseDownloadPath" Click="btnUseDownloadPath_Click" Style="{StaticResource SecondaryButtonStyle}">
                                     <TextBlock x:Name="txtUseDownloadPath"/>
                                 </Button>
                             </StackPanel>
@@ -157,21 +158,21 @@
         <Border Grid.Row="1" Style="{StaticResource ActionBarStyle}">
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                     <Button x:Name="btnStart" Click="btnStart_Click"
-                            Style="{StaticResource PrimaryButtonStyle}" Margin="0,0,8,0">
+                            Style="{StaticResource PrimaryButtonStyle}" MinWidth="100" Margin="0,0,8,0">
                         <TextBlock x:Name="txtBtnStart"/>
                     </Button>
-                    <Button x:Name="btnCancel" Click="btnCancel_Click" Style="{StaticResource SecondaryButtonStyle}" IsEnabled="False">
+                    <Button x:Name="btnCancel" Click="btnCancel_Click" Style="{StaticResource SecondaryButtonStyle}" MinWidth="100" IsEnabled="False">
                         <TextBlock x:Name="txtBtnCancel"/>
                     </Button>
 
                     <!-- Fortschritt (läuft) -->
                     <Border x:Name="pnlRunning" Padding="12,0,0,0" Visibility="Collapsed">
                         <StackPanel VerticalAlignment="Center">
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,2">
-                                <TextBlock x:Name="txtStatus" FontWeight="SemiBold"/>
+                            <StackPanel Orientation="Horizontal" Margin="0">
+                                <TextBlock x:Name="txtStatus" FontWeight="SemiBold" helpers:A11y.AnnounceChanges="True"/>
                             </StackPanel>
                             <ProgressBar x:Name="pbProgress"
-                                         Width="220" Height="8"
+                                         Width="220" Height="{StaticResource ProgressBarHeight}"
                                          Minimum="0" Maximum="100" Value="0"/>
                         </StackPanel>
                     </Border>
@@ -179,12 +180,12 @@
                     <!-- Ergebnis (fertig / Fehler / abgebrochen) -->
                     <Border x:Name="pnlResult" Padding="12,0,0,0" Visibility="Collapsed">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                            <TextBlock x:Name="txtResultIcon" FontFamily="Segoe MDL2 Assets" FontSize="20"
+                            <TextBlock x:Name="txtResultIcon" FontFamily="{StaticResource IconFontFamily}" FontSize="20"
                                        VerticalAlignment="Center" Margin="0,0,4,0"/>
-                            <TextBlock x:Name="txtResultTitle" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                            <Button x:Name="btnOpenResult" Click="btnOpenResult_Click" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}"
-                                    Background="Transparent" BorderThickness="0" Margin="12,0,0,0" Padding="0" Visibility="Collapsed">
-                                    <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE8B7;" FontSize="20"
+                            <TextBlock x:Name="txtResultTitle" FontWeight="SemiBold" VerticalAlignment="Center" helpers:A11y.AnnounceChanges="True"/>
+                            <Button x:Name="btnOpenResult" Click="btnOpenResult_Click" Style="{StaticResource IconButtonStyle}"
+                                    Margin="12,0,0,0" Visibility="Collapsed">
+                                    <TextBlock FontFamily="{StaticResource IconFontFamily}" Text="&#xE8B7;" FontSize="20"
                                                Foreground="{StaticResource BrandYellowBrush}" VerticalAlignment="Center"/>
                             </Button>
                         </StackPanel>

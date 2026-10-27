@@ -1,12 +1,14 @@
 <Window x:Class="MortysDLP.Views.WhisperModelsWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:helpers="clr-namespace:MortysDLP.Helpers"
         Title="Whisper-Modelle verwalten"
         Width="760" Height="600"
         MinWidth="680" MinHeight="480"
         WindowStartupLocation="CenterOwner"
         FontFamily="{DynamicResource AppFontFamily}"
-        ShowInTaskbar="False">
+        ShowInTaskbar="False"
+        Background="{DynamicResource SolidBackgroundFillColorBaseBrush}">
 
     <Grid Margin="20,16,20,16">
         <Grid.RowDefinitions>
@@ -21,11 +23,11 @@
         <!-- Header -->
         <StackPanel Grid.Row="0" Margin="0,0,0,16">
             <TextBlock x:Name="txtHeaderTitle" Style="{StaticResource PageTitleStyle}"/>
-            <TextBlock x:Name="txtHeaderSubtitle" Opacity="0.65" Margin="0,2,0,0" TextWrapping="Wrap"/>
+            <TextBlock x:Name="txtHeaderSubtitle" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,0,0,0" TextWrapping="Wrap"/>
         </StackPanel>
 
         <!-- Whisper Engine Status -->
-        <Border Grid.Row="1" CornerRadius="8" Padding="14,10" Margin="0,0,0,10"
+        <Border Grid.Row="1" CornerRadius="8" Padding="16,12" Margin="0,0,0,8"
                 Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
                 BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="1">
             <Grid>
@@ -35,12 +37,13 @@
                 </Grid.ColumnDefinitions>
                 <StackPanel Grid.Column="0" VerticalAlignment="Center">
                     <TextBlock x:Name="txtWhisperEngineStatus" FontWeight="SemiBold"/>
-                    <TextBlock x:Name="txtModelsDir" Opacity="0.6" FontSize="11" Margin="0,3,0,0" TextWrapping="Wrap"/>
+                    <TextBlock x:Name="txtModelsDir" Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontSize="12" Margin="0,4,0,0" TextWrapping="Wrap"/>
                 </StackPanel>
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Button x:Name="btnUninstall" Click="btnUninstall_Click" Margin="0,0,8,0"
+                    <Button x:Name="btnUninstall" Click="btnUninstall_Click" Margin="0,0,8,0" MinWidth="100"
+                            Style="{StaticResource SecondaryButtonStyle}"
                             Foreground="{DynamicResource ErrorBrush}" Visibility="Collapsed"/>
-                    <Button x:Name="btnInstallWhisper" Click="btnInstallWhisper_Click"
+                    <Button x:Name="btnInstallWhisper" Click="btnInstallWhisper_Click" MinWidth="100"
                             Style="{StaticResource PrimaryButtonStyle}"/>
                 </StackPanel>
             </Grid>
@@ -48,7 +51,7 @@
 
         <!-- Download-Fortschritt -->
         <Border Grid.Row="2" x:Name="pnlProgress" Visibility="Collapsed"
-                CornerRadius="8" Padding="14,10" Margin="0,0,0,10"
+                CornerRadius="8" Padding="16,12" Margin="0,0,0,8"
                 Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
                 BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="1">
             <StackPanel>
@@ -58,22 +61,24 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <TextBlock Grid.Column="0" x:Name="txtProgressLabel" FontWeight="SemiBold"
-                               VerticalAlignment="Center" TextWrapping="Wrap"/>
+                               VerticalAlignment="Center" TextWrapping="Wrap"
+                               helpers:A11y.AnnounceChanges="True"/>
                     <Button Grid.Column="1" x:Name="btnCancelProgress" Click="btnCancelProgress_Click"
-                            Margin="10,0,0,0" Padding="10,3"/>
+                            Margin="8,0,0,0" MinWidth="100"
+                            Style="{StaticResource SecondaryButtonStyle}"/>
                 </Grid>
                 <ProgressBar x:Name="pbProgress"
-                             Height="10" Minimum="0" Maximum="100" Value="0" Margin="0,8,0,0"/>
-                <TextBlock x:Name="txtProgressPercent" Margin="0,4,0,0" Opacity="0.7"/>
+                             Height="{StaticResource ProgressBarHeight}" Minimum="0" Maximum="100" Value="0" Margin="0,8,0,0"/>
+                <TextBlock x:Name="txtProgressPercent" Margin="0,4,0,0" Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
             </StackPanel>
         </Border>
 
         <!-- Modell-Liste -->
-        <ScrollViewer x:Name="scrollModels" Grid.Row="3" VerticalScrollBarVisibility="Auto" Margin="0,0,0,10">
+        <ScrollViewer x:Name="scrollModels" Grid.Row="3" VerticalScrollBarVisibility="Auto" Margin="0,0,0,8">
             <ItemsControl x:Name="icModels">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <Border CornerRadius="8" Padding="14,10" Margin="0,0,0,6"
+                        <Border CornerRadius="8" Padding="16,12" Margin="0,0,0,4"
                                 Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
                                 BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="1">
                             <Grid>
@@ -85,22 +90,21 @@
                                 </Grid.ColumnDefinitions>
 
                                 <!-- Name + Beschreibung -->
-                                <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0">
+                                <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,8,0">
                                     <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold"/>
-                                    <TextBlock Text="{Binding Description}" Opacity="0.65" FontSize="11"
-                                               TextWrapping="Wrap" Margin="0,2,0,0"/>
+                                    <TextBlock Text="{Binding Description}" Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontSize="12"
+                                               TextWrapping="Wrap" Margin="0,0,0,0"/>
                                 </StackPanel>
 
                                 <!-- Größe -->
                                 <TextBlock Grid.Column="1" Text="{Binding SizeHint}"
                                            VerticalAlignment="Center" HorizontalAlignment="Center"
-                                           Opacity="0.75"/>
+                                           Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
 
                                 <!-- Status -->
                                 <TextBlock Grid.Column="2" Text="{Binding StatusText}"
                                            VerticalAlignment="Center" HorizontalAlignment="Center"
-                                           FontWeight="SemiBold"
-                                           Foreground="{Binding StatusColor}"/>
+                                           Style="{StaticResource StatusToneTextStyle}"/>
 
                                 <!-- Aktions-Buttons -->
                                 <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
@@ -110,13 +114,13 @@
                                             Tag="{Binding ModelId}"
                                             Click="btnDownloadModel_Click"
                                             Style="{StaticResource PrimaryButtonStyle}"
-                                            Margin="0,0,6,0" Padding="8,4"/>
+                                            Margin="0,0,4,0"/>
                                     <Button Content="{Binding DeleteButtonText}"
                                             IsEnabled="{Binding CanDelete}"
                                             Visibility="{Binding DeleteVisibility}"
                                             Tag="{Binding ModelId}"
                                             Click="btnDeleteModel_Click"
-                                            Padding="8,4"/>
+                                            Style="{StaticResource SecondaryButtonStyle}"/>
                                 </StackPanel>
                             </Grid>
                         </Border>
@@ -126,11 +130,12 @@
         </ScrollViewer>
 
         <!-- Trennlinie -->
-        <Separator Grid.Row="4" Margin="0,0,0,10"/>
+        <Separator Grid.Row="4" Margin="0,0,0,8"/>
 
         <!-- Footer -->
         <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button x:Name="btnClose" Click="btnClose_Click" IsCancel="True" MinWidth="90"/>
+            <Button x:Name="btnClose" Click="btnClose_Click" IsCancel="True" MinWidth="100"
+                    Style="{StaticResource SecondaryButtonStyle}"/>
         </StackPanel>
     </Grid>
 </Window>

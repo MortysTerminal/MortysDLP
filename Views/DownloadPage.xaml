@@ -2,6 +2,7 @@
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:v="clr-namespace:MortysDLP.Views"
+      xmlns:helpers="clr-namespace:MortysDLP.Helpers"
       Title="Download"
       Loaded="DownloadPage_Loaded">
     <Grid>
@@ -27,7 +28,7 @@
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <Label Grid.Column="0" Name="lblURLInfo" VerticalAlignment="Center" Padding="0" Style="{StaticResource FormLabelStyle}"/>
+                        <Label Grid.Column="0" Name="lblURLInfo" Target="{Binding ElementName=tbURL}" VerticalAlignment="Center" Padding="0" Style="{StaticResource FormLabelStyle}"/>
                         <TextBox Grid.Column="1" Name="tbURL" MinWidth="150" GotFocus="TextBox_GotFocus"
                                  TextChanged="tbURL_TextChanged" KeyDown="tbURL_KeyDown"
                                  VerticalAlignment="Center" VerticalContentAlignment="Center" Margin="8,0,0,0"/>
@@ -46,7 +47,7 @@
                                Foreground="{StaticResource BrandYellowBrush}"
                                MouseLeftButtonUp="DownloadPath_MouseLeftButtonUp"/>
                         <Button x:Name="btnChangeDownloadPath" Click="btnChangeDownloadPath_Click" Style="{StaticResource SecondaryButtonStyle}"
-                                Margin="8,0,0,0" Padding="8,4"/>
+                                Margin="8,0,0,0"/>
                     </StackPanel>
                     <DockPanel Name="dpAudioPath">
                         <StackPanel Orientation="Horizontal">
@@ -65,34 +66,35 @@
                     <TextBlock x:Name="txtSectionOptions" Style="{StaticResource SectionHeaderStyle}"/>
 
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                        <CheckBox Name="cbCustomFilename" Checked="cbCustomFilenameCheck" Unchecked="cbCustomFilenameCheck"
+                        <CheckBox Name="cbCustomFilename" AutomationProperties.LabeledBy="{Binding ElementName=txtCustomFilenameInfo}" Checked="cbCustomFilenameCheck" Unchecked="cbCustomFilenameCheck"
                                   VerticalAlignment="Center" Margin="0,0,8,0"/>
                         <TextBlock Name="txtCustomFilenameInfo" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                        <TextBox Name="tbCustomFilename" Width="500" VerticalAlignment="Center" VerticalContentAlignment="Center"
+                        <TextBox Name="tbCustomFilename" AutomationProperties.LabeledBy="{Binding ElementName=txtCustomFilenameInfo}" Width="500" VerticalAlignment="Center" VerticalContentAlignment="Center"
                                  IsReadOnly="True" IsEnabled="False"/>
                     </StackPanel>
 
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                        <CheckBox Name="cbTimespan" Checked="cbTimespanCheck" Unchecked="cbTimespanCheck"
+                        <CheckBox Name="cbTimespan" AutomationProperties.LabeledBy="{Binding ElementName=txtTimespanFrom}" Checked="cbTimespanCheck" Unchecked="cbTimespanCheck"
                                   VerticalAlignment="Center" Margin="0,0,8,0"/>
                         <TextBlock Name="txtTimespanFrom" VerticalAlignment="Center" MinWidth="100"/>
-                        <TextBox Name="tbTimespanFrom" Width="100" VerticalAlignment="Center" VerticalContentAlignment="Center"
+                        <TextBox Name="tbTimespanFrom" AutomationProperties.LabeledBy="{Binding ElementName=txtTimespanFrom}" Width="100" VerticalAlignment="Center" VerticalContentAlignment="Center"
                                  TextChanged="tbTimespanFrom_TextChanged" Margin="8,0,0,0"/>
                         <TextBlock Name="txtTimespanDash" VerticalAlignment="Center" Margin="8,0" MinWidth="16" TextAlignment="Center"/>
                         <TextBox Name="tbTimespanTo" Width="100" VerticalAlignment="Center" VerticalContentAlignment="Center"
                                  TextChanged="tbTimespanTo_TextChanged" Margin="8,0,0,0"/>
                         <Button Name="btnOpenTimeline" Click="btnOpenTimeline_Click" Style="{StaticResource SecondaryButtonStyle}"
-                                VerticalAlignment="Center" Margin="8,0,0,0" Padding="8,4"
+                                VerticalAlignment="Center" Margin="8,0,0,0"
                                 IsEnabled="False">
                             <StackPanel Orientation="Horizontal">
-                                <TextBlock x:Name="txtTimelineBtnIcon" FontFamily="Segoe MDL2 Assets" Text="&#xEC50;" FontSize="14"
-                                           VerticalAlignment="Center" Margin="0,0,4,0"/>
+                                <TextBlock x:Name="txtTimelineBtnIcon" FontFamily="{StaticResource IconFontFamily}" Text="&#xEC50;" FontSize="16" VerticalAlignment="Center" Margin="0,0,4,0"/>
                                 <TextBlock x:Name="txtTimelineBtn" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
                         <TextBlock Name="txtTimespanInfo" VerticalAlignment="Center" Margin="8,0,0,0"/>
-                        <TextBlock x:Name="imgTimespanInfo" FontFamily="Segoe MDL2 Assets" FontSize="16"
-                                   Text="&#xE946;" Opacity="0.8" VerticalAlignment="Center" Margin="8,0,0,0">
+                        <TextBlock x:Name="imgTimespanInfo" FontFamily="{StaticResource IconFontFamily}" FontSize="16"
+                                   Text="&#xE946;" VerticalAlignment="Center" Margin="8,0,0,0"
+                                   Focusable="True" ToolTipService.ShowsToolTipOnKeyboardFocus="True" KeyboardNavigation.IsTabStop="True"
+                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}">
                             <TextBlock.ToolTip>
                                 <ToolTip Name="ToolTipTimeSpan"/>
                             </TextBlock.ToolTip>
@@ -100,24 +102,24 @@
                     </StackPanel>
 
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                        <CheckBox Name="cbFirstSeconds" Checked="cbFirstSecondsCheck" Unchecked="cbFirstSecondsCheck"
+                        <CheckBox Name="cbFirstSeconds" AutomationProperties.LabeledBy="{Binding ElementName=txtFirstSecondsInfo1}" Checked="cbFirstSecondsCheck" Unchecked="cbFirstSecondsCheck"
                                   VerticalAlignment="Center" Margin="0,0,8,0"/>
                         <TextBlock Name="txtFirstSecondsInfo1" VerticalAlignment="Center" MinWidth="100"/>
-                        <TextBox Name="tbFirstSecondsSeconds" Width="100" VerticalAlignment="Center" VerticalContentAlignment="Center"
+                        <TextBox Name="tbFirstSecondsSeconds" AutomationProperties.LabeledBy="{Binding ElementName=txtFirstSecondsInfo1}" Width="100" VerticalAlignment="Center" VerticalContentAlignment="Center"
                                  TextChanged="tbFirstSecondsSeconds_TextChanged" Margin="8,0,0,0"/>
                         <TextBlock Name="txtFirstSecondsInfo2" VerticalAlignment="Center" Margin="8,0,0,0"/>
                     </StackPanel>
 
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                        <CheckBox Name="cbVideoformat" Checked="cbVideoFormatCheck" Unchecked="cbVideoFormatCheck"
+                        <CheckBox Name="cbVideoformat" AutomationProperties.LabeledBy="{Binding ElementName=txtVideoformatInfo1}" Checked="cbVideoFormatCheck" Unchecked="cbVideoFormatCheck"
                                   VerticalAlignment="Center" Margin="0,0,8,0"/>
                         <TextBlock Name="txtVideoformatInfo1" VerticalAlignment="Center" MinWidth="100"/>
                         <TextBlock Name="txtVideoformatInfo2" VerticalAlignment="Center" Margin="0,0,0,0"/>
-                        <TextBlock Name="txtVideoformatInfo3" VerticalAlignment="Center" Opacity="0.6" Margin="8,0,0,0"/>
+                        <TextBlock Name="txtVideoformatInfo3" VerticalAlignment="Center" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="8,0,0,0"/>
                     </StackPanel>
 
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                        <CheckBox Name="cbAudioOnly" IsChecked="False" Checked="cbAudioOnlyCheck" Unchecked="cbAudioOnlyCheck"
+                        <CheckBox Name="cbAudioOnly" AutomationProperties.LabeledBy="{Binding ElementName=txtAudioOnlyInfo}" IsChecked="False" Checked="cbAudioOnlyCheck" Unchecked="cbAudioOnlyCheck"
                                   VerticalAlignment="Center" Margin="0,0,8,0"/>
                         <TextBlock Name="txtAudioOnlyInfo" VerticalAlignment="Center" MinWidth="100"/>
                         <ComboBox x:Name="combAudioFormat" Width="100" SelectedIndex="4" Margin="8,0,0,0" VerticalContentAlignment="Center">
@@ -131,7 +133,7 @@
                             <ComboBoxItem Content="wav"/>
                         </ComboBox>
                         <TextBlock Name="txtBitrateLabel" VerticalAlignment="Center" Margin="12,0,0,0"/>
-                        <ComboBox Name="combAudioBitrate" Width="120" SelectedIndex="3" Margin="8,0,0,0" VerticalContentAlignment="Center">
+                        <ComboBox Name="combAudioBitrate" AutomationProperties.LabeledBy="{Binding ElementName=txtBitrateLabel}" Width="120" SelectedIndex="3" Margin="8,0,0,0" VerticalContentAlignment="Center">
                             <ComboBoxItem x:Name="cbiAudioBitrateHighest"/>
                             <ComboBoxItem Content="320k"/>
                             <ComboBoxItem Content="256k"/>
@@ -146,19 +148,21 @@
                     <!-- GIF-Maker: das Video wird normal heruntergeladen und ZUSÄTZLICH ein GIF
                          daraus erzeugt. Schließt nur NUR Audio aus. -->
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                        <CheckBox x:Name="cbGifMaker" VerticalAlignment="Center" Margin="0,0,8,0"
+                        <CheckBox x:Name="cbGifMaker" AutomationProperties.LabeledBy="{Binding ElementName=txtGifMakerEnable}" VerticalAlignment="Center" Margin="0,0,8,0"
                                   Checked="cbGifMakerCheck" Unchecked="cbGifMakerCheck"/>
                         <TextBlock x:Name="txtGifMakerEnable" VerticalAlignment="Center" MinWidth="100"/>
                         <TextBlock x:Name="txtGifMakerQualityLabel" VerticalAlignment="Center" Margin="8,0,8,0"/>
-                        <ComboBox x:Name="combGifMakerQuality" Width="220" IsEnabled="False"
+                        <ComboBox x:Name="combGifMakerQuality" AutomationProperties.LabeledBy="{Binding ElementName=txtGifMakerQualityLabel}" Width="220" IsEnabled="False"
                                   VerticalContentAlignment="Center">
                             <ComboBoxItem x:Name="cbiGifQualityWeb" IsSelected="True"/>
                             <ComboBoxItem x:Name="cbiGifQualityLow"/>
                             <ComboBoxItem x:Name="cbiGifQualityMedium"/>
                             <ComboBoxItem x:Name="cbiGifQualityHigh"/>
                         </ComboBox>
-                        <TextBlock x:Name="imgGifMakerInfo" FontFamily="Segoe MDL2 Assets" FontSize="16"
-                                   Text="&#xE946;" Opacity="0.8" VerticalAlignment="Center" Margin="8,0,0,0">
+                        <TextBlock x:Name="imgGifMakerInfo" FontFamily="{StaticResource IconFontFamily}" FontSize="16"
+                                   Text="&#xE946;" VerticalAlignment="Center" Margin="8,0,0,0"
+                                   Focusable="True" ToolTipService.ShowsToolTipOnKeyboardFocus="True" KeyboardNavigation.IsTabStop="True"
+                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}">
                             <TextBlock.ToolTip>
                                 <ToolTip x:Name="tooltipGifMaker"/>
                             </TextBlock.ToolTip>
@@ -167,7 +171,7 @@
 
                     <!-- Unter-Option: Videodatei behalten (an) oder nur das GIF (aus). -->
                     <StackPanel x:Name="pnlGifKeepVideo" Orientation="Horizontal" Margin="28,0,0,8" IsEnabled="False">
-                        <CheckBox x:Name="cbGifKeepVideo" IsChecked="True"
+                        <CheckBox x:Name="cbGifKeepVideo" AutomationProperties.LabeledBy="{Binding ElementName=txtGifKeepVideo}" IsChecked="True"
                                   Checked="cbGifKeepVideoCheck" Unchecked="cbGifKeepVideoCheck"
                                   VerticalAlignment="Center" Margin="0,0,8,0"/>
                         <TextBlock x:Name="txtGifKeepVideo" VerticalAlignment="Center"/>
@@ -182,7 +186,7 @@
                             <TextBlock x:Name="txtVideoGroupHeader" FontWeight="SemiBold" Margin="0,0,0,8"/>
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Name="txtVideoQuality" VerticalAlignment="Center" MinWidth="100"/>
-                                <ComboBox Name="combVideoQuality" Width="150" SelectedIndex="0" Margin="8,0,0,0" VerticalContentAlignment="Center">
+                                <ComboBox Name="combVideoQuality" AutomationProperties.LabeledBy="{Binding ElementName=txtVideoQuality}" Width="150" SelectedIndex="0" Margin="8,0,0,0" VerticalContentAlignment="Center">
                                     <ComboBoxItem x:Name="cbiVideoQualityHighest" Tag="best"/>
                                     <ComboBoxItem Content="1440p" Tag="1440"/>
                                     <ComboBoxItem Content="1080p" Tag="1080"/>
@@ -193,7 +197,7 @@
                                     <ComboBoxItem Content="144p" Tag="144"/>
                                 </ComboBox>
                                 <TextBlock Name="txtVideoContainer" VerticalAlignment="Center" Margin="16,0,0,0"/>
-                                <ComboBox Name="combVideoFormat" Width="100" SelectedIndex="0" Margin="8,0,0,0" VerticalContentAlignment="Center">
+                                <ComboBox Name="combVideoFormat" AutomationProperties.LabeledBy="{Binding ElementName=txtVideoContainer}" Width="100" SelectedIndex="0" Margin="8,0,0,0" VerticalContentAlignment="Center">
                                     <ComboBoxItem Content="mp4"/>
                                     <ComboBoxItem Content="mkv"/>
                                     <ComboBoxItem Content="mov"/>
@@ -209,7 +213,7 @@
             <Border x:Name="borderBandwidthHint" Style="{StaticResource CardBorderStyle}"
                     Padding="12,8" Background="{DynamicResource SubtleFillColorSecondaryBrush}"
                     Visibility="Collapsed">
-                <TextBlock x:Name="txtBandwidthHint" TextWrapping="Wrap" FontSize="11" Opacity="0.8"/>
+                <TextBlock x:Name="txtBandwidthHint" TextWrapping="Wrap" FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
             </Border>
 
             <!-- DEBUG -->
@@ -238,21 +242,21 @@
                             VerticalAlignment="Center"/>
                     <Border Padding="12,0,0,0">
                         <StackPanel Name="spLoadingbar" Visibility="Hidden" Orientation="Vertical" HorizontalAlignment="Center">
-                            <StackPanel Orientation="Horizontal" Margin="4,0,4,2">
+                            <StackPanel Orientation="Horizontal" Margin="4,0,4,0">
                                 <TextBlock Name="txtPlaylistProgress" FontWeight="SemiBold" Foreground="{StaticResource BrandOrangeBrush}"
                                            Visibility="Collapsed" Margin="0,0,8,0"/>
-                                <TextBlock Name="txtDownloadStatus" FontWeight="SemiBold"/>
+                                <TextBlock Name="txtDownloadStatus" FontWeight="SemiBold" helpers:A11y.AnnounceChanges="True"/>
                                 <TextBlock Name="txtDownloadProgress" Text="0 %" Margin="8,0,0,0"/>
-                                <TextBlock Name="txtDownloadEta" Opacity="0.75" Margin="8,0,0,0"/>
+                                <TextBlock Name="txtDownloadEta" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="8,0,0,0"/>
                             </StackPanel>
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                 <ProgressBar Name="pbDownload"
-                                             Width="200" Height="11"
+                                             Width="200" Height="{StaticResource ProgressBarHeight}"
                                              Minimum="0" Maximum="100" Value="0"/>
-                                <Button Name="btnStatusIcon" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}"
-                                        Background="Transparent" BorderThickness="0" Padding="0" Margin="8,0,0,0"
+                                <Button Name="btnStatusIcon" Style="{StaticResource IconButtonStyle}"
+                                        Margin="8,0,0,0"
                                         Click="btnStatusIcon_Click">
-                                    <TextBlock Name="iaStatusIcon" FontFamily="Segoe MDL2 Assets" FontSize="20"
+                                    <TextBlock Name="iaStatusIcon" FontFamily="{StaticResource IconFontFamily}" FontSize="20"
                                                Foreground="{StaticResource BrandYellowBrush}"/>
                                 </Button>
                             </StackPanel>
