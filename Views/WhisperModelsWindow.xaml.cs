@@ -4,6 +4,7 @@ using MortysDLP.Services.Tools;
 using MortysDLP.UITexte;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Windows;
 using System.Windows.Media;
@@ -252,26 +253,28 @@ namespace MortysDLP.Views
             if (_busy) return;
             var T = UITextDictionary.Get;
 
-            // Dialog: Erklärungstext als Nachricht, kurze Labels als Buttons
-            var dlgResult = FluentMessageBox.Show(
-                T("WhisperModels.Uninstall.Message"),
-                T("WhisperModels.Uninstall.Title"),
-                MessageBoxImage.Warning,
-                this,
-                (T("WhisperModels.Uninstall.Btn.KeepModels"), MessageBoxResult.Yes,    false),
-                (T("WhisperModels.Uninstall.Btn.Full"),        MessageBoxResult.No,     false),
-                (T("WhisperModels.Uninstall.Cancel"),          MessageBoxResult.Cancel, true));
+            // Dieselbe Rückfrage und dieselbe Löschlogik wie auf der Werkzeuge-Seite.
+            var whisper = new WhisperTool();
+            var choice = ToolUninstallDialog.Ask(whisper, this);
+            if (choice == ToolUninstallChoice.Cancel) return;
 
-            if (dlgResult == MessageBoxResult.Cancel) return;
-
-            bool keepModels = dlgResult == MessageBoxResult.Yes;
+            bool keepModels = choice == ToolUninstallChoice.KeepUserData;
 
             SetBusy(true, T("WhisperModels.Uninstall.Title"));
             try
             {
-                await WhisperService.UninstallAsync(keepModels);
-                FluentMessageBox.Show(T("WhisperModels.Uninstall.Success"),
-                    icon: MessageBoxImage.Information, owner: this);
+                var removal = await WhisperService.UninstallAsync(keepModels);
+                if (removal.Success)
+                {
+                    FluentMessageBox.Show(T("WhisperModels.Uninstall.Success"),
+                        icon: MessageBoxImage.Information, owner: this);
+                }
+                else
+                {
+                    FluentMessageBox.Show(
+                        string.Format(CultureInfo.CurrentCulture, T("ToolsPage.Uninstall.Failed"), whisper.DisplayName),
+                        icon: MessageBoxImage.Error, owner: this);
+                }
                 RefreshModelList();
             }
             catch (Exception ex)

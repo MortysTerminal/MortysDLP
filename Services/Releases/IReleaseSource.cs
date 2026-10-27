@@ -18,7 +18,7 @@ namespace MortysDLP.Services.Releases
         /// <summary>Für Protokoll und Diagnose, z. B. "github-api-latest".</summary>
         string Name { get; }
 
-        /// <summary>true nur für Quellen, deren Antwort abschließend ist (die beiden
+        /// <summary>true nur für Quellen, deren Antwort abschließend ist (die
         /// GitHub-API-Quellen). CDN- und handgepflegte Quellen können veraltet sein — die Regel
         /// dahinter (eine kleinere/gleiche Version einer nicht-abschließenden Quelle ist kein
         /// Beweis für "kein Update") wird erst ausgewertet.</summary>
@@ -44,7 +44,7 @@ namespace MortysDLP.Services.Releases
     /// kann trotzdem GitHub- und Nicht-GitHub-Quellen mischen, weil alle dieselbe Anfrage
     /// bekommen.</para></summary>
     /// <param name="ETag">Zuletzt bekannter <c>ETag</c> dieser Abfrage. Gesetzt, senden
-    /// die beiden GitHub-API-Quellen <c>If-None-Match</c> — eine Bestätigung per <c>304</c>
+    /// die GitHub-API-Quellen <c>If-None-Match</c> — eine Bestätigung per <c>304</c>
     /// kostet kein Kontingent.</param>
     /// <param name="PackageName">Paketname für <see cref="PyPiReleaseSource"/>, z. B.
     /// <c>"yt-dlp"</c>. <c>null</c>, wenn die Kette keine PyPI-Quelle enthält.</param>

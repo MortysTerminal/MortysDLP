@@ -198,13 +198,15 @@ namespace MortysDLP.Views
             row.UpdateVisibility = actions.CanUpdate && enabled ? Visibility.Visible : Visibility.Collapsed;
         }
 
-        private void SetPageBusy(bool busy)
+        /// <param name="busyLabel">Text für „Alle prüfen", solange die Seite beschäftigt ist —
+        /// Vorgabe „Prüfe …"; beim Entfernen nennt er stattdessen, was gerade passiert.</param>
+        private void SetPageBusy(bool busy, string? busyLabel = null)
         {
             _busy = busy;
             btnCheckAll.IsEnabled = !busy;
 
             var T = UITextDictionary.Get;
-            btnCheckAll.Content = busy ? T("ToolsPage.Status.Checking") : T("ToolsPage.Button.CheckAll");
+            btnCheckAll.Content = busy ? busyLabel ?? T("ToolsPage.Status.Checking") : T("ToolsPage.Button.CheckAll");
 
             foreach (var row in _rows)
                 ApplyRowInteractivity(row);
@@ -306,49 +308,50 @@ namespace MortysDLP.Views
                 return;
 
             var tool = _tools.FirstOrDefault(t => t.Id == toolId);
-            if (tool is null)
+            var row = _rows.FirstOrDefault(r => r.ToolId == toolId);
+            if (tool is null || row is null)
                 return;
 
             var T = UITextDictionary.Get;
             var owner = Window.GetWindow(this);
 
-            var result = FluentMessageBox.Show(
-                BuildUninstallMessage(tool, T),
-                T("ToolsPage.Uninstall.Title"),
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Warning,
-                owner);
-
-            if (result != MessageBoxResult.Yes)
+            var choice = ToolUninstallDialog.Ask(tool, owner);
+            if (choice == ToolUninstallChoice.Cancel)
                 return;
 
-            var removal = tool.Uninstall();
-            if (!removal.Success)
+            // Im Hintergrund: Bei whisper.cpp können mehrere Gigabyte Sprachmodelle dabei sein -
+            // im UI-Thread friert die Seite so lange ein.
+            row.IsBusy = true;
+            SetPageBusy(true, string.Format(CultureInfo.CurrentCulture, T("ToolsPage.Status.Removing"), tool.DisplayName));
+            bool success;
+            try
+            {
+                var removal = await Task.Run(() => tool.Uninstall(keepUserData: choice == ToolUninstallChoice.KeepUserData));
+                success = removal.Success;
+            }
+            catch (Exception ex)
+            {
+                // Uninstall wirft vertragsgemäß nicht - aber ein async-void-Handler darf eine
+                // unerwartete Ausnahme nicht bis zum Dispatcher durchreichen.
+                Log.Error($"[{tool.Id}] Deinstallation mit unerwartetem Fehler abgebrochen: {ex.Message}", ex);
+                success = false;
+            }
+            finally
+            {
+                row.IsBusy = false;
+                SetPageBusy(false);
+            }
+
+            if (!success)
             {
                 FluentMessageBox.Show(
                     string.Format(CultureInfo.CurrentCulture, T("ToolsPage.Uninstall.Failed"), tool.DisplayName),
                     icon: MessageBoxImage.Error, owner: owner);
             }
 
-            await RefreshOneAsync(tool, force: false, CancellationToken.None);
-        }
-
-        /// <summary>Nennt bei einem für den Betrieb erforderlichen Werkzeug ausdrücklich, welche
-        /// Funktionen danach nicht mehr verfügbar sind — die Zuordnung kommt aus
-        /// <see cref="ToolFeatureMap"/>, dieselbe Quelle wie „Für: …" in der Zeile und der
-        /// Hinweis im Startablauf.</summary>
-        private static string BuildUninstallMessage(IManagedTool tool, Func<string, string> T)
-        {
-            string question = string.Format(CultureInfo.CurrentCulture, T("ToolsPage.Uninstall.Question"), tool.DisplayName);
-
-            if (!tool.RequiredForOperation)
-                return question;
-
-            string consequence = string.Format(CultureInfo.CurrentCulture,
-                T("ToolsPage.Uninstall.Consequence"),
-                tool.DisplayName, ToolFeatureMap.Describe(tool.Id, T));
-
-            return question + "\n\n" + consequence;
+            await RefreshAfterChangeAsync(tool);
+            if (tool.HasUserData)
+                RefreshModelsDisplay();
         }
 
         // ── Speicherort öffnen ───────────────────────────────────────────────────────
@@ -376,11 +379,30 @@ namespace MortysDLP.Views
 
         // ── Whisper-Modelle (schreibgeschützter Überblick) ──────────────────────────────
 
-        private void btnManageModels_Click(object sender, RoutedEventArgs e)
+        private async void btnManageModels_Click(object sender, RoutedEventArgs e)
         {
             var win = new WhisperModelsWindow { Owner = Window.GetWindow(this) };
             win.ShowDialog();
             RefreshModelsDisplay();
+
+            // Im Fenster kann whisper.cpp installiert oder deinstalliert worden sein.
+            if (_tools.FirstOrDefault(t => t.Id == "whisper") is { } whisper)
+                await RefreshAfterChangeAsync(whisper);
+        }
+
+        /// <summary>Aktualisiert eine Zeile nach einer Änderung aus einem <c>async void</c>-Handler
+        /// heraus — eine Ausnahme dabei wird protokolliert statt bis zum Dispatcher
+        /// durchgereicht.</summary>
+        private async Task RefreshAfterChangeAsync(IManagedTool tool)
+        {
+            try
+            {
+                await RefreshOneAsync(tool, force: false, CancellationToken.None);
+            }
+            catch (Exception ex)
+            {
+                Log.Warn($"[{tool.Id}] Zeile konnte nach der Änderung nicht aktualisiert werden: {ex.Message}", ex);
+            }
         }
 
         private sealed class ModelSummaryRow

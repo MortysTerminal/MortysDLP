@@ -86,20 +86,50 @@
                                                        VerticalAlignment="Center" Opacity="0.75"
                                                        HorizontalAlignment="Right" Margin="0,0,8,0"/>
 
+                                            <!-- Jede Zeile hat dieselben Knopftexte - für Screenreader trägt jeder Knopf
+                                                 zusätzlich den Werkzeugnamen ("whisper.cpp: Deinstallieren"). -->
                                             <StackPanel Grid.Column="5" Orientation="Horizontal">
                                                 <Button Content="{Binding RepairButtonText}" Tag="{Binding ToolId}"
                                                         IsEnabled="{Binding CanRepair}" Click="btnRepair_Click"
-                                                        Margin="0,0,8,0" Padding="8,4"/>
+                                                        Margin="0,0,8,0" Padding="8,4">
+                                                    <AutomationProperties.Name>
+                                                        <MultiBinding StringFormat="{}{0}: {1}">
+                                                            <Binding Path="DisplayName"/>
+                                                            <Binding Path="RepairButtonText"/>
+                                                        </MultiBinding>
+                                                    </AutomationProperties.Name>
+                                                </Button>
                                                 <Button Content="{Binding UpdateButtonText}" Tag="{Binding ToolId}"
                                                         Visibility="{Binding UpdateVisibility}" Click="btnUpdate_Click"
                                                         Style="{StaticResource PrimaryButtonStyle}"
-                                                        Margin="0,0,8,0" Padding="8,4"/>
+                                                        Margin="0,0,8,0" Padding="8,4">
+                                                    <AutomationProperties.Name>
+                                                        <MultiBinding StringFormat="{}{0}: {1}">
+                                                            <Binding Path="DisplayName"/>
+                                                            <Binding Path="UpdateButtonText"/>
+                                                        </MultiBinding>
+                                                    </AutomationProperties.Name>
+                                                </Button>
                                                 <Button Content="{Binding UninstallButtonText}" Tag="{Binding ToolId}"
                                                         IsEnabled="{Binding CanUninstall}" Click="btnUninstall_Click"
-                                                        Margin="0,0,8,0" Padding="8,4"/>
+                                                        Margin="0,0,8,0" Padding="8,4">
+                                                    <AutomationProperties.Name>
+                                                        <MultiBinding StringFormat="{}{0}: {1}">
+                                                            <Binding Path="DisplayName"/>
+                                                            <Binding Path="UninstallButtonText"/>
+                                                        </MultiBinding>
+                                                    </AutomationProperties.Name>
+                                                </Button>
                                                 <Button Content="{Binding OpenFolderButtonText}" Tag="{Binding ToolId}"
                                                         IsEnabled="{Binding CanOpenFolder}" Click="btnOpenFolder_Click"
-                                                        Padding="8,4"/>
+                                                        Padding="8,4">
+                                                    <AutomationProperties.Name>
+                                                        <MultiBinding StringFormat="{}{0}: {1}">
+                                                            <Binding Path="DisplayName"/>
+                                                            <Binding Path="OpenFolderButtonText"/>
+                                                        </MultiBinding>
+                                                    </AutomationProperties.Name>
+                                                </Button>
                                             </StackPanel>
                                         </Grid>
 

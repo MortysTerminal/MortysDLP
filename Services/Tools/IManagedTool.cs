@@ -202,8 +202,15 @@ namespace MortysDLP.Services.Tools
             IProgress<ToolInstallStage>? stage,
             CancellationToken ct);
 
-        /// <summary>Entfernt alle <see cref="TargetPaths"/>. Wirft nicht; was nicht gelöscht
-        /// werden konnte, steht im Ergebnis.</summary>
-        ToolRemovalResult Uninstall();
+        /// <summary>true, wenn das Werkzeug neben seinen Programmdateien Nutzerdaten verwaltet, die
+        /// beim Deinstallieren auf Wunsch erhalten bleiben können (whisper.cpp: Sprachmodelle).
+        /// Steuert, ob die Rückfrage „Nur das Programm entfernen / Vollständig löschen" anbietet.</summary>
+        bool HasUserData { get; }
+
+        /// <summary>Entfernt das Werkzeug restlos — Programm und alles, was zu seinem Paket gehört.
+        /// <paramref name="keepUserData"/> wirkt nur bei <see cref="HasUserData"/>: dann bleiben die
+        /// Nutzerdaten erhalten. Wirft nicht; was nicht gelöscht werden konnte, steht im
+        /// Ergebnis.</summary>
+        ToolRemovalResult Uninstall(bool keepUserData = false);
     }
 }

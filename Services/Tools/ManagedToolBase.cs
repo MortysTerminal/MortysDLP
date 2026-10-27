@@ -167,7 +167,14 @@ namespace MortysDLP.Services.Tools
             return probe;
         }
 
-        public ToolRemovalResult Uninstall()
+        /// <summary>Vorgabe: keine Nutzerdaten — ein Werkzeug, das welche verwaltet, überschreibt
+        /// das zusammen mit <see cref="Uninstall"/>.</summary>
+        public virtual bool HasUserData => false;
+
+        /// <summary>Vorgabe für Werkzeuge, die genau aus ihren <see cref="TargetPaths"/> bestehen.
+        /// Ein Werkzeug mit weiteren Paketdateien (Bibliotheken, Unterordner) überschreibt das, sonst
+        /// bleiben diese nach dem Deinstallieren liegen.</summary>
+        public virtual ToolRemovalResult Uninstall(bool keepUserData = false)
         {
             var removed = new List<string>();
             var failed = new List<string>();
