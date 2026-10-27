@@ -40,6 +40,32 @@ Lade die aktuelle ZIP-Datei von der [Releases-Seite](https://github.com/MortysTe
 
 ## 3. Entpacken & starten
 
+### Zuerst: die ZIP-Datei freigeben (wichtig)
+
+Windows merkt sich bei jeder Datei aus dem Internet, woher sie kommt, und überträgt diese
+Markierung beim Entpacken auf alle Dateien darin. Programme mit dieser Markierung startet Windows
+nur eingeschränkt — **MortysDLP startet dann manchmal gar nicht oder bricht ohne Meldung ab.**
+Mit einem Haken vor dem Entpacken ist das erledigt:
+
+1. Öffne den Ordner **Downloads** im Explorer.
+2. Klicke mit der **rechten Maustaste** auf `MortysDLP.zip` und wähle **Eigenschaften**.
+3. Unten im Reiter **Allgemein** steht bei **Sicherheit**:
+   *„Die Datei stammt von einem anderen Computer. Der Zugriff wurde aus Sicherheitsgründen eventuell blockiert."*
+   Setze dort den Haken bei **Zulassen**.
+4. Klicke auf **OK**.
+5. Entpacke die ZIP-Datei erst **jetzt** (Rechtsklick → **Alle extrahieren…**).
+
+Siehst du den Hinweis bei **Sicherheit** nicht, ist die Datei bereits freigegeben — dann einfach
+weitermachen.
+
+> **Lieber per Befehl?** Öffne PowerShell (Startmenü → „PowerShell" eintippen) und gib ein:
+> ```powershell
+> Unblock-File "$HOME\Downloads\MortysDLP.zip"
+> ```
+> Das macht genau dasselbe wie der Haken bei **Zulassen**.
+
+### Entpacken und starten
+
 Entpacke das Archiv in einen beliebigen Ordner, zum Beispiel:
 
 ```
@@ -49,6 +75,37 @@ C:\Tools\MortysDLP\
 Kein Installer, keine Administrator-Rechte erforderlich. Dann doppelklicke auf **`MortysDLP.exe`**.
 
 Beim ersten Start zeigt die App einen kurzen Vorbereitungsscreen (*„MortysDLP wird vorbereitet…"*) und führt einige Prüfungen durch, bevor das Hauptfenster geöffnet wird.
+
+### Meldung „Der Computer wurde durch Windows geschützt"
+
+Beim ersten Start kann ein blaues Fenster von **Microsoft Defender SmartScreen** erscheinen.
+Windows zeigt es bei Programmen, die es noch nicht kennt — MortysDLP ist ein kostenloses
+Open-Source-Projekt ohne gekauftes Herausgeber-Zertifikat. So startest du es trotzdem:
+
+1. Klicke im blauen Fenster auf **Weitere Informationen**.
+2. Klicke auf **Trotzdem ausführen**.
+
+Das ist nur beim ersten Start nötig. Lade MortysDLP immer nur von der offiziellen
+[Releases-Seite](https://github.com/MortysTerminal/MortysDLP/releases) herunter — dann weißt du,
+woher die Datei stammt.
+
+### MortysDLP startet nicht?
+
+Meist wurde die ZIP-Datei entpackt, **bevor** sie freigegeben war. So behebst du das:
+
+1. Lösche den entpackten MortysDLP-Ordner. Deine Einstellungen, der Download-Verlauf und die
+   heruntergeladenen Werkzeuge liegen an anderer Stelle und bleiben erhalten.
+2. Gib die ZIP-Datei frei, wie oben unter *„Zuerst: die ZIP-Datei freigeben"* beschrieben.
+3. Entpacke sie erneut und starte `MortysDLP.exe`.
+
+> **Ordner schon eingerichtet und du willst ihn behalten?** Dann kannst du alle Dateien darin auf
+> einmal freigeben. In PowerShell (Pfad an deinen Ordner anpassen):
+> ```powershell
+> Get-ChildItem "C:\Tools\MortysDLP" -Recurse | Unblock-File
+> ```
+
+Updates, die MortysDLP später selbst herunterlädt, brauchen diesen Schritt nicht — er betrifft
+nur die erste Datei aus dem Browser.
 
 ---
 

@@ -41,6 +41,30 @@ Grab the latest ZIP from the [Releases page](https://github.com/MortysTerminal/M
 
 ## 3. Extract & run
 
+### First: unblock the ZIP file (important)
+
+Windows remembers that a file came from the internet and passes this mark on to every file you
+extract from it. Windows only runs marked programs with restrictions — **MortysDLP may then not
+start at all, or close without any message.** One tick before extracting fixes this:
+
+1. Open your **Downloads** folder in File Explorer.
+2. **Right-click** `MortysDLP.zip` and choose **Properties**.
+3. At the bottom of the **General** tab, next to **Security**, you see:
+   *"This file came from another computer and might be blocked to help protect this computer."*
+   Tick **Unblock**.
+4. Click **OK**.
+5. Only **now** extract the ZIP file (right-click → **Extract All…**).
+
+If you don't see the **Security** line, the file is already unblocked — just carry on.
+
+> **Prefer a command?** Open PowerShell (Start menu → type "PowerShell") and enter:
+> ```powershell
+> Unblock-File "$HOME\Downloads\MortysDLP.zip"
+> ```
+> This does exactly the same as ticking **Unblock**.
+
+### Extract and run
+
 Unzip the archive into any folder you like, for example:
 
 ```
@@ -50,6 +74,37 @@ C:\Tools\MortysDLP\
 No installer, no admin rights required. Then double-click **`MortysDLP.exe`**.
 
 On first launch, the app shows a short preparation screen (*"Preparing MortysDLP…"*) and runs a few checks before opening the main window.
+
+### "Windows protected your PC"
+
+On the first start, a blue **Microsoft Defender SmartScreen** window may appear. Windows shows it
+for programs it doesn't know yet — MortysDLP is a free open-source project without a paid
+publisher certificate. To start it anyway:
+
+1. Click **More info** in the blue window.
+2. Click **Run anyway**.
+
+You only need to do this once. Always download MortysDLP from the official
+[Releases page](https://github.com/MortysTerminal/MortysDLP/releases) — that way you know where
+the file comes from.
+
+### MortysDLP doesn't start?
+
+Usually the ZIP file was extracted **before** it was unblocked. To fix it:
+
+1. Delete the extracted MortysDLP folder. Your settings, download history and downloaded tools
+   are stored elsewhere and are kept.
+2. Unblock the ZIP file as described above under *"First: unblock the ZIP file"*.
+3. Extract it again and start `MortysDLP.exe`.
+
+> **Already set up and want to keep the folder?** You can unblock all files in it at once. In
+> PowerShell (adjust the path to your folder):
+> ```powershell
+> Get-ChildItem "C:\Tools\MortysDLP" -Recurse | Unblock-File
+> ```
+
+Updates that MortysDLP downloads by itself later don't need this step — it only affects the first
+file from your browser.
 
 ---
 
