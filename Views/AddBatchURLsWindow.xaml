@@ -10,8 +10,9 @@
         MinHeight="400" MinWidth="500"
         WindowStartupLocation="CenterOwner"
         FontFamily="{DynamicResource AppFontFamily}"
-        ShowInTaskbar="False">
-    <Grid Margin="15">
+        ShowInTaskbar="False"
+        Background="{DynamicResource SolidBackgroundFillColorBaseBrush}">
+    <Grid Margin="16">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -24,12 +25,13 @@
         <TextBlock Grid.Row="0"
                    Text="Mehrere URLs auf einmal hinzufügen"
                    Style="{StaticResource PageTitleStyle}"
-                   Margin="0,0,0,10"/>
+                   Margin="0,0,0,8"/>
 
         <!-- Beschreibung / Hinweis -->
         <TextBlock Grid.Row="1"
+                   x:Name="txtHint"
                    TextWrapping="Wrap"
-                   Foreground="#555"
+                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                    Margin="0,0,0,8"
                    Text="Füge unten pro Zeile eine URL ein (z. B. YouTube-Links). Leerzeilen sowie Einträge, die keine gültige URL sind, werden automatisch herausgefiltert."/>
 
@@ -43,14 +45,15 @@
                  HorizontalScrollBarVisibility="Auto"
                  FontFamily="Consolas"
                  FontSize="13"
-                 Padding="5"
+                 Padding="4"
+                 AutomationProperties.LabeledBy="{Binding ElementName=txtHint}"
                  TextChanged="txtUrls_TextChanged"/>
 
         <!-- Status / Live-Vorschau -->
         <TextBlock Grid.Row="3"
                    x:Name="txtStatus"
                    Margin="0,8,0,0"
-                   Foreground="Gray"
+                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                    Text="0 Zeilen, 0 gültige URLs"/>
 
         <!-- Buttons -->
@@ -61,13 +64,14 @@
             <Button x:Name="btnOk"
                     Style="{StaticResource PrimaryButtonStyle}"
                     Content="Übernehmen"
-                    Width="120" Height="32"
-                    Margin="0,0,10,0"
+                    MinWidth="100"
+                    Margin="0,0,8,0"
                     IsDefault="True"
                     Click="btnOk_Click"/>
             <Button x:Name="btnCancel"
                     Content="Abbrechen"
-                    Width="120" Height="32"
+                    MinWidth="100"
+                    Style="{StaticResource SecondaryButtonStyle}"
                     IsCancel="True"
                     Click="btnCancel_Click"/>
             

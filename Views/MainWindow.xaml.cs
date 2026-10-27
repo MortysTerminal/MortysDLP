@@ -6,6 +6,7 @@ using MortysDLP.Views;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
+using System.Windows.Automation;
 using System.Windows.Controls;
 
 namespace MortysDLP
@@ -236,6 +237,7 @@ namespace MortysDLP
                 ? T("UpdateBanner.SubText.NeedsElevation")
                 : T("UpdateBanner.SubText");
             btnDismissBanner.ToolTip = T("UpdateBanner.Dismiss");
+            AutomationProperties.SetName(btnDismissBanner, T("UpdateBanner.Dismiss"));
             UpdateBanner.Visibility  = Visibility.Visible;
         }
 
@@ -251,6 +253,7 @@ namespace MortysDLP
                 .Replace("{0}", version, StringComparison.Ordinal);
             txtUpdateBannerSub.Text  = T("UpdateBanner.SubText.Blocked");
             btnDismissBanner.ToolTip = T("UpdateBanner.Dismiss");
+            AutomationProperties.SetName(btnDismissBanner, T("UpdateBanner.Dismiss"));
             UpdateBanner.Visibility  = Visibility.Visible;
         }
 
@@ -363,6 +366,9 @@ namespace MortysDLP
             // Version Label
             txtVersionLabel.Text = T("MainWindow.Version");
             btnHeaderInfo.ToolTip = T("Header.Info.Tooltip");
+            AutomationProperties.SetName(btnHeaderInfo, T("Header.Info.Tooltip"));
+            AutomationProperties.SetName(NavigationList, T("A11y.Navigation.Main"));
+            AutomationProperties.SetName(SettingsNavigationList, T("A11y.Navigation.More"));
 
             // Credits-Button
             txtCreditsTitle.Text    = T("MainWindow.Credits.Title");

@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MortysDLP"
+        xmlns:helpers="clr-namespace:MortysDLP.Helpers"
         Icon="/Resources/Icons/mw_globe_32px.ico"
         mc:Ignorable="d"
         Title="Download läuft..."
@@ -12,6 +13,8 @@
         SizeToContent="Height"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        Background="{DynamicResource SolidBackgroundFillColorBaseBrush}"
         FontFamily="{DynamicResource AppFontFamily}"
         WindowStyle="ToolWindow">
     <!-- SizeToContent="Height" statt einer festen Höhe: Bei 125 % und 150 % Skalierung wuchsen
@@ -20,12 +23,13 @@
          passierte, sobald der Infotext (Werkzeugname) auf zwei Zeilen umbrach. -->
     <Grid Margin="20">
         <StackPanel>
-            <TextBlock x:Name="InfoText" Text="Download läuft..." Margin="0,0,0,10" FontWeight="SemiBold"
-                       TextWrapping="Wrap"/>
-            <ProgressBar x:Name="ProgressBar" Height="25" Minimum="0" Maximum="100" IsIndeterminate="True"/>
-            <TextBlock x:Name="PercentText" Text="" Margin="0,6,0,0" HorizontalAlignment="Center"/>
+            <TextBlock x:Name="InfoText" Text="Download läuft..." Margin="0,0,0,8" FontWeight="SemiBold"
+                       TextWrapping="Wrap" helpers:A11y.AnnounceChanges="True"/>
+            <ProgressBar x:Name="ProgressBar" Height="{StaticResource ProgressBarHeight}" Minimum="0" Maximum="100" IsIndeterminate="True"/>
+            <TextBlock x:Name="PercentText" Text="" Margin="0,4,0,0" HorizontalAlignment="Center"/>
             <Button x:Name="CancelButton" Content="Abbrechen" Margin="0,12,0,0"
-                    HorizontalAlignment="Center" Width="120"
+                    HorizontalAlignment="Center" MinWidth="100"
+                    Style="{StaticResource SecondaryButtonStyle}"
                     Click="CancelButton_Click"/>
         </StackPanel>
     </Grid>

@@ -104,8 +104,8 @@ namespace MortysDLP.Models
         private string _stateText = "";
         public string StateText { get => _stateText; set => SetField(ref _stateText, value); }
 
-        private string _stateColor = "#94A3B8";
-        public string StateColor { get => _stateColor; set => SetField(ref _stateColor, value); }
+        private StatusTone _tone;
+        public StatusTone Tone { get => _tone; set => SetField(ref _tone, value); }
 
         private string _versionText = "";
         public string VersionText { get => _versionText; set => SetField(ref _versionText, value); }
@@ -130,6 +130,9 @@ namespace MortysDLP.Models
 
         private string _uninstallButtonText = "";
         public string UninstallButtonText { get => _uninstallButtonText; set => SetField(ref _uninstallButtonText, value); }
+
+        private string _cancelButtonText = "";
+        public string CancelButtonText { get => _cancelButtonText; set => SetField(ref _cancelButtonText, value); }
 
         private string _openFolderButtonText = "";
         public string OpenFolderButtonText { get => _openFolderButtonText; set => SetField(ref _openFolderButtonText, value); }

@@ -39,12 +39,15 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
+                <!-- Symbolfarbe bewusst noch fest: Ob Fehler-/Warnsymbole den theme-abhängigen
+                     Statusfarben folgen (dunkel dann hellrot statt rot), entscheidet die
+                     Gestaltungsrunde mit Mock-up. -->
                 <Border Width="42" Height="42" CornerRadius="21"
                         Background="#22C42B1C"
                         VerticalAlignment="Center"
-                        Margin="0,0,14,0">
-                    <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xEA39;"
-                               FontSize="21"
+                        Margin="0,0,12,0">
+                    <TextBlock FontFamily="{StaticResource IconFontFamily}" Text="&#xEA39;"
+                               FontSize="24"
                                Foreground="#C42B1C"
                                HorizontalAlignment="Center"
                                VerticalAlignment="Center"/>
@@ -52,7 +55,7 @@
 
                 <TextBlock x:Name="TitleBlock"
                            Grid.Column="1"
-                           FontSize="15"
+                           FontSize="14"
                            FontWeight="SemiBold"
                            VerticalAlignment="Center"
                            TextWrapping="Wrap"/>
@@ -63,17 +66,17 @@
                        Grid.Row="1"
                        FontSize="13"
                        TextWrapping="Wrap"
-                       Opacity="0.85"
+                       Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                        LineHeight="22"
-                       Margin="0,0,0,10"/>
+                       Margin="0,0,0,8"/>
 
             <!-- Datenschutz-Hinweis -->
             <TextBlock x:Name="PrivacyHintBlock"
                        Grid.Row="2"
-                       FontSize="11"
+                       FontSize="12"
                        TextWrapping="Wrap"
-                       Opacity="0.6"
-                       Margin="0,0,0,14"/>
+                       Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                       Margin="0,0,0,12"/>
 
             <!-- Ausklappbare technische Details -->
             <Expander x:Name="DetailsExpander"
@@ -81,18 +84,18 @@
                       Margin="0,0,0,20">
                 <Border BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
                         BorderThickness="1"
-                        CornerRadius="6"
+                        CornerRadius="4"
                         Background="{DynamicResource SubtleFillColorSecondaryBrush}"
                         Margin="0,8,0,0">
                     <TextBox x:Name="DetailsBox"
                              IsReadOnly="True"
                              TextWrapping="Wrap"
                              FontFamily="Consolas"
-                             FontSize="11"
+                             FontSize="12"
                              BorderThickness="0"
                              Background="Transparent"
                              MaxHeight="220"
-                             Padding="10"
+                             Padding="8"
                              VerticalScrollBarVisibility="Auto"
                              HorizontalScrollBarVisibility="Disabled"/>
                 </Border>
@@ -104,24 +107,23 @@
                         Orientation="Horizontal"
                         HorizontalAlignment="Right">
                 <Button x:Name="btnClose"
-                        MinWidth="80"
-                        Padding="14,8"
+                        MinWidth="100"
                         Margin="0,0,8,0"
                         Style="{StaticResource PrimaryButtonStyle}"
                         Click="btnClose_Click"/>
                 <Button x:Name="btnCopyDetails"
-                        MinWidth="80"
-                        Padding="14,8"
+                        MinWidth="100"
                         Margin="0,0,8,0"
+                        Style="{StaticResource SecondaryButtonStyle}"
                         Click="btnCopyDetails_Click"/>
                 <Button x:Name="btnOpenLogFolder"
-                        MinWidth="80"
-                        Padding="14,8"
+                        MinWidth="100"
                         Margin="0,0,8,0"
+                        Style="{StaticResource SecondaryButtonStyle}"
                         Click="btnOpenLogFolder_Click"/>
                 <Button x:Name="btnExit"
-                        MinWidth="80"
-                        Padding="14,8"
+                        MinWidth="100"
+                        Style="{StaticResource SecondaryButtonStyle}"
                         Click="btnExit_Click"/>
             </StackPanel>
         </Grid>

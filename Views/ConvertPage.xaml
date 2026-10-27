@@ -40,7 +40,7 @@
                                 <DataGridTemplateColumn x:Name="colProgress" Width="120">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
-                                            <ProgressBar Value="{Binding Progress}" Maximum="100" Height="18"/>
+                                            <ProgressBar Value="{Binding Progress}" Maximum="100" Height="{StaticResource ProgressBarHeight}"/>
                                         </DataTemplate>
                                     </DataGridTemplateColumn.CellTemplate>
                                 </DataGridTemplateColumn>
@@ -70,9 +70,9 @@
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <Label x:Name="lblTargetFormat" VerticalAlignment="Center" Grid.Column="0" Padding="0" Style="{StaticResource FormLabelShortStyle}"/>
+                        <Label x:Name="lblTargetFormat" Target="{Binding ElementName=cbTargetFormat}" VerticalAlignment="Center" Grid.Column="0" Padding="0" Style="{StaticResource FormLabelShortStyle}"/>
                         <ComboBox x:Name="cbTargetFormat" Width="120" SelectionChanged="cbTargetFormat_SelectionChanged" Margin="8,0,24,0" Grid.Column="1"/>
-                        <Label x:Name="lblTargetFolder" VerticalAlignment="Center" Padding="0" Grid.Column="2" Style="{StaticResource FormLabelShortStyle}"/>
+                        <Label x:Name="lblTargetFolder" Target="{Binding ElementName=tbTargetFolder}" VerticalAlignment="Center" Padding="0" Grid.Column="2" Style="{StaticResource FormLabelShortStyle}"/>
                         <TextBox x:Name="tbTargetFolder" VerticalContentAlignment="Center" Margin="8,0,0,0" Grid.Column="3"/>
                         <Button x:Name="btnBrowseTargetFolder" Click="btnBrowseTargetFolder_Click" Style="{StaticResource SecondaryButtonStyle}" MinWidth="100" Margin="8,0,0,0" Grid.Column="4"/>
                         <Button x:Name="btnOpenTargetFolder" Click="btnOpenTargetFolder_Click" Style="{StaticResource SecondaryButtonStyle}" MinWidth="100" Margin="8,0,0,0" Grid.Column="5"/>
@@ -85,8 +85,8 @@
                         <StackPanel>
                             <TextBlock x:Name="txtUsePath" FontWeight="SemiBold" Margin="0,0,0,8"/>
                             <StackPanel Orientation="Horizontal">
-                                <Button x:Name="btnUseSavedDownloadpath" Click="btnUseSavedDownloadpath_Click" Style="{StaticResource SecondaryButtonStyle}" Width="140" Margin="0,0,8,0"/>
-                                <Button x:Name="btnUseSavedAudioOnlyPath" Click="btnUseSavedAudioOnlyPath_Click" Style="{StaticResource SecondaryButtonStyle}" Width="140"/>
+                                <Button x:Name="btnUseSavedDownloadpath" Click="btnUseSavedDownloadpath_Click" Style="{StaticResource SecondaryButtonStyle}" Margin="0,0,8,0"/>
+                                <Button x:Name="btnUseSavedAudioOnlyPath" Click="btnUseSavedAudioOnlyPath_Click" Style="{StaticResource SecondaryButtonStyle}"/>
                             </StackPanel>
                         </StackPanel>
                     </Border>
@@ -98,7 +98,7 @@
                 <StackPanel>
                     <TextBlock x:Name="txtSection3Header" Style="{StaticResource SectionHeaderStyle}"/>
                     <StackPanel Orientation="Horizontal">
-                        <Label x:Name="lblVideoQuality" VerticalAlignment="Center" Padding="0" Style="{StaticResource FormLabelShortStyle}"/>
+                        <Label x:Name="lblVideoQuality" Target="{Binding ElementName=cbVideoQuality}" VerticalAlignment="Center" Padding="0" Style="{StaticResource FormLabelShortStyle}"/>
                         <ComboBox x:Name="cbVideoQuality" Width="180" Margin="8,0,24,0">
                             <ComboBoxItem x:Name="cbiVideoQualityOriginal" IsSelected="True"/>
                             <ComboBoxItem Content="1080p"/>
@@ -106,7 +106,7 @@
                             <ComboBoxItem Content="480p"/>
                             <ComboBoxItem Content="360p"/>
                         </ComboBox>
-                        <Label x:Name="lblAudioQuality" VerticalAlignment="Center" Padding="0" Style="{StaticResource FormLabelShortStyle}"/>
+                        <Label x:Name="lblAudioQuality" Target="{Binding ElementName=cbAudioQuality}" VerticalAlignment="Center" Padding="0" Style="{StaticResource FormLabelShortStyle}"/>
                         <ComboBox x:Name="cbAudioQuality" Width="180" Margin="8,0,0,0">
                             <ComboBoxItem x:Name="cbiAudioQualityOriginal" IsSelected="True"/>
                             <ComboBoxItem Content="320k"/>

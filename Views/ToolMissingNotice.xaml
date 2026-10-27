@@ -5,7 +5,7 @@
         <StackPanel>
             <TextBlock x:Name="txtTitle" Style="{StaticResource SectionHeaderStyle}"/>
             <TextBlock x:Name="txtBody" TextWrapping="Wrap" LineHeight="20"
-                       Opacity="0.85" Margin="0,0,0,12"/>
+                       Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,0,0,12"/>
             <Button x:Name="btnToTools" Click="btnToTools_Click"
                     Style="{StaticResource PrimaryButtonStyle}"
                     HorizontalAlignment="Left"/>

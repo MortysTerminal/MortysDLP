@@ -98,6 +98,18 @@ namespace MortysDLP.Views
             btnStart.Content = T("TranscribePage.Button.Start");
             btnCancel.Content = T("TranscribePage.Button.Cancel");
             expDebug.Header = T("Common.Section.Debug");
+            
+            // Barrierefreiheit: Namen/Hilfetexte für reine Icon-Elemente
+            System.Windows.Automation.AutomationProperties.SetName(btnOpenResult, T("Common.Button.OpenFolder"));
+            System.Windows.Automation.AutomationProperties.SetName(imgInputInfo, T("A11y.InfoIcon"));
+            System.Windows.Automation.AutomationProperties.SetHelpText(imgInputInfo, T("TranscribePage.Tooltip.InputFile"));
+            System.Windows.Automation.AutomationProperties.SetName(imgModelInfoIcon, T("A11y.InfoIcon"));
+            System.Windows.Automation.AutomationProperties.SetHelpText(imgModelInfoIcon, T("TranscribePage.Tooltip.Model"));
+            System.Windows.Automation.AutomationProperties.SetName(imgLangInfo, T("A11y.InfoIcon"));
+            System.Windows.Automation.AutomationProperties.SetHelpText(imgLangInfo, T("TranscribePage.Tooltip.Language"));
+            System.Windows.Automation.AutomationProperties.SetName(imgFormatInfo, T("A11y.InfoIcon"));
+            System.Windows.Automation.AutomationProperties.SetHelpText(imgFormatInfo, T("TranscribePage.Tooltip.OutputFormat"));
+            System.Windows.Automation.AutomationProperties.SetName(tbDebugOutput, T("Common.Section.Debug"));
 
             ApplyDebugMode();
             RefreshWhisperStatus();

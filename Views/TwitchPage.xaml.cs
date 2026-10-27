@@ -102,6 +102,21 @@ namespace MortysDLP.Views
             cbiQualityUltra.Content     = T("TwitchPage.RenderQuality.Ultra");
             tooltipRenderQuality.Content = T("TwitchPage.Tooltip.RenderQuality");
             btnUseGlobalPath.Content    = T("TwitchPage.Button.UseGlobalPath");
+
+            // Info-Symbole: Name + Hilfetext für Screenreader (Tooltip allein ist per Tastatur nicht erreichbar)
+            foreach (var (glyph, tip) in new (System.Windows.Controls.TextBlock, string)[]
+            {
+                (imgURLInfo, "TwitchPage.Tooltip.URL"),
+                (imgDownloadVideoInfo, "TwitchPage.Tooltip.DownloadVideo"),
+                (imgDownloadChatInfo, "TwitchPage.Tooltip.DownloadChat"),
+                (imgChatJsonInfo, "TwitchPage.Tooltip.ChatJson"),
+                (imgChatRenderInfo, "TwitchPage.Tooltip.ChatRender"),
+                (imgRenderQualityInfo, "TwitchPage.Tooltip.RenderQuality"),
+            })
+            {
+                System.Windows.Automation.AutomationProperties.SetName(glyph, T("A11y.InfoIcon"));
+                System.Windows.Automation.AutomationProperties.SetHelpText(glyph, T(tip));
+            }
             btnStart.Content           = T("TwitchPage.Button.Start");
             btnCancel.Content          = T("TwitchPage.Button.Cancel");
             expDebug.Header            = T("Common.Section.Debug");
@@ -481,7 +496,7 @@ namespace MortysDLP.Views
             if (primary)
                 btn.Style = (Style)FindResource("PrimaryButtonStyle");
             else
-                btn.ClearValue(System.Windows.Controls.Button.StyleProperty);
+                btn.Style = (Style)FindResource("SecondaryButtonStyle");
         }
 
         // Klick auf den adaptiven Update/Check-Button

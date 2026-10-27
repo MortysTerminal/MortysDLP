@@ -1,6 +1,7 @@
 using MortysDLP.UITexte;
 using System.Globalization;
 using System.Windows;
+using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
@@ -48,6 +49,8 @@ namespace MortysDLP.Views
             txtManualTo.Text = T("Timeline.To");
             btnApply.Content = T("Timeline.Apply");
             btnCancel.Content = T("Timeline.Cancel");
+            AutomationProperties.SetName(sliderStart, T("Timeline.From"));
+            AutomationProperties.SetName(sliderEnd, T("Timeline.To"));
         }
 
         private void SliderStart_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
@@ -172,6 +175,7 @@ namespace MortysDLP.Views
             // geholt statt pro Strich neu: Best-Practices §7 "Aktualisierungen bündeln"
             // gilt sinngemäß auch für wiederholt erzeugte Objekte in einer Schleife.
             var tickBrush = (Brush)FindResource("TextFillColorTertiaryBrush");
+            var labelBrush = (Brush)FindResource("TextFillColorSecondaryBrush");
 
             for (double sec = 0; sec <= totalSec; sec += interval)
             {
@@ -190,8 +194,8 @@ namespace MortysDLP.Views
                 var label = new TextBlock
                 {
                     Text = FormatTime(TimeSpan.FromSeconds(sec)),
-                    FontSize = 9,
-                    Opacity = 0.6,
+                    FontSize = 10,
+                    Foreground = labelBrush,
                     FontFamily = new FontFamily("Consolas")
                 };
                 label.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));

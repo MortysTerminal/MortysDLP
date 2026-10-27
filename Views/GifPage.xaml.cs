@@ -96,6 +96,16 @@ namespace MortysDLP.Views
             txtBtnStart.Text         = T("GifPage.Button.Start");
             txtBtnCancel.Text        = T("GifPage.Button.Cancel");
             expDebug.Header          = T("Common.Section.Debug");
+            
+            // Barrierefreiheit: Namen/Hilfetexte für reine Icon-Elemente
+            System.Windows.Automation.AutomationProperties.SetName(btnOpenResult, T("Common.Button.OpenFolder"));
+            System.Windows.Automation.AutomationProperties.SetName(imgInputInfo, T("A11y.InfoIcon"));
+            System.Windows.Automation.AutomationProperties.SetHelpText(imgInputInfo, T("GifPage.Tooltip.InputFile"));
+            System.Windows.Automation.AutomationProperties.SetName(imgQualityInfo, T("A11y.InfoIcon"));
+            System.Windows.Automation.AutomationProperties.SetHelpText(imgQualityInfo, T("GifPage.Tooltip.Quality"));
+            System.Windows.Automation.AutomationProperties.SetName(imgTimeInfo, T("A11y.InfoIcon"));
+            System.Windows.Automation.AutomationProperties.SetHelpText(imgTimeInfo, T("GifPage.Tooltip.Time"));
+            System.Windows.Automation.AutomationProperties.SetName(tbDebugOutput, T("Common.Section.Debug"));
 
             ApplyDebugMode();
         }

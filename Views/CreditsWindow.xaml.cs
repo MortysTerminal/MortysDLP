@@ -77,7 +77,7 @@ namespace MortysDLP.Views
                     BorderBrush    = (Brush)FindResource("CardStrokeColorDefaultBrush"),
                     BorderThickness = new Thickness(1),
                     CornerRadius   = new CornerRadius(8),
-                    Padding        = new Thickness(14, 10, 14, 10),
+                    Padding        = new Thickness(16, 12, 16, 12),
                     Margin         = new Thickness(0, 0, 0, 8),
                 };
 
@@ -102,7 +102,7 @@ namespace MortysDLP.Views
                     BorderBrush   = (Brush)FindResource("CardStrokeColorDefaultBrush"),
                     BorderThickness = new Thickness(1),
                     CornerRadius  = new CornerRadius(4),
-                    Padding       = new Thickness(6, 2, 6, 2),
+                    Padding       = new Thickness(8, 4, 8, 4),
                     VerticalAlignment = VerticalAlignment.Center,
                     Child = new TextBlock
                     {
@@ -123,7 +123,7 @@ namespace MortysDLP.Views
                     Text           = tool.Description,
                     FontSize       = 12,
                     TextWrapping   = TextWrapping.Wrap,
-                    Margin         = new Thickness(0, 5, 0, 6),
+                    Margin         = new Thickness(0, 4, 0, 4),
                     Foreground     = (Brush)FindResource("TextFillColorSecondaryBrush"),
                 });
 
@@ -137,7 +137,7 @@ namespace MortysDLP.Views
                     linkRow.Children.Add(new TextBlock
                     {
                         Text       = " · ",
-                        FontSize   = 11,
+                        FontSize   = 12,
                         Foreground = (Brush)FindResource("TextFillColorTertiaryBrush"),
                         VerticalAlignment = VerticalAlignment.Center,
                     });

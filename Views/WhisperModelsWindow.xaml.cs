@@ -1,4 +1,5 @@
 using MortysDLP.Helpers;
+using MortysDLP.Models;
 using MortysDLP.Services;
 using MortysDLP.Services.Tools;
 using MortysDLP.UITexte;
@@ -68,11 +69,11 @@ namespace MortysDLP.Views
             // bekommt beide Aktionen: erneut laden (überschreibt) oder löschen.
             foreach (var item in items)
             {
-                (item.StatusText, item.StatusColor) = item.State switch
+                (item.StatusText, item.Tone) = item.State switch
                 {
-                    WhisperModelState.Complete => (T("WhisperModels.Status.Installed"), "#22C55E"),
-                    WhisperModelState.Incomplete => (T("WhisperModels.Status.Incomplete"), "#F59E0B"),
-                    _ => (T("WhisperModels.Status.NotInstalled"), "#94A3B8"),
+                    WhisperModelState.Complete => (T("WhisperModels.Status.Installed"), StatusTone.Success),
+                    WhisperModelState.Incomplete => (T("WhisperModels.Status.Incomplete"), StatusTone.Warning),
+                    _ => (T("WhisperModels.Status.NotInstalled"), StatusTone.Neutral),
                 };
                 item.DownloadVisibility = item.State == WhisperModelState.Complete ? Visibility.Collapsed : Visibility.Visible;
                 item.DeleteVisibility = item.State == WhisperModelState.NotPresent ? Visibility.Collapsed : Visibility.Visible;
@@ -344,7 +345,7 @@ namespace MortysDLP.Views
         public string SizeHint { get; set; } = "";
         public WhisperModelState State { get; set; }
         public string StatusText { get; set; } = "";
-        public string StatusColor { get; set; } = "#94A3B8";
+        public StatusTone Tone { get; set; }
         public bool CanDownload { get; set; }
         public bool CanDelete { get; set; }
         public string DownloadButtonText { get; set; } = "Download";

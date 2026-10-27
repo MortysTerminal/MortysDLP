@@ -10,6 +10,7 @@
         Width="1000" Height="600"
         MinWidth="800" MinHeight="600"
         WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False"
         FontFamily="{DynamicResource AppFontFamily}"
         Background="{DynamicResource SolidBackgroundFillColorBaseBrush}">
 
@@ -35,12 +36,12 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <TextBlock Grid.Column="0" FontFamily="Segoe MDL2 Assets" Text="&#xE81C;" 
-                           FontSize="22" VerticalAlignment="Center" Margin="0,0,12,0"
+                <TextBlock Grid.Column="0" FontFamily="{StaticResource IconFontFamily}" Text="&#xE81C;" 
+                           FontSize="24" VerticalAlignment="Center" Margin="0,0,12,0"
                            Foreground="{StaticResource BrandOrangeBrush}"/>
                 <StackPanel Grid.Column="1" VerticalAlignment="Center">
                     <TextBlock x:Name="txtHeaderTitle" Style="{StaticResource PageTitleStyle}"/>
-                    <TextBlock x:Name="txtHeaderSubtitle" FontSize="12" Opacity="0.7" Margin="0,2,0,0"/>
+                    <TextBlock x:Name="txtHeaderSubtitle" FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,0,0,0"/>
                 </StackPanel>
             </Grid>
         </Border>
@@ -65,7 +66,7 @@
                                                 Background="{DynamicResource SubtleFillColorTransparentBrush}"
                                                 BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
                                                 BorderThickness="1"
-                                                CornerRadius="6"
+                                                CornerRadius="4"
                                                 Padding="12">
                                             <ContentPresenter/>
                                         </Border>
@@ -99,21 +100,21 @@
                                 <Border Grid.Column="0" Width="36" Height="36" CornerRadius="18"
                                         Background="{StaticResource BrandYellowBrush}"
                                         VerticalAlignment="Top" Margin="0,0,12,0">
-                                    <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE896;" 
-                                               FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                    <TextBlock FontFamily="{StaticResource IconFontFamily}" Text="&#xE896;" 
+                                               FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"
                                                Foreground="{StaticResource BrandDarkBrush}"/>
                                 </Border>
 
                                 <!-- Content -->
                                 <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                     <TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="14" TextTrimming="CharacterEllipsis"/>
-                                    <TextBlock Text="{Binding Url}" FontSize="11" Opacity="0.7" Margin="0,4,0,0" TextTrimming="CharacterEllipsis"/>
-                                    <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
-                                        <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE787;" FontSize="10" Opacity="0.6" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{Binding Url}" FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,4,0,0" TextTrimming="CharacterEllipsis"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                        <TextBlock FontFamily="{StaticResource IconFontFamily}" Text="&#xE787;" FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" VerticalAlignment="Center"/>
                                         <TextBlock Text="{Binding DownloadedAt, StringFormat='{}{0:dd.MM.yyyy HH:mm}'}"
-                                                   FontSize="11" Opacity="0.6" Margin="4,0,12,0" VerticalAlignment="Center"/>
-                                        <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE8B7;" FontSize="10" Opacity="0.6" VerticalAlignment="Center" Margin="0,0,4,0"/>
-                                        <TextBlock FontSize="11" Opacity="0.6" VerticalAlignment="Center">
+                                                   FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="4,0,12,0" VerticalAlignment="Center"/>
+                                        <TextBlock FontFamily="{StaticResource IconFontFamily}" Text="&#xE8B7;" FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                                        <TextBlock FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" VerticalAlignment="Center">
                                             <Run Text="{Binding IsAudioOnly, Mode=OneWay, Converter={StaticResource BoolToAudioVideoConverter}}"/>
                                             <Run Text="·"/>
                                             <Run Text="{Binding VideoQuality, Mode=OneWay, TargetNullValue='-'}"/>
@@ -124,8 +125,8 @@
                                     <!-- Zielordner: nur bei Einträgen, die ihn mitgespeichert haben. Klick öffnet ihn. -->
                                     <StackPanel Orientation="Horizontal" Margin="0,4,0,0"
                                                 Visibility="{Binding DownloadDirectory, Converter={StaticResource StringToVisibilityConverter}}">
-                                        <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE838;" FontSize="10" Opacity="0.6" VerticalAlignment="Center" Margin="0,0,4,0"/>
-                                        <TextBlock FontSize="11" Opacity="0.7" VerticalAlignment="Center" TextTrimming="CharacterEllipsis">
+                                        <TextBlock FontFamily="{StaticResource IconFontFamily}" Text="&#xE838;" FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                                        <TextBlock FontSize="12" VerticalAlignment="Center" TextTrimming="CharacterEllipsis">
                                             <Hyperlink Click="OpenFolder_Click" TextDecorations="{x:Null}"
                                                        ToolTip="{Binding DownloadDirectory}">
                                                 <Run Text="{Binding DownloadDirectory, Mode=OneWay}"/>
@@ -145,17 +146,17 @@
             <Border Width="80" Height="80" CornerRadius="40"
                     Background="{DynamicResource SubtleFillColorSecondaryBrush}"
                     Margin="0,0,0,16">
-                <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE81C;" 
+                <TextBlock FontFamily="{StaticResource IconFontFamily}" Text="&#xE81C;" 
                            FontSize="36" HorizontalAlignment="Center" VerticalAlignment="Center"
-                           Opacity="0.4"/>
+                           Foreground="{DynamicResource TextFillColorTertiaryBrush}"/>
             </Border>
             <TextBlock Name="EmptyText"
                        Text="Keine Historie vorhanden"
-                       FontSize="18" FontWeight="SemiBold"
+                       FontSize="14" FontWeight="SemiBold"
                        HorizontalAlignment="Center"/>
             <TextBlock Name="InfoText"
                        Text="Hier ist noch gähnende Leere... Aber keine Sorge: Deine nächsten Downloads landen alle hier und warten nur darauf, von dir wiederverwendet zu werden!"
-                       FontSize="13" Opacity="0.7"
+                       FontSize="13" Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                        Margin="0,8,0,0" MaxWidth="400"
                        HorizontalAlignment="Center"
                        TextAlignment="Center"
@@ -174,9 +175,10 @@
                     </Style.Triggers>
                 </Style>
             </StackPanel.Style>
-            <Button Name="ReuseButton" Content="Neu verwenden" Click="Reuse_Click"
+            <Button Name="ReuseButton" Content="Neu verwenden" Click="Reuse_Click" MinWidth="100"
                     Style="{StaticResource PrimaryButtonStyle}"/>
-            <Button Name="ClearButton" Content="Historie leeren" Click="Clear_Click" Margin="8,0,0,0"/>
+            <Button Name="ClearButton" Content="Historie leeren" Click="Clear_Click" Margin="8,0,0,0" MinWidth="100"
+                    Style="{StaticResource SecondaryButtonStyle}"/>
         </StackPanel>
     </Grid>
 </Window>

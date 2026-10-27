@@ -10,6 +10,7 @@
         SizeToContent="Height"
         Background="{DynamicResource SolidBackgroundFillColorBaseBrush}"
         FontFamily="{DynamicResource AppFontFamily}"
+        ShowInTaskbar="False"
         Closing="Window_Closing">
     
     <Grid Margin="20">
@@ -25,11 +26,11 @@
         <!-- Header -->
         <StackPanel Grid.Row="0" Margin="0,0,0,16">
             <TextBlock x:Name="txtHeaderTitle" Style="{StaticResource PageTitleStyle}"/>
-            <TextBlock x:Name="txtHeaderSubtitle" FontSize="12" Opacity="0.7" Margin="0,4,0,0"/>
+            <TextBlock x:Name="txtHeaderSubtitle" FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,4,0,0"/>
         </StackPanel>
 
         <!-- Standard Download-Pfad -->
-        <Border Grid.Row="1" CornerRadius="8" Padding="14" Margin="0,0,0,12"
+        <Border Grid.Row="1" CornerRadius="8" Padding="16" Margin="0,0,0,12"
                 Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
                 BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
                 BorderThickness="1">
@@ -44,7 +45,7 @@
                 </Grid.RowDefinitions>
                 
                 <!-- Icon -->
-                <TextBlock Grid.Column="0" Grid.RowSpan="2" FontFamily="Segoe MDL2 Assets" Text="&#xE838;" 
+                <TextBlock Grid.Column="0" Grid.RowSpan="2" FontFamily="{StaticResource IconFontFamily}" Text="&#xE838;" 
                            FontSize="20" VerticalAlignment="Center" Margin="0,0,12,0"
                            Foreground="{StaticResource BrandOrangeBrush}"/>
                 
@@ -59,15 +60,17 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     
-                    <TextBox Grid.Column="0" Name="tbDownloadPath" Padding="10,8"/>
+                    <TextBox Grid.Column="0" Name="tbDownloadPath" Padding="8"
+                             AutomationProperties.LabeledBy="{Binding ElementName=lblDefaultDownloadPath}"/>
                     <Button Grid.Column="1" Name="btnDownloadPath"
-                            Click="btnDownloadPath_Click" Margin="8,0,0,0" Padding="12,8"/>
+                            Click="btnDownloadPath_Click" Margin="8,0,0,0"
+                            Style="{StaticResource SecondaryButtonStyle}"/>
                 </Grid>
             </Grid>
         </Border>
 
         <!-- Audio-Only Pfad Checkbox -->
-        <Border Grid.Row="2" CornerRadius="8" Padding="14" Margin="0,0,0,12"
+        <Border Grid.Row="2" CornerRadius="8" Padding="16" Margin="0,0,0,12"
                 Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
                 BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
                 BorderThickness="1">
@@ -78,7 +81,7 @@
                 </Grid.ColumnDefinitions>
                 
                 <!-- Icon -->
-                <TextBlock Grid.Column="0" FontFamily="Segoe MDL2 Assets" Text="&#xE8D6;" 
+                <TextBlock Grid.Column="0" FontFamily="{StaticResource IconFontFamily}" Text="&#xE8D6;" 
                            FontSize="20" VerticalAlignment="Center" Margin="0,0,12,0"
                            Foreground="{StaticResource BrandYellowBrush}"/>
                 
@@ -87,6 +90,7 @@
                     <CheckBox Name="cbAudioOnlyPath"
                               Checked="cbAudioOnlyPath_Checked" 
                               Unchecked="cbAudioOnlyPath_Unchecked"
+                              AutomationProperties.LabeledBy="{Binding ElementName=lblDefaultAudioDownloadPath}"
                               Cursor="Hand"/>
                     <TextBlock Name="lblDefaultAudioDownloadPath" 
                                VerticalAlignment="Center" 
@@ -96,7 +100,7 @@
         </Border>
 
         <!-- Audio-Only Pfad Input (initially hidden) -->
-        <Border Grid.Row="3" CornerRadius="8" Padding="14" Margin="0,0,0,12"
+        <Border Grid.Row="3" CornerRadius="8" Padding="16" Margin="0,0,0,12"
                 Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
                 BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
                 BorderThickness="1"
@@ -113,7 +117,7 @@
                 </Grid.RowDefinitions>
                 
                 <!-- Icon -->
-                <TextBlock Grid.Column="0" Grid.RowSpan="2" FontFamily="Segoe MDL2 Assets" Text="&#xE8D6;" 
+                <TextBlock Grid.Column="0" Grid.RowSpan="2" FontFamily="{StaticResource IconFontFamily}" Text="&#xE8D6;" 
                            FontSize="20" VerticalAlignment="Center" Margin="0,0,12,0"
                            Foreground="{StaticResource BrandYellowBrush}"/>
                 
@@ -128,9 +132,11 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     
-                    <TextBox Grid.Column="0" Name="tbAudioPathBox" Padding="10,8"/>
+                    <TextBox Grid.Column="0" Name="tbAudioPathBox" Padding="8"
+                             AutomationProperties.LabeledBy="{Binding ElementName=lblAudioOnlyPath}"/>
                     <Button Grid.Column="1" Name="btnSearchAudioPath"
-                            Click="btnSearchAudioPath_Click" Margin="8,0,0,0" Padding="12,8"/>
+                            Click="btnSearchAudioPath_Click" Margin="8,0,0,0"
+                            Style="{StaticResource SecondaryButtonStyle}"/>
                 </Grid>
             </Grid>
         </Border>
@@ -142,8 +148,9 @@
         <!-- Action Buttons -->
         <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0">
             <Button Name="btnOK" Click="btnOK_Click" IsDefault="True"
-                    Style="{StaticResource PrimaryButtonStyle}" Padding="20,8" Margin="0,0,8,0"/>
-            <Button Name="btnCancel" Click="btnCancel_Click" IsCancel="True" Padding="20,8"/>
+                    Style="{StaticResource PrimaryButtonStyle}" MinWidth="100" Margin="0,0,8,0"/>
+            <Button Name="btnCancel" Click="btnCancel_Click" IsCancel="True" MinWidth="100"
+                    Style="{StaticResource SecondaryButtonStyle}"/>
         </StackPanel>
     </Grid>
 </Window>

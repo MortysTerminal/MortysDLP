@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MortysDLP"
+        xmlns:helpers="clr-namespace:MortysDLP.Helpers"
         xmlns:fa="http://schemas.fontawesome.io/icons/"
         Icon="/Resources/Icons/mw_globe_32px.ico"
         mc:Ignorable="d"
@@ -18,7 +19,7 @@
 
     <!-- Äußere Card mit abgerundeten Ecken -->
     <Border Background="{DynamicResource SolidBackgroundFillColorBaseBrush}"
-            CornerRadius="14"
+            CornerRadius="8"
             ClipToBounds="True">
         <Grid>
             <Grid.RowDefinitions>
@@ -36,7 +37,7 @@
             <StackPanel Grid.Row="1"
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center"
-                        Margin="28,14,28,18">
+                        Margin="28,12,28,16">
 
                 <!-- Logo mit gelbem Ring -->
                 <Border x:Name="LogoBorder"
@@ -57,10 +58,10 @@
 
                 <!-- Titel -->
                 <TextBlock x:Name="TitleText"
-                           FontSize="17"
+                           FontSize="14"
                            FontWeight="SemiBold"
                            HorizontalAlignment="Center"
-                           Margin="0,0,0,10"/>
+                           Margin="0,0,0,8"/>
 
                 <!-- Spinner + Status in einer Zeile -->
                 <StackPanel Orientation="Horizontal"
@@ -69,8 +70,8 @@
 
                     <!-- Rotierendes Ladeicon (Gelb) -->
                     <TextBlock x:Name="LoadingIcon"
-                               FontFamily="Segoe MDL2 Assets"
-                               FontSize="15"
+                               FontFamily="{StaticResource IconFontFamily}"
+                               FontSize="16"
                                Text="&#xE895;"
                                Foreground="{StaticResource BrandYellowBrush}"
                                VerticalAlignment="Center"
@@ -85,7 +86,8 @@
                     <TextBlock x:Name="StatusText"
                                Text=""
                                FontSize="12"
-                               Opacity="0.72"
+                               Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                               helpers:A11y.AnnounceChanges="True"
                                VerticalAlignment="Center"
                                TextWrapping="Wrap"
                                MaxWidth="300"/>

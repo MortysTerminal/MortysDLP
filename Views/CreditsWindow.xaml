@@ -16,7 +16,7 @@
             <Setter Property="BorderBrush" Value="{DynamicResource CardStrokeColorDefaultBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="Padding" Value="14,10"/>
+            <Setter Property="Padding" Value="16,12"/>
             <Setter Property="Margin" Value="0,0,0,8"/>
         </Style>
 
@@ -31,7 +31,7 @@
                     <ControlTemplate TargetType="Button">
                         <TextBlock x:Name="txt"
                                    Text="{TemplateBinding Content}"
-                                   FontSize="11"
+                                   FontSize="12"
                                    TextDecorations="Underline"
                                    Foreground="{StaticResource BrandOrangeBrush}"/>
                         <ControlTemplate.Triggers>
@@ -45,7 +45,7 @@
         </Style>
     </Window.Resources>
 
-    <Grid Margin="20,18,20,16">
+    <Grid Margin="20,16,20,16">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -54,7 +54,7 @@
         </Grid.RowDefinitions>
 
         <!-- Header -->
-        <StackPanel Grid.Row="0" Margin="0,0,0,14">
+        <StackPanel Grid.Row="0" Margin="0,0,0,12">
             <TextBlock Text="Credits &amp; Open-Source-Tools"
                        Style="{StaticResource PageTitleStyle}" Margin="0,0,0,4"/>
             <TextBlock FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" TextWrapping="Wrap">
@@ -75,22 +75,18 @@
         <!-- Footer -->
         <Border Grid.Row="3" Margin="0,12,0,0"
                 BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
-                BorderThickness="0,1,0,0" Padding="0,10,0,0">
+                BorderThickness="0,1,0,0" Padding="0,8,0,0">
             <Grid>
-                <TextBlock HorizontalAlignment="Left" FontSize="11"
+                <TextBlock HorizontalAlignment="Left" FontSize="12"
                            Foreground="{DynamicResource TextFillColorTertiaryBrush}"
                            VerticalAlignment="Center"
                            Text="Alle genannten Tools stehen unter ihren jeweiligen Open-Source-Lizenzen."/>
                 <Button x:Name="btnClose" Content="Schließen"
                         HorizontalAlignment="Right"
                         IsDefault="True" IsCancel="True"
-                        Padding="20,6" Click="btnClose_Click">
-                    <Button.Style>
-                        <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-                            <Setter Property="Background" Value="{DynamicResource SubtleFillColorSecondaryBrush}"/>
-                        </Style>
-                    </Button.Style>
-                </Button>
+                        MinWidth="100"
+                        Style="{StaticResource SecondaryButtonStyle}"
+                        Click="btnClose_Click"/>
             </Grid>
         </Border>
     </Grid>

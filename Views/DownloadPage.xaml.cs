@@ -164,6 +164,8 @@ namespace MortysDLP.Views
             txtTimespanDash.Text = "-";
             txtTimespanInfo.Text = T("DownloadPage.Label.TimespanFormat");
             ToolTipTimeSpan.Content = T("DownloadPage.Tooltip.Timespan");
+            System.Windows.Automation.AutomationProperties.SetName(imgTimespanInfo, T("A11y.InfoIcon"));
+            System.Windows.Automation.AutomationProperties.SetHelpText(imgTimespanInfo, T("DownloadPage.Tooltip.Timespan"));
             txtTimelineBtn.Text = T("DownloadPage.Button.Timeline");
             
             txtFirstSecondsInfo1.Text = T("DownloadPage.Label.FirstSeconds");
@@ -188,6 +190,9 @@ namespace MortysDLP.Views
             btnDownloadStart.Content = T("DownloadPage.Button.DownloadStart");
             btnDownloadCancel.Content = T("DownloadPage.Button.DownloadCancel");
             btnSaveSettings.Content = T("DownloadPage.Button.SaveSettings");
+            System.Windows.Automation.AutomationProperties.SetName(btnStatusIcon, T("Common.Button.OpenFolder"));
+            System.Windows.Automation.AutomationProperties.SetName(tbTimespanTo, T("Timeline.To"));
+            System.Windows.Automation.AutomationProperties.SetName(combAudioFormat, T("A11y.AudioFormat"));
             
             // Status
             txtDownloadStatus.Text = T("DownloadPage.Status.Loading");
@@ -200,6 +205,8 @@ namespace MortysDLP.Views
             txtGifKeepVideo.Text            = T("DownloadPage.GifMaker.KeepVideo");
             txtGifMakerQualityLabel.Text    = T("DownloadPage.GifMaker.Quality");
             tooltipGifMaker.Content         = T("DownloadPage.GifMaker.Tooltip");
+            System.Windows.Automation.AutomationProperties.SetName(imgGifMakerInfo, T("A11y.InfoIcon"));
+            System.Windows.Automation.AutomationProperties.SetHelpText(imgGifMakerInfo, T("DownloadPage.GifMaker.Tooltip"));
             cbiGifQualityWeb.Content        = T("GifPage.Quality.Web");
             cbiGifQualityLow.Content        = T("GifPage.Quality.Low");
             cbiGifQualityMedium.Content     = T("GifPage.Quality.Medium");
@@ -1445,6 +1452,9 @@ namespace MortysDLP.Views
 
         private static void StartIconRotation(TextBlock icon)
         {
+            // Systemeinstellung "Animationseffekte" respektieren: Symbol bleibt dann stehen
+            if (!A11y.AnimationsEnabled) return;
+
             var rotateTransform = new RotateTransform();
             icon.RenderTransform = rotateTransform;
             icon.RenderTransformOrigin = new Point(0.5, 0.5);
