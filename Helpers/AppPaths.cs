@@ -11,12 +11,21 @@ namespace MortysDLP.Helpers
     /// </summary>
     internal static class AppPaths
     {
+        // Microsoft, "Naming Files, Paths, and Namespaces": Windows liest die hochgestellten
+        // Ziffern ¹ ² ³ (ISO 8859-1) als Ziffern - COM¹ ist damit in jedem Verzeichnis reserviert.
         private static readonly string[] ReservedNames =
         [
             "CON", "PRN", "AUX", "NUL",
             "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
+            "COM\u00B9", "COM\u00B2", "COM\u00B3",
             "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9",
+            "LPT\u00B9", "LPT\u00B2", "LPT\u00B3",
         ];
+
+        // Feste Liste statt Path.GetInvalidFileNameChars(): Die liefert nur unter Windows diese
+        // Zeichen (unter macOS/Linux nur '/' und NUL) - die Dateinamen landen aber immer auf
+        // einem Windows-Dateisystem, und Tests sollen überall dasselbe prüfen.
+        private static readonly char[] WindowsReservedChars = ['<', '>', ':', '"', '/', '\\', '|', '?', '*'];
 
         /// <summary>Verzeichnis der Programmdateien. Immer nur lesend verwenden.</summary>
         public static string AppDir { get; } =
@@ -144,29 +153,38 @@ namespace MortysDLP.Helpers
             }
         }
 
-        /// <summary>Bereinigt einen Dateinamen für Windows: ungültige Zeichen,
-        /// reservierte Namen (CON, NUL, COM1 …), abschließende Punkte/Leerzeichen,
-        /// Längenbegrenzung.</summary>
+        /// <summary>Bereinigt einen Dateinamen nach den Windows-Regeln — unabhängig davon, auf
+        /// welchem System der Code läuft: reservierte Zeichen <c>&lt; &gt; : " / \ | ? *</c> und
+        /// Steuerzeichen 0–31 werden zu <c>_</c>, reservierte Gerätenamen (CON, NUL, COM1, COM¹ …)
+        /// bekommen ein <c>_</c> angehängt — auch mit beliebig vielen Endungen, denn Windows
+        /// behandelt <c>NUL.tar.gz</c> wie <c>NUL</c>. Kein Punkt oder Leerzeichen am Ende, und
+        /// beim Kürzen auf <paramref name="maxLength"/> wird kein Surrogatpaar (Emoji) halbiert.
+        /// </summary>
         public static string SanitizeFileName(string name, int maxLength = 150)
         {
             if (string.IsNullOrWhiteSpace(name)) return "_";
 
-            var invalid = Path.GetInvalidFileNameChars();
             var sb = new StringBuilder(name.Length);
             foreach (char c in name)
-                sb.Append(invalid.Contains(c) ? '_' : c);
+                sb.Append(c < 32 || WindowsReservedChars.Contains(c) ? '_' : c);
 
             string cleaned = TrimTrailingDotsAndSpaces(sb.ToString().Trim());
             if (cleaned.Length == 0) cleaned = "_";
 
             if (cleaned.Length > maxLength)
-                cleaned = TrimTrailingDotsAndSpaces(cleaned[..maxLength]);
+            {
+                int cut = maxLength;
+                if (cut > 0 && char.IsHighSurrogate(cleaned[cut - 1]))
+                    cut--;
+                cleaned = TrimTrailingDotsAndSpaces(cleaned[..cut]);
+            }
             if (cleaned.Length == 0) cleaned = "_";
 
-            string ext = Path.GetExtension(cleaned);
-            string baseName = cleaned[..^ext.Length];
-            if (Array.IndexOf(ReservedNames, baseName.ToUpperInvariant()) >= 0)
-                cleaned = baseName + "_" + ext;
+            // Windows ignoriert Leerzeichen vor dem Punkt: "CON .txt" ist ebenfalls CON.
+            int firstDot = cleaned.IndexOf('.');
+            string stem = (firstDot < 0 ? cleaned : cleaned[..firstDot]).TrimEnd(' ');
+            if (Array.IndexOf(ReservedNames, stem.ToUpperInvariant()) >= 0)
+                cleaned = stem + "_" + cleaned[stem.Length..];
 
             return cleaned;
         }

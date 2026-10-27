@@ -564,10 +564,15 @@ namespace MortysDLP.Views
                 if (string.IsNullOrEmpty(safeTitle)) safeTitle = contentId;
                 safeTitle = AppPaths.SanitizeFileName(safeTitle);
 
-                string fileBase = System.IO.Path.Combine(outputDir, safeTitle);
                 string presetSuffix = renderChat
                     ? "_" + (cbRenderQuality.SelectedIndex switch { 1 => "high", 2 => "ultra", _ => "standard" })
                     : "";
+
+                // Ein gemeinsamer, auf das Pfadbudget gekürzter Name für Video und Chat-Dateien -
+                // bemessen am längsten Anhang ("_chat" + Kennzeichnung), damit alle Dateien
+                // denselben Namensanfang tragen.
+                safeTitle = YtDlpOutputTemplate.LiteralBaseName(outputDir, safeTitle, "_chat" + presetSuffix);
+                string fileBase = System.IO.Path.Combine(outputDir, safeTitle);
 
                 // Fortschrittsanzeige: Prozent und Geschwindigkeit aus Ausgabe parsen
                 // yt-dlp:              "[download]  42.3% at 5.21MiB/s"
@@ -612,8 +617,9 @@ namespace MortysDLP.Views
                 if (downloadVideo)
                 {
                     string ytDlpPath    = AppPaths.YtDlp;
-                    string safeTitleForTemplate = safeTitle.Replace("\"", "'");
-                    string outputTemplate = $"{outputDir}\\{safeTitleForTemplate}{presetSuffix}_%(id)s.%(ext)s";
+                    // Der Titel geht wörtlich in die yt-dlp-Vorlage - ein "%" darin (z. B.
+                    // "100% Speedrun") würde sonst als Platzhalter gelesen.
+                    string outputTemplate = YtDlpOutputTemplate.Build(outputDir, safeTitle, presetSuffix);
                     string formatArg = "best[ext=mp4]/bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best";
 
                     // Eigene, geglättete Geschwindigkeit statt yt-dlps pro Fragment schwankender

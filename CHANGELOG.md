@@ -37,6 +37,16 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
   dort dieselbe Wahl wie im Fenster „Whisper verwalten" — nur das Programm entfernen und die
   Sprachmodelle behalten, oder vollständig löschen — und beide Wege entfernen dasselbe. Das
   Löschen läuft im Hintergrund, die Seite friert dabei nicht mehr ein.
+- **Downloads brechen bei besonderen Titeln nicht mehr ab.** Dateinamen folgen jetzt durchgehend
+  den Windows-Regeln: verbotene Zeichen und reservierte Namen (z. B. `CON`, `NUL`, `COM¹`) werden
+  ersetzt, ein `%` in Titel, eigenem Dateinamen oder Zielordner wird richtig weitergegeben, und
+  Titel werden auf höchstens 120 Zeichen gekürzt — bei sehr tief verschachtelten Zielordnern
+  entsprechend weniger, damit der Pfad unter der Windows-Grenze bleibt (Titel mit vielen Umlauten,
+  Emoji oder asiatischen Schriftzeichen werden etwas stärker gekürzt). Gilt für Einzel-, Batch-
+  und Twitch-Download. Folge: Ein früher heruntergeladenes Video mit sehr langem Titel wird nicht
+  mehr als „bereits vorhanden" erkannt und erneut geladen.
+- **Heruntergeladene Dateien werden auch mit Emoji oder fremden Schriftzeichen im Titel
+  zuverlässig wiedergefunden** (Schnittmodus, GIF-Erstellung, x264-Nachbearbeitung im Batch).
 
 ### Geändert
 

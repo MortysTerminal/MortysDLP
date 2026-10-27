@@ -19,10 +19,16 @@ namespace MortysDLP.Services
         /// <summary>Die herunterzuladende Adresse.</summary>
         public required string Url { get; init; }
 
-        /// <summary>Vollständiger <c>-o</c>-Wert (Zielordner **und** Namensmuster) — der
-        /// Aufrufer setzt Variantenkennzeichnung und Sonderzeichen-Bereinigung bereits um,
-        /// bevor der Job entsteht.</summary>
+        /// <summary>Vollständiger <c>-o</c>-Wert (Zielordner **und** Namensmuster) — gebaut über
+        /// <see cref="YtDlpOutputTemplate.Build"/>, das Literale maskiert und die Länge
+        /// begrenzt.</summary>
         public required string OutputTemplate { get; init; }
+
+        /// <summary>Datei, in die yt-dlp nach dem Verschieben den endgültigen Pfad schreibt
+        /// (<c>--print-to-file after_move:filepath</c>, UTF-8) — zuverlässiger als das Auslesen der
+        /// Konsole, deren Kodierung unter Windows nicht garantiert UTF-8 ist. <c>null</c>: nicht
+        /// angefordert. Siehe <see cref="YtDlpOutputTemplate.NewFinalPathFile"/>.</summary>
+        public string? FinalPathFile { get; init; }
 
         /// <summary>Nur-Audio-Modus (<c>-x</c>) statt Video.</summary>
         public bool IsAudioOnly { get; init; }
