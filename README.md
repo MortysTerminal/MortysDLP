@@ -40,10 +40,13 @@ English documentation: [docs/en/](docs/en/README.md)
 ## Quick Start
 
 1. Download the latest release from the [Releases page](https://github.com/MortysTerminal/MortysDLP/releases)
-2. Extract the ZIP. No installer, no admin rights required.
-3. Run `MortysDLP.exe`
-4. On first launch, the required tools are downloaded automatically
-5. Paste a URL and start downloading
+2. **Unblock the ZIP before extracting it:** right-click `MortysDLP.zip` → **Properties** → tick **Unblock** (German Windows: **Zulassen**) → **OK**. Otherwise Windows may stop MortysDLP from starting.
+3. Extract the ZIP. No installer, no admin rights required.
+4. Run `MortysDLP.exe`. If a blue "Windows protected your PC" window appears, click **More info** → **Run anyway**.
+5. On first launch, the required tools are downloaded automatically
+6. Paste a URL and start downloading
+
+Doesn't start, or want the details? See [Extract & run](docs/en/installation.md#3-extract--run) ([Deutsch](docs/de/installation.md#3-entpacken--starten)).
 
 Full setup guide: [docs/en/installation.md](docs/en/installation.md)
 
