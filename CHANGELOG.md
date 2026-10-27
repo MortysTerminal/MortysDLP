@@ -25,6 +25,8 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
 
 ## [Unreleased]
 
+## [2026.10.27] – 2026-10-27
+
 ### Behoben
 
 - **whisper.cpp lässt sich wieder installieren.** whisper.cpp veröffentlicht seine
@@ -50,7 +52,6 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
 - **Transkription:** Der Fortschrittsbalken zeigt jetzt den tatsächlichen Stand statt unbestimmt
   zu laufen — einschließlich des Vorbereitungsschritts, in dem das Audio aus dem Video
   gelesen wird.
-
 - **Werkzeuge:** Der Abbrechen-Knopf neben dem Fortschritt einer Installation oder Reparatur war
   leer. Er ist jetzt beschriftet.
 - **Twitch:** Der Knopf zum Prüfen und Aktualisieren von TwitchDownloaderCLI schrumpfte nach der
@@ -58,6 +59,8 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
 
 ### Geändert
 
+- **whisper.cpp-Updates:** Erscheint eine neue whisper.cpp-Version, bietet die Seite „Werkzeuge"
+  jetzt ein Update an. Bisher ließ sich die Version nicht ermitteln, und es gab nie ein Angebot.
 - **Werkzeuge-Seite mit Bildschirmleser:** Die Knöpfe jeder Zeile nennen jetzt auch das Werkzeug
   („whisper.cpp: Deinstallieren"), statt in jeder Zeile gleich zu heißen.
 - **Einheitlichere Oberfläche:** Knöpfe sind auf allen Seiten und in allen Dialogen gleich hoch und
@@ -281,7 +284,8 @@ Selbst-Update, der Verwaltung der externen Werkzeuge und einer einheitlichen Obe
 > Ältere Einträge wurden nicht rückwirkend erfasst. Die vollständige Historie steht in den
 > [GitHub-Releases](https://github.com/MortysTerminal/MortysDLP/releases).
 
-[Unreleased]: https://github.com/MortysTerminal/MortysDLP/compare/2026.09.09...HEAD
+[Unreleased]: https://github.com/MortysTerminal/MortysDLP/compare/2026.10.27...HEAD
+[2026.10.27]: https://github.com/MortysTerminal/MortysDLP/compare/2026.09.09...2026.10.27
 [2026.09.09]: https://github.com/MortysTerminal/MortysDLP/compare/2026.09.07...2026.09.09
 [2026.09.07]: https://github.com/MortysTerminal/MortysDLP/compare/2026.06.01...2026.09.07
 [2026.06.01]: https://github.com/MortysTerminal/MortysDLP/releases/tag/2026.06.01

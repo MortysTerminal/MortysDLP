@@ -4,7 +4,7 @@
 geplant ist. Bekannte Einschränkungen sind bewusst mit aufgeführt; sie werden nach und nach
 behoben.
 
-**Stand:** 2026-09-09 · beschreibt Version `2026.09.09`
+**Stand:** 2026-10-27 · beschreibt Version `2026.10.27`
 
 ---
 
@@ -202,11 +202,13 @@ wird (yt-dlp/ffmpeg beim Start, whisper.cpp/TwitchDownloaderCLI auf ihren jeweil
 Jeder dieser Schritte steht mit einer eigenen Zeile im Protokoll — auch die Erfolgsfälle,
 nicht nur die Fehlschläge.
 
-**Warum bei whisper.cpp aktuell kein Update angeboten wird:** Der Anbieter kennzeichnet seine
-Programm-Pakete anders als seine Versions-Tags, sodass sich daraus derzeit keine vergleichbare
-Versionsnummer gewinnen lässt. Fehlt whisper.cpp ganz, lässt es sich davon unabhängig über eine
-feste Adresse installieren — nur das Update-Angebot bleibt bis auf Weiteres aus, statt eines zu
-zeigen, das sich nicht belegen lässt.
+**Woher whisper.cpp seine Version bekommt:** Der Anbieter hängt seine Programmpakete nicht an
+die Versions-Releases (`vX.Y.Z`), sondern an fortlaufende Build-Releases desselben Stands.
+MortysDLP sucht zur neuesten Version das Build-Release mit demselben Commit und lädt dessen Paket
+mit der Prüfsumme, die GitHub dazu angibt. Weicht die installierte Version ab, wird ein Update
+angeboten. Antwortet GitHub nicht wie erwartet, weicht die Installation auf ein fest
+hinterlegtes, geprüftes Paket aus — aber nie auf eine ältere Version als die bereits
+installierte.
 
 **Warum ffmpeg nie erzwungen wird:** ffmpeg ist die Komponente, bei der ein unnötiges Update am
 meisten kaputtmachen kann, und die Versionsangabe der ausgelieferten Ausgabe erlaubt keine
@@ -257,6 +259,13 @@ angezeigten Pfad öffnet den Ordner im Explorer. „Pfad ändern" öffnet den Pf
   Downloads werden nicht eingetragen. Ganze Playlists erzeugen keinen Eintrag.
 - **Benutzerdefinierter Videotitel** — ersetzt `%(title)s` im Dateinamen. Ungültige Zeichen
   werden ersetzt, Leerzeichen zu Bindestrichen, alles kleingeschrieben.
+- **Dateinamen** folgen immer den Windows-Regeln (Einzel-, Batch- und Twitch-Download): Zeichen,
+  die Windows in Dateinamen verbietet, und reservierte Namen (`CON`, `NUL`, `COM1` …) werden
+  ersetzt, ein `%` im Titel, eigenen Namen oder Zielordner bleibt erhalten. Der Videotitel wird
+  auf höchstens 120 Bytes gekürzt — in tief verschachtelten Zielordnern weiter, damit der Pfad
+  unter der Windows-Grenze von 260 Zeichen bleibt. Titel mit Umlauten, Emoji oder asiatischen
+  Schriftzeichen werden dadurch stärker gekürzt. Die fertige Datei findet MortysDLP über den
+  Pfad, den yt-dlp nach dem Download meldet.
 
 ### Optionen
 - **Zeitspanne von–bis** — lädt nur diesen Ausschnitt (`--download-sections`).
@@ -409,7 +418,9 @@ Wandelt Sprache in Text — vollständig lokal, ohne Cloud und ohne API-Schlüss
   explizit übergeben, weil manche whisper.cpp-Versionen sonst nach Englisch **übersetzen**
   statt zu transkribieren.
 - **Ausgabeformate**: TXT, SRT, VTT — beliebig kombinierbar.
-- Fortschritt in Prozent (aus `--print-progress`), Abbruch jederzeit möglich, temporäre
+- Fortschritt in Prozent: aus der Fortschrittsangabe von whisper.cpp, ersatzweise geschätzt aus
+  den Zeitstempeln der fertigen Abschnitte. Bei Videos zeigt das erste Zehntel des Balkens die
+  Audio-Vorbereitung. Der Balken läuft nie rückwärts. Abbruch jederzeit möglich, temporäre
   Dateien werden aufgeräumt.
 - Threadzahl: `Prozessorkerne / 2`, mindestens 2, höchstens 8.
 
@@ -483,7 +494,11 @@ lassen.
   manuelles Löschen wieder in Ordnung zu bringen wäre.
 - **Aktualisieren** erscheint nur, wenn tatsächlich eine neuere Fassung bekannt ist.
 - **Deinstallieren** fragt zurück; bei yt-dlp und ffmpeg wird ausdrücklich genannt, welche
-  Funktionen danach nicht mehr verfügbar sind, bis das Werkzeug neu installiert wird.
+  Funktionen danach nicht mehr verfügbar sind, bis das Werkzeug neu installiert wird. Bei
+  whisper.cpp gibt es dieselbe Wahl wie im Fenster „Whisper-Modelle": nur das Programm entfernen
+  (die Sprachmodelle bleiben) oder vollständig löschen (der ganze Whisper-Ordner). Ist eine Datei
+  gesperrt, etwa durch eine laufende Transkription, bleiben die Modelle in jedem Fall erhalten.
+  Das Löschen läuft im Hintergrund.
 - **Ordner öffnen** zeigt den Ablageort im Explorer.
 - **Alle prüfen** stößt eine erneute Prüfung aller Werkzeuge an, ohne den Zwischenspeicher
   der letzten Prüfung zu verwenden.
