@@ -52,31 +52,13 @@ namespace MortysDLP.Services
         // ── Deinstallation ───────────────────────────────────────────────────────────
 
         /// <summary>
-        /// Deinstalliert Whisper.
-        /// keepModels=true → löscht nur whisper.exe und alle DLLs (Modelle bleiben erhalten, Reparatur möglich).
-        /// keepModels=false → löscht das gesamte Whisper-Verzeichnis rekursiv.
+        /// Deinstalliert Whisper — derselbe Weg wie auf der Werkzeuge-Seite
+        /// (<see cref="WhisperTool.Uninstall"/>), damit beide Stellen dasselbe entfernen.
+        /// keepModels=true → Programm, Bibliotheken und Reste weg, Sprachmodelle bleiben.
+        /// keepModels=false → der ganze Whisper-Ordner samt Modellen.
         /// </summary>
-        public static Task UninstallAsync(bool keepModels) => Task.Run(() =>
-        {
-            string whisperExe = WhisperExePath;
-            string? whisperDir = Path.GetDirectoryName(whisperExe);
-            if (string.IsNullOrEmpty(whisperDir)) return;
-
-            if (keepModels)
-            {
-                // Nur .exe und .dll Dateien entfernen, Modelle-Unterordner bleibt erhalten
-                foreach (string file in Directory.GetFiles(whisperDir, "*.exe"))
-                    File.Delete(file);
-                foreach (string file in Directory.GetFiles(whisperDir, "*.dll"))
-                    File.Delete(file);
-            }
-            else
-            {
-                // Gesamtes Verzeichnis inkl. Modelle löschen
-                if (Directory.Exists(whisperDir))
-                    Directory.Delete(whisperDir, recursive: true);
-            }
-        });
+        public static Task<ToolRemovalResult> UninstallAsync(bool keepModels) =>
+            Task.Run(() => new WhisperTool().Uninstall(keepModels));
 
         // ── Audio-Extraktion
 

@@ -101,6 +101,95 @@ namespace MortysDLP.Services.Tools
         // Änderung upstream veralten, ohne dass es hier auffiele.
         public override IReadOnlyList<string> TargetPaths => _targetPaths;
 
+        /// <summary>Die Sprachmodelle — groß, einzeln heruntergeladen, und beim Neuinstallieren des
+        /// Programms weiter verwendbar.</summary>
+        public override bool HasUserData => true;
+
+        /// <summary>Entfernt das ganze Paket statt nur der einen Zieldatei: Neben
+        /// <c>whisper.exe</c> liegen rund ein Dutzend Laufzeitbibliotheken (<c>ggml*.dll</c>,
+        /// <c>libopenblas.dll</c> …) und gegebenenfalls Reste früherer Aktualisierungen im selben
+        /// Ordner — siehe <see cref="RemovePackage"/>.</summary>
+        public override ToolRemovalResult Uninstall(bool keepUserData = false)
+        {
+            string? whisperDir = Path.GetDirectoryName(AppPaths.Whisper);
+            if (string.IsNullOrEmpty(whisperDir))
+                return new ToolRemovalResult([], []);
+
+            return RemovePackage(whisperDir, AppPaths.WhisperModels, keepUserData);
+        }
+
+        /// <summary>
+        /// Entfernt den Whisper-Ordner. Mit <paramref name="keepModels"/> bleibt nur
+        /// <paramref name="modelsDir"/> stehen — alles andere darin (Programm, Bibliotheken, Reste)
+        /// wird gelöscht; ohne vorhandene Modelle verschwindet auch der dann leere Ordner. Ohne
+        /// <paramref name="keepModels"/> wird der Ordner samt Modellen gelöscht. Wirft nicht; was sich
+        /// nicht löschen ließ (z. B. weil eine Transkription gerade läuft), steht im Ergebnis.
+        /// </summary>
+        internal static ToolRemovalResult RemovePackage(string whisperDir, string modelsDir, bool keepModels)
+        {
+            var removed = new List<string>();
+            var failed = new List<string>();
+
+            if (!Directory.Exists(whisperDir))
+            {
+                Log.Info("[whisper] Nichts zu entfernen - es war nichts installiert.");
+                return new ToolRemovalResult(removed, failed);
+            }
+
+            string modelsFull = Path.TrimEndingDirectorySeparator(Path.GetFullPath(modelsDir));
+            List<string> entries;
+            bool hasModels;
+            try
+            {
+                hasModels = Directory.Exists(modelsDir) && Directory.EnumerateFileSystemEntries(modelsDir).Any();
+                entries = Directory.EnumerateFileSystemEntries(whisperDir).ToList();
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                Log.Warn($"[whisper] Ordner nicht lesbar, nichts entfernt: {ex.Message}", ex);
+                failed.Add(whisperDir);
+                return new ToolRemovalResult(removed, failed);
+            }
+
+            // Erst alles außer den Modellen: Ist das Programm gerade in Benutzung (laufende
+            // Transkription), scheitert es hier - und die Modelle sind dann noch unangetastet,
+            // statt dass ein rekursives Löschen sie schon mitgenommen hat.
+            foreach (string entry in entries)
+            {
+                if (string.Equals(Path.TrimEndingDirectorySeparator(Path.GetFullPath(entry)), modelsFull,
+                        StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                TryRemove(entry, removed, failed);
+            }
+
+            if (failed.Count > 0 || (keepModels && hasModels))
+                return new ToolRemovalResult(removed, failed);
+
+            // Vollständig, oder "Modelle behalten" ohne Modelle: Rest samt Ordner.
+            TryRemove(whisperDir, removed, failed);
+            return new ToolRemovalResult(removed, failed);
+        }
+
+        private static void TryRemove(string path, List<string> removed, List<string> failed)
+        {
+            try
+            {
+                if (Directory.Exists(path))
+                    Directory.Delete(path, recursive: true);
+                else
+                    File.Delete(path);
+
+                removed.Add(path);
+                Log.Info($"[whisper] {Path.GetFileName(path)} entfernt.");
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                Log.Warn($"[whisper] {Path.GetFileName(path)} konnte nicht entfernt werden: {ex.Message}", ex);
+                failed.Add(path);
+            }
+        }
+
         public override IReadOnlyList<IReleaseSource> CreateSources() => ReleaseSources.CreateWhisperChain();
 
         public override ReleaseQuery CreateQuery() => new(
