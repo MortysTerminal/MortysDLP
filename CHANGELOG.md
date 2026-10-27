@@ -47,6 +47,9 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
   mehr als „bereits vorhanden" erkannt und erneut geladen.
 - **Heruntergeladene Dateien werden auch mit Emoji oder fremden Schriftzeichen im Titel
   zuverlässig wiedergefunden** (Schnittmodus, GIF-Erstellung, x264-Nachbearbeitung im Batch).
+- **Transkription:** Der Fortschrittsbalken zeigt jetzt den tatsächlichen Stand statt unbestimmt
+  zu laufen — einschließlich des Vorbereitungsschritts, in dem das Audio aus dem Video
+  gelesen wird.
 
 ### Geändert
 
