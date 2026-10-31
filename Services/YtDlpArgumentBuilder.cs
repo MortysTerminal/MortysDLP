@@ -72,13 +72,15 @@ namespace MortysDLP.Services
                 args.Add(YtDlpOutputTemplate.EscapeLiteral(job.FinalPathFile));
             }
 
-            if (job.Timespan is { } timespan)
+            bool usesInfoJson = !string.IsNullOrEmpty(job.InfoJsonPath);
+
+            if (job.Timespan is { } timespan && !usesInfoJson)
             {
                 args.Add("--download-sections");
                 args.Add($"*{timespan.From}-{timespan.To}");
             }
 
-            if (!string.IsNullOrEmpty(job.FirstSecondsDuration))
+            if (!string.IsNullOrEmpty(job.FirstSecondsDuration) && !usesInfoJson)
             {
                 args.Add("--downloader");
                 args.Add(job.FirstSecondsFfmpegPath ?? "");
@@ -108,7 +110,24 @@ namespace MortysDLP.Services
             if (job.NoPlaylist)
                 args.Add("--no-playlist");
 
-            args.Add(job.Url);
+            if (usesInfoJson)
+            {
+                // Einzelne Segmente werden zeitweise mit 401 abgelehnt. Mit 8 parallelen
+                // Verbindungen brach die Audiospur daran ab, mit 3 kamen die Wiederholungen durch.
+                // Ohne die Abbruch-Option überspringt yt-dlp ein nicht ladbares Segment
+                // stillschweigend, und die Datei hätte eine Lücke.
+                args.Add("-N");
+                args.Add("3");
+                args.Add("--fragment-retries");
+                args.Add("20");
+                args.Add("--abort-on-unavailable-fragments");
+                args.Add("--load-info-json");
+                args.Add(job.InfoJsonPath!); // durch usesInfoJson geprüft
+            }
+            else
+            {
+                args.Add(job.Url);
+            }
 
             return args;
         }

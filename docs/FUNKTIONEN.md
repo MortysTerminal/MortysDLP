@@ -271,10 +271,20 @@ angezeigten Pfad öffnet den Ordner im Explorer. „Pfad ändern" öffnet den Pf
 - **Zeitspanne von–bis** — lädt nur diesen Ausschnitt (`--download-sections`).
   Formate: `mm:ss` oder `hh:mm:ss`.
   *Der Schnitt erfolgt an Keyframe-Grenzen und kann daher um wenige Sekunden abweichen.*
+  Vor dem Download fragt MortysDLP den Zustand des Videos ab (wenige Sekunden). Wird die
+  Aufzeichnung eines gerade beendeten Livestreams noch verarbeitet (`post_live`), lädt yt-dlp
+  statt `--download-sections` nur die Segmente, die den Ausschnitt abdecken (`--load-info-json`,
+  3 parallele Verbindungen). Dabei wird nach außen auf ganze Segmente gerundet. Ein fehlgeschlagener
+  Versuch wird bis zu zweimal mit frischen Adressen fortgesetzt.
+  Nach dem Download wird die Länge geprüft: Ist die Datei weniger als halb so lang wie erwartet und
+  fehlen mindestens 5 Sekunden, gilt der Download als fehlgeschlagen. Eine so zu kurze Datei, die
+  schon vorher im Zielordner lag, wird gelöscht und einmal neu geladen. Ohne bekannte Videodauer
+  entfällt die Prüfung. Eine Endzeit hinter dem Videoende ist erlaubt.
 - **Timeline** — grafische Auswahl des Ausschnitts. Ruft zuvor die Videodauer ab
   (Zeitlimit 15 s) und öffnet ein Fenster mit zwei Schiebereglern plus manueller Eingabe.
 - **Von Start bis N Sekunden** — lädt nur die ersten N Sekunden (ffmpeg als Downloader).
-  Schließt sich mit „Zeitspanne" gegenseitig aus.
+  Schließt sich mit „Zeitspanne" gegenseitig aus. Vorabfrage, Segment-Weg und Längenprüfung
+  gelten genauso wie bei der Zeitspanne.
 - **Videoqualität** — Höchste, 2160p, 1440p, 1080p, 720p, 480p, 360p, 144p. Der Wert wird
   sprachunabhängig über ein `Tag` ausgewertet.
 - **Videoformat (Container)** — mp4, mkv, mov, avi. Standardmäßig wird nur *remuxt*

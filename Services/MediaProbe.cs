@@ -88,6 +88,34 @@ namespace MortysDLP.Services
             }
         }
 
+        /// <summary>Ermittelt den Zeitstempel des ersten Pakets einer Datei oder Adresse in
+        /// Sekunden. <c>null</c> bei jedem Fehler — wie <see cref="GetDurationAsync"/>.</summary>
+        public static async Task<double?> GetFirstPacketSecondsAsync(string ffprobePath, string source, CancellationToken ct = default)
+        {
+            try
+            {
+                var result = await ProcessRunner.RunAsync(
+                    ffprobePath,
+                    ["-v", "error", "-read_intervals", "%+#1", "-show_entries", "packet=pts_time", "-of", "csv=p=0", source],
+                    timeout: TimeSpan.FromSeconds(15), ct: ct);
+
+                return ParseFirstPacketSeconds(result.StdOut);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>Liest die erste Zeile von <c>packet=pts_time</c> aus <c>-of csv=p=0</c>.</summary>
+        internal static double? ParseFirstPacketSeconds(string ffprobeStdOut)
+        {
+            string? first = ffprobeStdOut
+                .Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .FirstOrDefault();
+            return first is null ? null : ParseDuration(first.TrimEnd(','));
+        }
+
         /// <summary>Liest <c>format=duration</c> aus <c>-of default=noprint_wrappers=1:nokey=1</c>
         /// — eine einzelne Zahl, keine Schlüssel=Wert-Zeile (deshalb <c>nokey=1</c>).</summary>
         internal static double? ParseDuration(string ffprobeStdOut) =>

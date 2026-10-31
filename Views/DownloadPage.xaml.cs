@@ -31,6 +31,8 @@ namespace MortysDLP.Views
         /// das.</summary>
         private bool _optionsUnlocked = true;
         private string? _lastOutputFilePath;
+        private volatile bool _lastRunFoundExistingFile;
+        private const int MaxPostLiveAttempts = 3;
 
         private static readonly char[] NewlineChars = ['\r', '\n'];
 
@@ -510,6 +512,13 @@ namespace MortysDLP.Views
                 txtDownloadStatus.Text = UITextDictionary.Get("DownloadPage.Status.ErrorToolMissing");
                 EnsureRequiredTools(); // blendet die Sperr-Karte mit dem fehlenden Werkzeug ein
             }
+            catch (DownloadSectionTooShortException ex)
+            {
+                AppendOutput($"[ERROR] {ex.Message}");
+                SetiaStatusIcon(iaStatusIconType.Error);
+                UpdateProgress(_lastProgress, isError: true);
+                txtDownloadStatus.Text = UITextDictionary.Get("DownloadPage.Status.ErrorSectionTooShort");
+            }
             catch (Exception ex)
             {
                 AppendOutput($"[ERROR] {ex.Message}");
@@ -629,7 +638,7 @@ namespace MortysDLP.Views
             return "192k";
         }
 
-        private YtDlpJob BuildYtDlpJob(int? sourceAsr, int? sourceChannels, string urlOverride)
+        private YtDlpJob BuildYtDlpJob(int? sourceAsr, int? sourceChannels, string urlOverride, string? infoJsonPath = null)
         {
             string url = urlOverride;
             string timespanFrom = "";
@@ -773,6 +782,7 @@ namespace MortysDLP.Views
                 Timespan = isTimespan ? (timespanFrom, timespanTo) : null,
                 FirstSecondsDuration = isFirstSeconds ? firstSeconds : null,
                 FirstSecondsFfmpegPath = isFirstSeconds ? ffmpegPath : null,
+                InfoJsonPath = infoJsonPath,
                 BandwidthLimitMBps = Properties.Settings.Default.DownloadBandwidthMBps,
             };
 
@@ -977,6 +987,7 @@ namespace MortysDLP.Views
                 {
                     const string suffix = " has already been downloaded";
                     _lastOutputFilePath = line["[download] ".Length..^suffix.Length].Trim();
+                    _lastRunFoundExistingFile = true;
                 }
             }
 
@@ -1085,6 +1096,7 @@ namespace MortysDLP.Views
         private async Task<bool> RunYtDlpAsync(string ytDlpPath, YtDlpJob job, CancellationToken token)
         {
             _lastOutputFilePath = null;
+            _lastRunFoundExistingFile = false;
             string timespanTo = string.Empty;
             string timespanFrom = string.Empty;
             bool isTimespanChecked = false;
@@ -1565,13 +1577,7 @@ namespace MortysDLP.Views
                 sourceChannels = meta.Channels;
             }
 
-            // Neustart-Schleife: bei Limit-Änderung während des Downloads neu starten
-            while (true)
-            {
-                YtDlpJob job = BuildYtDlpJob(sourceAsr, sourceChannels, url);
-                bool needsRestart = await RunYtDlpAsync(ytDlpPath, job, token);
-                if (!needsRestart) break;
-            }
+            await DownloadVideoAsync(ytDlpPath, sourceAsr, sourceChannels, url, token);
 
             // Post-Download: Schnittmodus-Codec-Garantie (H.264)
             if (isVideoformat)
@@ -1629,6 +1635,94 @@ namespace MortysDLP.Views
                 {
                     AppendOutput("[GIF] WARNUNG: Ausgabedatei nicht gefunden – GIF-Konvertierung übersprungen.");
                 }
+            }
+        }
+
+        /// <summary>Lädt ein Video. Ohne Zeitausschnitt genau der bisherige Lauf. Mit Ausschnitt
+        /// wird zuvor die Quelle geprüft (siehe <see cref="DownloadSection"/>) und danach, ob die
+        /// Datei die erwartete Länge hat — yt-dlp endet auch bei einem falschen Ergebnis mit
+        /// Exit-Code 0.</summary>
+        private async Task DownloadVideoAsync(string ytDlpPath, int? sourceAsr, int? sourceChannels, string url, CancellationToken token)
+        {
+            bool hasSection = Dispatcher.Invoke(() => cbTimespan.IsChecked == true || cbFirstSeconds.IsChecked == true);
+            if (!hasSection)
+            {
+                await RunYtDlpUntilFinishedAsync(ytDlpPath, sourceAsr, sourceChannels, url, null, token);
+                return;
+            }
+
+            YtDlpJob probeJob = BuildYtDlpJob(sourceAsr, sourceChannels, url);
+            if (DownloadSection.FromJob(probeJob) is not { } section)
+            {
+                await RunYtDlpUntilFinishedAsync(ytDlpPath, sourceAsr, sourceChannels, url, null, token);
+                return;
+            }
+
+            SectionSource? source = await DownloadSection.QuerySourceAsync(ytDlpPath, probeJob, AppendOutput, token);
+            double? expectedSeconds = source is null ? null : DownloadSection.ExpectedSeconds(section, source.DurationSeconds);
+            bool replacedExistingFile = false;
+
+            for (int attempt = 1; ; attempt++)
+            {
+                using PreparedSectionInfo? prepared = source is { IsPostLive: true }
+                    ? await PreparePostLiveSectionAsync(ytDlpPath, probeJob, source, section, token)
+                    : null;
+
+                try
+                {
+                    await RunYtDlpUntilFinishedAsync(ytDlpPath, sourceAsr, sourceChannels, url, prepared?.InfoJsonPath, token);
+                }
+                catch (InvalidOperationException ex) when (prepared is not null && attempt < MaxPostLiveAttempts && !token.IsCancellationRequested)
+                {
+                    // Die signierten Adressen können abgelehnt werden (401), auch wenn sie noch
+                    // gültig sein sollten. Frische Metadaten, bereits Geladenes bleibt erhalten.
+                    AppendOutput($"[ABSCHNITT] Versuch {attempt} fehlgeschlagen ({ex.Message}), lade Segmentliste neu.");
+                    Log.Warn($"Segment-Download fehlgeschlagen, Versuch {attempt} von {MaxPostLiveAttempts}.", ex);
+                    continue;
+                }
+
+                if (expectedSeconds is not { } expected || ResolveOutputFilePath() is not { } path)
+                    return;
+
+                double? actualSeconds = await MediaProbe.GetDurationAsync(AppPaths.Ffprobe, path, token);
+                if (actualSeconds is not { } actual || !DownloadSection.IsTooShort(expected, actual))
+                    return;
+
+                // Eine zu kurze Datei aus einem früheren Lauf blockiert sonst jeden neuen Versuch,
+                // weil yt-dlp sie als „bereits heruntergeladen" überspringt. Einmal ersetzen; was
+                // gerade erst entstanden ist, bleibt liegen und wird gemeldet.
+                if (_lastRunFoundExistingFile && !replacedExistingFile)
+                {
+                    replacedExistingFile = true;
+                    AppendOutput($"[ABSCHNITT] Vorhandene Datei ist zu kurz, wird ersetzt: {System.IO.Path.GetFileName(path)}");
+                    System.IO.File.Delete(path);
+                    continue;
+                }
+
+                throw new DownloadSectionTooShortException(expected, actual);
+            }
+        }
+
+        /// <summary>Bereitet den Segment-Weg vor. Das kann bei langen Streams einige Zeit dauern,
+        /// deshalb zeigt der Status bis zum ersten Fortschritt wieder die Vorbereitungsphase.</summary>
+        private async Task<PreparedSectionInfo?> PreparePostLiveSectionAsync(
+            string ytDlpPath, YtDlpJob job, SectionSource source, RequestedSection section, CancellationToken token)
+        {
+            AppendOutput($"[ABSCHNITT] Aufzeichnung wird noch verarbeitet ({source.LiveStatus}), lade den Abschnitt über die Segmentliste.");
+            _inPreparationPhase = true;
+            Dispatcher.Invoke(() => txtDownloadStatus.Text = UITextDictionary.Get("DownloadPage.Status.FetchingInfo"));
+            return await DownloadSection.PrepareAsync(ytDlpPath, job, source, section, AppendOutput, token);
+        }
+
+        /// <summary>Neustart-Schleife: bei Limit-Änderung während des Downloads neu starten.</summary>
+        private async Task RunYtDlpUntilFinishedAsync(
+            string ytDlpPath, int? sourceAsr, int? sourceChannels, string url, string? infoJsonPath, CancellationToken token)
+        {
+            while (true)
+            {
+                YtDlpJob job = BuildYtDlpJob(sourceAsr, sourceChannels, url, infoJsonPath);
+                bool needsRestart = await RunYtDlpAsync(ytDlpPath, job, token);
+                if (!needsRestart) break;
             }
         }
 
@@ -1763,12 +1857,7 @@ namespace MortysDLP.Views
                 _inPreparationPhase = false;
                 Dispatcher.Invoke(() => txtDownloadStatus.Text = T("DownloadPage.Status.Loading"));
 
-                while (true)
-                {
-                    YtDlpJob job = BuildYtDlpJob(sourceAsr, sourceChannels, videoUrl);
-                    bool needsRestart = await RunYtDlpAsync(ytDlpPath, job, token);
-                    if (!needsRestart) break;
-                }
+                await DownloadVideoAsync(ytDlpPath, sourceAsr, sourceChannels, videoUrl, token);
 
                 // Post-Download: Schnittmodus-Codec-Garantie (H.264)
                 if (isVideoformat)

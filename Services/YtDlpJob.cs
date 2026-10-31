@@ -76,6 +76,12 @@ namespace MortysDLP.Services
         /// ist.</summary>
         public string? FirstSecondsFfmpegPath { get; init; }
 
+        /// <summary>Metadatendatei für <c>--load-info-json</c>, deren Segmentliste bereits auf den
+        /// Ausschnitt gekürzt ist (siehe <see cref="DownloadSection"/>). Ist sie gesetzt, gelten
+        /// <see cref="Timespan"/> und <see cref="FirstSecondsDuration"/> als erledigt und werden
+        /// nicht mehr an yt-dlp übergeben — beide würden wieder ffmpeg statt der Segmente nutzen.</summary>
+        public string? InfoJsonPath { get; init; }
+
         // ── Allgemein ─────────────────────────────────────────────────────────────
 
         /// <summary>Bandbreitenlimit in MB/s für <c>--limit-rate</c>. 0 oder negativ heißt

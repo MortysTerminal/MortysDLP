@@ -25,6 +25,13 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
 
 ## [Unreleased]
 
+### Behoben
+
+- **Zeitausschnitte funktionieren auch bei gerade beendeten Livestreams.** Bisher kam dort nur eine
+  Datei von wenigen Sekunden an. MortysDLP erkennt solche Streams jetzt selbst, an der Bedienung
+  ändert sich nichts.
+- **Zu kurze Zeitausschnitte werden erkannt** und nicht mehr als erfolgreich gemeldet.
+
 ## [2026.10.27] – 2026-10-27
 
 ### Behoben
