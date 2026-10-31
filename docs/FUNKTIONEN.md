@@ -4,7 +4,7 @@
 geplant ist. Bekannte Einschränkungen sind bewusst mit aufgeführt; sie werden nach und nach
 behoben.
 
-**Stand:** 2026-10-27 · beschreibt Version `2026.10.27`
+**Stand:** 2026-10-31 · beschreibt Version `2026.10.31`
 
 ---
 

@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <AssemblyTitle>MortysDLP</AssemblyTitle>
@@ -15,7 +15,7 @@
     <NeutralLanguage>de</NeutralLanguage>
 
     <!-- EINZIGE manuell gepflegte Versionsangabe. Muss dem GitHub-Tag entsprechen. -->
-    <ReleaseVersion>2026.10.27</ReleaseVersion>
+    <ReleaseVersion>2026.10.31</ReleaseVersion>
 
     <!-- Numerische Assembly-Version: führende Nullen sind dort verboten (2026.06.01 -> 2026.6.1) -->
     <Version>$([System.Text.RegularExpressions.Regex]::Replace($(ReleaseVersion), '\.0(\d)', '.$1'))</Version>

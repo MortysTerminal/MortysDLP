@@ -25,6 +25,8 @@ formuliert: was sich für die Bedienung ändert, nicht welcher Code angefasst wu
 
 ## [Unreleased]
 
+## [2026.10.31] – 2026-10-31
+
 ### Behoben
 
 - **Zeitausschnitte funktionieren auch bei gerade beendeten Livestreams.** Bisher kam dort nur eine
@@ -291,7 +293,8 @@ Selbst-Update, der Verwaltung der externen Werkzeuge und einer einheitlichen Obe
 > Ältere Einträge wurden nicht rückwirkend erfasst. Die vollständige Historie steht in den
 > [GitHub-Releases](https://github.com/MortysTerminal/MortysDLP/releases).
 
-[Unreleased]: https://github.com/MortysTerminal/MortysDLP/compare/2026.10.27...HEAD
+[Unreleased]: https://github.com/MortysTerminal/MortysDLP/compare/2026.10.31...HEAD
+[2026.10.31]: https://github.com/MortysTerminal/MortysDLP/compare/2026.10.27...2026.10.31
 [2026.10.27]: https://github.com/MortysTerminal/MortysDLP/compare/2026.09.09...2026.10.27
 [2026.09.09]: https://github.com/MortysTerminal/MortysDLP/compare/2026.09.07...2026.09.09
 [2026.09.07]: https://github.com/MortysTerminal/MortysDLP/compare/2026.06.01...2026.09.07
